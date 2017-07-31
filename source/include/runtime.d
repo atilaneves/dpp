@@ -6,7 +6,10 @@ version(unittest) {
 }
 
 void run(string[] args) {
-
+    import std.stdio: File;
+    const inputFileName = args[1];
+    const outputFileName = args[2];
+    return preprocess!File(inputFileName, outputFileName);
 }
 
 void preprocess(File)(in string inputFileName, in string outputFileName) {
@@ -20,41 +23,4 @@ void preprocess(File)(in string inputFileName, in string outputFileName) {
     foreach(line; File(inputFileName).byLine.map!(a => cast(string)a)) {
         outputFile.writeln(line.translate.join("\n"));
     }
-}
-
-@("preprocess no includes")
-@safe unittest {
-
-    const inputFileName = "no_include.d_";
-    TestFile.writeFile(inputFileName,
-                       [`void main() {}`]);
-
-    const outputFileName = "no_include.d";
-    preprocess!TestFile(inputFileName, outputFileName);
-
-    TestFile.output(outputFileName).shouldEqual([`void main() {}`]);
-}
-
-@("preprocess simple include")
-@safe unittest {
-
-    TestFile.writeFile(`foo.h`, [`int add(int i, int j);`]);
-
-    const inputFileName = "simple_include.d_";
-    TestFile.writeFile(inputFileName,
-                       [
-                           `#include "foo.h"`,
-                           `void main() {}`
-                       ]);
-
-    const outputFileName = "simple_include.d";
-    preprocess!TestFile(inputFileName, outputFileName);
-
-    TestFile.output(outputFileName).shouldEqual(
-        [
-            `extern(C) {`,
-            `    int add(int i, int j);`,
-            `}`,
-            `void main() {}`,
-        ]);
 }

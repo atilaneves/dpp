@@ -8,20 +8,13 @@ version(unittest) {
 
 
 
-string[] translate(in string line) @safe {
-
-    import std.exception: enforce;
+string[] translate(string line) @safe {
 
     const headerFileName = getHeaderFileName(line);
 
-    if(headerFileName == "") {
-        return [line];
-    }
-
-    enforce(headerFileName.exists,
-            "Cannot open " ~ headerFileName);
-
-    return expand(headerFileName);
+    return headerFileName == ""
+        ? [line]
+        : expand(headerFileName);
 }
 
 
@@ -59,13 +52,4 @@ private string getHeaderFileName(string line) @safe pure {
     getHeaderFileName(`#include "foo.h" // comment`).shouldEqual(`foo.h`);
     getHeaderFileName(`#include <foo.h>`).shouldEqual(`foo.h`);
     getHeaderFileName(`    #include "foo.h"`).shouldEqual(`foo.h`);
-}
-
-private bool exists(in string fileName) @safe {
-    version(unittest) {
-        return TestFile.exists(fileName);
-    } else {
-        import std.file: _exists = exists;
-        return fileName._exists;
-    }
 }
