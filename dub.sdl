@@ -1,0 +1,28 @@
+name "include"
+description "Include C/C++ headers directly in D files for preprocessing"
+authors "Atila Neves"
+copyright "Copyright © 2017, Atila Neves"
+license "boost"
+targetType "executable"
+targetPath "bin"
+
+
+configuration "executable" {
+}
+
+configuration "unittest" {
+    targetType "executable"
+    targetName "ut"
+    mainSourceFile "ut.d"
+    dependency "unit-threaded" version="~>0.7.0"
+    versions "testingExcelD"
+}
+
+
+configuration "ut" {
+    targetType "executable"
+    targetName "utl"
+    mainSourceFile "ut.d"
+    dependency "unit-threaded" version="~>0.7.0"
+    versions "unitThreadedLight"
+}
