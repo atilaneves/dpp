@@ -5,15 +5,18 @@ copyright "Copyright © 2017, Atila Neves"
 license "boost"
 targetType "executable"
 targetPath "bin"
+dflags "-dip25" "-dip1000"
 
 
 configuration "executable" {
 }
 
+
 configuration "unittest" {
     targetType "executable"
     targetName "ut"
     mainSourceFile "ut.d"
+    excludedSourceFiles "source/main.d"
     dependency "unit-threaded" version="~>0.7.0"
     versions "testingExcelD"
 }
@@ -23,6 +26,7 @@ configuration "ut" {
     targetType "executable"
     targetName "utl"
     mainSourceFile "ut.d"
+    excludedSourceFiles "source/main.d"
     dependency "unit-threaded" version="~>0.7.0"
     versions "unitThreadedLight"
 }
