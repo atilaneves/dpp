@@ -16,11 +16,10 @@ void preprocess(File)(in string inputFileName, in string outputFileName) {
 
     import include.translation: translate;
     import std.algorithm: map;
-    import std.string: join;
 
     auto outputFile = File(outputFileName, "w");
 
     foreach(line; File(inputFileName).byLine.map!(a => cast(string)a)) {
-        outputFile.writeln(line.translate.join("\n"));
+        outputFile.writeln(line.translate);
     }
 }

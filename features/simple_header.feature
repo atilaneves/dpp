@@ -28,6 +28,7 @@ Feature: Including a simple header works
 
     And a file named "main.d_" with:
       """
+      #include "foo.h"
       void main(string[] args) {
           import std.stdio;
           import std.conv;
@@ -49,5 +50,5 @@ Feature: Including a simple header works
     When I successfully run `./app 3 4`
     Then the output should contain:
       """
-      Foo(3) + Foo(4) = 7;
+      Foo(3) + Foo(4) = Foo(7)
       """

@@ -6,7 +6,10 @@ license "boost"
 targetType "executable"
 targetPath "bin"
 dflags "-dip25" "-dip1000"
-
+dependency "dstep" path="../dstep"
+subConfiguration "dstep" "library"
+importPaths "source" "../dstep/"
+libs "clang"
 
 configuration "executable" {
 }

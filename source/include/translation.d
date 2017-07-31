@@ -8,25 +8,155 @@ version(unittest) {
 
 
 
-string[] translate(string line) @safe {
+string translate(string line) @safe {
 
     const headerFileName = getHeaderFileName(line);
 
     return headerFileName == ""
-        ? [line]
+        ? line
         : expand(headerFileName);
 }
 
 
 @("translate no include")
 @safe unittest {
-    "foo".translate.shouldEqual(["foo"]);
-    "bar".translate.shouldEqual(["bar"]);
+    "foo".translate.shouldEqual("foo");
+    "bar".translate.shouldEqual("bar");
 }
 
 
-private string[] expand(in string headerFileName) @safe pure nothrow {
-    return [""];
+private string expand(in string headerFileName) @trusted {
+    import dstep.translator.Translator: Translator;
+    import clang.Index: Index;
+    import clang.TranslationUnit: TranslationUnit;
+    import clang.Compiler: Compiler;
+    import dstep.Configuration: Configuration;
+    import dstep.translator.Options: Options;
+    import std.algorithm: map;
+    import std.array: array;
+    import std.path: stripExtension;
+
+    auto index = Index(false, false);
+    Configuration config;
+    Compiler compiler;
+    const includeFlags = compiler.extraIncludePaths.map!(a => "-I" ~ a).array ~ "/usr/include";
+    auto translationUnit = TranslationUnit.parse(index,
+                                                 headerFileName,
+                                                 includeFlags,
+                                                 compiler.extraHeaders);
+
+    void enforceCompiled () {
+        import clang.c.Index: CXDiagnosticSeverity;
+        import std.array : Appender;
+        import std.exception : enforce;
+
+        bool translate = true;
+        auto message = Appender!string();
+
+        foreach (diag ; translationUnit.diagnostics)
+        {
+            auto severity = diag.severity;
+
+            with (CXDiagnosticSeverity)
+                if (translate)
+                    translate = !(severity == CXDiagnostic_Error || severity == CXDiagnostic_Fatal);
+
+            message.put(diag.format);
+            message.put("\n");
+        }
+
+        enforce(translate, message.data);
+    }
+
+
+    enforceCompiled;
+
+
+    Options toOptions(in Configuration config, in string inputFile) {
+        import clang.Util : asAbsNormPath, setFromList;
+        import std.algorithm: map;
+        import std.array: array;
+
+        Options options;
+
+        options.inputFiles = config.inputFiles.map!(path => path.asAbsNormPath).array;
+        options.inputFile = inputFile.asAbsNormPath;
+        options.language = config.language;
+        options.enableComments = config.enableComments;
+        options.packageName = config.packageName;
+        options.publicSubmodules = config.publicSubmodules;
+        options.reduceAliases = config.reduceAliases;
+        options.aliasEnumMembers = config.aliasEnumMembers;
+        options.portableWCharT = config.portableWCharT;
+        options.zeroParamIsVararg = config.zeroParamIsVararg;
+        options.singleLineFunctionSignatures = config.singleLineFunctionSignatures;
+        options.spaceAfterFunctionName = config.spaceAfterFunctionName;
+        options.skipDefinitions = setFromList(config.skipDefinitions);
+        options.skipSymbols = setFromList(config.skipSymbols);
+        options.printDiagnostics = config.printDiagnostics;
+        options.collisionAction = config.collisionAction;
+        options.globalAttributes = config.globalAttributes;
+
+        return options;
+    }
+
+
+    class MyTranslator: Translator {
+
+        import dstep.translator.Output: Output;
+        import clang.Cursor: Cursor;
+
+        TranslationUnit _translationUnit;
+
+        this(TranslationUnit translationUnit, Options options = Options.init) {
+            super(translationUnit, options);
+            _translationUnit = translationUnit;
+        }
+
+        override string translateToString() {
+            return translateCursors.content;
+        }
+
+        override Output translateCursors() {
+
+            import clang.Util: contains;
+
+            Output result = new Output(context.commentIndex);
+
+            bool skipDeclaration(Cursor cursor) {
+                return (_translationUnit.spelling != "" &&
+                        _translationUnit.file(headerFileName) != cursor.location.spelling.file)
+                    || context.options.skipSymbols.contains(cursor.spelling)
+                    || cursor.isPredefined;
+            }
+
+            result.singleLine("extern(C) {");
+
+            foreach (cursor, parent; _translationUnit.cursor.allInOrder)
+            {
+                if (!skipDeclaration(cursor))
+                {
+                    translateInGlobalScope(result, cursor, parent);
+                }
+            }
+
+            if (context.commentIndex)
+                result.flushLocation(context.commentIndex.queryLastLocation());
+
+            // foreach (value; deferredDeclarations.values)
+            //     result.singleLine(value);
+
+            result.singleLine("}");
+
+            result.finalize();
+
+            return result;
+
+        }
+    }
+
+    auto translator = new MyTranslator(translationUnit, toOptions(config, headerFileName));
+    return translator.translateToString;
 }
 
 

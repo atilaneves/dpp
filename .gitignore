@@ -6,3 +6,8 @@ __dummy.html
 __test__*__
 bin
 tmp
+.reggae
+.ninja_*
+*.ninja
+reggaefile.d
+compile_commands.json
