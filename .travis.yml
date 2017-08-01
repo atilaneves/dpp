@@ -1,0 +1,11 @@
+language: d
+sudo: false
+install:
+  - gem install bundler
+  - bundle install
+
+script:
+  - dub test
+  - ./integration.sh
+  - dub build
+  - cucumber --tags ~@wip
