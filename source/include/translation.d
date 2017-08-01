@@ -1,6 +1,8 @@
 module include.translation;
 
 
+import include.clang: TranslationUnit, Cursor;
+
 version(unittest) {
     import unit_threaded;
     import include.test_util;
@@ -25,147 +27,52 @@ string translate(string line) @safe {
 }
 
 
-private string expand(in string headerFileName) @trusted {
-    import dstep.translator.Translator: Translator;
-    import clang.TranslationUnit: TranslationUnit;
-    import dstep.Configuration: Configuration;
-    import dstep.translator.Options: Options;
+private string expand(in string headerFileName) @safe {
+    import include.clang: parse;
 
-    auto translationUnit = parseTranslationUnit(headerFileName);
+    string ret = "extern(C) {\n";
+    auto translationUnit = parse(headerFileName);
 
-    Options toOptions(in Configuration config, in string inputFile) {
-        import clang.Util : asAbsNormPath, setFromList;
-        import std.algorithm: map;
-        import std.array: array;
-
-        Options options;
-
-        options.inputFiles = config.inputFiles.map!(path => path.asAbsNormPath).array;
-        options.inputFile = inputFile.asAbsNormPath;
-        options.language = config.language;
-        options.enableComments = config.enableComments;
-        options.packageName = config.packageName;
-        options.publicSubmodules = config.publicSubmodules;
-        options.reduceAliases = config.reduceAliases;
-        options.aliasEnumMembers = config.aliasEnumMembers;
-        options.portableWCharT = config.portableWCharT;
-        options.zeroParamIsVararg = config.zeroParamIsVararg;
-        options.singleLineFunctionSignatures = config.singleLineFunctionSignatures;
-        options.spaceAfterFunctionName = config.spaceAfterFunctionName;
-        options.skipDefinitions = setFromList(config.skipDefinitions);
-        options.skipSymbols = setFromList(config.skipSymbols);
-        options.printDiagnostics = config.printDiagnostics;
-        options.collisionAction = config.collisionAction;
-        options.globalAttributes = config.globalAttributes;
-
-        return options;
+    foreach(cursor, parent; translationUnit) {
+        ret ~= translate(translationUnit, cursor, parent);
     }
 
+    ret ~= "}\n";
 
-    class MyTranslator: Translator {
-
-        import dstep.translator.Output: Output;
-        import clang.Cursor: Cursor;
-
-        TranslationUnit _translationUnit;
-
-        this(TranslationUnit translationUnit, Options options = Options.init) {
-            super(translationUnit, options);
-            _translationUnit = translationUnit;
-        }
-
-        override string translateToString() {
-            return translateCursors.content;
-        }
-
-        override Output translateCursors() {
-
-            import clang.Util: contains;
-
-            Output result = new Output(context.commentIndex);
-
-            bool skipDeclaration(Cursor cursor) {
-                return (_translationUnit.spelling != "" &&
-                        _translationUnit.file(headerFileName) != cursor.location.spelling.file)
-                    || context.options.skipSymbols.contains(cursor.spelling)
-                    || cursor.isPredefined;
-            }
-
-            result.singleLine("extern(C) {");
-
-            foreach (cursor, parent; _translationUnit.cursor.allInOrder)
-            {
-                if (!skipDeclaration(cursor))
-                {
-                    translateInGlobalScope(result, cursor, parent);
-                }
-            }
-
-            if (context.commentIndex)
-                result.flushLocation(context.commentIndex.queryLastLocation());
-
-            // foreach (value; deferredDeclarations.values)
-            //     result.singleLine(value);
-
-            result.singleLine("}");
-
-            result.finalize();
-
-            return result;
-
-        }
-    }
-
-    Configuration config;
-    auto translator = new MyTranslator(translationUnit, toOptions(config, headerFileName));
-    return translator.translateToString;
+    return ret;
 }
 
-private auto parseTranslationUnit(in string fileName) @trusted {
+private string translate(ref TranslationUnit translationUnit, ref Cursor cursor, ref Cursor parent) @trusted {
 
-    import clang.Index: Index;
-    import clang.TranslationUnit: TranslationUnit;
-    import clang.Compiler: Compiler;
-    import dstep.Configuration: Configuration;
-    import std.algorithm: map;
-    import std.array: array;
+    import dstep.translator.Output: Output;
+    import dstep.translator.Translator: Translator;
+    import std.string: replace;
 
-    auto index = Index(false, false);
-    Configuration config;
-    Compiler compiler;
-    const includeFlags = compiler.extraIncludePaths.map!(a => "-I" ~ a).array ~ "/usr/include";
-    auto translationUnit = TranslationUnit.parse(index,
-                                                 fileName,
-                                                 includeFlags,
-                                                 compiler.extraHeaders);
+    if(skipCursor(cursor)) return "";
 
-    void enforceCompiled () {
-        import clang.c.Index: CXDiagnosticSeverity;
-        import std.array : Appender;
-        import std.exception : enforce;
+    auto translator = new Translator(translationUnit._impl);
+    Output output = new Output(translator.context.commentIndex);
 
-        bool translate = true;
-        auto message = Appender!string();
+    translator.translateInGlobalScope(output, cursor._impl, parent._impl);
+    if (translator.context.commentIndex)
+        output.flushLocation(translator.context.commentIndex.queryLastLocation());
 
-        foreach (diag ; translationUnit.diagnostics)
-        {
-            auto severity = diag.severity;
+    // foreach (value; translator.deferredDeclarations.values)
+    //     output.singleLine(value);
 
-            with (CXDiagnosticSeverity)
-                if (translate)
-                    translate = !(severity == CXDiagnostic_Error || severity == CXDiagnostic_Fatal);
-
-            message.put(diag.format);
-            message.put("\n");
-        }
-
-        enforce(translate, message.data);
-    }
+    output.finalize();
 
 
-    enforceCompiled;
+    return output.content.replace("9223372036854775807LL", "9223372036854775807L");
+}
 
-    return translationUnit;
+private bool skipCursor(ref Cursor cursor) {
+    import std.algorithm: endsWith;
+    if(cursor.spelling == "__VERSION__") return true;
+    if(cursor.spelling == "__FLT_DENORM_MIN__") return true;
+    if(cursor.spelling == "__DBL_DENORM_MIN__") return true;
+    if(cursor.spelling.endsWith("_C_SUFFIX__")) return true;
+    return false;
 }
 
 
