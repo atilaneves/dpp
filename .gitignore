@@ -9,5 +9,4 @@ tmp
 .reggae
 .ninja_*
 *.ninja
-reggaefile.d
 compile_commands.json

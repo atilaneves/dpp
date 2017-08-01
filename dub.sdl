@@ -14,19 +14,23 @@ libs "clang"
 configuration "executable" {
 }
 
+configuration "integration" {
+    targetName "it"
+    sourcePaths "source" "integration"
+    importPaths "source" "integration"
+    excludedSourceFiles "source/main.d"
+    dependency "unit-threaded" version="~>0.7.0"
+}
 
 configuration "unittest" {
-    targetType "executable"
     targetName "ut"
     mainSourceFile "ut.d"
     excludedSourceFiles "source/main.d"
     dependency "unit-threaded" version="~>0.7.0"
-    versions "testingExcelD"
 }
 
 
 configuration "ut" {
-    targetType "executable"
     targetName "utl"
     mainSourceFile "ut.d"
     excludedSourceFiles "source/main.d"
