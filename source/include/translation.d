@@ -27,50 +27,11 @@ string translate(string line) @safe {
 
 private string expand(in string headerFileName) @trusted {
     import dstep.translator.Translator: Translator;
-    import clang.Index: Index;
     import clang.TranslationUnit: TranslationUnit;
-    import clang.Compiler: Compiler;
     import dstep.Configuration: Configuration;
     import dstep.translator.Options: Options;
-    import std.algorithm: map;
-    import std.array: array;
-    import std.path: stripExtension;
 
-    auto index = Index(false, false);
-    Configuration config;
-    Compiler compiler;
-    const includeFlags = compiler.extraIncludePaths.map!(a => "-I" ~ a).array ~ "/usr/include";
-    auto translationUnit = TranslationUnit.parse(index,
-                                                 headerFileName,
-                                                 includeFlags,
-                                                 compiler.extraHeaders);
-
-    void enforceCompiled () {
-        import clang.c.Index: CXDiagnosticSeverity;
-        import std.array : Appender;
-        import std.exception : enforce;
-
-        bool translate = true;
-        auto message = Appender!string();
-
-        foreach (diag ; translationUnit.diagnostics)
-        {
-            auto severity = diag.severity;
-
-            with (CXDiagnosticSeverity)
-                if (translate)
-                    translate = !(severity == CXDiagnostic_Error || severity == CXDiagnostic_Fatal);
-
-            message.put(diag.format);
-            message.put("\n");
-        }
-
-        enforce(translate, message.data);
-    }
-
-
-    enforceCompiled;
-
+    auto translationUnit = parseTranslationUnit(headerFileName);
 
     Options toOptions(in Configuration config, in string inputFile) {
         import clang.Util : asAbsNormPath, setFromList;
@@ -155,10 +116,57 @@ private string expand(in string headerFileName) @trusted {
         }
     }
 
+    Configuration config;
     auto translator = new MyTranslator(translationUnit, toOptions(config, headerFileName));
     return translator.translateToString;
 }
 
+private auto parseTranslationUnit(in string headerFileName) @trusted {
+
+    import clang.Index: Index;
+    import clang.TranslationUnit: TranslationUnit;
+    import clang.Compiler: Compiler;
+    import dstep.Configuration: Configuration;
+    import std.algorithm: map;
+    import std.array: array;
+
+    auto index = Index(false, false);
+    Configuration config;
+    Compiler compiler;
+    const includeFlags = compiler.extraIncludePaths.map!(a => "-I" ~ a).array ~ "/usr/include";
+    auto translationUnit = TranslationUnit.parse(index,
+                                                 headerFileName,
+                                                 includeFlags,
+                                                 compiler.extraHeaders);
+
+    void enforceCompiled () {
+        import clang.c.Index: CXDiagnosticSeverity;
+        import std.array : Appender;
+        import std.exception : enforce;
+
+        bool translate = true;
+        auto message = Appender!string();
+
+        foreach (diag ; translationUnit.diagnostics)
+        {
+            auto severity = diag.severity;
+
+            with (CXDiagnosticSeverity)
+                if (translate)
+                    translate = !(severity == CXDiagnostic_Error || severity == CXDiagnostic_Fatal);
+
+            message.put(diag.format);
+            message.put("\n");
+        }
+
+        enforce(translate, message.data);
+    }
+
+
+    enforceCompiled;
+
+    return translationUnit;
+}
 
 
 private string getHeaderFileName(string line) @safe pure {
