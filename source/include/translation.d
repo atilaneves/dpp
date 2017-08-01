@@ -121,7 +121,7 @@ private string expand(in string headerFileName) @trusted {
     return translator.translateToString;
 }
 
-private auto parseTranslationUnit(in string headerFileName) @trusted {
+private auto parseTranslationUnit(in string fileName) @trusted {
 
     import clang.Index: Index;
     import clang.TranslationUnit: TranslationUnit;
@@ -135,7 +135,7 @@ private auto parseTranslationUnit(in string headerFileName) @trusted {
     Compiler compiler;
     const includeFlags = compiler.extraIncludePaths.map!(a => "-I" ~ a).array ~ "/usr/include";
     auto translationUnit = TranslationUnit.parse(index,
-                                                 headerFileName,
+                                                 fileName,
                                                  includeFlags,
                                                  compiler.extraHeaders);
 
