@@ -1,0 +1,7 @@
+#include "/usr/include/nanomsg/nn.h" // FIXME
+#include "/usr/include/nanomsg/pubsub.h"
+
+void main() {
+    const sock = nn_socket (AF_SP, NN_PUB);
+    scope(exit) nn_close(sock);
+}

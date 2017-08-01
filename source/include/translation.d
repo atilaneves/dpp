@@ -30,7 +30,10 @@ string translate(string line) @safe {
 private string expand(in string headerFileName) @safe {
     import include.clang: parse;
 
-    string ret = "extern(C) {\n";
+    string ret;
+
+    ret ~= "extern(C) {\n";
+
     auto translationUnit = parse(headerFileName);
 
     foreach(cursor, parent; translationUnit) {
@@ -42,15 +45,30 @@ private string expand(in string headerFileName) @safe {
     return ret;
 }
 
-private string translate(ref TranslationUnit translationUnit, ref Cursor cursor, ref Cursor parent) @trusted {
 
-    import dstep.translator.Output: Output;
-    import dstep.translator.Translator: Translator;
-    import std.string: replace;
+private string translate(ref TranslationUnit translationUnit, ref Cursor cursor, ref Cursor parent) @trusted {
 
     if(skipCursor(cursor)) return "";
 
-    auto translator = new Translator(translationUnit._impl);
+    auto translation = translateOurselves(cursor);
+    if(translation.ignore) return "";
+    if(translation.value != "") return translation.value;
+
+    return dstepTranslate(translationUnit, cursor, parent);
+}
+
+private string dstepTranslate(ref TranslationUnit translationUnit, ref Cursor cursor, ref Cursor parent) @trusted {
+    import dstep.translator.Output: Output;
+    import dstep.translator.Translator: Translator;
+    import dstep.translator.Options: Options;
+    import std.string: replace;
+    import std.algorithm: canFind, startsWith;
+
+    static bool[string] alreadyTranslated;
+
+    Options options;
+    options.enableComments = false;
+    auto translator = new Translator(translationUnit._impl, options);
     Output output = new Output(translator.context.commentIndex);
 
     translator.translateInGlobalScope(output, cursor._impl, parent._impl);
@@ -62,16 +80,72 @@ private string translate(ref TranslationUnit translationUnit, ref Cursor cursor,
 
     output.finalize();
 
+    auto ret =  output
+        .content
+        .replace("9223372036854775807LL", "9223372036854775807L")
+        .replace("__UINT64_C(18446744073709551615)", "__UINT64_C(18446744073709551615UL)");
 
-    return output.content.replace("9223372036854775807LL", "9223372036854775807L");
+    if(ret.startsWith("enum ") && ret.canFind("_TYPE = __"))
+        ret = ret.replace("enum", "alias");
+
+    if(ret in alreadyTranslated) return "";
+
+    alreadyTranslated[ret] = true;
+
+    return ret;
+}
+
+private struct Translation {
+    string value;
+    bool ignore;
+}
+
+private Translation translateOurselves(ref Cursor cursor) {
+    static bool[string] alreadyTranslated;
+
+    const translated = translateImpl(cursor);
+
+    if(translated in alreadyTranslated) return Translation("", true);
+    if(translated == "") return Translation("");
+
+    alreadyTranslated[translated] = true;
+    return Translation(translated);
+}
+
+private string translateImpl(ref Cursor cursor) {
+    switch(cursor.spelling) {
+    default:
+        return "";
+    case "UINT64_MAX":
+        return "enum UINT64_MAX = ulong.max;\n";
+    case "__INT64_C":
+        return "private auto __INT64_C(T)(T t) { return cast(long)t; }\n";
+    case "__UINT64_C":
+        return "private auto __UINT64_C(T)(T t) { return cast(ulong)t; }\n";
+    case "__errno_location":
+        return "extern(C) int* __errno_location();\n";
+    case "errno":
+        return "private int erro() { return *__errno_location; }\n";
+    }
 }
 
 private bool skipCursor(ref Cursor cursor) {
-    import std.algorithm: endsWith;
-    if(cursor.spelling == "__VERSION__") return true;
-    if(cursor.spelling == "__FLT_DENORM_MIN__") return true;
-    if(cursor.spelling == "__DBL_DENORM_MIN__") return true;
+
+    import std.algorithm: endsWith, canFind;
+
+    static immutable skippedSpellings = [
+        "__VERSION__",
+        "__FLT_DENORM_MIN__",
+        "__DBL_DENORM_MIN__",
+        "__glibc_clang_has_extension",
+        "__REDIRECT_LDBL",
+        "__REDIRECT_NTH_LDBL",
+    ];
+
+
+    if(skippedSpellings.canFind(cursor.spelling)) return true;
     if(cursor.spelling.endsWith("_C_SUFFIX__")) return true;
+
     return false;
 }
 
