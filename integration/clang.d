@@ -1,17 +1,9 @@
 module integration.clang;
 
 import include.clang;
-import clang.Cursor: ClangCursor = Cursor;
-import clang.c.Index: CXCursorKind, CXTranslationUnit_Flags;
+import clang.c.Index: CXTranslationUnit_Flags;
 import unit_threaded;
-import std.file: tempDir;
 import std.path: buildPath;
-
-
-struct Cursor {
-    string spelling;
-    CXCursorKind kind;
-}
 
 
 @("Simple translation unit")
@@ -31,18 +23,20 @@ struct Cursor {
         const fullFileName = buildPath(testPath, fileName);
 
 
-        const translationUnitCursor = const Cursor(fileName, CXCursorKind.CXCursor_TranslationUnit);
-        const foo = const Cursor("Foo", CXCursorKind.CXCursor_StructDecl);
-        const i = const Cursor("i", CXCursorKind.CXCursor_FieldDecl);
-        const addFoos = const Cursor("addFoos", CXCursorKind.CXCursor_FunctionDecl);
-        const return_ = const Cursor("struct Foo", CXCursorKind.CXCursor_TypeRef);
-        const foo1 = const Cursor("foo1", CXCursorKind.CXCursor_ParmDecl);
-        const foo1type = const Cursor("struct Foo", CXCursorKind.CXCursor_TypeRef);
-        const foo2 = const Cursor("foo2", CXCursorKind.CXCursor_ParmDecl);
-        const foo2type = const Cursor("struct Foo", CXCursorKind.CXCursor_TypeRef);
+        // this is how using clang_visitChildren directly would give us
+        // with CXChildVisit_Recurse
+        const translationUnitCursor = const Cursor(fileName, Cursor.Kind.TranslationUnit);
+        const foo = const Cursor("Foo", Cursor.Kind.StructDecl);
+        const i = const Cursor("i", Cursor.Kind.FieldDecl);
+        const addFoos = const Cursor("addFoos", Cursor.Kind.FunctionDecl);
+        const return_ = const Cursor("struct Foo", Cursor.Kind.TypeRef);
+        const foo1 = const Cursor("foo1", Cursor.Kind.ParmDecl);
+        const foo1type = const Cursor("struct Foo", Cursor.Kind.TypeRef);
+        const foo2 = const Cursor("foo2", Cursor.Kind.ParmDecl);
+        const foo2type = const Cursor("struct Foo", Cursor.Kind.TypeRef);
 
 
-        parse(fullFileName, CXTranslationUnit_Flags.CXTranslationUnit_None).cursors.shouldEqualCursors(
+        parse(fullFileName, CXTranslationUnit_Flags.CXTranslationUnit_None).cursors.shouldEqual(
             [
                 foo,
 //                i,
@@ -55,15 +49,4 @@ struct Cursor {
             ]
         );
     }
-}
-
-
-private void shouldEqualCursors(ClangCursor[] clangActual,
-                                Cursor[] expected,
-                                in string file = __FILE__,
-                                in size_t line = __LINE__)
-@trusted {
-    import std.algorithm: map;
-    clangActual.map!(a => Cursor(a.spelling, a.kind)).shouldEqual(expected, file, line);
-
 }
