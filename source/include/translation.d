@@ -84,13 +84,7 @@ private string dstepTranslate(ref TranslationUnit translationUnit, ref Cursor cu
 
     output.finalize();
 
-    auto ret =  output
-        .content
-        .replace("9223372036854775807LL", "9223372036854775807L")
-        .replace("__UINT64_C(18446744073709551615)", "__UINT64_C(18446744073709551615UL)");
-
-    if(ret.startsWith("enum ") && ret.canFind("_TYPE = __"))
-        ret = ret.replace("enum", "alias");
+    auto ret =  output.content;
 
     if(ret in alreadyTranslated) return "";
 
@@ -117,38 +111,43 @@ private Translation translateOurselves(ref Cursor cursor) {
 }
 
 private string translateImpl(ref Cursor cursor) {
-    switch(cursor.spelling) {
-    default:
-        return "";
-    case "UINT64_MAX":
-        return "enum UINT64_MAX = ulong.max;\n";
-    case "__INT64_C":
-        return "private auto __INT64_C(T)(T t) { return cast(long)t; }\n";
-    case "__UINT64_C":
-        return "private auto __UINT64_C(T)(T t) { return cast(ulong)t; }\n";
-    case "__errno_location":
-        return "extern(C) int* __errno_location();\n";
-    case "errno":
-        return "private int erro() { return *__errno_location; }\n";
+    import std.format: format;
+    import std.algorithm: map;
+    import std.string: join;
+    import std.file: exists;
+    import std.stdio: File;
+
+    string translateMacroDefinitionTokens() {
+        return "#define " ~ cursor._impl.tokens.map!(a => a.spelling).join(" ") ~ "\n";
+    }
+
+    switch(cursor.kind) with(Cursor.Kind) {
+        default:
+            return "";
+        case MacroDefinition:
+
+            auto range = cursor._impl.extent;
+
+            if(range.path == "" || !range.path.exists) { // built-in macro
+                return "";
+            }
+
+            const startPos = range.start.offset;
+            const endPos   = range.end.offset;
+
+            auto file = File(range.path);
+            file.seek(startPos);
+            const chars = file.rawRead(new char[endPos - startPos]);
+            return "#define %s\n".format(chars);
     }
 }
 
 private bool skipCursor(ref Cursor cursor) {
+    import std.algorithm: startsWith;
 
-    import std.algorithm: endsWith, canFind;
-
-    static immutable skippedSpellings = [
-        "__VERSION__",
-        "__FLT_DENORM_MIN__",
-        "__DBL_DENORM_MIN__",
-        "__glibc_clang_has_extension",
-        "__REDIRECT_LDBL",
-        "__REDIRECT_NTH_LDBL",
-    ];
-
-
-    if(skippedSpellings.canFind(cursor.spelling)) return true;
-    if(cursor.spelling.endsWith("_C_SUFFIX__")) return true;
+    if(cursor._impl.isPredefined) return true;
+    if(cursor.spelling == "") return true; //FIXME: probably anonymous struct
+    if(cursor.spelling.startsWith("__")) return true;
 
     return false;
 }
