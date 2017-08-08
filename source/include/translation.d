@@ -9,21 +9,24 @@ version(unittest) {
 }
 
 
+/**
+   If an #include directive, expand in place,
+   otherwise do nothing (i.e. return the same line)
+ */
+string maybeExpand(string line) @safe {
 
-string translate(string line) @safe {
+    const headerName = getHeaderName(line);
 
-    const headerFileName = getHeaderFileName(line);
-
-    return headerFileName == ""
+    return headerName == ""
         ? line
-        : expand(headerFileName);
+        : expand(headerName.toFileName);
 }
 
 
 @("translate no include")
 @safe unittest {
-    "foo".translate.shouldEqual("foo");
-    "bar".translate.shouldEqual("bar");
+    "foo".maybeExpand.shouldEqual("foo");
+    "bar".maybeExpand.shouldEqual("bar");
 }
 
 
@@ -151,7 +154,7 @@ private bool skipCursor(ref Cursor cursor) {
 }
 
 
-private string getHeaderFileName(string line) @safe pure {
+private string getHeaderName(string line) @safe pure {
     import std.algorithm: startsWith, countUntil;
     import std.range: dropBack;
     import std.array: popFront;
@@ -167,9 +170,25 @@ private string getHeaderFileName(string line) @safe pure {
 
 @("getHeaderFileName")
 @safe pure unittest {
-    getHeaderFileName(`#include "foo.h"`).shouldEqual(`foo.h`);
-    getHeaderFileName(`#include "bar.h"`).shouldEqual(`bar.h`);
-    getHeaderFileName(`#include "foo.h" // comment`).shouldEqual(`foo.h`);
-    getHeaderFileName(`#include <foo.h>`).shouldEqual(`foo.h`);
-    getHeaderFileName(`    #include "foo.h"`).shouldEqual(`foo.h`);
+    getHeaderName(`#include "foo.h"`).shouldEqual(`foo.h`);
+    getHeaderName(`#include "bar.h"`).shouldEqual(`bar.h`);
+    getHeaderName(`#include "foo.h" // comment`).shouldEqual(`foo.h`);
+    getHeaderName(`#include <foo.h>`).shouldEqual(`foo.h`);
+    getHeaderName(`    #include "foo.h"`).shouldEqual(`foo.h`);
+}
+
+// transforms a header name, e.g. stdio.h
+// into a full file path, e.g. /usr/include/stdio.h
+private string toFileName(in string headerName) @safe {
+
+    import std.algorithm: map, filter;
+    import std.path: buildPath, absolutePath;
+    import std.file: exists;
+    import std.conv: text;
+    import std.exception: enforce;
+
+    const dirs = ["/usr/include"];
+    auto filePaths = dirs.map!(a => buildPath(a, headerName).absolutePath).filter!exists;
+    enforce(!filePaths.empty, text("Cannot find file path for header '", headerName, "'"));
+    return filePaths.front;
 }

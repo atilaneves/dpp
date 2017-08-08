@@ -14,7 +14,7 @@ void run(string[] args) {
 
 void preprocess(File)(in string inputFileName, in string outputFileName) {
 
-    import include.translation: translate;
+    import include.translation: maybeExpand;
     import std.algorithm: map;
 
     auto outputFile = File(outputFileName, "w");
@@ -37,6 +37,6 @@ void preprocess(File)(in string inputFileName, in string outputFileName) {
 
 
     foreach(line; File(inputFileName).byLine.map!(a => cast(string)a)) {
-        outputFile.writeln(line.translate);
+        outputFile.writeln(line.maybeExpand);
     }
 }
