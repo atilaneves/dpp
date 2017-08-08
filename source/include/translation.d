@@ -117,15 +117,13 @@ private string translateImpl(ref Cursor cursor) {
     import std.file: exists;
     import std.stdio: File;
 
-    string translateMacroDefinitionTokens() {
-        return "#define " ~ cursor._impl.tokens.map!(a => a.spelling).join(" ") ~ "\n";
-    }
 
     switch(cursor.kind) with(Cursor.Kind) {
+
         default:
             return "";
-        case MacroDefinition:
 
+        case MacroDefinition:
             auto range = cursor._impl.extent;
 
             if(range.path == "" || !range.path.exists) { // built-in macro
@@ -139,12 +137,22 @@ private string translateImpl(ref Cursor cursor) {
             file.seek(startPos);
             const chars = file.rawRead(new char[endPos - startPos]);
             return "#define %s\n".format(chars);
+
+
+        case PreprocessingDirective:
+            throw new Exception("huh?");
     }
 }
 
 private bool skipCursor(ref Cursor cursor) {
-    import std.algorithm: startsWith;
+    import std.algorithm: startsWith, canFind;
 
+    static immutable forbiddenSpellings =
+        [
+            "ulong", "ushort", "uint",
+        ];
+
+    if(forbiddenSpellings.canFind(cursor.spelling)) return true;
     if(cursor._impl.isPredefined) return true;
     if(cursor.spelling == "") return true; //FIXME: probably anonymous struct
     if(cursor.spelling.startsWith("__")) return true;
@@ -185,6 +193,8 @@ private string toFileName(in string headerName) @safe {
     import std.file: exists;
     import std.conv: text;
     import std.exception: enforce;
+
+    if(headerName.exists) return headerName;
 
     const dirs = ["/usr/include"];
     auto filePaths = dirs.map!(a => buildPath(a, headerName).absolutePath).filter!exists;
