@@ -1,4 +1,4 @@
-#include "/usr/lib/curl/multi.h"
+#include "curl/multi.h"
 
 void main() {
     CURLM *cm;
