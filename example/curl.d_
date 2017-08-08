@@ -1,0 +1,13 @@
+#include "/usr/lib/curl/multi.h"
+
+void main() {
+    CURLM *cm;
+    CURLMsg *msg;
+
+    curl_global_init(CURL_GLOBAL_ALL);
+
+    cm = curl_multi_init();
+
+    enum MAX = 10L;
+    curl_multi_setopt(cm, CURLMOPT_MAXCONNECTS, MAX);
+}
