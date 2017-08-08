@@ -57,6 +57,7 @@ private string translate(ref TranslationUnit translationUnit, ref Cursor cursor,
     return dstepTranslate(translationUnit, cursor, parent);
 }
 
+// translates as dstep would
 private string dstepTranslate(ref TranslationUnit translationUnit, ref Cursor cursor, ref Cursor parent) @trusted {
     import dstep.translator.Output: Output;
     import dstep.translator.Translator: Translator;
