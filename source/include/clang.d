@@ -64,6 +64,9 @@ struct Cursor {
 }
 
 
+// a string to mixin to generate a Kind enum from the libclang C declarations
+// found in clang.c.Index
+// Transforms e.g. CXCursor_FunctionDecl to Kind.FunctionDecl
 private string kindMixinStr() {
     if(!__ctfe) return "";
 
@@ -93,7 +96,9 @@ private string kindMixinStr() {
 
 
 auto parse(in string fileName,
-           in CXTranslationUnit_Flags options = CXTranslationUnit_Flags.CXTranslationUnit_DetailedPreprocessingRecord) @trusted {
+           in CXTranslationUnit_Flags options = CXTranslationUnit_Flags.CXTranslationUnit_DetailedPreprocessingRecord)
+    @trusted
+{
 
     import clang.Index: Index;
     import clang.TranslationUnit: _TranslationUnit = TranslationUnit;
