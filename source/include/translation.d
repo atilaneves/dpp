@@ -117,6 +117,7 @@ private string translateImpl(ref Cursor cursor) {
     import std.file: exists;
     import std.stdio: File;
 
+    static bool[string] alreadyDefined;
 
     switch(cursor.kind) with(Cursor.Kind) {
 
@@ -136,11 +137,10 @@ private string translateImpl(ref Cursor cursor) {
             auto file = File(range.path);
             file.seek(startPos);
             const chars = file.rawRead(new char[endPos - startPos]);
-            return "#define %s\n".format(chars);
-
-
-        case PreprocessingDirective:
-            throw new Exception("huh?");
+            auto definition = "#define %s\n".format(chars);
+            if(cursor.spelling in alreadyDefined) return "";
+            alreadyDefined[cursor.spelling] = true;
+            return definition;
     }
 }
 
