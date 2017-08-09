@@ -137,10 +137,18 @@ private string translateImpl(ref Cursor cursor) {
             auto file = File(range.path);
             file.seek(startPos);
             const chars = file.rawRead(new char[endPos - startPos]);
-            auto definition = "#define %s\n".format(chars);
-            if(cursor.spelling in alreadyDefined) return "";
-            alreadyDefined[cursor.spelling] = true;
-            return definition;
+
+            // the only sane way for use to be able to see a macro definition
+            // for a macro that has already been defined is if an #undef happend
+            // in the meanwhile. Unfortunately, libclang has no way of passing
+            // that information to us
+            string maybeUndef;
+            if(cursor.spelling in alreadyDefined)
+                maybeUndef = "#undef " ~ cursor.spelling ~ "\n";
+
+             alreadyDefined[cursor.spelling] = true;
+
+            return maybeUndef ~ "#define %s\n".format(chars);
     }
 }
 
