@@ -54,14 +54,19 @@ private string translate(ref TranslationUnit translationUnit, ref Cursor cursor,
     if(skipCursor(cursor)) return "";
 
     auto translation = translateOurselves(cursor);
-    if(translation.ignore) return "";
-    if(translation.value != "") return translation.value;
 
-    return dstepTranslate(translationUnit, cursor, parent);
+    if(translation.ignore) return "";
+    if(translation.dstep) return dstepTranslate(translationUnit, cursor, parent);
+
+    return translation.value;
 }
 
 // translates as dstep would
-private string dstepTranslate(ref TranslationUnit translationUnit, ref Cursor cursor, ref Cursor parent) @trusted {
+private string dstepTranslate(ref TranslationUnit translationUnit,
+                              ref Cursor cursor,
+                              ref Cursor parent)
+    @trusted
+{
     import dstep.translator.Output: Output;
     import dstep.translator.Translator: Translator;
     import dstep.translator.Options: Options;
@@ -94,8 +99,37 @@ private string dstepTranslate(ref TranslationUnit translationUnit, ref Cursor cu
 }
 
 private struct Translation {
+
+    enum State {
+        ignore,
+        dstep,
+        valid,
+    }
+
+    bool ignore() @safe @nogc pure nothrow const {
+        return state == State.ignore;
+    }
+
+    bool dstep() @safe @nogc pure nothrow const {
+        return state == State.dstep;
+    }
+
+    bool valid() @safe @nogc pure nothrow const {
+        return state == State.valid;
+    }
+
     string value;
-    bool ignore;
+    State state;
+
+    this(string value) @safe pure {
+        this.value = value;
+        this.state = State.valid;
+    }
+
+    this(State state) @safe pure {
+        assert(state != State.valid);
+        this.state = state;
+    }
 }
 
 private Translation translateOurselves(ref Cursor cursor) {
@@ -103,32 +137,33 @@ private Translation translateOurselves(ref Cursor cursor) {
 
     const translated = translateImpl(cursor);
 
-    if(translated in alreadyTranslated) return Translation("", true);
-    if(translated == "") return Translation("");
+    if(translated.valid && translated.value in alreadyTranslated)
+        return Translation(Translation.State.ignore);
 
-    alreadyTranslated[translated] = true;
-    return Translation(translated);
+    alreadyTranslated[translated.value] = true;
+    return translated;
 }
 
-private string translateImpl(ref Cursor cursor) {
+private Translation translateImpl(ref Cursor cursor) {
     import std.format: format;
     import std.algorithm: map;
     import std.string: join;
     import std.file: exists;
     import std.stdio: File;
+    import std.algorithm: startsWith;
 
     static bool[string] alreadyDefined;
 
     switch(cursor.kind) with(Cursor.Kind) {
 
         default:
-            return "";
+            return Translation(Translation.State.dstep);
 
         case MacroDefinition:
             auto range = cursor._impl.extent;
 
-            if(range.path == "" || !range.path.exists) { // built-in macro
-                return "";
+            if(range.path == "" || !range.path.exists || cursor.spelling.startsWith("_")) { //built-in macro
+                return Translation(Translation.State.ignore);
             }
 
             const startPos = range.start.offset;
@@ -148,7 +183,7 @@ private string translateImpl(ref Cursor cursor) {
 
              alreadyDefined[cursor.spelling] = true;
 
-            return maybeUndef ~ "#define %s\n".format(chars);
+             return Translation(maybeUndef ~ "#define %s\n".format(chars));
     }
 }
 
@@ -162,7 +197,7 @@ private bool skipCursor(ref Cursor cursor) {
 
     if(forbiddenSpellings.canFind(cursor.spelling)) return true;
     if(cursor._impl.isPredefined) return true;
-    if(cursor.spelling == "") return true; //FIXME: probably anonymous struct
+    if(cursor.spelling == "") return true; // FIXME: probably anonymous struct
     if(cursor.spelling.startsWith("__")) return true;
 
     return false;
