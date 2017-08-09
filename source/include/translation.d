@@ -160,11 +160,17 @@ private Translation translateImpl(ref Cursor cursor) {
             return Translation(Translation.State.dstep);
 
         case MacroDefinition:
+
+            // we want non-built-in macro definitions to be defined and then preprocessed
+            // again
+
             auto range = cursor._impl.extent;
 
             if(range.path == "" || !range.path.exists || cursor.spelling.startsWith("_")) { //built-in macro
                 return Translation(Translation.State.ignore);
             }
+
+            // now we read the header where the macro comes from and copy the text inline
 
             const startPos = range.start.offset;
             const endPos   = range.end.offset;
@@ -173,8 +179,8 @@ private Translation translateImpl(ref Cursor cursor) {
             file.seek(startPos);
             const chars = file.rawRead(new char[endPos - startPos]);
 
-            // the only sane way for use to be able to see a macro definition
-            // for a macro that has already been defined is if an #undef happend
+            // the only sane way for us to be able to see a macro definition
+            // for a macro that has already been defined is if an #undef happened
             // in the meanwhile. Unfortunately, libclang has no way of passing
             // that information to us
             string maybeUndef;
