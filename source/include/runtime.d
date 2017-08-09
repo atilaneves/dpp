@@ -30,9 +30,11 @@ void preprocess(File)(in string inputFileName, in string outputFileName) {
 
         outputFile.writeln("import core.stdc.config;");
 
-        foreach(line; File(inputFileName).byLine.map!(a => cast(string)a)) {
-            outputFile.writeln(line.maybeExpand);
-        }
+        () @trusted {
+            foreach(line; File(inputFileName).byLine.map!(a => cast(string)a)) {
+                outputFile.writeln(line.maybeExpand);
+            }
+        }();
     }
 
 

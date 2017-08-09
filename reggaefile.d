@@ -4,5 +4,5 @@ mixin build!(dubDefaultTarget!(),
              dubConfigurationTarget!(Configuration("integration"),
                                      Flags("-unittest"),
                                      Yes.main,
-                                     Yes.allTogether
+                                     Yes.allTogether,
                  ));

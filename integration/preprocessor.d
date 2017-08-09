@@ -9,21 +9,36 @@ import include.runtime;
 
     import std.stdio: File;
     import std.process: execute;
+    import std.path: buildPath;
+    import std.format: format;
 
     with(immutable Sandbox()) {
 
-        const headerFileName = "simple_header.h";
+        const headerFileName = "header.h";
 
         writeFile(headerFileName,
                   q{
                       #define FOO foo
-                      #undef
+                      #undef FOO
                       #define FOO bar
                       int FOO(int i);
                   });
-        const fullHeaderFileName = buildPath(testPath, fileName);
+
+
+        const fullHeaderFileName = buildPath(testPath, headerFileName);
+        const inputFileName = "foo.d";
+        writeFile(inputFileName,
+                  q{
+                      #include "%s"
+                      void func() {
+                          int i = bar(2);
+                      }
+                  }.format(fullHeaderFileName));
+
+
+        const fullInputFileName = buildPath(testPath, inputFileName);
         const fullOutputFileName = buildPath(testPath, "foo.d");
-        preprocess!File(fullHedaerFileName, fullOutputFileName);
+        preprocess!File(fullInputFileName, fullOutputFileName);
 
         const objectFileName = buildPath(testPath, "foo.o");
 
