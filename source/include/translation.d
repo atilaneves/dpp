@@ -1,7 +1,8 @@
 module include.translation;
 
 
-import include.clang: TranslationUnit, Cursor;
+import clang.TranslationUnit: TranslationUnit;
+import clang.Cursor: Cursor;
 
 version(unittest) {
     import unit_threaded;
@@ -39,9 +40,11 @@ private string expand(in string headerFileName) @safe {
 
     auto translationUnit = parse(headerFileName);
 
-    foreach(cursor, parent; translationUnit) {
-        ret ~= translate(translationUnit, cursor, parent);
-    }
+    () @trusted {
+        foreach(cursor, parent; translationUnit.cursor.allInOrder) {
+            ret ~= translate(translationUnit, cursor, parent);
+        }
+    }();
 
     ret ~= "}\n";
 
@@ -77,10 +80,10 @@ private string dstepTranslate(ref TranslationUnit translationUnit,
 
     Options options;
     options.enableComments = false;
-    auto translator = new Translator(translationUnit._impl, options);
+    auto translator = new Translator(translationUnit, options);
     Output output = new Output(translator.context.commentIndex);
 
-    translator.translateInGlobalScope(output, cursor._impl, parent._impl);
+    translator.translateInGlobalScope(output, cursor, parent);
     if (translator.context.commentIndex)
         output.flushLocation(translator.context.commentIndex.queryLastLocation());
 
@@ -145,6 +148,7 @@ private Translation translateOurselves(ref Cursor cursor) {
 }
 
 private Translation translateImpl(ref Cursor cursor) {
+    import clang.c.Index: CXCursorKind;
     import std.format: format;
     import std.algorithm: map;
     import std.string: join;
@@ -154,17 +158,17 @@ private Translation translateImpl(ref Cursor cursor) {
 
     static bool[string] alreadyDefined;
 
-    switch(cursor.kind) with(Cursor.Kind) {
+    switch(cursor.kind) with(CXCursorKind) {
 
         default:
             return Translation(Translation.State.dstep);
 
-        case MacroDefinition:
+        case CXCursor_MacroDefinition:
 
             // we want non-built-in macro definitions to be defined and then preprocessed
             // again
 
-            auto range = cursor._impl.extent;
+            auto range = cursor.extent;
 
             if(range.path == "" || !range.path.exists || cursor.spelling.startsWith("_")) { //built-in macro
                 return Translation(Translation.State.ignore);
@@ -202,7 +206,7 @@ private bool skipCursor(ref Cursor cursor) {
         ];
 
     if(forbiddenSpellings.canFind(cursor.spelling)) return true;
-    if(cursor._impl.isPredefined) return true;
+    if(cursor.isPredefined) return true;
     if(cursor.spelling == "") return true; // FIXME: probably anonymous struct
     if(cursor.spelling.startsWith("__")) return true;
 
