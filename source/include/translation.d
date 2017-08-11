@@ -49,10 +49,11 @@ private string expand(in string headerFileName) @safe {
     ret ~= "extern(C) {\n";
 
     auto translationUnit = parse(headerFileName);
+    auto dstep = DStep(translationUnit);
 
     () @trusted {
         foreach(cursor, parent; translationUnit.cursor.allInOrder) {
-            ret ~= translate(translationUnit, cursor, parent);
+            ret ~= translate(dstep, translationUnit, cursor, parent);
         }
     }();
 
@@ -62,54 +63,68 @@ private string expand(in string headerFileName) @safe {
 }
 
 
-private string translate(ref TranslationUnit translationUnit, ref Cursor cursor, ref Cursor parent) @trusted {
+private struct DStep {
+
+    import clang.TranslationUnit: TranslationUnit;
+    import clang.Cursor: Cursor;
+    import dstep.translator.Translator: Translator;
+
+    TranslationUnit translationUnit;
+    Translator translator;
+
+    this(TranslationUnit translationUnit) @safe {
+        import dstep.translator.Options: Options;
+
+        this.translationUnit = translationUnit;
+        Options options;
+        options.enableComments = false;
+
+        translator = () @trusted { return new Translator(translationUnit, options); }();
+    }
+
+    string translate(ref Cursor cursor, ref Cursor parent) @trusted {
+        import dstep.translator.Output: Output;
+
+        static bool[string] alreadyTranslated;
+
+        Output output = new Output(translator.context.commentIndex);
+
+        translator.translateInGlobalScope(output, cursor, parent);
+        if (translator.context.commentIndex)
+            output.flushLocation(translator.context.commentIndex.queryLastLocation());
+
+        // foreach (value; translator.deferredDeclarations.values)
+        //     output.singleLine(value);
+
+        output.finalize();
+
+        auto ret =  output.content;
+
+        if(ret in alreadyTranslated) return "";
+
+        alreadyTranslated[ret] = true;
+
+        return ret;
+    }
+}
+
+private string translate(ref DStep dstep,
+                         ref TranslationUnit translationUnit,
+                         ref Cursor cursor,
+                         ref Cursor parent)
+    @trusted
+{
 
     if(skipCursor(cursor)) return "";
 
     auto translation = translateOurselves(cursor);
 
     if(translation.ignore) return "";
-    if(translation.dstep) return dstepTranslate(translationUnit, cursor, parent);
+    if(translation.dstep) return dstep.translate(cursor, parent);
 
     return translation.value;
 }
 
-// translates as dstep would
-private string dstepTranslate(ref TranslationUnit translationUnit,
-                              ref Cursor cursor,
-                              ref Cursor parent)
-    @trusted
-{
-    import dstep.translator.Output: Output;
-    import dstep.translator.Translator: Translator;
-    import dstep.translator.Options: Options;
-    import std.string: replace;
-    import std.algorithm: canFind, startsWith;
-
-    static bool[string] alreadyTranslated;
-
-    Options options;
-    options.enableComments = false;
-    auto translator = new Translator(translationUnit, options);
-    Output output = new Output(translator.context.commentIndex);
-
-    translator.translateInGlobalScope(output, cursor, parent);
-    if (translator.context.commentIndex)
-        output.flushLocation(translator.context.commentIndex.queryLastLocation());
-
-    // foreach (value; translator.deferredDeclarations.values)
-    //     output.singleLine(value);
-
-    output.finalize();
-
-    auto ret =  output.content;
-
-    if(ret in alreadyTranslated) return "";
-
-    alreadyTranslated[ret] = true;
-
-    return ret;
-}
 
 private struct Translation {
 
