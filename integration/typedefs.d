@@ -4,8 +4,8 @@ import unit_threaded;
 import include.runtime;
 
 
-//@ShouldFail("WIP")
-@("typedef unnamed struct")
+@ShouldFail("WIP")
+@("typedef unnamed struct from a macro")
 @safe unittest {
 
     import std.stdio: File;
@@ -20,7 +20,8 @@ import include.runtime;
 
         writeFile(headerFileName,
                   q{
-                      typedef struct { int __val[2]; } __fsid_t;
+                      #define __FSID_T_TYPE struct { int __val[2]; }
+                      typedef  __FSID_T_TYPE __fsid_t;
                       typedef __fsid_t fsid_t;
                   });
 
