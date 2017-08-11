@@ -114,7 +114,6 @@ private string translate(ref DStep dstep,
                          ref Cursor parent)
     @trusted
 {
-
     if(skipCursor(cursor)) return "";
 
     auto translation = translateOurselves(cursor);
@@ -232,7 +231,6 @@ private bool skipCursor(ref Cursor cursor) {
 
     if(forbiddenSpellings.canFind(cursor.spelling)) return true;
     if(cursor.isPredefined) return true;
-    if(cursor.spelling == "") return true; // FIXME: probably anonymous struct
     if(cursor.spelling.startsWith("__")) return true;
 
     return false;

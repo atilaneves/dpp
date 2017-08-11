@@ -1,10 +1,11 @@
-module integration.preprocessor;
+module integration.typedefs;
 
 import unit_threaded;
 import include.runtime;
 
 
-@("define macro, undefine, then define again")
+//@ShouldFail("WIP")
+@("typedef unnamed struct")
 @safe unittest {
 
     import std.stdio: File;
@@ -19,10 +20,8 @@ import include.runtime;
 
         writeFile(headerFileName,
                   q{
-                      #define FOO foo
-                      #undef FOO
-                      #define FOO bar
-                      int FOO(int i);
+                      typedef struct { int __val[2]; } __fsid_t;
+                      typedef __fsid_t fsid_t;
                   });
 
 
@@ -32,7 +31,9 @@ import include.runtime;
                   q{
                       #include "%s"
                       void func() {
-                          int i = bar(2);
+                          fsid_t foo;
+                          foo.__val[0] = 2;
+                          foo.__val[1] = 3;
                       }
                   }.format(fullHeaderFileName));
 
