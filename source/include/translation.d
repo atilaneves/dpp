@@ -231,7 +231,6 @@ private bool skipCursor(ref Cursor cursor) {
 
     if(forbiddenSpellings.canFind(cursor.spelling)) return true;
     if(cursor.isPredefined) return true;
-    if(cursor.spelling.startsWith("__")) return true;
 
     return false;
 }

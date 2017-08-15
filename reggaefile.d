@@ -1,8 +1,9 @@
 import reggae;
 mixin build!(dubDefaultTarget!(),
-             dubTestTarget!(),
+             dubTestTarget!(CompilerFlags("-g -debug")),
              dubConfigurationTarget!(Configuration("integration"),
-                                     Flags("-unittest -g -debug"),
+                                     CompilerFlags("-unittest -g -debug"),
+                                     LinkerFlags(),
                                      Yes.main,
                                      Yes.allTogether,
                  ));

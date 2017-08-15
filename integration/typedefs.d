@@ -4,7 +4,6 @@ import unit_threaded;
 import include.runtime;
 
 
-@ShouldFail("WIP")
 @("typedef unnamed struct from a macro")
 @safe unittest {
 
