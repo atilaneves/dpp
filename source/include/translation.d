@@ -68,6 +68,7 @@ private struct DStep {
     import clang.TranslationUnit: TranslationUnit;
     import clang.Cursor: Cursor;
     import dstep.translator.Translator: Translator;
+    import std.typecons: Yes;
 
     TranslationUnit translationUnit;
     Translator translator;
@@ -78,6 +79,7 @@ private struct DStep {
         this.translationUnit = translationUnit;
         Options options;
         options.enableComments = false;
+        options.allTypedefs = Yes.allTypedefs;
 
         translator = () @trusted { return new Translator(translationUnit, options); }();
     }

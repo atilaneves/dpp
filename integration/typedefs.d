@@ -52,7 +52,8 @@ import include.runtime;
 // the file is the same.
 // i.e. if header.h itself had the definitions this would work fine,
 // but if it's an different file it falls apart
-@ShouldFail
+// Translator.translate -> translateRecord -> translateRecordDef ->
+// Context.translateTagSpelling -> TypeDefIndex.typedefParent
 @("fd_set")
 @safe unittest {
 
