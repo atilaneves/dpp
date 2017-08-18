@@ -24,26 +24,24 @@ version(unittest) {
    If an #include directive, expand in place,
    otherwise do nothing (i.e. return the same line)
  */
-string maybeExpand(in const(char)[] line, ref string[] macros) @safe {
+string maybeExpand(string line) @safe {
 
     const headerName = getHeaderName(line);
 
     return headerName == ""
-        ? line.idup
-        : expand(headerName.toFileName, macros);
+        ? line
+        : expand(headerName.toFileName);
 }
 
 
 @("translate no include")
 @safe unittest {
-    string[] macros;
-    "foo".maybeExpand(macros).shouldEqual("foo");
-    "bar".maybeExpand(macros).shouldEqual("bar");
-    macros.shouldBeEmpty;
+    "foo".maybeExpand.shouldEqual("foo");
+    "bar".maybeExpand.shouldEqual("bar");
 }
 
 
-private string expand(in string headerFileName, ref string[] macros) @safe {
+private string expand(in string headerFileName) @safe {
     import include.clang: parse;
 
     string ret;
@@ -55,7 +53,7 @@ private string expand(in string headerFileName, ref string[] macros) @safe {
 
     () @trusted {
         foreach(cursor, parent; translationUnit.cursor.allInOrder) {
-            ret ~= translate(macros, dstep, translationUnit, cursor, parent);
+            ret ~= translate(dstep, translationUnit, cursor, parent);
         }
     }();
 
@@ -112,8 +110,7 @@ private struct DStep {
     }
 }
 
-private string translate(ref string[] macros,
-                         ref DStep dstep,
+private string translate(ref DStep dstep,
                          ref TranslationUnit translationUnit,
                          ref Cursor cursor,
                          ref Cursor parent)
@@ -121,7 +118,7 @@ private string translate(ref string[] macros,
 {
     if(skipCursor(cursor)) return "";
 
-    auto translation = translateOurselves(macros, cursor);
+    auto translation = translateOurselves(cursor);
 
     if(translation.ignore) return "";
     if(translation.dstep) return dstep.translate(cursor, parent);
@@ -164,10 +161,10 @@ private struct Translation {
     }
 }
 
-private Translation translateOurselves(ref string[] macros, ref Cursor cursor) {
+private Translation translateOurselves(ref Cursor cursor) {
     static bool[string] alreadyTranslated;
 
-    const translated = translateImpl(macros, cursor);
+    const translated = translateImpl(cursor);
 
     if(translated.valid && translated.value in alreadyTranslated)
         return Translation(Translation.State.ignore);
@@ -176,7 +173,7 @@ private Translation translateOurselves(ref string[] macros, ref Cursor cursor) {
     return translated;
 }
 
-private Translation translateImpl(ref string[] macros, ref Cursor cursor) {
+private Translation translateImpl(ref Cursor cursor) {
     import clang.c.Index: CXCursorKind;
     import std.format: format;
     import std.algorithm: map;
@@ -199,7 +196,7 @@ private Translation translateImpl(ref string[] macros, ref Cursor cursor) {
 
             auto range = cursor.extent;
 
-            if(range.path == "" || !range.path.exists || cursor.isPredefined) { //built-in macro
+            if(range.path == "" || !range.path.exists || cursor.spelling.startsWith("_")) { //built-in macro
                 return Translation(Translation.State.ignore);
             }
 
@@ -222,9 +219,7 @@ private Translation translateImpl(ref string[] macros, ref Cursor cursor) {
 
              alreadyDefined[cursor.spelling] = true;
 
-             macros ~= maybeUndef ~ "#define %s\n".format(chars);
-
-             return Translation(Translation.State.ignore);
+             return Translation(maybeUndef ~ "#define %s\n".format(chars));
     }
 }
 
@@ -243,7 +238,7 @@ private bool skipCursor(ref Cursor cursor) {
 }
 
 
-private string getHeaderName(const(char)[] line) @safe pure {
+private string getHeaderName(string line) @safe pure {
     import std.algorithm: startsWith, countUntil;
     import std.range: dropBack;
     import std.array: popFront;
@@ -254,7 +249,7 @@ private string getHeaderName(const(char)[] line) @safe pure {
 
     const openingQuote = line.countUntil!(a => a == '"' || a == '<');
     const closingQuote = line[openingQuote + 1 .. $].countUntil!(a => a == '"' || a == '>') + openingQuote + 1;
-    return line[openingQuote + 1 .. closingQuote].idup;
+    return line[openingQuote + 1 .. closingQuote];
 }
 
 @("getHeaderFileName")

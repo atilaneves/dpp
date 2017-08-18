@@ -47,6 +47,7 @@ import include.runtime;
 }
 
 
+@ShouldFail
 @("__SIZEOF_PTHREAD_ATTR_T")
 @safe unittest {
 
@@ -58,7 +59,9 @@ import include.runtime;
 
     with(immutable Sandbox()) {
 
-        writeFile("system.h",
+        const headerFileName = "header.h";
+
+        writeFile(headerFileName,
                   q{
                       #ifdef __x86_64__
                       #  if __WORDSIZE == 64
@@ -78,17 +81,8 @@ import include.runtime;
                   });
 
 
-        const headerFileName = "header.h";
-
-        writeFile(headerFileName,
-                  q{
-                      #include "system.h"
-                  });
-
-
         const fullHeaderFileName = buildPath(testPath, headerFileName);
         const inputFileName = "foo.d_";
-        // FIXME: check that array is the right sizeof depending on architecture
         writeFile(inputFileName,
                   q{
                       #include "%s"
