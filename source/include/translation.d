@@ -180,7 +180,6 @@ private Translation translateImpl(ref Cursor cursor) {
     import std.string: join;
     import std.file: exists;
     import std.stdio: File;
-    import std.algorithm: startsWith;
 
     static bool[string] alreadyDefined;
 
@@ -196,7 +195,7 @@ private Translation translateImpl(ref Cursor cursor) {
 
             auto range = cursor.extent;
 
-            if(range.path == "" || !range.path.exists || cursor.spelling.startsWith("_")) { //built-in macro
+            if(range.path == "" || !range.path.exists || cursor.isPredefined) { //built-in macro
                 return Translation(Translation.State.ignore);
             }
 
