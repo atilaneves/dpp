@@ -43,6 +43,7 @@ string maybeExpand(string line) @safe {
 
 private string expand(in string headerFileName) @safe {
     import include.clang: parse;
+    import std.algorithm: sorted = sort;
 
     string ret;
 
@@ -51,11 +52,23 @@ private string expand(in string headerFileName) @safe {
     auto translationUnit = parse(headerFileName);
     auto dstep = DStep(translationUnit);
 
+    static struct CursorAndParent {
+        Cursor cursor;
+        Cursor parent;
+    }
+
+    CursorAndParent[] cursors;
+
     () @trusted {
         foreach(cursor, parent; translationUnit.cursor.allInOrder) {
-            ret ~= translate(dstep, translationUnit, cursor, parent);
+            cursors ~= CursorAndParent(cursor, parent);
         }
     }();
+
+    auto sortedCursors = () @trusted { return cursors.sorted!((a, b) => a.cursor.location.line < b.cursor.location.line); }();
+    foreach(c; sortedCursors) {
+        ret ~= translate(dstep, translationUnit, c.cursor, c.parent);
+    }
 
     ret ~= "}\n";
 
@@ -180,6 +193,7 @@ private Translation translateImpl(ref Cursor cursor) {
     import std.string: join;
     import std.file: exists;
     import std.stdio: File;
+    import std.algorithm: startsWith;
 
     static bool[string] alreadyDefined;
 
@@ -195,7 +209,8 @@ private Translation translateImpl(ref Cursor cursor) {
 
             auto range = cursor.extent;
 
-            if(range.path == "" || !range.path.exists || cursor.isPredefined) { //built-in macro
+            if(range.path == "" || !range.path.exists ||
+               cursor.isPredefined || cursor.spelling.startsWith("__STDC_")) { //built-in macro
                 return Translation(Translation.State.ignore);
             }
 
@@ -228,6 +243,8 @@ private bool skipCursor(ref Cursor cursor) {
     static immutable forbiddenSpellings =
         [
             "ulong", "ushort", "uint",
+            "va_list", "__gnuc_va_list",
+            "_IO_2_1_stdin_", "_IO_2_1_stdout_", "_IO_2_1_stderr_",
         ];
 
     if(forbiddenSpellings.canFind(cursor.spelling)) return true;
