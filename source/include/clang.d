@@ -4,7 +4,7 @@ import clang.c.Index: CXTranslationUnit_Flags;
 
 
 auto parse(in string fileName,
-           in CXTranslationUnit_Flags options = CXTranslationUnit_Flags.CXTranslationUnit_DetailedPreprocessingRecord)
+           in CXTranslationUnit_Flags options = CXTranslationUnit_Flags.detailedPreprocessingRecord)
     @trusted
 {
 
@@ -40,7 +40,7 @@ auto parse(in string fileName,
 
             with (CXDiagnosticSeverity)
                 if (translate)
-                    translate = !(severity == CXDiagnostic_Error || severity == CXDiagnostic_Fatal);
+                    translate = !(severity == error|| severity == fatal);
 
             message.put(diag.format);
             message.put("\n");
