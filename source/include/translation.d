@@ -65,8 +65,7 @@ private string expand(in string headerFileName) @safe {
         }
     }();
 
-    auto sortedCursors = () @trusted { return cursors.sorted!((a, b) => a.cursor.location.line < b.cursor.location.line); }();
-    foreach(c; sortedCursors) {
+    foreach(c; cursors) {
         ret ~= translate(dstep, translationUnit, c.cursor, c.parent);
     }
 
@@ -92,7 +91,7 @@ private struct DStep {
         this.translationUnit = translationUnit;
         Options options;
         options.enableComments = false;
-        options.allTypedefs = Yes.allTypedefs;
+        options.isWantedCursorForTypedefs = (ref const(Cursor)) => true;
 
         translator = () @trusted { return new Translator(translationUnit, options); }();
     }

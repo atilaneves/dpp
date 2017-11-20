@@ -47,7 +47,6 @@ import include.runtime;
 }
 
 
-@ShouldFail
 @("__SIZEOF_PTHREAD_ATTR_T")
 @safe unittest {
 
