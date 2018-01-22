@@ -1,7 +1,7 @@
 {
 	"fileVersion": 1,
 	"versions": {
-		"dstep": {"path":"../dstep"},
+		"dstep": "~master",
 		"unit-threaded": "0.7.36"
 	}
 }

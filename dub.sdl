@@ -7,7 +7,7 @@ targetType "executable"
 targetPath "bin"
 # dip1000 has had to be disabled
 dflags "-dip25"
-dependency "dstep" path="../dstep"
+dependency "dstep" version="~master"
 subConfiguration "dstep" "library"
 importPaths "source" "../dstep/"
 libs "clang"

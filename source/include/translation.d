@@ -201,7 +201,7 @@ private Translation translateImpl(ref Cursor cursor) {
         default:
             return Translation(Translation.State.dstep);
 
-        case CXCursor_MacroDefinition:
+        case macroDefinition:
 
             // we want non-built-in macro definitions to be defined and then preprocessed
             // again
