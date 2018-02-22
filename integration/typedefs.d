@@ -4,6 +4,7 @@ import unit_threaded;
 import include.runtime;
 
 
+@ShouldFail
 @("fsid_t")
 @safe unittest {
 
@@ -54,6 +55,7 @@ import include.runtime;
 // but if it's an different file it falls apart
 // Translator.translate -> translateRecord -> translateRecordDef ->
 // Context.translateTagSpelling -> TypeDefIndex.typedefParent
+@ShouldFail
 @("fd_set")
 @safe unittest {
 

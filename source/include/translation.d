@@ -11,8 +11,7 @@
 module include.translation;
 
 
-import clang.TranslationUnit: TranslationUnit;
-import clang.Cursor: Cursor;
+import clang: TranslationUnit, Cursor;
 
 version(unittest) {
     import unit_threaded;
@@ -42,88 +41,28 @@ string maybeExpand(string line) @safe {
 
 
 private string expand(in string headerFileName) @safe {
-    import include.clang: parse;
-    import std.algorithm: sorted = sort;
+    import clang: parse, TranslationUnitFlags;
+    import std.array: join;
 
-    string ret;
+    string[] ret;
 
-    ret ~= "extern(C) {\n";
+    ret ~= "extern(C) {";
 
-    auto translationUnit = parse(headerFileName);
-    auto dstep = DStep(translationUnit);
+    auto translationUnit = parse(headerFileName,
+                                 TranslationUnitFlags.DetailedPreprocessingRecord);
 
-    static struct CursorAndParent {
-        Cursor cursor;
-        Cursor parent;
+    foreach(cursor, parent; translationUnit) {
+        ret ~= translate(translationUnit, cursor, parent);
     }
 
-    CursorAndParent[] cursors;
+    ret ~= "}";
+    ret ~= "";
 
-    () @trusted {
-        foreach(cursor, parent; translationUnit.cursor.allInOrder) {
-            cursors ~= CursorAndParent(cursor, parent);
-        }
-    }();
-
-    foreach(c; cursors) {
-        ret ~= translate(dstep, translationUnit, c.cursor, c.parent);
-    }
-
-    ret ~= "}\n";
-
-    return ret;
+    return ret.join("\n");
 }
 
 
-private struct DStep {
-
-    import clang.TranslationUnit: TranslationUnit;
-    import clang.Cursor: Cursor;
-    import dstep.translator.Translator: Translator;
-    import std.typecons: Yes;
-
-    TranslationUnit translationUnit;
-    Translator translator;
-
-    this(TranslationUnit translationUnit) @safe {
-        import dstep.translator.Options: Options;
-
-        this.translationUnit = translationUnit;
-        Options options;
-        options.enableComments = false;
-        options.isWantedCursorForTypedefs = (ref const(Cursor)) => true;
-
-        translator = () @trusted { return new Translator(translationUnit, options); }();
-    }
-
-    string translate(ref Cursor cursor, ref Cursor parent) @trusted {
-        import dstep.translator.Output: Output;
-
-        static bool[string] alreadyTranslated;
-
-        Output output = new Output(translator.context.commentIndex);
-
-        translator.translateInGlobalScope(output, cursor, parent);
-        if (translator.context.commentIndex)
-            output.flushLocation(translator.context.commentIndex.queryLastLocation());
-
-        // foreach (value; translator.deferredDeclarations.values)
-        //     output.singleLine(value);
-
-        output.finalize();
-
-        auto ret =  output.content;
-
-        if(ret in alreadyTranslated) return "";
-
-        alreadyTranslated[ret] = true;
-
-        return ret;
-    }
-}
-
-private string translate(ref DStep dstep,
-                         ref TranslationUnit translationUnit,
+private string translate(ref TranslationUnit translationUnit,
                          ref Cursor cursor,
                          ref Cursor parent)
     @trusted
@@ -132,10 +71,9 @@ private string translate(ref DStep dstep,
 
     auto translation = translateOurselves(cursor);
 
-    if(translation.ignore) return "";
-    if(translation.dstep) return dstep.translate(cursor, parent);
-
-    return translation.value;
+    return translation.ignore
+        ? ""
+        : translation.value;
 }
 
 
@@ -143,16 +81,11 @@ private struct Translation {
 
     enum State {
         ignore,
-        dstep,
         valid,
     }
 
     bool ignore() @safe @nogc pure nothrow const {
         return state == State.ignore;
-    }
-
-    bool dstep() @safe @nogc pure nothrow const {
-        return state == State.dstep;
     }
 
     bool valid() @safe @nogc pure nothrow const {
@@ -186,7 +119,6 @@ private Translation translateOurselves(ref Cursor cursor) {
 }
 
 private Translation translateImpl(ref Cursor cursor) {
-    import clang.c.Index: CXCursorKind;
     import std.format: format;
     import std.algorithm: map;
     import std.string: join;
@@ -196,17 +128,17 @@ private Translation translateImpl(ref Cursor cursor) {
 
     static bool[string] alreadyDefined;
 
-    switch(cursor.kind) with(CXCursorKind) {
+    switch(cursor.kind) with(Cursor.Kind) {
 
         default:
-            return Translation(Translation.State.dstep);
+            return Translation(Translation.State.ignore);
 
-        case macroDefinition:
+        case MacroDefinition:
 
             // we want non-built-in macro definitions to be defined and then preprocessed
             // again
 
-            auto range = cursor.extent;
+            auto range = cursor.sourceRange;
 
             if(range.path == "" || !range.path.exists ||
                cursor.isPredefined || cursor.spelling.startsWith("__STDC_")) { //built-in macro
