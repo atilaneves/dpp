@@ -29,6 +29,8 @@ void preprocess(File)(in string inputFileName, in string outputFileName) {
         auto outputFile = File(tmpFileName, "w");
 
         outputFile.writeln("import core.stdc.config;");
+        outputFile.writeln("import core.stdc.stdarg: va_list;");
+        outputFile.writeln("#define __gnuc_va_list va_list");
 
         () @trusted {
             foreach(line; File(inputFileName).byLine.map!(a => cast(string)a)) {

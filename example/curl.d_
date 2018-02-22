@@ -9,5 +9,5 @@ void main() {
     cm = curl_multi_init();
 
     enum MAX = 10L;
-    curl_multi_setopt(cm, CURLMOPT_MAXCONNECTS, MAX);
+    curl_multi_setopt(cm, CURLMoption.CURLMOPT_MAXCONNECTS, MAX);
 }

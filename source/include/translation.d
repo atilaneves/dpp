@@ -43,6 +43,7 @@ string maybeExpand(string line) @safe {
 
 private string expand(in string headerFileName) @safe {
     import include.clang: parse;
+    import std.algorithm: sorted = sort;
 
     string ret;
 
@@ -51,11 +52,22 @@ private string expand(in string headerFileName) @safe {
     auto translationUnit = parse(headerFileName);
     auto dstep = DStep(translationUnit);
 
+    static struct CursorAndParent {
+        Cursor cursor;
+        Cursor parent;
+    }
+
+    CursorAndParent[] cursors;
+
     () @trusted {
         foreach(cursor, parent; translationUnit.cursor.allInOrder) {
-            ret ~= translate(dstep, translationUnit, cursor, parent);
+            cursors ~= CursorAndParent(cursor, parent);
         }
     }();
+
+    foreach(c; cursors) {
+        ret ~= translate(dstep, translationUnit, c.cursor, c.parent);
+    }
 
     ret ~= "}\n";
 
@@ -68,6 +80,7 @@ private struct DStep {
     import clang.TranslationUnit: TranslationUnit;
     import clang.Cursor: Cursor;
     import dstep.translator.Translator: Translator;
+    import std.typecons: Yes;
 
     TranslationUnit translationUnit;
     Translator translator;
@@ -78,6 +91,7 @@ private struct DStep {
         this.translationUnit = translationUnit;
         Options options;
         options.enableComments = false;
+        options.isWantedCursorForTypedefs = (ref const(Cursor)) => true;
 
         translator = () @trusted { return new Translator(translationUnit, options); }();
     }
@@ -187,14 +201,15 @@ private Translation translateImpl(ref Cursor cursor) {
         default:
             return Translation(Translation.State.dstep);
 
-        case CXCursor_MacroDefinition:
+        case macroDefinition:
 
             // we want non-built-in macro definitions to be defined and then preprocessed
             // again
 
             auto range = cursor.extent;
 
-            if(range.path == "" || !range.path.exists || cursor.spelling.startsWith("_")) { //built-in macro
+            if(range.path == "" || !range.path.exists ||
+               cursor.isPredefined || cursor.spelling.startsWith("__STDC_")) { //built-in macro
                 return Translation(Translation.State.ignore);
             }
 
@@ -227,11 +242,12 @@ private bool skipCursor(ref Cursor cursor) {
     static immutable forbiddenSpellings =
         [
             "ulong", "ushort", "uint",
+            "va_list", "__gnuc_va_list",
+            "_IO_2_1_stdin_", "_IO_2_1_stdout_", "_IO_2_1_stderr_",
         ];
 
     if(forbiddenSpellings.canFind(cursor.spelling)) return true;
     if(cursor.isPredefined) return true;
-    if(cursor.spelling.startsWith("__")) return true;
 
     return false;
 }

@@ -8,4 +8,5 @@ script:
   - dub test
   - ./integration.sh
   - dub build
+  - ./examples.sh
   - cucumber --tags ~@wip
