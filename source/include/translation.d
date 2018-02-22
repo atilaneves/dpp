@@ -67,13 +67,43 @@ private string translate(ref TranslationUnit translationUnit,
                          ref Cursor parent)
     @trusted
 {
+    import std.array: join;
+
     if(skipCursor(cursor)) return "";
 
-    auto translation = translateOurselves(cursor);
+    return translateImpl(cursor).join("\n");
+}
 
-    return translation.ignore
-        ? ""
-        : translation.value;
+private string[] translateImpl(Cursor cursor) {
+
+    import std.conv: text;
+    import std.array: join;
+
+    switch(cursor.kind) with(Cursor.Kind) {
+        default:
+            return [];
+
+        case StructDecl:
+            string[] ret;
+
+            ret ~= `struct Foo {`;
+            foreach(field; cursor) {
+                assert(field.kind == FieldDecl);
+                const type = "int";
+                const name = "x";
+                ret ~= text(type, " ", name, ";");
+            }
+            ret ~= `}`;
+
+            return ret;
+
+        case FunctionDecl:
+            const returnType = "Foo";
+            const name = "addFoos";
+            const types = ["Foo*", "Foo*"];
+            return [text(returnType, " ", name, "(", types.join(", "), ");")];
+    }
+
 }
 
 
@@ -109,7 +139,7 @@ private struct Translation {
 private Translation translateOurselves(ref Cursor cursor) {
     static bool[string] alreadyTranslated;
 
-    const translated = translateImpl(cursor);
+    const translated = translateImplOld(cursor);
 
     if(translated.valid && translated.value in alreadyTranslated)
         return Translation(Translation.State.ignore);
@@ -118,7 +148,7 @@ private Translation translateOurselves(ref Cursor cursor) {
     return translated;
 }
 
-private Translation translateImpl(ref Cursor cursor) {
+private Translation translateImplOld(ref Cursor cursor) {
     import std.format: format;
     import std.algorithm: map;
     import std.string: join;
@@ -178,10 +208,7 @@ private bool skipCursor(ref Cursor cursor) {
             "_IO_2_1_stdin_", "_IO_2_1_stdout_", "_IO_2_1_stderr_",
         ];
 
-    if(forbiddenSpellings.canFind(cursor.spelling)) return true;
-    if(cursor.isPredefined) return true;
-
-    return false;
+    return forbiddenSpellings.canFind(cursor.spelling) || cursor.isPredefined;
 }
 
 
