@@ -90,7 +90,7 @@ string[] translate(Cursor cursor) @safe {
             foreach(field; cursor) {
                 assert(field.kind == FieldDecl);
                 const type = "int";
-                const name = "i";
+                const name = field.spelling;
                 ret ~= text(type, " ", name, ";");
             }
             ret ~= `}`;

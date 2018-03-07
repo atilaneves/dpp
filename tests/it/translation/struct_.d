@@ -21,7 +21,6 @@ import it.translation;
     }
 }
 
-@ShouldFail
 @("int called x")
 @safe unittest {
     with(const TranslationSandbox()) {
