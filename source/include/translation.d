@@ -39,6 +39,47 @@ string maybeExpand(string line) @safe {
     "bar".maybeExpand.shouldEqual("bar");
 }
 
+private string getHeaderName(string line) @safe pure {
+    import std.algorithm: startsWith, countUntil;
+    import std.range: dropBack;
+    import std.array: popFront;
+    import std.string: stripLeft;
+
+    line = line.stripLeft;
+    if(!line.startsWith(`#include `)) return "";
+
+    const openingQuote = line.countUntil!(a => a == '"' || a == '<');
+    const closingQuote = line[openingQuote + 1 .. $].countUntil!(a => a == '"' || a == '>') + openingQuote + 1;
+    return line[openingQuote + 1 .. closingQuote];
+}
+
+@("getHeaderFileName")
+@safe pure unittest {
+    getHeaderName(`#include "foo.h"`).shouldEqual(`foo.h`);
+    getHeaderName(`#include "bar.h"`).shouldEqual(`bar.h`);
+    getHeaderName(`#include "foo.h" // comment`).shouldEqual(`foo.h`);
+    getHeaderName(`#include <foo.h>`).shouldEqual(`foo.h`);
+    getHeaderName(`    #include "foo.h"`).shouldEqual(`foo.h`);
+}
+
+// transforms a header name, e.g. stdio.h
+// into a full file path, e.g. /usr/include/stdio.h
+private string toFileName(in string headerName) @safe {
+
+    import std.algorithm: map, filter;
+    import std.path: buildPath, absolutePath;
+    import std.file: exists;
+    import std.conv: text;
+    import std.exception: enforce;
+
+    if(headerName.exists) return headerName;
+
+    const dirs = ["/usr/include"];
+    auto filePaths = dirs.map!(a => buildPath(a, headerName).absolutePath).filter!exists;
+    enforce(!filePaths.empty, text("Cannot find file path for header '", headerName, "'"));
+    return filePaths.front;
+}
+
 
 string expand(in string headerFileName) @safe {
     import clang: parse, TranslationUnitFlags;
@@ -73,6 +114,20 @@ private string translate(ref TranslationUnit translationUnit,
 
     return translate(cursor).join("\n");
 }
+
+private bool skipCursor(ref Cursor cursor) @safe pure {
+    import std.algorithm: startsWith, canFind;
+
+    static immutable forbiddenSpellings =
+        [
+            "ulong", "ushort", "uint",
+            "va_list", "__gnuc_va_list",
+            "_IO_2_1_stdin_", "_IO_2_1_stdout_", "_IO_2_1_stderr_",
+        ];
+
+    return forbiddenSpellings.canFind(cursor.spelling) || cursor.isPredefined;
+}
+
 
 string[] translate(Cursor cursor) @safe {
 
@@ -120,151 +175,4 @@ string translate(in Type type) @safe {
         case Double:
             return "double";
     }
-}
-
-
-private struct Translation {
-
-    enum State {
-        ignore,
-        valid,
-    }
-
-    bool ignore() @safe @nogc pure nothrow const {
-        return state == State.ignore;
-    }
-
-    bool valid() @safe @nogc pure nothrow const {
-        return state == State.valid;
-    }
-
-    string value;
-    State state;
-
-    this(string value) @safe pure {
-        this.value = value;
-        this.state = State.valid;
-    }
-
-    this(State state) @safe pure {
-        assert(state != State.valid);
-        this.state = state;
-    }
-}
-
-private Translation translateOurselves(ref Cursor cursor) {
-    static bool[string] alreadyTranslated;
-
-    const translated = translateImplOld(cursor);
-
-    if(translated.valid && translated.value in alreadyTranslated)
-        return Translation(Translation.State.ignore);
-
-    alreadyTranslated[translated.value] = true;
-    return translated;
-}
-
-private Translation translateImplOld(ref Cursor cursor) {
-    import std.format: format;
-    import std.algorithm: map;
-    import std.string: join;
-    import std.file: exists;
-    import std.stdio: File;
-    import std.algorithm: startsWith;
-
-    static bool[string] alreadyDefined;
-
-    switch(cursor.kind) with(Cursor.Kind) {
-
-        default:
-            return Translation(Translation.State.ignore);
-
-        case MacroDefinition:
-
-            // we want non-built-in macro definitions to be defined and then preprocessed
-            // again
-
-            auto range = cursor.sourceRange;
-
-            if(range.path == "" || !range.path.exists ||
-               cursor.isPredefined || cursor.spelling.startsWith("__STDC_")) { //built-in macro
-                return Translation(Translation.State.ignore);
-            }
-
-            // now we read the header where the macro comes from and copy the text inline
-
-            const startPos = range.start.offset;
-            const endPos   = range.end.offset;
-
-            auto file = File(range.path);
-            file.seek(startPos);
-            const chars = file.rawRead(new char[endPos - startPos]);
-
-            // the only sane way for us to be able to see a macro definition
-            // for a macro that has already been defined is if an #undef happened
-            // in the meanwhile. Unfortunately, libclang has no way of passing
-            // that information to us
-            string maybeUndef;
-            if(cursor.spelling in alreadyDefined)
-                maybeUndef = "#undef " ~ cursor.spelling ~ "\n";
-
-             alreadyDefined[cursor.spelling] = true;
-
-             return Translation(maybeUndef ~ "#define %s\n".format(chars));
-    }
-}
-
-private bool skipCursor(ref Cursor cursor) @safe pure {
-    import std.algorithm: startsWith, canFind;
-
-    static immutable forbiddenSpellings =
-        [
-            "ulong", "ushort", "uint",
-            "va_list", "__gnuc_va_list",
-            "_IO_2_1_stdin_", "_IO_2_1_stdout_", "_IO_2_1_stderr_",
-        ];
-
-    return forbiddenSpellings.canFind(cursor.spelling) || cursor.isPredefined;
-}
-
-
-private string getHeaderName(string line) @safe pure {
-    import std.algorithm: startsWith, countUntil;
-    import std.range: dropBack;
-    import std.array: popFront;
-    import std.string: stripLeft;
-
-    line = line.stripLeft;
-    if(!line.startsWith(`#include `)) return "";
-
-    const openingQuote = line.countUntil!(a => a == '"' || a == '<');
-    const closingQuote = line[openingQuote + 1 .. $].countUntil!(a => a == '"' || a == '>') + openingQuote + 1;
-    return line[openingQuote + 1 .. closingQuote];
-}
-
-@("getHeaderFileName")
-@safe pure unittest {
-    getHeaderName(`#include "foo.h"`).shouldEqual(`foo.h`);
-    getHeaderName(`#include "bar.h"`).shouldEqual(`bar.h`);
-    getHeaderName(`#include "foo.h" // comment`).shouldEqual(`foo.h`);
-    getHeaderName(`#include <foo.h>`).shouldEqual(`foo.h`);
-    getHeaderName(`    #include "foo.h"`).shouldEqual(`foo.h`);
-}
-
-// transforms a header name, e.g. stdio.h
-// into a full file path, e.g. /usr/include/stdio.h
-private string toFileName(in string headerName) @safe {
-
-    import std.algorithm: map, filter;
-    import std.path: buildPath, absolutePath;
-    import std.file: exists;
-    import std.conv: text;
-    import std.exception: enforce;
-
-    if(headerName.exists) return headerName;
-
-    const dirs = ["/usr/include"];
-    auto filePaths = dirs.map!(a => buildPath(a, headerName).absolutePath).filter!exists;
-    enforce(!filePaths.empty, text("Cannot find file path for header '", headerName, "'"));
-    return filePaths.front;
 }
