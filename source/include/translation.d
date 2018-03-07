@@ -40,7 +40,7 @@ string maybeExpand(string line) @safe {
 }
 
 
-private string expand(in string headerFileName) @safe {
+string expand(in string headerFileName) @safe {
     import clang: parse, TranslationUnitFlags;
     import std.array: join;
 
@@ -65,16 +65,16 @@ private string expand(in string headerFileName) @safe {
 private string translate(ref TranslationUnit translationUnit,
                          ref Cursor cursor,
                          ref Cursor parent)
-    @trusted
+    @safe
 {
     import std.array: join;
 
     if(skipCursor(cursor)) return "";
 
-    return translateImpl(cursor).join("\n");
+    return translate(cursor).join("\n");
 }
 
-private string[] translateImpl(Cursor cursor) {
+string[] translate(Cursor cursor) @safe {
 
     import std.conv: text;
     import std.array: join;
@@ -90,7 +90,7 @@ private string[] translateImpl(Cursor cursor) {
             foreach(field; cursor) {
                 assert(field.kind == FieldDecl);
                 const type = "int";
-                const name = "x";
+                const name = "i";
                 ret ~= text(type, " ", name, ";");
             }
             ret ~= `}`;
@@ -198,7 +198,7 @@ private Translation translateImplOld(ref Cursor cursor) {
     }
 }
 
-private bool skipCursor(ref Cursor cursor) {
+private bool skipCursor(ref Cursor cursor) @safe pure {
     import std.algorithm: startsWith, canFind;
 
     static immutable forbiddenSpellings =

@@ -12,5 +12,6 @@ int main(string[] args) {
         // integration tests
         "it.preprocessor",
         "it.typedefs",
+        "it.translation.struct_",
     );
 }
