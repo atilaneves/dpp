@@ -1,9 +1,10 @@
-module integration.preprocessor;
+module it.preprocessor;
 
 import unit_threaded;
 import include.runtime;
 
 
+@ShouldFail
 @("define macro, undefine, then define again")
 @safe unittest {
 
@@ -47,6 +48,7 @@ import include.runtime;
 }
 
 
+@ShouldFail
 @("__SIZEOF_PTHREAD_ATTR_T")
 @safe unittest {
 

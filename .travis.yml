@@ -6,7 +6,6 @@ install:
 
 script:
   - dub test
-  - ./integration.sh
   - dub build
   - ./examples.sh
-  - cucumber --tags ~@wip
+  - bundle exec cucumber --tags ~@wip

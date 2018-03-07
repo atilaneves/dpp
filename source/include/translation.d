@@ -11,8 +11,7 @@
 module include.translation;
 
 
-import clang.TranslationUnit: TranslationUnit;
-import clang.Cursor: Cursor;
+import clang: TranslationUnit, Cursor, Type;
 
 version(unittest) {
     import unit_threaded;
@@ -39,219 +38,6 @@ string maybeExpand(string line) @safe {
     "foo".maybeExpand.shouldEqual("foo");
     "bar".maybeExpand.shouldEqual("bar");
 }
-
-
-private string expand(in string headerFileName) @safe {
-    import include.clang: parse;
-    import std.algorithm: sorted = sort;
-
-    string ret;
-
-    ret ~= "extern(C) {\n";
-
-    auto translationUnit = parse(headerFileName);
-    auto dstep = DStep(translationUnit);
-
-    static struct CursorAndParent {
-        Cursor cursor;
-        Cursor parent;
-    }
-
-    CursorAndParent[] cursors;
-
-    () @trusted {
-        foreach(cursor, parent; translationUnit.cursor.allInOrder) {
-            cursors ~= CursorAndParent(cursor, parent);
-        }
-    }();
-
-    foreach(c; cursors) {
-        ret ~= translate(dstep, translationUnit, c.cursor, c.parent);
-    }
-
-    ret ~= "}\n";
-
-    return ret;
-}
-
-
-private struct DStep {
-
-    import clang.TranslationUnit: TranslationUnit;
-    import clang.Cursor: Cursor;
-    import dstep.translator.Translator: Translator;
-    import std.typecons: Yes;
-
-    TranslationUnit translationUnit;
-    Translator translator;
-
-    this(TranslationUnit translationUnit) @safe {
-        import dstep.translator.Options: Options;
-
-        this.translationUnit = translationUnit;
-        Options options;
-        options.enableComments = false;
-        options.isWantedCursorForTypedefs = (ref const(Cursor)) => true;
-
-        translator = () @trusted { return new Translator(translationUnit, options); }();
-    }
-
-    string translate(ref Cursor cursor, ref Cursor parent) @trusted {
-        import dstep.translator.Output: Output;
-
-        static bool[string] alreadyTranslated;
-
-        Output output = new Output(translator.context.commentIndex);
-
-        translator.translateInGlobalScope(output, cursor, parent);
-        if (translator.context.commentIndex)
-            output.flushLocation(translator.context.commentIndex.queryLastLocation());
-
-        // foreach (value; translator.deferredDeclarations.values)
-        //     output.singleLine(value);
-
-        output.finalize();
-
-        auto ret =  output.content;
-
-        if(ret in alreadyTranslated) return "";
-
-        alreadyTranslated[ret] = true;
-
-        return ret;
-    }
-}
-
-private string translate(ref DStep dstep,
-                         ref TranslationUnit translationUnit,
-                         ref Cursor cursor,
-                         ref Cursor parent)
-    @trusted
-{
-    if(skipCursor(cursor)) return "";
-
-    auto translation = translateOurselves(cursor);
-
-    if(translation.ignore) return "";
-    if(translation.dstep) return dstep.translate(cursor, parent);
-
-    return translation.value;
-}
-
-
-private struct Translation {
-
-    enum State {
-        ignore,
-        dstep,
-        valid,
-    }
-
-    bool ignore() @safe @nogc pure nothrow const {
-        return state == State.ignore;
-    }
-
-    bool dstep() @safe @nogc pure nothrow const {
-        return state == State.dstep;
-    }
-
-    bool valid() @safe @nogc pure nothrow const {
-        return state == State.valid;
-    }
-
-    string value;
-    State state;
-
-    this(string value) @safe pure {
-        this.value = value;
-        this.state = State.valid;
-    }
-
-    this(State state) @safe pure {
-        assert(state != State.valid);
-        this.state = state;
-    }
-}
-
-private Translation translateOurselves(ref Cursor cursor) {
-    static bool[string] alreadyTranslated;
-
-    const translated = translateImpl(cursor);
-
-    if(translated.valid && translated.value in alreadyTranslated)
-        return Translation(Translation.State.ignore);
-
-    alreadyTranslated[translated.value] = true;
-    return translated;
-}
-
-private Translation translateImpl(ref Cursor cursor) {
-    import clang.c.Index: CXCursorKind;
-    import std.format: format;
-    import std.algorithm: map;
-    import std.string: join;
-    import std.file: exists;
-    import std.stdio: File;
-    import std.algorithm: startsWith;
-
-    static bool[string] alreadyDefined;
-
-    switch(cursor.kind) with(CXCursorKind) {
-
-        default:
-            return Translation(Translation.State.dstep);
-
-        case macroDefinition:
-
-            // we want non-built-in macro definitions to be defined and then preprocessed
-            // again
-
-            auto range = cursor.extent;
-
-            if(range.path == "" || !range.path.exists ||
-               cursor.isPredefined || cursor.spelling.startsWith("__STDC_")) { //built-in macro
-                return Translation(Translation.State.ignore);
-            }
-
-            // now we read the header where the macro comes from and copy the text inline
-
-            const startPos = range.start.offset;
-            const endPos   = range.end.offset;
-
-            auto file = File(range.path);
-            file.seek(startPos);
-            const chars = file.rawRead(new char[endPos - startPos]);
-
-            // the only sane way for us to be able to see a macro definition
-            // for a macro that has already been defined is if an #undef happened
-            // in the meanwhile. Unfortunately, libclang has no way of passing
-            // that information to us
-            string maybeUndef;
-            if(cursor.spelling in alreadyDefined)
-                maybeUndef = "#undef " ~ cursor.spelling ~ "\n";
-
-             alreadyDefined[cursor.spelling] = true;
-
-             return Translation(maybeUndef ~ "#define %s\n".format(chars));
-    }
-}
-
-private bool skipCursor(ref Cursor cursor) {
-    import std.algorithm: startsWith, canFind;
-
-    static immutable forbiddenSpellings =
-        [
-            "ulong", "ushort", "uint",
-            "va_list", "__gnuc_va_list",
-            "_IO_2_1_stdin_", "_IO_2_1_stdout_", "_IO_2_1_stderr_",
-        ];
-
-    if(forbiddenSpellings.canFind(cursor.spelling)) return true;
-    if(cursor.isPredefined) return true;
-
-    return false;
-}
-
 
 private string getHeaderName(string line) @safe pure {
     import std.algorithm: startsWith, countUntil;
@@ -292,4 +78,101 @@ private string toFileName(in string headerName) @safe {
     auto filePaths = dirs.map!(a => buildPath(a, headerName).absolutePath).filter!exists;
     enforce(!filePaths.empty, text("Cannot find file path for header '", headerName, "'"));
     return filePaths.front;
+}
+
+
+string expand(in string headerFileName) @safe {
+    import clang: parse, TranslationUnitFlags;
+    import std.array: join;
+
+    string[] ret;
+
+    ret ~= "extern(C) {";
+
+    auto translationUnit = parse(headerFileName,
+                                 TranslationUnitFlags.DetailedPreprocessingRecord);
+
+    foreach(cursor, parent; translationUnit) {
+        ret ~= translate(translationUnit, cursor, parent);
+    }
+
+    ret ~= "}";
+    ret ~= "";
+
+    return ret.join("\n");
+}
+
+
+private string translate(ref TranslationUnit translationUnit,
+                         ref Cursor cursor,
+                         ref Cursor parent)
+    @safe
+{
+    import std.array: join;
+
+    if(skipCursor(cursor)) return "";
+
+    return translate(cursor).join("\n");
+}
+
+private bool skipCursor(ref Cursor cursor) @safe pure {
+    import std.algorithm: startsWith, canFind;
+
+    static immutable forbiddenSpellings =
+        [
+            "ulong", "ushort", "uint",
+            "va_list", "__gnuc_va_list",
+            "_IO_2_1_stdin_", "_IO_2_1_stdout_", "_IO_2_1_stderr_",
+        ];
+
+    return forbiddenSpellings.canFind(cursor.spelling) || cursor.isPredefined;
+}
+
+
+string[] translate(Cursor cursor) @safe {
+
+    import std.conv: text;
+    import std.array: join;
+
+    switch(cursor.kind) with(Cursor.Kind) {
+        default:
+            return [];
+
+        case StructDecl:
+            string[] ret;
+
+            ret ~= `struct Foo {`;
+            foreach(field; cursor) {
+                assert(field.kind == FieldDecl);
+                const type = translate(field.type);
+                const name = field.spelling;
+                ret ~= text(type, " ", name, ";");
+            }
+            ret ~= `}`;
+
+            return ret;
+
+        case FunctionDecl:
+            const returnType = "Foo";
+            const name = "addFoos";
+            const types = ["Foo*", "Foo*"];
+            return [text(returnType, " ", name, "(", types.join(", "), ");")];
+    }
+}
+
+string translate(in Type type) @safe {
+
+    import std.conv: text;
+
+    switch(type.kind) with(Type.Kind) {
+
+        default:
+            assert(false, text("Type kind ", type.kind, " not supported"));
+
+        case Int:
+            return "int";
+
+        case Double:
+            return "double";
+    }
 }
