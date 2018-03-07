@@ -40,12 +40,11 @@ import it.translation;
     }
 }
 
-@ShouldFail
 @("double called d")
 @safe unittest {
     with(const TranslationSandbox()) {
 
-        expand(Out("foo.d"), In("foo.h"), [q{struct Foo { double i; };}]);
+        expand(Out("foo.d"), In("foo.h"), [q{struct Foo { double d; };}]);
 
         writeFile("main.d", q{
             import foo;

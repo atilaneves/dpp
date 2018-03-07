@@ -11,7 +11,7 @@
 module include.translation;
 
 
-import clang: TranslationUnit, Cursor;
+import clang: TranslationUnit, Cursor, Type;
 
 version(unittest) {
     import unit_threaded;
@@ -89,7 +89,7 @@ string[] translate(Cursor cursor) @safe {
             ret ~= `struct Foo {`;
             foreach(field; cursor) {
                 assert(field.kind == FieldDecl);
-                const type = "int";
+                const type = translate(field.type);
                 const name = field.spelling;
                 ret ~= text(type, " ", name, ";");
             }
@@ -103,7 +103,23 @@ string[] translate(Cursor cursor) @safe {
             const types = ["Foo*", "Foo*"];
             return [text(returnType, " ", name, "(", types.join(", "), ");")];
     }
+}
 
+string translate(in Type type) @safe {
+
+    import std.conv: text;
+
+    switch(type.kind) with(Type.Kind) {
+
+        default:
+            assert(false, text("Type kind ", type.kind, " not supported"));
+
+        case Int:
+            return "int";
+
+        case Double:
+            return "double";
+    }
 }
 
 
