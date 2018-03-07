@@ -39,3 +39,23 @@ import it.translation;
         shouldCompileAndRun("main.d", "foo.d");
     }
 }
+
+@ShouldFail
+@("double called d")
+@safe unittest {
+    with(const TranslationSandbox()) {
+
+        expand(Out("foo.d"), In("foo.h"), [q{struct Foo { double i; };}]);
+
+        writeFile("main.d", q{
+            import foo;
+            void main() {
+                auto f = Foo(33.3);
+                assert(f.sizeof == 8, "Wrong sizeof for Foo");
+                assert(f.d == 33.3, "f.i should be 33.3");
+            }
+        });
+
+        shouldCompileAndRun("main.d", "foo.d");
+    }
+}
