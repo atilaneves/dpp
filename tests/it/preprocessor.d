@@ -1,4 +1,4 @@
-module integration.preprocessor;
+module it.preprocessor;
 
 import unit_threaded;
 import include.runtime;

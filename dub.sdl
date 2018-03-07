@@ -1,37 +1,32 @@
 name "include"
 description "Include C/C++ headers directly in D files for preprocessing"
 authors "Atila Neves"
-copyright "Copyright © 2017, Atila Neves"
+copyright "Copyright © 2017-2018, Atila Neves"
 license "boost"
 targetType "executable"
 targetPath "bin"
-# dip1000 has had to be disabled
+// dip1000 has to be disabled for now
 dflags "-dip25"
-dependency "libclang" path="../libclang"
-libs "clang"
+dependency "libclang" version="*"
 
 configuration "executable" {
 }
 
-configuration "integration" {
-    targetName "it"
-    sourcePaths "source" "integration"
-    importPaths "source" "integration"
-    excludedSourceFiles "source/main.d"
-    dependency "unit-threaded" version="~>0.7.0"
-}
-
 configuration "unittest" {
     targetName "ut"
-    mainSourceFile "ut.d"
+    mainSourceFile "tests/ut_main.d"
+    sourcePaths "source" "tests"
+    importPaths "source" "tests"
     excludedSourceFiles "source/main.d"
     dependency "unit-threaded" version="~>0.7.0"
 }
 
 
-configuration "ut" {
+configuration "unittest-light" {
     targetName "utl"
-    mainSourceFile "ut.d"
+    mainSourceFile "tests/ut_main.d"
+    sourcePaths "source" "tests"
+    importPaths "source" "tests"
     excludedSourceFiles "source/main.d"
     dependency "unit-threaded" version="~>0.7.0"
     versions "unitThreadedLight"
