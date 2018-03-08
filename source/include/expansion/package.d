@@ -74,7 +74,7 @@ private string toFileName(in string headerName) @safe {
 string expand(in string headerFileName, in string file = __FILE__, in size_t line = __LINE__)
     @safe
 {
-    import include.translation: translate;
+    import include.translation.unit: translate;
     import clang: parse, TranslationUnitFlags;
     import std.array: join;
 
