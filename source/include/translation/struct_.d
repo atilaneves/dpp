@@ -15,7 +15,8 @@ string[] translateStruct(in from!"clang".Cursor struct_) @safe {
 
     string[] ret;
 
-    ret ~= `struct Foo {`;
+    ret ~= `struct ` ~ struct_.spelling;
+    ret ~= `{`;
     foreach(field; struct_) {
         ret ~= translateField(field);
     }
