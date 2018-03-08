@@ -14,3 +14,4 @@ public import include.translation.unit;
 public import include.translation.aggregate;
 public import include.translation.type;
 public import include.translation.function_;
+public import include.translation.typedef_;

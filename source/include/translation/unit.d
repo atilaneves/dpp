@@ -45,7 +45,7 @@ string[] translate(from!"clang".Cursor cursor, in string file = __FILE__, in siz
     version(unittest) writelnUt("Cursor: ", cursor);
 
     if(cursor.kind !in translations)
-        throw new Exception(text("Unknown cursor kind ", cursor.kind), file, line);
+        throw new Exception(text("Cannot translate unknown cursor kind ", cursor.kind), file, line);
 
     return translations[cursor.kind](cursor);
 }
@@ -60,6 +60,7 @@ Translation[from!"clang".Cursor.Kind] translations() @safe pure {
             UnionDecl:    &translateUnion,
             FunctionDecl: &translateFunction,
             FieldDecl:    &translateField,
+            TypedefDecl:  &translateTypedef,
         ];
     }
 }
