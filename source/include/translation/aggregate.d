@@ -5,6 +5,16 @@ module include.translation.aggregate;
 
 import include.from;
 
+string[] translateStruct(in from!"clang".Cursor struct_) @safe {
+    import include.translation.aggregate: translateAggregate;
+    return translateAggregate(struct_, "struct");
+}
+
+string[] translateUnion(in from!"clang".Cursor union_) @safe {
+    import include.translation.aggregate: translateAggregate;
+    return translateAggregate(union_, "union");
+}
+
 string[] translateAggregate(
     in from!"clang".Cursor cursor,
     in string keyword,
@@ -30,14 +40,14 @@ string[] translateAggregate(
 }
 
 string[] translateMember(in from!"clang".Cursor member) @safe {
-    import include.translation.struct_: translateStruct;
     import clang: Cursor;
     import std.conv: text;
 
     switch(member.kind) with(Cursor.Kind) {
-        default: throw new Exception(text("Unsupported kind for translateMember: ", member));
-        case FieldDecl: return translateField(member);
+        default:         throw new Exception(text("Unsupported kind for translateMember: ", member));
+        case FieldDecl:  return translateField(member);
         case StructDecl: return "static" ~ translateStruct(member);
+        case UnionDecl:  return "static" ~ translateStruct(member);
     }
 }
 

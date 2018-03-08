@@ -11,7 +11,6 @@
 module include.translation;
 
 public import include.translation.unit;
-public import include.translation.struct_;
-public import include.translation.union_;
+public import include.translation.aggregate;
 public import include.translation.type;
 public import include.translation.function_;
