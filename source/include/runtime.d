@@ -10,7 +10,7 @@ void run(string[] args) @safe {
     import std.stdio: File;
     const inputFileName = args[1];
     const outputFileName = args[2];
-    return preprocess!File(inputFileName, outputFileName);
+    preprocess!File(inputFileName, outputFileName);
 }
 
 /**

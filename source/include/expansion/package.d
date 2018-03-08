@@ -1,7 +1,7 @@
 /**
    Deals with expanding 3include directives inline.
  */
-module expansion;
+module include.expansion;
 
 version(unittest) {
     import unit_threaded;
