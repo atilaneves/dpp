@@ -3,7 +3,6 @@
  */
 module it.translation;
 
-public import include.translation;
 public import unit_threaded;
 public import clang: TranslationUnit, Cursor;
 

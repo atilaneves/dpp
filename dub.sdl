@@ -5,8 +5,7 @@ copyright "Copyright © 2017-2018, Atila Neves"
 license "boost"
 targetType "executable"
 targetPath "bin"
-// dip1000 has to be disabled for now
-dflags "-dip25"
+dflags "-dip25" // "-dip1000" // oops
 dependency "libclang" version="*"
 
 configuration "executable" {
@@ -19,15 +18,4 @@ configuration "unittest" {
     importPaths "source" "tests"
     excludedSourceFiles "source/main.d"
     dependency "unit-threaded" version="~>0.7.0"
-}
-
-
-configuration "unittest-light" {
-    targetName "utl"
-    mainSourceFile "tests/ut_main.d"
-    sourcePaths "source" "tests"
-    importPaths "source" "tests"
-    excludedSourceFiles "source/main.d"
-    dependency "unit-threaded" version="~>0.7.0"
-    versions "unitThreadedLight"
 }
