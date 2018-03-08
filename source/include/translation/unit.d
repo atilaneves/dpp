@@ -57,6 +57,7 @@ Translation[from!"clang".Cursor.Kind] translations() @safe pure {
     with(Cursor.Kind) {
         return [
             StructDecl: &translateStruct,
+            UnionDecl: &translateUnion,
             FunctionDecl: &translateFunction,
         ];
     }
