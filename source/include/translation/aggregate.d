@@ -20,7 +20,7 @@ string[] translateAggregate(
     lines ~= `{`;
 
     foreach(member; cursor) {
-        lines ~= translation(member);
+        lines ~= "    " ~ translation(member);
     }
 
     lines ~= `}`;

@@ -15,13 +15,14 @@ string translate(ref from!"clang".TranslationUnit translationUnit,
     @safe
 {
     import std.array: join;
+    import std.algorithm: map;
 
-    if(skipCursor(cursor)) return "";
-
-    return translate(cursor, file, line).join("\n");
+    return cursor.skip
+        ? ""
+        : translate(cursor, file, line).map!(a => "    " ~ a).join("\n");
 }
 
-private bool skipCursor(ref from!"clang".Cursor cursor) @safe pure {
+private bool skip(in from!"clang".Cursor cursor) @safe pure {
     import std.algorithm: startsWith, canFind;
 
     static immutable forbiddenSpellings =

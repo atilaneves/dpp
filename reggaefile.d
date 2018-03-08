@@ -3,7 +3,7 @@ import reggae;
 enum debugFlags = "-w -g -debug";
 
 mixin build!(
-    dubDefaultTarget!(),
+    dubDefaultTarget!(CompilerFlags(debugFlags)),
     dubTestTarget!(CompilerFlags(debugFlags)),
     optional(
         dubConfigurationTarget!(

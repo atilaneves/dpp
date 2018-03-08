@@ -10,6 +10,7 @@ int main(string[] args) {
 
         // unit tests
         "ut.translation.field",
+        "ut.translation.function_",
 
         // integration tests
         "it.preprocessor",
