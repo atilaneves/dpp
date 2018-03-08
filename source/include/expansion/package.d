@@ -5,7 +5,6 @@ module expansion;
 
 version(unittest) {
     import unit_threaded;
-    import include.test_util;
 }
 
 
