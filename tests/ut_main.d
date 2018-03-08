@@ -8,6 +8,7 @@ int main(string[] args) {
         "include.translation",
 
         // unit tests
+        "ut.translation.field",
 
         // integration tests
         "it.preprocessor",

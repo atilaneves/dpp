@@ -143,10 +143,7 @@ string[] translate(Cursor cursor) @safe {
 
             ret ~= `struct Foo {`;
             foreach(field; cursor) {
-                assert(field.kind == FieldDecl);
-                const type = translate(field.type);
-                const name = field.spelling;
-                ret ~= text(type, " ", name, ";");
+                ret ~= translateField(field);
             }
             ret ~= `}`;
 
@@ -160,7 +157,7 @@ string[] translate(Cursor cursor) @safe {
     }
 }
 
-string translate(in Type type) @safe {
+string translate(in Type type) @safe pure {
 
     import std.conv: text;
 
@@ -175,4 +172,14 @@ string translate(in Type type) @safe {
         case Double:
             return "double";
     }
+}
+
+
+string translateField(in Cursor field) @safe pure {
+    import std.conv: text;
+
+    assert(field.kind == Cursor.Kind.FieldDecl);
+    const type = translate(field.type);
+    const name = field.spelling;
+    return text(type, " ", name, ";");
 }
