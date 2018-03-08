@@ -1,8 +1,17 @@
 language: d
 sudo: false
+
+addons:
+  apt:
+    packages:
+      - libclang-3.9-dev
+
+
 install:
   - gem install bundler
   - bundle install
+
+
 
 script:
   - dub test
