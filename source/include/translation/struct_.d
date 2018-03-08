@@ -6,23 +6,8 @@ module include.translation.struct_;
 import include.from;
 
 string[] translateStruct(in from!"clang".Cursor struct_) @safe {
-    import clang: Cursor;
-    version(unittest) import unit_threaded.io: writelnUt;
-
-    assert(struct_.kind == Cursor.Kind.StructDecl);
-
-    version(unittest) writelnUt("Struct: ", struct_);
-
-    string[] ret;
-
-    ret ~= `struct ` ~ struct_.spelling;
-    ret ~= `{`;
-    foreach(field; struct_) {
-        ret ~= translateField(field);
-    }
-    ret ~= `}`;
-
-    return ret;
+    import include.translation.aggregate: translateAggregate;
+    return translateAggregate(struct_, "struct", &translateField);
 }
 
 string translateField(in from!"clang".Cursor field) @safe pure {
