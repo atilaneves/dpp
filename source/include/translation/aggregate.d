@@ -15,12 +15,15 @@ string[] translateUnion(in from!"clang".Cursor union_) @safe {
     return translateAggregate(union_, "union");
 }
 
+
+// not pure due to Cursor.opApply not being pure
 string[] translateAggregate(
     in from!"clang".Cursor cursor,
     in string keyword,
 )
     @safe
 {
+    import include.translation.unit: translate;
     import clang: Cursor;
     import std.algorithm: map;
     import std.array: array;
@@ -31,7 +34,7 @@ string[] translateAggregate(
     lines ~= `{`;
 
     foreach(member; cursor) {
-        lines ~= translateMember(member).map!(a => "    " ~ a).array;
+        lines ~= translate(member).map!(a => "    " ~ a).array;
     }
 
     lines ~= `}`;
@@ -39,17 +42,6 @@ string[] translateAggregate(
     return lines;
 }
 
-string[] translateMember(in from!"clang".Cursor member) @safe {
-    import clang: Cursor;
-    import std.conv: text;
-
-    switch(member.kind) with(Cursor.Kind) {
-        default:         throw new Exception(text("Unsupported kind for translateMember: ", member));
-        case FieldDecl:  return translateField(member);
-        case StructDecl: return "static" ~ translateStruct(member);
-        case UnionDecl:  return "static" ~ translateStruct(member);
-    }
-}
 
 string[] translateField(in from!"clang".Cursor field) @safe pure {
 
