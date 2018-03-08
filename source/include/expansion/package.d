@@ -71,7 +71,9 @@ private string toFileName(in string headerName) @safe {
 }
 
 
-string expand(in string headerFileName) @safe {
+string expand(in string headerFileName, in string file = __FILE__, in size_t line = __LINE__)
+    @safe
+{
     import include.translation: translate;
     import clang: parse, TranslationUnitFlags;
     import std.array: join;
@@ -84,7 +86,7 @@ string expand(in string headerFileName) @safe {
                                  TranslationUnitFlags.DetailedPreprocessingRecord);
 
     foreach(cursor, parent; translationUnit) {
-        ret ~= translate(translationUnit, cursor, parent);
+        ret ~= translate(translationUnit, cursor, parent, file, line);
     }
 
     ret ~= "}";

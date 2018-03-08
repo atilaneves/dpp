@@ -5,17 +5,20 @@ module include.translation.unit;
 
 import include.from;
 
+alias Translation = string[] function(in from!"clang".Cursor cursor) @safe;
 
 string translate(ref from!"clang".TranslationUnit translationUnit,
                  ref from!"clang".Cursor cursor,
-                 ref from!"clang".Cursor parent)
+                 ref from!"clang".Cursor parent,
+                 in string file = __FILE__,
+                 in size_t line = __LINE__)
     @safe
 {
     import std.array: join;
 
     if(skipCursor(cursor)) return "";
 
-    return translate(cursor).join("\n");
+    return translate(cursor, file, line).join("\n");
 }
 
 private bool skipCursor(ref from!"clang".Cursor cursor) @safe pure {
@@ -32,22 +35,28 @@ private bool skipCursor(ref from!"clang".Cursor cursor) @safe pure {
 }
 
 
-string[] translate(from!"clang".Cursor cursor) @safe {
+string[] translate(from!"clang".Cursor cursor, in string file = __FILE__, in size_t line = __LINE__) @safe {
 
-    import include.translation.struct_: translateStruct;
-    import include.translation.function_: translateFunction;
-    import clang: Cursor;
     import std.conv: text;
-    import std.array: join;
+    import std.exception: enforce;
+    version(unittest) import unit_threaded.io: writelnUt;
 
-    switch(cursor.kind) with(Cursor.Kind) {
-        default:
-            return [];
+    version(unittest) writelnUt("Cursor: ", cursor);
 
-        case StructDecl:
-            return translateStruct(cursor);
+    if(cursor.kind !in translations)
+        throw new Exception(text("Unknown cursor kind ", cursor.kind), file, line);
 
-        case FunctionDecl:
-            return translateFunction(cursor);
+    return translations[cursor.kind](cursor);
+}
+
+Translation[from!"clang".Cursor.Kind] translations() @safe pure {
+    import include.translation;
+    import clang: Cursor;
+
+    with(Cursor.Kind) {
+        return [
+            StructDecl: &translateStruct,
+            FunctionDecl: &translateFunction,
+        ];
     }
 }

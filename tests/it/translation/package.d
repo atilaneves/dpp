@@ -27,12 +27,14 @@ struct TranslationSandbox {
         return ret;
     }
 
-    void expand(in Out out_, in In in_, in string[] inLines) @safe const {
+    void expand(in Out out_, in In in_, in string[] inLines, in string file = __FILE__, in size_t line = __LINE__)
+        @safe const
+    {
         import include.expansion: realExpand = expand;
         const outFileName = inSandboxPath(out_.value);
         const inFileName = inSandboxPath(in_.value);
         writeFile(inFileName, inLines);
-        writeFile(outFileName, realExpand(inFileName));
+        writeFile(outFileName, realExpand(inFileName, file, line));
     }
 
     void shouldCompileAndRun(in string[] srcFiles...) @safe const {
