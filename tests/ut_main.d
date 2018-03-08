@@ -6,6 +6,7 @@ int main(string[] args) {
         // in-file
         "include.runtime",
         "include.translation",
+        "include.expansion",
 
         // unit tests
         "ut.translation.field",

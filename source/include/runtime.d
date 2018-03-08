@@ -1,20 +1,31 @@
+/**
+   Code to make the executable do what it does at runtime.
+ */
 module include.runtime;
 
-version(unittest) {
-    import unit_threaded;
-    import include.test_util;
-}
-
-void run(string[] args) {
+/**
+   The "real" main
+ */
+void run(string[] args) @safe {
     import std.stdio: File;
     const inputFileName = args[1];
     const outputFileName = args[2];
     return preprocess!File(inputFileName, outputFileName);
 }
 
+/**
+   Preprocesses a quasi-D file, expanding #include directives inline while
+   translating all definitions, and redefines any macros defined therein.
+
+   The output is a valid D file that can be compiled.
+
+   Params:
+        inputFileName = The name of the input file.
+        outputFileName = The name of the output file.
+ */
 void preprocess(File)(in string inputFileName, in string outputFileName) {
 
-    import include.translation: maybeExpand;
+    import include.expansion: maybeExpand;
     import std.algorithm: map, startsWith;
     import std.process: execute;
     import std.exception: enforce;

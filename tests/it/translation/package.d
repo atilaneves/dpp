@@ -28,11 +28,11 @@ struct TranslationSandbox {
     }
 
     void expand(in Out out_, in In in_, in string[] inLines) @safe const {
-        import include.translation: expand;
+        import include.expansion: realExpand = expand;
         const outFileName = inSandboxPath(out_.value);
         const inFileName = inSandboxPath(in_.value);
         writeFile(inFileName, inLines);
-        writeFile(outFileName, .expand(inFileName));
+        writeFile(outFileName, realExpand(inFileName));
     }
 
     void shouldCompileAndRun(in string[] srcFiles...) @safe const {
