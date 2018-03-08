@@ -8,20 +8,22 @@ import include.from;
 string[] translateAggregate(
     in from!"clang".Cursor cursor,
     in string keyword,
-    string function(in from!"clang".Cursor) @safe translation
+    string function(in from!"clang".Cursor) @safe translation,
 )
     @safe
 {
     import clang: Cursor;
 
-    string[] ret;
+    string[] lines;
 
-    ret ~= keyword ~ ` ` ~ cursor.spelling;
-    ret ~= `{`;
+    lines ~= keyword ~ ` ` ~ cursor.spelling;
+    lines ~= `{`;
+
     foreach(member; cursor) {
-        ret ~= translation(member);
+        lines ~= translation(member);
     }
-    ret ~= `}`;
 
-    return ret;
+    lines ~= `}`;
+
+    return lines;
 }
