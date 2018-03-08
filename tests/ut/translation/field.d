@@ -1,6 +1,8 @@
 module ut.translation.field;
 
 import ut.translation;
+import include.translation.aggregate: translateField;
+
 
 @("throws if not field")
 @safe pure unittest {
@@ -10,13 +12,13 @@ import ut.translation;
 
 @("int")
 @safe pure unittest {
-    translateField(Cursor(Cursor.Kind.FieldDecl, "foo", Type(Type.Kind.Int))).shouldEqual("int foo;");
-    translateField(Cursor(Cursor.Kind.FieldDecl, "bar", Type(Type.Kind.Int))).shouldEqual("int bar;");
+    translateField(Cursor(Cursor.Kind.FieldDecl, "foo", Type(Type.Kind.Int))).shouldEqual(["int foo;"]);
+    translateField(Cursor(Cursor.Kind.FieldDecl, "bar", Type(Type.Kind.Int))).shouldEqual(["int bar;"]);
 }
 
 
 @("double")
 @safe pure unittest {
-    translateField(Cursor(Cursor.Kind.FieldDecl, "foo", Type(Type.Kind.Double))).shouldEqual("double foo;");
-    translateField(Cursor(Cursor.Kind.FieldDecl, "bar", Type(Type.Kind.Double))).shouldEqual("double bar;");
+    translateField(Cursor(Cursor.Kind.FieldDecl, "foo", Type(Type.Kind.Double))).shouldEqual(["double foo;"]);
+    translateField(Cursor(Cursor.Kind.FieldDecl, "bar", Type(Type.Kind.Double))).shouldEqual(["double bar;"]);
 }

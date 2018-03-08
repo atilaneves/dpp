@@ -6,6 +6,7 @@ module include.translation.function_;
 import include.from;
 
 string[] translateFunction(in from!"clang".Cursor function_) @safe pure {
+    import include.translation.type: cleanType;
     import clang: Cursor;
     import std.array: join;
     import std.conv: text;
@@ -17,9 +18,7 @@ string[] translateFunction(in from!"clang".Cursor function_) @safe pure {
 
     version(unittest) debug writelnUt("Function: ", function_);
 
-    string returnType = function_.returnType.spelling;
-    if(returnType.startsWith("struct ")) returnType = returnType.replace("struct ", "");
-
+    const returnType = function_.returnType.spelling.cleanType;
     const types = ["Foo*", "Foo*"];
 
     return [
