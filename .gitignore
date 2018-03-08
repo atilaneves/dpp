@@ -10,3 +10,4 @@ tmp
 .ninja_*
 *.ninja
 compile_commands.json
+dub.selections.json

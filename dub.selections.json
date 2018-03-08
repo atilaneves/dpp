@@ -1,7 +1,0 @@
-{
-	"fileVersion": 1,
-	"versions": {
-		"libclang": {"path":"/home/atila/coding/d/libclang"},
-		"unit-threaded": {"path": "/home/atila/coding/d/unit-threaded"}
-	}
-}

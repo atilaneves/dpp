@@ -7,7 +7,7 @@ targetType "executable"
 targetPath "bin"
 // dip1000 has to be disabled for now
 dflags "-dip25"
-dependency "libclang" path="../libclang"
+dependency "libclang" version="*"
 
 configuration "executable" {
 }
