@@ -35,6 +35,7 @@ import it.translation;
 
         writeFile("main.d", q{
             import foo;
+
             void main() {
 
                 auto f = Foo(5);

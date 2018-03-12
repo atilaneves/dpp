@@ -62,7 +62,7 @@ string[] translateField(in from!"clang".Cursor field) @safe pure {
     assert(field.kind == Cursor.Kind.FieldDecl,
            text("Field of wrong kind: ", field));
 
-    version(unittest) debug writelnUt("Field: ", field);
+    version(unittest) debug writelnUt("    Field: ", field);
     return [text(translate(field.type), " ", field.spelling, ";")];
 }
 

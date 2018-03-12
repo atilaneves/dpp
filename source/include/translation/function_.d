@@ -5,7 +5,7 @@ module include.translation.function_;
 
 import include.from;
 
-string[] translateFunction(in from!"clang".Cursor function_) @safe pure {
+string[] translateFunction(in from!"clang".Cursor function_) @safe /*pure*/ {
     import include.translation.type: cleanType;
     import clang: Cursor;
     import std.array: join;
@@ -18,10 +18,25 @@ string[] translateFunction(in from!"clang".Cursor function_) @safe pure {
 
     version(unittest) debug writelnUt("Function: ", function_);
 
-    const returnType = function_.returnType.spelling.cleanType;
-    const types = ["Foo*", "Foo*"];
+    bool firstChild = true;
+    string returnType;
+    string[] paramTypes;
+
+    foreach(child; function_) {
+
+        version(unittest) debug writelnUt("    Function Child: ", child);
+
+        if(firstChild) {
+            returnType = child.spelling.cleanType;
+            firstChild = false;
+        } else {
+            paramTypes ~= child.type.spelling.cleanType;
+        }
+    }
+
+    //paramTypes = ["Foo*", "Foo*"];
 
     return [
-        text(returnType, " ", function_.spelling, "(", types.join(", "), ");"),
+        text(returnType, " ", function_.spelling, "(", paramTypes.join(", "), ");"),
     ];
 }
