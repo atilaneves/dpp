@@ -14,10 +14,10 @@ install:
 
 
 script:
-  - dub test --build=unittest-cov --compiler=${DC}
+  # - dub test --build=unittest-cov --compiler=${DC}
   - dub build
   # - ./examples.sh
-  - bundle exec cucumber --tags ~@wip
+  # - bundle exec cucumber --tags ~@wip
 
 
 after_success:
