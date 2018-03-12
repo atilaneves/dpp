@@ -7,6 +7,7 @@ targetType "executable"
 targetPath "bin"
 dflags "-dip25" // "-dip1000" // oops
 dependency "libclang" version="~master"
+lflags "-L/usr/lib/llvm-3.4/lib"  # travis
 
 configuration "executable" {
 }
@@ -18,14 +19,4 @@ configuration "unittest" {
     importPaths "source" "tests"
     excludedSourceFiles "source/main.d"
     dependency "unit-threaded" version="~>0.7.0"
-}
-
-configuration "ubuntu-test" {
-    targetName "ut"
-    mainSourceFile "tests/ut_main.d"
-    sourcePaths "source" "tests"
-    importPaths "source" "tests"
-    excludedSourceFiles "source/main.d"
-    dependency "unit-threaded" version="~>0.7.0"
-    lflags "-L/usr/lib/llvm-3.4/lib"
 }
