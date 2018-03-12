@@ -40,17 +40,32 @@ struct IncludeSandbox {
     }
 
     void shouldCompileAndRun(in string[] srcFiles...) @safe const {
+        try
+            shouldExecuteOk(["dmd", "-run"] ~ srcFiles);
+        catch(Exception e) {
+            adjustMessage(e, srcFiles);
+            throw e;
+        }
+    }
+
+    void shouldCompile(in string[] srcFiles...) @safe const {
+        try
+            shouldExecuteOk(["dmd", "-o-", "-c"] ~ srcFiles);
+        catch(Exception e) {
+            adjustMessage(e, srcFiles);
+            throw e;
+        }
+    }
+
+    private void adjustMessage(Exception e, in string[] srcFiles) @safe const {
         import std.algorithm: map;
         import std.array: join;
         import std.file: readText;
 
-        try
-            shouldExecuteOk(["dmd", "-run"] ~ srcFiles);
-        catch(Exception e) {
-            e.msg = e.msg ~ "\n\n" ~ srcFiles
-                .map!(a => a ~ ":\n----------\n" ~ readText(sandbox.inSandboxPath(a)))
-                .join("\n\n");
-            throw e;
-        }
+        e.msg = e.msg ~ "\n\n" ~ srcFiles
+            .map!(a => a ~ ":\n----------\n" ~ readText(sandbox.inSandboxPath(a)))
+            .join("\n\n");
+
     }
+
 }

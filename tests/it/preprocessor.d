@@ -20,12 +20,12 @@ import std.format: format;
 
             void main() {
                 int[FOO] foos;
-                assert(foos.length == 5, "Wrong length for foos");
+                static assert(foos.length == 5, "Wrong length for foos");
             }
         }.format(inSandboxPath("foo.h")));
 
         preprocess!File(inSandboxPath("main.d_"), inSandboxPath("main.d"));
-        shouldCompileAndRun("main.d");
+        shouldCompile("main.d");
     }
 }
 
@@ -55,7 +55,7 @@ import std.format: format;
 
 
         preprocess!File(inSandboxPath("foo.d_"), inSandboxPath("foo.d"));
-        shouldExecuteOk("dmd", "-o-", "-c", "foo.d");
+        shouldCompile("foo.d");
     }
 }
 
