@@ -1,11 +1,24 @@
 language: d
 sudo: false
+
+
+addons:
+  apt:
+    packages:
+      - libclang-dev
+
+
 install:
   - gem install bundler
   - bundle install
 
+
 script:
-  - dub test
+  # - dub test --build=unittest-cov --compiler=${DC}
   - dub build
-  - ./examples.sh
-  - bundle exec cucumber --tags ~@wip
+  # - ./examples.sh
+  # - bundle exec cucumber --tags ~@wip
+
+
+after_success:
+ - bash <(curl -s https://codecov.io/bash)
