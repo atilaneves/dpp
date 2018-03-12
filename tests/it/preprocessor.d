@@ -2,7 +2,33 @@ module it.preprocessor;
 
 import unit_threaded;
 import include.runtime;
+import std.stdio: File;
+import std.format: format;
 
+
+@("simple macro")
+@safe unittest {
+    import it.translation;
+    with(const TranslationSandbox()) {
+
+        writeFile("foo.h",
+                  q{
+                      #define FOO 5
+                  });
+
+        writeFile("main.d_", q{
+            #include "%s"
+
+            void main() {
+                int[FOO] foos;
+                assert(foos.length == 5, "Wrong length for foos");
+            }
+        }.format(inSandboxPath("foo.h")));
+
+        preprocess!File(inSandboxPath("main.d_"), inSandboxPath("main.d"));
+        shouldCompileAndRun("main.d");
+    }
+}
 
 @("define macro, undefine, then define again")
 @safe unittest {
