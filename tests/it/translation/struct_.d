@@ -22,6 +22,14 @@ import it.translation;
                        int i;
                        double d;
                    } TypeDefd;
+
+                   typedef struct {
+                       int x, y;
+                   } Nameless1;
+
+                   typedef struct {
+                       double d;
+                   } Nameless2;
                }
         );
 
@@ -53,6 +61,15 @@ import it.translation;
                     assert(t.i == 42, "t.i should be 42");
                     assert(t.d == 33.3, "t.d should be 33.3");
                 }
+
+                auto n1 = Nameless1(2, 3);
+                assert(n1.sizeof == 8, "Wrong sizeof for Nameless1");
+                assert(n1.x == 2, "n1.x should be 2");
+                assert(n1.y == 3, "n1.y should be 3");
+
+                auto n2 = Nameless2(33.3);
+                assert(n2.sizeof == 8, "Wrong sizeof for Nameless2");
+                assert(n2.d == 33.3, "n2.d should be 33.3");
             }
         });
 

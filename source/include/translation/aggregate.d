@@ -5,6 +5,15 @@ module include.translation.aggregate;
 
 import include.from;
 
+/**
+   Structs can be anomymous in C, and it's even common
+   to typedef them to a name. We come up with new names
+   that we track here so as to be able to properly transate
+   those typedefs.
+ */
+private shared string[from!"clang.c.index".CXCursor] gNicknames;
+
+
 string[] translateStruct(in from!"clang".Cursor struct_) @safe {
     import include.translation.aggregate: translateAggregate;
     return translateAggregate(struct_, "struct");
@@ -30,7 +39,7 @@ string[] translateAggregate(
 
     string[] lines;
 
-    lines ~= keyword ~ ` ` ~ cursor.spelling;
+    lines ~= keyword ~ ` ` ~ spellingOrNickname(cursor);
     lines ~= `{`;
 
     foreach(member; cursor) {
@@ -55,4 +64,21 @@ string[] translateField(in from!"clang".Cursor field) @safe pure {
 
     version(unittest) debug writelnUt("Field: ", field);
     return [text(translate(field.type), " ", field.spelling, ";")];
+}
+
+// return the spelling if it exists, or our made-up nickname for it
+// if not
+package string spellingOrNickname(in from!"clang".Cursor cursor) @safe {
+
+    import std.conv: text;
+
+    static int index;
+
+    if(cursor.spelling != "") return cursor.spelling;
+
+    if(cursor.cx !in gNicknames) {
+        gNicknames[cursor.cx] = text("_Anonymous_", index++);
+    }
+
+    return gNicknames[cursor.cx];
 }
