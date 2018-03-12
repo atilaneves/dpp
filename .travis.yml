@@ -1,10 +1,11 @@
 language: d
 sudo: false
 
+
 addons:
   apt:
     packages:
-      - libclang-3.9-dev
+      - libclang-dev
 
 
 install:
@@ -12,9 +13,12 @@ install:
   - bundle install
 
 
-
 script:
-  - dub test
+  - dub test -c ubuntu-test --build=unittest-cov --compiler=${DC}
   - dub build
-  - ./examples.sh
+  # - ./examples.sh
   - bundle exec cucumber --tags ~@wip
+
+
+after_success:
+ - bash <(curl -s https://codecov.io/bash)
