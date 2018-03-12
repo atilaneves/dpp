@@ -4,7 +4,7 @@ import it.translation;
 
 @("structs")
 @safe unittest {
-    with(const TranslationSandbox()) {
+    with(const IncludeSandbox()) {
 
         expand(Out("foo.d"), In("foo.h"),
                q{

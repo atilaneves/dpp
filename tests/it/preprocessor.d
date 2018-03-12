@@ -1,6 +1,6 @@
 module it.preprocessor;
 
-import unit_threaded;
+import it;
 import include.runtime;
 import std.stdio: File;
 import std.format: format;
@@ -8,8 +8,7 @@ import std.format: format;
 
 @("simple macro")
 @safe unittest {
-    import it.translation;
-    with(const TranslationSandbox()) {
+    with(const IncludeSandbox()) {
 
         writeFile("foo.h",
                   q{
