@@ -32,17 +32,11 @@ import std.format: format;
 @("define macro, undefine, then define again")
 @safe unittest {
 
-    import std.stdio: File;
-    import std.process: execute;
-    import std.path: buildPath;
-    import std.format: format;
     import std.exception: enforce;
 
-    with(immutable Sandbox()) {
+    with(immutable IncludeSandbox()) {
 
-        const headerFileName = "header.h";
-
-        writeFile(headerFileName,
+        writeFile("header.h",
                   q{
                       #define FOO foo
                       #undef FOO
@@ -51,23 +45,17 @@ import std.format: format;
                   });
 
 
-        const fullHeaderFileName = buildPath(testPath, headerFileName);
-        const inputFileName = "foo.d_";
-        writeFile(inputFileName,
+        writeFile("foo.d_",
                   q{
                       #include "%s"
                       void func() {
                           int i = bar(2);
                       }
-                  }.format(fullHeaderFileName));
+                  }.format(inSandboxPath("header.h")));
 
 
-        const fullInputFileName = buildPath(testPath, inputFileName);
-        const fullOutputFileName = buildPath(testPath, "foo.d");
-        preprocess!File(fullInputFileName, fullOutputFileName);
-
-        const result = execute(["dmd", "-o-", "-c", fullOutputFileName]);
-        enforce(result.status == 0, "Could not build the resulting file:\n" ~ result.output);
+        preprocess!File(inSandboxPath("foo.d_"), inSandboxPath("foo.d"));
+        shouldExecuteOk("dmd", "-o-", "-c", "foo.d");
     }
 }
 
