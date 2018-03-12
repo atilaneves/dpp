@@ -4,7 +4,6 @@ import unit_threaded;
 import include.runtime;
 
 
-@ShouldFail
 @("define macro, undefine, then define again")
 @safe unittest {
 

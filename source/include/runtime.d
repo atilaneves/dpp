@@ -34,7 +34,7 @@ void preprocess(File)(in string inputFileName, in string outputFileName) {
     import std.file: remove;
 
     const tmpFileName = outputFileName ~ ".tmp";
-    scope(exit) remove(tmpFileName);
+    //scope(exit) remove(tmpFileName);
 
     {
         auto outputFile = File(tmpFileName, "w");
