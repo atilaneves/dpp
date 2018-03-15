@@ -15,8 +15,8 @@ int main(string[] args) {
         // integration tests
         "it.typedefs", // FIXME
         "it.preprocessor", // FIXME
-        "it.translation.struct_",
         "it.compile.preprocessor",
         "it.compile.struct_",
+        "it.run.struct_",
     );
 }

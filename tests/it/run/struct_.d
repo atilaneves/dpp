@@ -1,6 +1,6 @@
-module it.translation.struct_;
+module it.run.struct_;
 
-import it.translation;
+import it.run;
 
 @("structs")
 @safe unittest {
