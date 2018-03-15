@@ -75,7 +75,7 @@ import ut.translation;
 
     translateFunction(function_).shouldEqual(
         [
-            q{Bar addBars(const Bar *, const Bar *);},
+            q{Bar addBars(const(Bar)*, const(Bar)*);},
         ]
     );
 }

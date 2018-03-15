@@ -55,22 +55,16 @@ string translate(in from!"clang".Type type,
     }
 }
 
-// FIXME: horrible hack for now
 string translatePointer(in from!"clang".Type type) @safe pure {
     import clang: Type;
+    import std.algorithm: startsWith;
+    import std.array: replace;
+
     assert(type.kind == Type.Kind.Pointer);
 
-    switch(type.spelling) {
-
-        default:
-            return type.spelling;
-
-        case "const char *":
-            return "const(char)*";
-
-        case "const int *":
-            return "const(int)*";
-    }
+    return type.spelling.startsWith("const ")
+        ? `const(` ~ type.spelling.replace(" *", "").replace("const ", "") ~ `)*`
+        : type.spelling;
 }
 
 string cleanType(in string type) @safe pure {
