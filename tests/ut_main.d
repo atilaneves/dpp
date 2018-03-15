@@ -17,5 +17,6 @@ int main(string[] args) {
         "it.preprocessor", // FIXME
         "it.translation.struct_",
         "it.compile.preprocessor",
+        "it.compile.struct_",
     );
 }
