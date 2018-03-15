@@ -5,7 +5,7 @@ import include.from;
 string[] translateTypedef(in from!"clang".Cursor typedef_) @safe {
 
     import include.translation.aggregate: spellingOrNickname;
-    import include.translation.type: cleanType;
+    import include.translation.type: cleanType, translate;
     import clang: Type;
     import std.conv: text;
     version(unittest) import unit_threaded.io: writelnUt;
@@ -21,7 +21,7 @@ string[] translateTypedef(in from!"clang".Cursor typedef_) @safe {
 
     const originalSpelling = typedef_.children.length
         ? spellingOrNickname(typedef_.children[0])
-        : typedef_.underlyingType.spelling;
+        : translate(typedef_.underlyingType);
 
     return [`alias ` ~ typedef_.spelling ~ ` = ` ~ originalSpelling.cleanType  ~ `;`];
 }

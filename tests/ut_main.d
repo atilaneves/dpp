@@ -20,6 +20,7 @@ int main(string[] args) {
         "it.compile.union_",
         "it.compile.array",
         "it.compile.enum_",
+        "it.compile.typedef_",
         "it.run.struct_",
     );
 }
