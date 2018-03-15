@@ -125,3 +125,25 @@ import it.compile;
         shouldCompile("main.d", "header.d");
     }
 }
+
+@ShouldFail("Have to do global variables 1st")
+@("enum with immediate variable declaration")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        expand(Out("header.d"), In("header.h"), q{
+            enum Numbers {
+                one = 1,
+                two = 2,
+            } numbers;
+        });
+
+        writeFile("main.d", q{
+            void main() {
+                import header;
+                numbers = one;
+            }
+        });
+
+        shouldCompile("main.d", "header.d");
+    }
+}
