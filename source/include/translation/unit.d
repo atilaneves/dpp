@@ -50,7 +50,15 @@ string[] translate(from!"clang".Cursor cursor, in string file = __FILE__, in siz
     if(cursor.kind !in translations)
         throw new Exception(text("Cannot translate unknown cursor kind ", cursor.kind), file, line);
 
-    return translations[cursor.kind](cursor);
+    try
+        return translations[cursor.kind](cursor);
+    catch(Exception e) {
+        import std.stdio: stderr;
+        debug {
+            () @trusted { stderr.writeln("Could not translate cursor ", cursor); }();
+        }
+        throw e;
+    }
 }
 
 private void debugCursor(in from!"clang".Cursor cursor) @safe {
