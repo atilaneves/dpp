@@ -2,32 +2,54 @@ module ut.translation.function_;
 
 import ut.translation;
 
-// @("struct Foo addFoos(struct Foo*, struct Foo*)")
-// @safe unittest {
+@("struct Foo addFoos(struct Foo* foo1, struct Foo* foo2)")
+@safe pure unittest {
 
-//     const function_ = Cursor(Cursor.Kind.FunctionDecl,
-//                              "addFoos",
-//                              Type(Type.Kind.FunctionProto, "struct Foo (struct Foo*, struct Foo*)"),
-//                              Type(Type.Kind.Elaborated, "struct Foo"));
+    auto function_ = Cursor.functionDecl("addFoos",
+                                         "struct Foo (struct Foo*, struct Foo*)",
+                                         Type(Type.Kind.Elaborated, "struct Foo"));
 
-//     translateFunction(function_).shouldEqual(
-//         [
-//             q{Foo addFoos(Foo*, Foo*);},
-//         ]
-//     );
-// }
+    function_.children = [
+        Cursor(Cursor.Kind.TypeRef,
+               "struct Foo",
+               Type(Type.Kind.Record, "struct Foo")),
+        Cursor(Cursor.Kind.ParmDecl,
+               "foo1",
+               Type(Type.Kind.Pointer, "struct Foo *")),
+        Cursor(Cursor.Kind.ParmDecl,
+               "foo1",
+               Type(Type.Kind.Pointer, "struct Foo *")),
+    ];
 
-// @("struct Bar addBars(struct Bar*, struct Bar*)")
-// @safe unittest {
+    translateFunction(function_).shouldEqual(
+        [
+            q{Foo addFoos(Foo *, Foo *);},
+        ]
+    );
+}
 
-//     const function_ = Cursor(Cursor.Kind.FunctionDecl,
-//                              "addBars",
-//                              Type(Type.Kind.FunctionProto, "struct Bar (struct Bar*, struct Bar*)"),
-//                              Type(Type.Kind.Elaborated, "struct Bar"));
+@("struct Bar addBars(struct Bar* foo1, struct Bar* foo2)")
+@safe pure unittest {
 
-//     translateFunction(function_).shouldEqual(
-//         [
-//             q{Bar addBars(Bar*, Bar*);},
-//         ]
-//     );
-// }
+    auto function_ = Cursor.functionDecl("addBars",
+                                         "struct Bar (struct Bar*, struct Bar*)",
+                                         Type(Type.Kind.Elaborated, "struct Bar"));
+
+    function_.children = [
+        Cursor(Cursor.Kind.TypeRef,
+               "struct Bar",
+               Type(Type.Kind.Record, "struct Bar")),
+        Cursor(Cursor.Kind.ParmDecl,
+               "foo1",
+               Type(Type.Kind.Pointer, "struct Bar *")),
+        Cursor(Cursor.Kind.ParmDecl,
+               "foo1",
+               Type(Type.Kind.Pointer, "struct Bar *")),
+    ];
+
+    translateFunction(function_).shouldEqual(
+        [
+            q{Bar addBars(Bar *, Bar *);},
+        ]
+    );
+}
