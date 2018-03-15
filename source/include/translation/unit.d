@@ -60,20 +60,22 @@ string[] translate(from!"clang".Cursor cursor, in string file = __FILE__, in siz
     return translations[cursor.kind](cursor);
 }
 
-Translation[from!"clang".Cursor.Kind] translations() @safe pure {
+Translation[from!"clang".Cursor.Kind] translations() @safe {
     import include.translation;
     import clang: Cursor;
+    import include.expansion: expand;
 
-    static string[] ignore() { return []; }
+    static string[] ignore(in Cursor cursor) { return []; }
 
     with(Cursor.Kind) {
         return [
-            StructDecl:      &translateStruct,
-            UnionDecl:       &translateUnion,
-            FunctionDecl:    &translateFunction,
-            FieldDecl:       &translateField,
-            TypedefDecl:     &translateTypedef,
-            MacroDefinition: &translateMacro,
+            StructDecl:         &translateStruct,
+            UnionDecl:          &translateUnion,
+            FunctionDecl:       &translateFunction,
+            FieldDecl:          &translateField,
+            TypedefDecl:        &translateTypedef,
+            MacroDefinition:    &translateMacro,
+            InclusionDirective: &ignore,
         ];
     }
 }

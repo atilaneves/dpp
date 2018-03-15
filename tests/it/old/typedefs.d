@@ -1,7 +1,6 @@
 module it.old.typedefs;
 
-import unit_threaded;
-import include.runtime;
+import it.compile;
 
 
 // the issue here is that header.h includes system.h
@@ -15,13 +14,7 @@ import include.runtime;
 @("fd_set")
 @safe unittest {
 
-    import std.stdio: File;
-    import std.process: execute;
-    import std.path: buildPath;
-    import std.format: format;
-    import std.exception: enforce;
-
-    with(immutable Sandbox()) {
+    with(immutable IncludeSandbox()) {
 
         writeFile("system.h",
                   q{
@@ -42,31 +35,23 @@ import include.runtime;
                   });
 
 
-        const headerFileName = "header.h";
-
-        writeFile(headerFileName,
+        writeFile("header.h",
                   q{
                       #include "system.h"
                   });
 
-
-        const fullHeaderFileName = buildPath(testPath, headerFileName);
         const inputFileName = "foo.d_";
-        writeFile(inputFileName,
+        writeFile("foo.d_",
                   q{
                       #include "%s"
                       void func() {
                           fd_set foo;
                           foo.__fds_bits[0] = 5;
                       }
-                  }.format(fullHeaderFileName));
+                  }.format(inSandboxPath("header.h")));
 
 
-        const fullInputFileName = buildPath(testPath, inputFileName);
-        const fullOutputFileName = buildPath(testPath, "foo.d");
-        preprocess!File(fullInputFileName, fullOutputFileName);
-
-        const result = execute(["dmd", "-o-", "-c", fullOutputFileName]);
-        enforce(result.status == 0, "Could not build the resulting file:\n" ~ result.output);
+        preprocess!File(inSandboxPath("foo.d_"), inSandboxPath("foo.d"));
+        shouldCompile("foo.d");
     }
 }
