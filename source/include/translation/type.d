@@ -18,6 +18,15 @@ string translate(in from!"clang".Type type) @safe pure {
         case Int:
             return "int";
 
+        case Long:
+            version(Windows)
+                return "int";
+            else
+                return "long";
+
+        case Float:
+            return "float";
+
         case Double:
             return "double";
 

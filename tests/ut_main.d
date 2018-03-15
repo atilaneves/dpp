@@ -13,9 +13,9 @@ int main(string[] args) {
         "ut.translation.function_",
 
         // integration tests
-        "it.old.preprocessor", // FIXME
         "it.compile.preprocessor",
         "it.compile.struct_",
+        "it.compile.union_",
         "it.compile.array",
         "it.run.struct_",
     );

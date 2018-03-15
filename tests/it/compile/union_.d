@@ -1,24 +1,14 @@
-module it.old.preprocessor;
+module it.compile.union_;
 
-import it;
-import include.runtime;
-import std.stdio: File;
-import std.format: format;
+import it.compile;
 
-
-@ShouldFail
 @("__SIZEOF_PTHREAD_ATTR_T")
 @safe unittest {
-
-    import std.process: execute;
-    import std.path: buildPath;
-    import std.exception: enforce;
-
-    with(immutable Sandbox()) {
+    with(immutable IncludeSandbox()) {
 
         const headerFileName = "header.h";
 
-        writeFile(headerFileName,
+        writeFile("header.h",
                   q{
                       #ifdef __x86_64__
                       #  if __WORDSIZE == 64
@@ -38,23 +28,18 @@ import std.format: format;
                   });
 
 
-        const fullHeaderFileName = buildPath(testPath, headerFileName);
         const inputFileName = "foo.d_";
-        writeFile(inputFileName,
+        writeFile("foo.d_",
                   q{
                       #include "%s"
                       void func() {
                           pthread_attr_t attr;
                           attr.__size[0] = 42;
                       }
-                  }.format(fullHeaderFileName));
+                  }.format(inSandboxPath("header.h")));
 
 
-        const fullInputFileName = buildPath(testPath, inputFileName);
-        const fullOutputFileName = buildPath(testPath, "foo.d");
-        preprocess!File(fullInputFileName, fullOutputFileName);
-
-        const result = execute(["dmd", "-o-", "-c", fullOutputFileName]);
-        enforce(result.status == 0, "Could not build the resulting file:\n" ~ result.output);
+        preprocess!File(inSandboxPath("foo.d_"), inSandboxPath("foo.d"));
+        shouldCompile("foo.d");
     }
 }
