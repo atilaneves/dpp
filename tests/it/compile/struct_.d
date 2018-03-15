@@ -20,7 +20,7 @@ import it.compile;
             }
         });
 
-        shouldCompile("main.d");
+        shouldCompile("main.d", "header.d");
     }
 }
 
@@ -42,7 +42,7 @@ import it.compile;
             }
         });
 
-        shouldCompile("main.d");
+        shouldCompile("main.d", "header.d");
     }
 }
 
@@ -69,7 +69,7 @@ import it.compile;
             }
         });
 
-        shouldCompile("main.d");
+        shouldCompile("main.d", "header.d");
     }
 }
 
@@ -100,7 +100,7 @@ import it.compile;
             }
         });
 
-        shouldCompile("main.d");
+        shouldCompile("main.d", "header.d");
     }
 }
 
@@ -132,7 +132,7 @@ import it.compile;
             }
         });
 
-        shouldCompile("main.d");
+        shouldCompile("main.d", "header.d");
     }
 }
 

@@ -20,7 +20,7 @@ unittest {
             }
         });
 
-        shouldCompile("main.d");
+        shouldCompile("main.d", "header.d");
     }
 
 }

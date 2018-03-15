@@ -85,7 +85,9 @@ string expand(in string headerFileName, in string file = __FILE__, in size_t lin
                                  TranslationUnitFlags.DetailedPreprocessingRecord);
 
     foreach(cursor, parent; translationUnit) {
-        ret ~= translate(translationUnit, cursor, parent, file, line);
+        const lines = translate(translationUnit, cursor, parent, file, line);
+        if(lines.length)
+            ret ~= lines;
     }
 
     ret ~= "}";
