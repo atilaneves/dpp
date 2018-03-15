@@ -126,8 +126,9 @@ import it.compile;
     }
 }
 
+// TODO: convert to unit test
 @ShouldFail("Have to do global variables 1st")
-@("enum with immediate variable declaration")
+@("named enum with immediate variable declaration")
 @safe unittest {
     with(immutable IncludeSandbox()) {
         expand(Out("header.d"), In("header.h"), q{
@@ -141,6 +142,133 @@ import it.compile;
             void main() {
                 import header;
                 numbers = one;
+                numbers = two;
+                number = Numbers.one;
+            }
+        });
+
+        shouldCompile("main.d", "header.d");
+    }
+}
+
+// TODO: convert to unit test
+@ShouldFail("Have to do global variables 1st")
+@("nameless enum with immediate variable declaration")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        expand(Out("header.d"), In("header.h"), q{
+            enum {
+                one = 1,
+                two = 2,
+            } numbers;
+        });
+
+        writeFile("main.d", q{
+            void main() {
+                import header;
+                numbers = one;
+                numbers = two;
+            }
+        });
+
+        shouldCompile("main.d", "header.d");
+    }
+}
+
+// TODO: convert to unit test
+@("nameless enum inside a struct")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        expand(Out("header.d"), In("header.h"), q{
+            struct Struct {
+                enum {
+                    one = 1,
+                    two = 2,
+                };
+            }
+        });
+
+        writeFile("main.d", q{
+            void main() {
+                import header;
+                static assert(Struct.two == 2);
+            }
+        });
+
+        shouldCompile("main.d", "header.d");
+    }
+}
+
+// TODO: convert to unit test
+@ShouldFail("BUG - Uses anonymous enum name to declare variable. Also doesn't declare a variable")
+@("nameless enum with variable inside a struct")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        expand(Out("header.d"), In("header.h"), q{
+            struct Struct {
+                enum {
+                    one = 1,
+                    two = 2,
+                } numbers;
+            }
+        });
+
+        writeFile("main.d", q{
+            void main() {
+                import header;
+                auto s = Struct();
+                s.numbers = Struct.one;
+            }
+        });
+
+        shouldCompile("main.d", "header.d");
+    }
+}
+
+
+// TODO: convert to unit test
+@("named enum inside a struct")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        expand(Out("header.d"), In("header.h"), q{
+            struct Struct {
+                enum Numbers {
+                    one = 1,
+                    two = 2,
+                };
+            }
+        });
+
+        writeFile("main.d", q{
+            void main() {
+                import header;
+                static assert(Struct.Numbers.two == 2);
+            }
+        });
+
+        shouldCompile("main.d", "header.d");
+    }
+}
+
+// TODO: convert to unit test
+@ShouldFail("BUG - Defines an enum instead of a member variable")
+@("named enum with variable inside a struct")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        expand(Out("header.d"), In("header.h"), q{
+            struct Struct {
+                enum Numbers {
+                    one = 1,
+                    two = 2,
+                } numbers;
+            }
+        });
+
+        writeFile("main.d", q{
+            void main() {
+                import header;
+                auto s = Struct();
+                s.numbers = Struct.Numbers.one;
             }
         });
 

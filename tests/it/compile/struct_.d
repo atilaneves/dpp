@@ -104,7 +104,7 @@ import it.compile;
     }
 }
 
-@("typdef struct with no name")
+@("typedef struct with no name")
 @safe unittest {
     with(const IncludeSandbox()) {
 
