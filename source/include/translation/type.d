@@ -49,9 +49,6 @@ string translate(in from!"clang".Type type) @safe pure {
 }
 
 string cleanType(in string type) @safe pure {
-    import std.algorithm: startsWith;
     import std.array: replace;
-    return type.startsWith("struct ")
-        ? type.replace("struct ", "")
-        : type;
+    return type.replace("struct ", "");
 }

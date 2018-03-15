@@ -53,3 +53,29 @@ import ut.translation;
         ]
     );
 }
+
+@("struct Bar addBars(const struct Bar* foo1, const struct Bar* foo2)")
+@safe pure unittest {
+
+    auto function_ = Cursor.functionDecl("addBars",
+                                         "struct Bar (const struct Bar*, const struct Bar*)",
+                                         Type(Type.Kind.Elaborated, "struct Bar"));
+
+    function_.children = [
+        Cursor(Cursor.Kind.TypeRef,
+               "struct Bar",
+               Type(Type.Kind.Record, "struct Bar")),
+        Cursor(Cursor.Kind.ParmDecl,
+               "foo1",
+               Type(Type.Kind.Pointer, "const struct Bar *")),
+        Cursor(Cursor.Kind.ParmDecl,
+               "foo1",
+               Type(Type.Kind.Pointer, "const struct Bar *")),
+    ];
+
+    translateFunction(function_).shouldEqual(
+        [
+            q{Bar addBars(const Bar *, const Bar *);},
+        ]
+    );
+}
