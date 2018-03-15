@@ -14,19 +14,31 @@ import include.from;
 private shared string[from!"clang.c.index".CXCursor] gNicknames;
 
 
-string[] translateStruct(in from!"clang".Cursor cursor) @safe {
+string[] translateStruct(in from!"clang".Cursor cursor,
+                         in from!"include.runtime.options".Options options =
+                                from!"include.runtime.options".Options())
+    @safe
+{
     import clang: Cursor;
     assert(cursor.kind == Cursor.Kind.StructDecl);
-    return translateAggregate(cursor, "struct");
+    return translateAggregate(options, cursor, "struct");
 }
 
-string[] translateUnion(in from!"clang".Cursor cursor) @safe {
+string[] translateUnion(in from!"clang".Cursor cursor,
+                        in from!"include.runtime.options".Options options =
+                               from!"include.runtime.options".Options())
+    @safe
+{
     import clang: Cursor;
     assert(cursor.kind == Cursor.Kind.UnionDecl);
-    return translateAggregate(cursor, "union");
+    return translateAggregate(options, cursor, "union");
 }
 
-string[] translateEnum(in from!"clang".Cursor cursor) @safe {
+string[] translateEnum(in from!"clang".Cursor cursor,
+                       in from!"include.runtime.options".Options options =
+                              from!"include.runtime.options".Options())
+    @safe
+{
     import clang: Cursor;
     import std.typecons: nullable;
 
@@ -38,12 +50,13 @@ string[] translateEnum(in from!"clang".Cursor cursor) @safe {
     // This means that `enum Foo { foo, bar }` in C will become:
     // `enum Foo { foo, bar }` _and_ `enum { foo, bar }` in D.
     return
-        translateAggregate(cursor, "enum") ~
-        translateAggregate(cursor, "enum", nullable(""));
+        translateAggregate(options, cursor, "enum") ~
+        translateAggregate(options, cursor, "enum", nullable(""));
 }
 
 // not pure due to Cursor.opApply not being pure
 string[] translateAggregate(
+    in from!"include.runtime.options".Options options,
     in from!"clang".Cursor cursor,
     in string keyword,
     in from!"std.typecons".Nullable!string spelling = from!"std.typecons".Nullable!string()
@@ -66,7 +79,7 @@ string[] translateAggregate(
     lines ~= `{`;
 
     foreach(member; cursor) {
-        lines ~= translate(member).map!(a => "    " ~ a).array;
+        lines ~= translate(member, options).map!(a => "    " ~ a).array;
     }
 
     lines ~= `}`;
@@ -75,7 +88,12 @@ string[] translateAggregate(
 }
 
 
-string[] translateField(in from!"clang".Cursor field) @safe pure {
+string[] translateField(in from!"clang".Cursor field,
+                        in from!"include.runtime.options".Options options =
+                               from!"include.runtime.options".Options()
+                        )
+    @safe pure
+{
 
     import include.translation.type: translate;
     import clang: Cursor;
@@ -84,7 +102,7 @@ string[] translateField(in from!"clang".Cursor field) @safe pure {
     assert(field.kind == Cursor.Kind.FieldDecl,
            text("Field of wrong kind: ", field));
 
-    return [text(translate(field.type), " ", field.spelling, ";")];
+    return [text(translate(field.type, options), " ", field.spelling, ";")];
 }
 
 // return the spelling if it exists, or our made-up nickname for it

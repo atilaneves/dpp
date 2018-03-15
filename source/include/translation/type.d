@@ -5,7 +5,11 @@ module include.translation.type;
 
 import include.from;
 
-string translate(in from!"clang".Type type) @safe pure {
+string translate(in from!"clang".Type type,
+                 in from!"include.runtime.options".Options options =
+                              from!"include.runtime.options".Options())
+    @safe pure
+{
     import clang: Type;
     import std.conv: text;
     import std.exception: enforce;

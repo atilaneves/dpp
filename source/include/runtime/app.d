@@ -45,7 +45,7 @@ void preprocess(File)(in from!"include.runtime.options".Options options) {
 
         () @trusted {
             foreach(line; File(options.inputFileName).byLine.map!(a => cast(string)a)) {
-                outputFile.writeln(line.maybeExpand);
+                outputFile.writeln(line.maybeExpand(options));
             }
         }();
     }

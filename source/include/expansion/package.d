@@ -3,8 +3,10 @@
  */
 module include.expansion;
 
+import include.from;
+
 version(unittest) {
-    import unit_threaded;
+    import unit_threaded: shouldEqual;
 }
 
 
@@ -13,12 +15,19 @@ version(unittest) {
    otherwise do nothing (i.e. return the same line)
  */
 string maybeExpand(string line) @safe {
+    import include.runtime.options: Options;
+    const options = Options();
+    return maybeExpand(line, options);
+}
+
+/// ditto
+string maybeExpand(string line, in from!"include.runtime.options".Options options) @safe {
 
     const headerName = getHeaderName(line);
 
     return headerName == ""
         ? line
-        : expand(headerName.toFileName);
+        : expand(headerName.toFileName, options);
 }
 
 
@@ -70,7 +79,20 @@ private string toFileName(in string headerName) @safe {
 }
 
 
-string expand(in string headerFileName, in string file = __FILE__, in size_t line = __LINE__)
+string expand(in string headerFileName,
+              in string file = __FILE__,
+              in size_t line = __LINE__)
+    @safe
+{
+    import include.runtime.options: Options;
+    const options = Options();
+    return expand(headerFileName, options, file, line);
+}
+
+string expand(in string headerFileName,
+              in from!"include.runtime.options".Options options,
+              in string file = __FILE__,
+              in size_t line = __LINE__)
     @safe
 {
     import include.translation.unit: translate;
@@ -85,7 +107,7 @@ string expand(in string headerFileName, in string file = __FILE__, in size_t lin
                                  TranslationUnitFlags.DetailedPreprocessingRecord);
 
     foreach(cursor, parent; translationUnit.cursor) {
-        const lines = translate(translationUnit, cursor, parent, file, line);
+        const lines = translate(options, translationUnit, cursor, parent, file, line);
         if(lines.length)
             ret ~= lines;
     }

@@ -5,7 +5,11 @@ module include.translation.enum_;
 
 import include.from;
 
-string[] translateEnumConstant(in from!"clang".Cursor cursor) @safe pure {
+string[] translateEnumConstant(in from!"clang".Cursor cursor,
+                               in from!"include.runtime.options".Options options =
+                                 from!"include.runtime.options".Options())
+    @safe pure
+{
     import clang: Cursor;
     import std.conv: text;
 

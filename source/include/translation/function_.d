@@ -5,7 +5,11 @@ module include.translation.function_;
 
 import include.from;
 
-string[] translateFunction(in from!"clang".Cursor function_) @safe pure {
+string[] translateFunction(in from!"clang".Cursor function_,
+                           in from!"include.runtime.options".Options options =
+                                  from!"include.runtime.options".Options())
+    @safe pure
+{
     import include.translation.type: translate;
     import clang: Cursor;
     import std.array: join;
@@ -16,12 +20,12 @@ string[] translateFunction(in from!"clang".Cursor function_) @safe pure {
 
     assert(function_.kind == Cursor.Kind.FunctionDecl);
 
-    const returnType = translate(function_.returnType);
+    const returnType = translate(function_.returnType, options);
     auto paramTypes = function_
         .children
         .tee!((a){ version(unittest) debug writelnUt("    Function Child: ", a); })
         .filter!(a => a.kind == Cursor.Kind.ParmDecl)
-        .map!(a => translate(a.type))
+        .map!(a => translate(a.type, options))
         ;
 
     return [

@@ -2,8 +2,11 @@ module include.translation.typedef_;
 
 import include.from;
 
-string[] translateTypedef(in from!"clang".Cursor typedef_) @safe {
-
+string[] translateTypedef(in from!"clang".Cursor typedef_,
+                          in from!"include.runtime.options".Options options =
+                                 from!"include.runtime.options".Options())
+    @safe
+{
     import include.translation.aggregate: spellingOrNickname;
     import include.translation.type: cleanType, translate;
     import clang: Type;
@@ -21,7 +24,7 @@ string[] translateTypedef(in from!"clang".Cursor typedef_) @safe {
 
     const originalSpelling = typedef_.children.length
         ? spellingOrNickname(typedef_.children[0])
-        : translate(typedef_.underlyingType);
+        : translate(typedef_.underlyingType, options);
 
     return [`alias ` ~ typedef_.spelling ~ ` = ` ~ originalSpelling.cleanType  ~ `;`];
 }

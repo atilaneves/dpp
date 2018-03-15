@@ -2,7 +2,11 @@ module include.translation.macro_;
 
 import include.from;
 
-string[] translateMacro(in from!"clang".Cursor cursor) @safe {
+string[] translateMacro(in from!"clang".Cursor cursor,
+                        in from!"include.runtime.options".Options options =
+                               from!"include.runtime.options".Options())
+    @safe
+{
     import clang: Cursor;
     import std.format: format;
     import std.algorithm: map;
