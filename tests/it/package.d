@@ -49,16 +49,27 @@ struct IncludeSandbox {
 
     void shouldCompileAndRun(in string[] srcFiles...) @safe const {
         try
-            shouldExecuteOk(["dmd", "-run"] ~ srcFiles);
+            shouldSucceed(["dmd", "-run"] ~ srcFiles);
         catch(Exception e) {
             adjustMessage(e, srcFiles);
             throw e;
         }
     }
 
+    void shouldCompileButNotLink(in string[] srcFiles...) @safe const {
+        try
+            shouldSucceed(["dmd", "-c", "-ofblob.o"] ~ srcFiles);
+        catch(Exception e) {
+            adjustMessage(e, srcFiles);
+            throw e;
+        }
+
+        shouldFail("dmd", "-ofblob", "blob.o");
+    }
+
     void shouldCompile(in string[] srcFiles...) @safe const {
         try
-            shouldExecuteOk(["dmd", "-o-", "-c"] ~ srcFiles);
+            shouldSucceed(["dmd", "-o-", "-c"] ~ srcFiles);
         catch(Exception e) {
             adjustMessage(e, srcFiles);
             throw e;

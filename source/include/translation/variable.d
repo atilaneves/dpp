@@ -13,5 +13,8 @@ string[] translateVariable(in from!"clang".Cursor cursor,
 
     assert(cursor.kind == Cursor.Kind.VarDecl);
 
-    return [text("__gshared ", translate(cursor.type, options), " ", cursor.spelling, ";")];
+    // variables can be declared multiple times in C but only one in D
+    if(!cursor.isCanonical) return [];
+
+    return [text("extern __gshared ", translate(cursor.type, options), " ", cursor.spelling, ";")];
 }

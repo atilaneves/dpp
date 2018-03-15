@@ -25,3 +25,27 @@ import it.compile;
         shouldCompile("main.d", "dstep.d");
     }
 }
+
+@("extern int declared several times")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        expand(Out("dstep.d"), In("dstep.h"),
+               q{
+                   extern int foo;
+                   extern int bar;
+                   extern int foo;
+                   extern int foo;
+               });
+
+        writeFile("main.d",
+                  q{
+                      import dstep;
+                      void main() {
+                          foo = 5;
+                          bar = 3;
+                      }
+                  });
+
+        shouldCompileButNotLink("main.d", "dstep.d");
+    }
+}
