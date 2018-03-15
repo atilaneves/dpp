@@ -109,6 +109,7 @@ Translation[from!"clang".Cursor.Kind] translations() @safe {
             MacroDefinition:    &translateMacro,
             InclusionDirective: &ignore,
             EnumConstantDecl:   &translateEnumConstant,
+            VarDecl:            &translateVariable,
         ];
     }
 }

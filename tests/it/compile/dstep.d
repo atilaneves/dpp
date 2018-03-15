@@ -2,7 +2,6 @@ module it.compile.dstep;
 
 import it.compile;
 
-@ShouldFail
 @("2 functions and a global variable")
 @safe unittest {
     with(immutable IncludeSandbox()) {
