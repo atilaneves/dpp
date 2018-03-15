@@ -15,10 +15,9 @@ import clang: Type;
     Type(Type.Kind.Bool).translate.shouldEqual("bool");
 }
 
-@ShouldFail
 @("char_u")
 @safe pure unittest {
-    Type(Type.Kind.Char_U).translate.shouldEqual("oops");
+    Type(Type.Kind.Char_U).translate.shouldEqual("ubyte");
 }
 
 @("UChar")
@@ -59,16 +58,14 @@ import clang: Type;
     Type(Type.Kind.ULongLong).translate.shouldEqual("ulong");
 }
 
-@ShouldFail
 @("uint128")
 @safe pure unittest {
-    Type(Type.Kind.UInt128).translate.shouldEqual("ulong");
+    Type(Type.Kind.UInt128).translate.shouldEqual("ucent");
 }
 
-@ShouldFail
 @("char_s")
 @safe pure unittest {
-    Type(Type.Kind.Char_S).translate.shouldEqual("oops");
+    Type(Type.Kind.Char_S).translate.shouldEqual("byte");
 }
 
 @("SChar")
@@ -104,10 +101,9 @@ import clang: Type;
     Type(Type.Kind.LongLong).translate.shouldEqual("long");
 }
 
-@ShouldFail
 @("int128")
 @safe pure unittest {
-    Type(Type.Kind.Int128).translate.shouldEqual("long");
+    Type(Type.Kind.Int128).translate.shouldEqual("cent");
 }
 
 @("float")
@@ -120,10 +116,9 @@ import clang: Type;
     Type(Type.Kind.Double).translate.shouldEqual("double");
 }
 
-@ShouldFail
 @("long double")
 @safe pure unittest {
-    Type(Type.Kind.LongDouble).translate.shouldEqual("double");
+    Type(Type.Kind.LongDouble).translate.shouldEqual("real");
 }
 
 @("nullptr")
@@ -131,13 +126,11 @@ import clang: Type;
     Type(Type.Kind.NullPtr).translate.shouldEqual("void*");
 }
 
-@ShouldFail
 @("float128")
 @safe pure unittest {
-    Type(Type.Kind.Float128).translate.shouldEqual("float");
+    Type(Type.Kind.Float128).translate.shouldEqual("real");
 }
 
-@ShouldFail
 @("half")
 @safe pure unittest {
     Type(Type.Kind.Half).translate.shouldEqual("float");

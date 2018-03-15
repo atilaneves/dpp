@@ -50,6 +50,13 @@ string translate(in from!"clang".Type type,
         case ULongLong: return "ulong";
         case Float: return "float";
         case Double: return "double";
+        case Char_U: return "ubyte";
+        case Char_S: return "byte";
+        case Int128: return "cent";
+        case UInt128: return "ucent";
+        case Float128: return "real";
+        case Half: return "float";
+        case LongDouble: return "real";
         case Elaborated: return type.spelling.cleanType;
         case ConstantArray: return type.spelling.cleanType;
     }
