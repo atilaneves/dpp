@@ -6,8 +6,6 @@ import it.compile;
 @safe unittest {
     with(immutable IncludeSandbox()) {
 
-        const headerFileName = "header.h";
-
         writeFile("header.h",
                   q{
                       #ifdef __x86_64__
@@ -28,7 +26,6 @@ import it.compile;
                   });
 
 
-        const inputFileName = "foo.d_";
         writeFile("foo.d_",
                   q{
                       #include "%s"

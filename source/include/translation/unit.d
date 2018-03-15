@@ -71,11 +71,13 @@ Translation[from!"clang".Cursor.Kind] translations() @safe {
         return [
             StructDecl:         &translateStruct,
             UnionDecl:          &translateUnion,
+            EnumDecl:           &translateEnum,
             FunctionDecl:       &translateFunction,
             FieldDecl:          &translateField,
             TypedefDecl:        &translateTypedef,
             MacroDefinition:    &translateMacro,
             InclusionDirective: &ignore,
+            EnumConstantDecl:   &translateEnumConstant,
         ];
     }
 }

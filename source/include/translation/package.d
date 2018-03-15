@@ -16,3 +16,4 @@ public import include.translation.type;
 public import include.translation.function_;
 public import include.translation.typedef_;
 public import include.translation.macro_;
+public import include.translation.enum_;

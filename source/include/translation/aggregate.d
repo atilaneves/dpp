@@ -14,16 +14,23 @@ import include.from;
 private shared string[from!"clang.c.index".CXCursor] gNicknames;
 
 
-string[] translateStruct(in from!"clang".Cursor struct_) @safe {
-    import include.translation.aggregate: translateAggregate;
-    return translateAggregate(struct_, "struct");
+string[] translateStruct(in from!"clang".Cursor cursor) @safe {
+    import clang: Cursor;
+    assert(cursor.kind == Cursor.Kind.StructDecl);
+    return translateAggregate(cursor, "struct");
 }
 
-string[] translateUnion(in from!"clang".Cursor union_) @safe {
-    import include.translation.aggregate: translateAggregate;
-    return translateAggregate(union_, "union");
+string[] translateUnion(in from!"clang".Cursor cursor) @safe {
+    import clang: Cursor;
+    assert(cursor.kind == Cursor.Kind.UnionDecl);
+    return translateAggregate(cursor, "union");
 }
 
+string[] translateEnum(in from!"clang".Cursor cursor) @safe {
+    import clang: Cursor;
+    assert(cursor.kind == Cursor.Kind.EnumDecl);
+    return translateAggregate(cursor, "enum");
+}
 
 // not pure due to Cursor.opApply not being pure
 string[] translateAggregate(
