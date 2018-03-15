@@ -28,14 +28,25 @@ string[] translateUnion(in from!"clang".Cursor cursor) @safe {
 
 string[] translateEnum(in from!"clang".Cursor cursor) @safe {
     import clang: Cursor;
+    import std.typecons: nullable;
+
     assert(cursor.kind == Cursor.Kind.EnumDecl);
-    return translateAggregate(cursor, "enum");
+
+    // Translate it twice so that C semantics are the same (global names)
+    // but also have a named version for optional type correctness and
+    // reflection capabilities.
+    // This means that `enum Foo { foo, bar }` in C will become:
+    // `enum Foo { foo, bar }` _and_ `enum { foo, bar }` in D.
+    return
+        translateAggregate(cursor, "enum") ~
+        translateAggregate(cursor, "enum", nullable(""));
 }
 
 // not pure due to Cursor.opApply not being pure
 string[] translateAggregate(
     in from!"clang".Cursor cursor,
     in string keyword,
+    in from!"std.typecons".Nullable!string spelling = from!"std.typecons".Nullable!string()
 )
     @safe
 {
@@ -46,7 +57,9 @@ string[] translateAggregate(
 
     string[] lines;
 
-    lines ~= keyword ~ ` ` ~ spellingOrNickname(cursor);
+    const name = spelling.isNull ? spellingOrNickname(cursor) : spelling.get;
+
+    lines ~= keyword ~ ` ` ~ name;
     lines ~= `{`;
 
     foreach(member; cursor) {

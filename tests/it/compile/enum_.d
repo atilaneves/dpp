@@ -15,6 +15,8 @@ import it.compile;
         writeFile("main.d", q{
             void main() {
                 import header;
+                static assert(foo == 0);
+                static assert(bar == 1);
                 static assert(Foo.foo == 0);
                 static assert(Foo.bar == 1);
             }
@@ -37,6 +39,8 @@ import it.compile;
         writeFile("main.d", q{
             void main() {
                 import header;
+                static assert(quux == 0);
+                static assert(toto == 1);
                 static assert(Enum.quux == 0);
                 static assert(Enum.toto == 1);
             }
@@ -60,6 +64,9 @@ import it.compile;
         writeFile("main.d", q{
             void main() {
                 import header;
+                static assert(foo == 2);
+                static assert(bar == 5);
+                static assert(baz == 7);
                 static assert(FooBarBaz.foo == 2);
                 static assert(FooBarBaz.bar == 5);
                 static assert(FooBarBaz.baz == 7);
