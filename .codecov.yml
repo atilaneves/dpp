@@ -1,0 +1,15 @@
+codecov:
+  notify:
+    after_n_builds: 1
+
+coverage:
+  precision: 3
+  round: down
+  range: 80...100
+
+  status:
+    project: true
+    patch: true
+    changes: true
+
+comment: false
