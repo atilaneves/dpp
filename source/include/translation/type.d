@@ -33,7 +33,7 @@ string translate(in from!"clang".Type type,
                 return "ulong";
 
         case Pointer: return translatePointer(type).cleanType;
-        case Typedef: return translateTypedef(type).cleanType;
+        case Typedef: return type.spelling.cleanType;
         case Void: return "void";
         case NullPtr: return "void*";
         case Bool: return "bool";
@@ -76,17 +76,4 @@ string translatePointer(in from!"clang".Type type) @safe pure {
 string cleanType(in string type) @safe pure {
     import std.array: replace;
     return type.replace("struct ", "");
-}
-
-// FIXME: horrible hack for now
-string translateTypedef(in from!"clang".Type type) @safe pure {
-    import clang: Type;
-    assert(type.kind == Type.Kind.Typedef);
-
-    switch(type.spelling) {
-        default:
-            return type.spelling;
-        case "uint64_t":
-            return "ulong";
-    }
 }

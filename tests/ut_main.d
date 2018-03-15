@@ -22,6 +22,7 @@ int main(string[] args) {
         "it.compile.enum_",
         "it.compile.typedef_",
         "it.compile.function_",
+        "it.compile.nanomsg",
 
         // integration tests with code that should run
         "it.run.struct_",
