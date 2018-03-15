@@ -45,3 +45,27 @@ import it.compile;
         shouldCompile("main.d");
     }
 }
+
+@("Named enum with assigned members foo, bar, baz")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        expand(Out("header.d"), In("header.h"), q{
+            enum FooBarBaz {
+                foo = 2,
+                bar = 5,
+                baz = 7
+            };
+        });
+
+        writeFile("main.d", q{
+            void main() {
+                import header;
+                static assert(FooBarBaz.foo == 2);
+                static assert(FooBarBaz.bar == 5);
+                static assert(FooBarBaz.baz == 7);
+            }
+        });
+
+        shouldCompile("main.d");
+    }
+}
