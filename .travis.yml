@@ -5,7 +5,7 @@ sudo: false
 addons:
   apt:
     packages:
-      - libclang-dev
+      - libclang-3.9-dev
 
 
 install:
@@ -14,10 +14,10 @@ install:
 
 
 script:
-  # - dub test --build=unittest-cov --compiler=${DC}
+  - dub test --build=unittest-cov --compiler=${DC}
   - dub build
+  - bundle exec cucumber --tags ~@wip
   # - ./examples.sh
-  # - bundle exec cucumber --tags ~@wip
 
 
 after_success:
