@@ -9,6 +9,7 @@ struct Options {
 
     string inputFileName;
     string outputFileName;
+    string indentation;
     bool debugOutput;
 
     this(string[] args) {
@@ -25,8 +26,30 @@ struct Options {
         outputFileName = args[2];
     }
 
-    this(in string inputFileName, in string outputFileName) {
+    this(in string inputFileName,
+         in string outputFileName,
+         in string indentation = "",
+         in bool debugOutput = false)
+    pure nothrow
+    {
         this.inputFileName = inputFileName;
         this.outputFileName = outputFileName;
+        this.indentation = indentation;
+        this.debugOutput = debugOutput;
+    }
+
+    Options indent() pure nothrow const {
+        auto ret = Options(inputFileName, outputFileName, indentation ~ "    ", debugOutput);
+        return ret;
+    }
+
+    void log(T...)(auto ref T args) const {
+        version(unittest) import unit_threaded.io: writeln = writelnUt;
+        else import std.stdio: writeln;
+
+        version(unittest) enum shouldLog = true;
+        else             const shouldLog = debugOutput;
+
+        debug writeln(indentation, args);
     }
 }

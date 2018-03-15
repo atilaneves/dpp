@@ -16,14 +16,13 @@ string[] translateFunction(in from!"clang".Cursor function_,
     import std.conv: text;
     import std.algorithm: map, filter;
     import std.range: tee;
-    version(unittest) import unit_threaded.io: writelnUt;
 
     assert(function_.kind == Cursor.Kind.FunctionDecl);
 
     const returnType = translate(function_.returnType, options);
     auto paramTypes = function_
         .children
-        .tee!((a){ version(unittest) debug writelnUt("    Function Child: ", a); })
+        .tee!((a){ options.indent.log("Function Child: ", a); })
         .filter!(a => a.kind == Cursor.Kind.ParmDecl)
         .map!(a => translate(a.type, options))
         ;

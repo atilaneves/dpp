@@ -79,7 +79,7 @@ string[] translateAggregate(
     lines ~= `{`;
 
     foreach(member; cursor) {
-        lines ~= translate(member, options).map!(a => "    " ~ a).array;
+        lines ~= translate(member, options.indent).map!(a => "    " ~ a).array;
     }
 
     lines ~= `}`;

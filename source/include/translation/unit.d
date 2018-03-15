@@ -73,8 +73,6 @@ private void debugCursor(in from!"include.runtime.options".Options options,
                          in from!"clang".Cursor cursor)
     @safe
 {
-    version(unittest) import unit_threaded.io: writeln = writelnUt;
-    else import std.stdio: writeln;
     import clang: Cursor;
     import std.algorithm: startsWith, canFind;
 
@@ -87,7 +85,7 @@ private void debugCursor(in from!"include.runtime.options".Options options,
         !["_LP64", "unix", "linux"].canFind(cursor.spelling);
 
     if(!isMacro || isOkMacro)
-        debug writeln("Cursor: ", cursor);
+        options.log(cursor);
 }
 
 Translation[from!"clang".Cursor.Kind] translations() @safe {
