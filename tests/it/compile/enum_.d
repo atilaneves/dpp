@@ -76,3 +76,52 @@ import it.compile;
         shouldCompile("main.d", "header.d");
     }
 }
+
+// TODO: convert to unit test
+@("typedef nameless enum")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        expand(Out("header.d"), In("header.h"), q{
+            typedef enum {
+                foo = 2,
+                bar = 5,
+                baz = 7
+            } FooBarBaz;
+        });
+
+        writeFile("main.d", q{
+            void main() {
+                import header;
+                static assert(bar == 5);
+                static assert(FooBarBaz.baz == 7);
+            }
+        });
+
+        shouldCompile("main.d", "header.d");
+    }
+}
+
+// TODO: convert to unit test
+@("typedef named enum")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        expand(Out("header.d"), In("header.h"), q{
+            typedef enum FooBarBaz_ {
+                foo = 2,
+                bar = 5,
+                baz = 7
+            } FooBarBaz;
+        });
+
+        writeFile("main.d", q{
+            void main() {
+                import header;
+                static assert(FooBarBaz_.foo == 2);
+                static assert(bar == 5);
+                static assert(FooBarBaz.baz == 7);
+            }
+        });
+
+        shouldCompile("main.d", "header.d");
+    }
+}
