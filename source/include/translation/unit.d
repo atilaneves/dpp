@@ -40,24 +40,28 @@ private bool skip(in from!"clang".Cursor cursor) @safe pure {
 }
 
 
-string[] translate(from!"clang".Cursor cursor, in string file = __FILE__, in size_t line = __LINE__) @safe {
-
+string[] translate(from!"clang".Cursor cursor, in string file = __FILE__, in size_t line = __LINE__)
+    @safe
+{
     import std.conv: text;
-    import std.exception: enforce;
-    version(unittest) import unit_threaded.io: writelnUt;
 
-    version(unittest) {
-        import clang: Cursor;
-        import std.algorithm: startsWith;
-
-        if(cursor.kind != Cursor.Kind.MacroDefinition || !cursor.spelling.startsWith("__"))
-            debug writelnUt("Cursor: ", cursor);
-    }
+    debugCursor(cursor);
 
     if(cursor.kind !in translations)
         throw new Exception(text("Cannot translate unknown cursor kind ", cursor.kind), file, line);
 
     return translations[cursor.kind](cursor);
+}
+
+private void debugCursor(in from!"clang".Cursor cursor) @safe {
+    version(unittest) {
+        import clang: Cursor;
+        import unit_threaded.io: writelnUt;
+        import std.algorithm: startsWith;
+
+        if(cursor.kind != Cursor.Kind.MacroDefinition || !cursor.spelling.startsWith("__"))
+            debug writelnUt("Cursor: ", cursor);
+    }
 }
 
 Translation[from!"clang".Cursor.Kind] translations() @safe {
