@@ -1,10 +1,6 @@
 module it.compile.preprocessor;
 
-import it;
-import include.runtime;
-import std.stdio: File;
-import std.format: format;
-
+import it.compile;
 
 @("simple macro")
 @safe unittest {
