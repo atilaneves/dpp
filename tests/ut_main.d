@@ -13,8 +13,8 @@ int main(string[] args) {
         "ut.translation.function_",
 
         // integration tests
-        "it.typedefs", // FIXME
-        "it.preprocessor", // FIXME
+        "it.old.typedefs", // FIXME
+        "it.old.preprocessor", // FIXME
         "it.compile.preprocessor",
         "it.compile.struct_",
         "it.run.struct_",

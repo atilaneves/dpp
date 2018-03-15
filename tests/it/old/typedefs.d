@@ -1,4 +1,4 @@
-module it.typedefs;
+module it.old.typedefs;
 
 import unit_threaded;
 import include.runtime;
