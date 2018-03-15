@@ -1,10 +1,10 @@
 int main(string[] args) {
 
-    import include.runtime: run;
+    import include.runtime: run, Options;
     import std.stdio: stderr;
 
     try {
-        run(args);
+        run(Options(args));
         return 0;
     } catch(Exception ex) {
         stderr.writeln("Error: ", ex);

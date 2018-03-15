@@ -40,9 +40,11 @@ struct IncludeSandbox {
     }
 
     void preprocess(in string inputFileName, in string outputFileName) @safe {
-        import include.runtime: realPreProcess = preprocess;
+        import include.runtime.options: Options;
+        import include.runtime.app: realPreProcess = preprocess;
         import std.stdio: File;
-        realPreProcess!File(inSandboxPath(inputFileName), inSandboxPath(outputFileName));
+        const options = Options(inSandboxPath(inputFileName), inSandboxPath(outputFileName));
+        realPreProcess!File(options);
     }
 
     void shouldCompileAndRun(in string[] srcFiles...) @safe const {

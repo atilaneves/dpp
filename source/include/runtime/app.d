@@ -1,17 +1,18 @@
 /**
    Code to make the executable do what it does at runtime.
  */
-module include.runtime;
+module include.runtime.app;
+
+import include.from;
 
 /**
    The "real" main
  */
-void run(string[] args) @safe {
+void run(in from!"include.runtime.options".Options options) @safe {
     import std.stdio: File;
-    const inputFileName = args[1];
-    const outputFileName = args[2];
-    preprocess!File(inputFileName, outputFileName);
+    preprocess!File(options);
 }
+
 
 /**
    Preprocesses a quasi-D file, expanding #include directives inline while
@@ -20,10 +21,9 @@ void run(string[] args) @safe {
    The output is a valid D file that can be compiled.
 
    Params:
-        inputFileName = The name of the input file.
-        outputFileName = The name of the output file.
+        options = The runtime options.
  */
-void preprocess(File)(in string inputFileName, in string outputFileName) {
+void preprocess(File)(in from!"include.runtime.options".Options options) {
 
     import include.expansion: maybeExpand;
     import std.algorithm: map, startsWith;
@@ -33,7 +33,7 @@ void preprocess(File)(in string inputFileName, in string outputFileName) {
     import std.string: splitLines;
     import std.file: remove;
 
-    const tmpFileName = outputFileName ~ ".tmp";
+    const tmpFileName = options.outputFileName ~ ".tmp";
     scope(exit) remove(tmpFileName);
 
     {
@@ -44,7 +44,7 @@ void preprocess(File)(in string inputFileName, in string outputFileName) {
         outputFile.writeln("#define __gnuc_va_list va_list");
 
         () @trusted {
-            foreach(line; File(inputFileName).byLine.map!(a => cast(string)a)) {
+            foreach(line; File(options.inputFileName).byLine.map!(a => cast(string)a)) {
                 outputFile.writeln(line.maybeExpand);
             }
         }();
@@ -55,7 +55,7 @@ void preprocess(File)(in string inputFileName, in string outputFileName) {
     enforce(ret.status == 0, text("Could not run cpp:\n", ret.output));
 
     {
-        auto outputFile = File(outputFileName, "w");
+        auto outputFile = File(options.outputFileName, "w");
 
         foreach(line; ret.output.splitLines) {
             if(!line.startsWith("#"))
