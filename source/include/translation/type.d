@@ -13,7 +13,8 @@ string translate(in from!"clang".Type type) @safe pure {
     switch(type.kind) with(Type.Kind) {
 
         default:
-            enforce(false, text("Type kind ", type.kind, " not supported")); assert(0);
+            throw new Exception(text("Type kind ", type.kind, " not supported: ", type));
+            assert(0);
 
         case Long:
             version(Windows)
@@ -27,6 +28,8 @@ string translate(in from!"clang".Type type) @safe pure {
             else
                 return "ulong";
 
+        case Pointer: return translatePointer(type).cleanType;
+        case Typedef: return translateTypedef(type).cleanType;
         case Void: return "void";
         case NullPtr: return "void*";
         case Bool: return "bool";
@@ -48,7 +51,38 @@ string translate(in from!"clang".Type type) @safe pure {
     }
 }
 
+// FIXME: horrible hack for now
+string translatePointer(in from!"clang".Type type) @safe pure {
+    import clang: Type;
+    assert(type.kind == Type.Kind.Pointer);
+
+    switch(type.spelling) {
+
+        default:
+            return type.spelling;
+
+        case "const char *":
+            return "const(char)*";
+
+        case "const int *":
+            return "const(int)*";
+    }
+}
+
 string cleanType(in string type) @safe pure {
     import std.array: replace;
     return type.replace("struct ", "");
+}
+
+// FIXME: horrible hack for now
+string translateTypedef(in from!"clang".Type type) @safe pure {
+    import clang: Type;
+    assert(type.kind == Type.Kind.Typedef);
+
+    switch(type.spelling) {
+        default:
+            return type.spelling;
+        case "uint64_t":
+            return "ulong";
+    }
 }

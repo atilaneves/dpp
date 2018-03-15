@@ -22,3 +22,9 @@ import include.translation.aggregate: translateField;
     translateField(Cursor(Cursor.Kind.FieldDecl, "foo", Type(Type.Kind.Double))).shouldEqual(["double foo;"]);
     translateField(Cursor(Cursor.Kind.FieldDecl, "bar", Type(Type.Kind.Double))).shouldEqual(["double bar;"]);
 }
+
+@("struct")
+@safe pure unittest {
+    translateField(Cursor(Cursor.Kind.FieldDecl, "foo", Type(Type.Kind.Pointer, "struct Foo *")))
+        .shouldEqual(["Foo * foo;"]);
+}

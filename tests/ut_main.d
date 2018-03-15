@@ -14,13 +14,16 @@ int main(string[] args) {
         "ut.translation.type",
         "ut.translation.enum_",
 
-        // integration tests
+        // integration tests with code that should compile
         "it.compile.preprocessor",
         "it.compile.struct_",
         "it.compile.union_",
         "it.compile.array",
         "it.compile.enum_",
         "it.compile.typedef_",
+        "it.compile.function_",
+
+        // integration tests with code that should run
         "it.run.struct_",
     );
 }

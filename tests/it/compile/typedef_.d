@@ -19,3 +19,22 @@ unittest {
         shouldCompile("main.d", "foo.d");
     }
 }
+
+@("typedef to const char*")
+unittest {
+    with(const IncludeSandbox()) {
+        expand(Out("foo.d"), In("foo.h"),
+               q{
+                   typedef const char* mystring;
+               });
+        writeFile("main.d",
+                  q{
+                      void main() {
+                          import foo;
+                          const(char)[128] buffer;
+                          mystring string_ = &buffer[0];
+                      }
+                  });
+        shouldCompile("main.d", "foo.d");
+    }
+}

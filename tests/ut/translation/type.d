@@ -142,3 +142,13 @@ import clang: Type;
 @safe pure unittest {
     Type(Type.Kind.Half).translate.shouldEqual("float");
 }
+
+@("cont char*")
+@safe pure unittest {
+    Type(Type.Kind.Pointer, "const char *").translate.shouldEqual("const(char)*");
+}
+
+@("cont int*")
+@safe pure unittest {
+    Type(Type.Kind.Pointer, "const int *").translate.shouldEqual("const(int)*");
+}

@@ -79,3 +79,17 @@ import ut.translation;
         ]
     );
 }
+
+@("const char *nn_strerror (int errnum)")
+@safe pure unittest {
+    auto function_ = Cursor.functionDecl("nn_strerror",
+                                         "const char *(int)",
+                                         Type(Type.Kind.Pointer, "const char *"));
+    function_.children = [ Cursor(Cursor.Kind.ParmDecl, "errnum", Type(Type.Kind.Int, "int")) ];
+
+    translateFunction(function_).shouldEqual(
+        [
+            q{const(char)* nn_strerror(int);}
+        ]
+    );
+}
