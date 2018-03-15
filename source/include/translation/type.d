@@ -15,26 +15,36 @@ string translate(in from!"clang".Type type) @safe pure {
         default:
             enforce(false, text("Type kind ", type.kind, " not supported")); assert(0);
 
-        case Int:
-            return "int";
-
         case Long:
             version(Windows)
                 return "int";
             else
                 return "long";
 
-        case Float:
-            return "float";
+        case ULong:
+            version(Windows)
+                return "uint";
+            else
+                return "ulong";
 
-        case Double:
-            return "double";
-
-        case Elaborated:
-            return type.spelling.cleanType;
-
-        case ConstantArray:
-            return type.spelling.cleanType;
+        case Void: return "void";
+        case NullPtr: return "void*";
+        case Bool: return "bool";
+        case WChar: return "wchar";
+        case SChar: return "byte";
+        case Char16: return "wchar";
+        case Char32: return "dchar";
+        case UChar: return "ubyte";
+        case UShort: return "ushort";
+        case Short: return "short";
+        case Int: return "int";
+        case UInt: return "uint";
+        case LongLong: return "long";
+        case ULongLong: return "ulong";
+        case Float: return "float";
+        case Double: return "double";
+        case Elaborated: return type.spelling.cleanType;
+        case ConstantArray: return type.spelling.cleanType;
     }
 }
 
