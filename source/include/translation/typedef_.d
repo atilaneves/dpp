@@ -5,6 +5,7 @@ import include.from;
 string[] translateTypedef(in from!"clang".Cursor typedef_) @safe {
 
     import include.translation.aggregate: spellingOrNickname;
+    import include.translation.type: cleanType;
     import clang: Type;
     import std.conv: text;
     version(unittest) import unit_threaded.io: writelnUt;
@@ -16,9 +17,11 @@ string[] translateTypedef(in from!"clang".Cursor typedef_) @safe {
            (typedef_.children.length == 0 && typedef_.type.kind == Type.Kind.Typedef),
            text("typedefs should only have 1 member, not ", typedef_.children.length));
 
-    const spelling = typedef_.children.length
+    version(unittest) writelnUt("    Underlying type: ", typedef_.underlyingType);
+
+    const originalSpelling = typedef_.children.length
         ? spellingOrNickname(typedef_.children[0])
         : typedef_.underlyingType.spelling;
 
-    return [`alias ` ~ typedef_.spelling ~ ` = ` ~ spelling  ~ `;`];
+    return [`alias ` ~ typedef_.spelling ~ ` = ` ~ originalSpelling.cleanType  ~ `;`];
 }

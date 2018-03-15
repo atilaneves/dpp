@@ -57,9 +57,14 @@ private void debugCursor(in from!"clang".Cursor cursor) @safe {
     version(unittest) {
         import clang: Cursor;
         import unit_threaded.io: writelnUt;
-        import std.algorithm: startsWith;
+        import std.algorithm: startsWith, canFind;
 
-        if(cursor.kind != Cursor.Kind.MacroDefinition || !cursor.spelling.startsWith("__"))
+        const isMacro = cursor.kind == Cursor.Kind.MacroDefinition;
+        const isOkMacro =
+            !cursor.spelling.startsWith("__") &&
+            !["_LP64", "unix", "linux"].canFind(cursor.spelling);
+
+        if(!isMacro || isOkMacro)
             debug writelnUt("Cursor: ", cursor);
     }
 }

@@ -55,6 +55,9 @@ string[] translateAggregate(
     import std.algorithm: map;
     import std.array: array;
 
+    // Avoid forward declarations. Not sure if this is the right way.
+    if(cursor.children.length == 0) return [];
+
     string[] lines;
 
     const name = spelling.isNull ? spellingOrNickname(cursor) : spelling.get;
@@ -77,12 +80,10 @@ string[] translateField(in from!"clang".Cursor field) @safe pure {
     import include.translation.type: translate;
     import clang: Cursor;
     import std.conv: text;
-    version(unittest) import unit_threaded.io: writelnUt;
 
     assert(field.kind == Cursor.Kind.FieldDecl,
            text("Field of wrong kind: ", field));
 
-    version(unittest) debug writelnUt("    Field: ", field);
     return [text(translate(field.type), " ", field.spelling, ";")];
 }
 

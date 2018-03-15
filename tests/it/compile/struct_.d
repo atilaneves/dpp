@@ -73,7 +73,7 @@ import it.compile;
     }
 }
 
-@("typdef struct with name")
+@("typedef struct with name")
 @safe unittest {
     with(const IncludeSandbox()) {
 
@@ -129,6 +129,30 @@ import it.compile;
 
                 auto n2 = Nameless2(33.3);
                 static assert(n2.sizeof == 8, "Wrong sizeof for Nameless2");
+            }
+        });
+
+        shouldCompile("main.d", "header.d");
+    }
+}
+
+@("typedef before struct declaration")
+@safe unittest {
+    with(const IncludeSandbox()) {
+
+        expand(Out("header.d"), In("header.h"),
+               q{
+                   typedef struct A B;
+                   struct A { int a; }
+               }
+        );
+
+        writeFile("main.d", q{
+            void main() {
+                import header;
+
+                auto a = A(42);
+                auto b = B(77);
             }
         });
 
