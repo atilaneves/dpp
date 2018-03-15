@@ -64,6 +64,8 @@ Translation[from!"clang".Cursor.Kind] translations() @safe pure {
     import include.translation;
     import clang: Cursor;
 
+    static string[] ignore() { return []; }
+
     with(Cursor.Kind) {
         return [
             StructDecl:      &translateStruct,
@@ -74,49 +76,4 @@ Translation[from!"clang".Cursor.Kind] translations() @safe pure {
             MacroDefinition: &translateMacro,
         ];
     }
-}
-
-string[] translateMacro(in from!"clang".Cursor cursor) @safe {
-    import clang: Cursor;
-    import std.format: format;
-    import std.algorithm: map;
-    import std.string: join;
-    import std.file: exists;
-    import std.stdio: File;
-    import std.algorithm: startsWith;
-
-    assert(cursor.kind == Cursor.Kind.MacroDefinition);
-
-    static bool[string] alreadyDefined;
-
-    // we want non-built-in macro definitions to be defined and then preprocessed
-    // again
-
-    auto range = cursor.sourceRange;
-
-    if(range.path == "" || !range.path.exists ||
-       cursor.isPredefined || cursor.spelling.startsWith("__STDC_")) { //built-in macro
-        return [];
-    }
-
-    // now we read the header where the macro comes from and copy the text inline
-
-    const startPos = range.start.offset;
-    const endPos   = range.end.offset;
-
-    auto file = File(range.path);
-    file.seek(startPos);
-    const chars = file.rawRead(new char[endPos - startPos]);
-
-    // the only sane way for us to be able to see a macro definition
-    // for a macro that has already been defined is if an #undef happened
-    // in the meanwhile. Unfortunately, libclang has no way of passing
-    // that information to us
-    string maybeUndef;
-    if(cursor.spelling in alreadyDefined)
-        maybeUndef = "#undef " ~ cursor.spelling ~ "\n";
-
-    alreadyDefined[cursor.spelling] = true;
-
-    return [maybeUndef ~ "#define %s\n".format(chars)];
 }
