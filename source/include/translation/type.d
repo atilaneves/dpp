@@ -8,12 +8,24 @@ import include.from;
 string translate(in from!"clang".Type type) @safe pure {
     import clang: Type;
     import std.conv: text;
+    import std.exception: enforce;
 
     switch(type.kind) with(Type.Kind) {
-        default:         assert(false, text("Type kind ", type.kind, " not supported"));
-        case Int:        return "int";
-        case Double:     return "double";
-        case Elaborated: return type.spelling.cleanType;
+
+        default:
+            enforce(false, text("Type kind ", type.kind, " not supported")); assert(0);
+
+        case Int:
+            return "int";
+
+        case Double:
+            return "double";
+
+        case Elaborated:
+            return type.spelling.cleanType;
+
+        case ConstantArray:
+            return type.spelling.cleanType;
     }
 }
 

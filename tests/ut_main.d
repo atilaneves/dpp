@@ -17,6 +17,7 @@ int main(string[] args) {
         "it.old.preprocessor", // FIXME
         "it.compile.preprocessor",
         "it.compile.struct_",
+        "it.compile.array",
         "it.run.struct_",
     );
 }
