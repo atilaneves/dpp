@@ -20,7 +20,7 @@ import it.compile;
             }
         }.format(inSandboxPath("foo.h")));
 
-        preprocess!File(inSandboxPath("main.d_"), inSandboxPath("main.d"));
+        preprocess("main.d_", "main.d");
         shouldCompile("main.d");
     }
 }
@@ -50,7 +50,7 @@ import it.compile;
                   }.format(inSandboxPath("header.h")));
 
 
-        preprocess!File(inSandboxPath("foo.d_"), inSandboxPath("foo.d"));
+        preprocess("foo.d_", "foo.d");
         shouldCompile("foo.d");
     }
 }

@@ -39,6 +39,12 @@ struct IncludeSandbox {
         writeFile(outFileName, realExpand(inFileName, file, line));
     }
 
+    void preprocess(in string inputFileName, in string outputFileName) @safe {
+        import include.runtime: realPreProcess = preprocess;
+        import std.stdio: File;
+        realPreProcess!File(inSandboxPath(inputFileName), inSandboxPath(outputFileName));
+    }
+
     void shouldCompileAndRun(in string[] srcFiles...) @safe const {
         try
             shouldExecuteOk(["dmd", "-run"] ~ srcFiles);

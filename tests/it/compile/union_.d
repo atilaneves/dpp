@@ -39,7 +39,7 @@ import it.compile;
                   }.format(inSandboxPath("header.h")));
 
 
-        preprocess!File(inSandboxPath("foo.d_"), inSandboxPath("foo.d"));
+        preprocess("foo.d_", "foo.d");
         shouldCompile("foo.d");
     }
 }
