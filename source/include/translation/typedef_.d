@@ -16,7 +16,8 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
 
     assert(typedef_.children.length == 1 ||
            (typedef_.children.length == 0 && typedef_.type.kind == Type.Kind.Typedef),
-           text("typedefs should only have 1 member, not ", typedef_.children.length));
+           text("typedefs should only have 1 member, not ", typedef_.children.length,
+                "\n", typedef_, "\n", typedef_.children));
 
     options.indent.log("Underlying type: ", typedef_.underlyingType);
 
