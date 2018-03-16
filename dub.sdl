@@ -7,7 +7,6 @@ targetType "executable"
 targetPath "bin"
 dflags "-dip25" // "-dip1000" // oops
 dependency "libclang" version="~master"
-lflags "-L/usr/lib/llvm-3.4/lib"  # travis
 
 configuration "executable" {
 }
