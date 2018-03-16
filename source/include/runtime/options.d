@@ -50,6 +50,7 @@ struct Options {
         version(unittest) enum shouldLog = true;
         else             const shouldLog = debugOutput;
 
-        debug writeln(indentation, args);
+        if(shouldLog)
+            debug writeln(indentation, args);
     }
 }
