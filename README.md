@@ -1,6 +1,9 @@
 include
 ========
 
+| [![Build Status](https://travis-ci.org/atilaneves/include.png?branch=master)](https://travis-ci.org/atilaneves/include) |  [![Build Status](https://ci.appveyor.com/api/projects/status/github/atilaneves/include?branch=master&svg=true)](https://ci.appveyor.com/project/atilaneves/include) | [![Coverage](https://codecov.io/gh/atilaneves/include/branch/master/graph/badge.svg)](https://codecov.io/gh/atilaneves/include) |
+
+
 include is an executable that has as input a D file with C `#include` preprocessor directives and outputs
 a valid D file that can be compiled. The original can't be compiled since D has no integrated preprocessor.
 
@@ -13,11 +16,15 @@ include goes through the input file line-by-line, and upon encountering an `#inc
 the file to be included with libclang, loops over the definitions of data structures and functions
 therein and expands in-place the relevant D translations. e.g. if a header contains:
 
+```c
 uint16_t foo(uin32_t a);
+```
 
 The output file will contain:
 
+```d
 ushort foo(ushort a);
+```
 
 include will also enclose each one of these original `#include` directives with either
 extern(C) {} or extern(C++) {} depending on the header file name and/or command-line options.
@@ -53,10 +60,10 @@ int twice(int i);
 #endif
 ```
 
-foo.d.tmp:
+foo.dpp:
 
 ```d
-// foo.d.tmp
+// foo.dpp
 #include "foo.h"
 void main() {
     import std.stdio;
@@ -67,7 +74,7 @@ void main() {
 At the shell:
 
 ```
-$ ./include foo.d.tmp foo.d
+$ ./include foo.ddd foo.d
 $ dmd foo.d
 $ ./foo
 $ 30
