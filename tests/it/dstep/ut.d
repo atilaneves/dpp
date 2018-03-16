@@ -1,7 +1,7 @@
 /**
    Tests "inspired" by the ones in dstep's UnitTests.d module
  */
-module it.compile.dstep;
+module it.dstep.ut;
 
 import it.compile;
 

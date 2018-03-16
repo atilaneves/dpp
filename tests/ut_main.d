@@ -23,7 +23,9 @@ int main(string[] args) {
         "it.compile.typedef_",
         "it.compile.function_",
         "it.compile.nanomsg",
-        "it.compile.dstep",
+
+        // tests copied from dstep
+        "it.dstep.ut",
 
         // integration tests with code that should run
         "it.run.struct_",
