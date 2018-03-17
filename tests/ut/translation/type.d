@@ -130,8 +130,7 @@ import clang: Type;
     Type(Type.Kind.Half).translate.shouldEqual("float");
 }
 
-@ShouldFail("Incomplete array not yet implemented")
-@("incomplete array")
+@("flexible")
 @safe pure unittest {
     Type(Type.Kind.IncompleteArray, "unsigned char []").translate.shouldEqual("ubyte[0]");
 }

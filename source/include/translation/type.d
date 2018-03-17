@@ -49,6 +49,8 @@ string translate(in from!"clang".Type type,
         case LongDouble: return "real";
         case Elaborated: return type.spelling.cleanType;
         case ConstantArray: return type.spelling.cleanType;
+        // this will look like "type []", so strip out the last 3 chars
+        case IncompleteArray: return translateCType(type.spelling[0 .. $-3]) ~ "[0]";
     }
 }
 
@@ -67,4 +69,30 @@ string translatePointer(in from!"clang".Type type) @safe pure {
 string cleanType(in string type) @safe pure {
     import std.array: replace;
     return type.replace("struct ", "");
+}
+
+/**
+   Unfortunately, incomplete arrays have only their spelling to go on.
+   It might be that other cursors are like this as well. So the type
+   inside needs to be translated from a _string_ to the equivalent D type.
+ */
+string translateCType(in string type) @safe pure {
+    import clang: Type;
+
+    switch(type) with(Type.Kind) {
+
+        default: throw new Exception("Unsupported C type '" ~ type ~ "'");
+
+        case "char": return "char";
+        case "signed char": return "byte";
+        case "unsigned char": return translate(Type(UChar, type));
+        case "short": return translate(Type(Short, type));
+        case "unsigned short": return translate(Type(UShort, type));
+        case "int": return translate(Type(Int, type));
+        case "unsigned int": return translate(Type(UInt, type));
+        case "long": return translate(Type(Long, type));
+        case "unsigned long": return translate(Type(ULong, type));
+        case "float": return translate(Type(Float, type));
+        case "double": return translate(Type(Double, type));
+    }
 }
