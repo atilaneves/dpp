@@ -20,18 +20,8 @@ string translate(in from!"clang".Type type,
             throw new Exception(text("Type kind ", type.kind, " not supported: ", type));
             assert(0);
 
-        case Long:
-            version(Windows)
-                return "int";
-            else
-                return "long";
-
-        case ULong:
-            version(Windows)
-                return "uint";
-            else
-                return "ulong";
-
+        case Long: return "c_long";
+        case ULong: return "c_ulong";
         case Pointer: return translatePointer(type).cleanType;
         case Typedef: return type.spelling.cleanType;
         case Void: return "void";

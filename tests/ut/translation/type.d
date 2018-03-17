@@ -47,10 +47,7 @@ import clang: Type;
 
 @("unsigned long")
 @safe pure unittest {
-    version(Windows)
-        Type(Type.Kind.ULong).translate.shouldEqual("uint");
-    else
-        Type(Type.Kind.ULong).translate.shouldEqual("ulong");
+    Type(Type.Kind.ULong).translate.shouldEqual("c_ulong");
 }
 
 @("unsigned long long")
@@ -90,10 +87,7 @@ import clang: Type;
 
 @("long")
 @safe pure unittest {
-    version(Windows)
-        Type(Type.Kind.Long).translate.shouldEqual("int");
-    else
-        Type(Type.Kind.Long).translate.shouldEqual("long");
+    Type(Type.Kind.Long).translate.shouldEqual("c_long");
 }
 
 @("long long")
