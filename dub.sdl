@@ -13,7 +13,7 @@ configuration "executable" {
 
 configuration "unittest" {
     targetName "ut"
-    mainSourceFile "tests/ut_main.d"
+    mainSourceFile "tests/test_main.d"
     sourcePaths "source" "tests"
     importPaths "source" "tests"
     excludedSourceFiles "source/main.d"
