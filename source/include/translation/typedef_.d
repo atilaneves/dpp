@@ -43,10 +43,21 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
            text("typedefs should only have 1 member, not ", typedef_.children.length,
                 "\n", typedef_, "\n", typedef_.children));
 
-    const originalSpelling = typedef_.children.length
-        ? spellingOrNickname(typedef_.children[0])
-        : translate(typedef_.underlyingType, No.translatingFunction, options);
+    string getOriginalSpelling() {
+        switch(typedef_.spelling) {
+            default: return spellingOrNickname(typedef_.children[0]);
+            case "u_int128_t": return "ulong";
+            case "u_int64_t": return "ulong";
+            case "u_int32_t": return "uint";
+            case "u_int16_t": return "ushort";
+            case "u_int8_t": return "ubyte";
+            case "register_t": return "ulong";
+        }
+    }
 
+    const originalSpelling = typedef_.children.length
+        ? getOriginalSpelling
+        : translate(typedef_.underlyingType, No.translatingFunction, options);
 
     return typedef_.spelling == originalSpelling.cleanType
         ? []

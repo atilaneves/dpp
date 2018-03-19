@@ -178,7 +178,7 @@ import it.compile;
 @safe unittest {
     with(const IncludeSandbox()) {
         expand(Out("hdr.d"), In("hdr.h"),
-                  q{
+               q{
                    struct Struct {
                        union {
                            void *ptr;
@@ -195,6 +195,54 @@ import it.compile;
                           Struct s;
                           s.data.ptr = null;
                           s.data.i = 42;
+                      }
+                  });
+
+        shouldCompile("app.d", "hdr.d");
+    }
+}
+
+@ShouldFail("translatePointer not good enough right now")
+@("const char* const")
+@safe unittest {
+    with(const IncludeSandbox()) {
+        expand(Out("hdr.d"), In("hdr.h"),
+               q{
+                   struct Struct {
+                       const char * const *protocols;
+                   };
+                   typedef struct Struct Struct;
+                  });
+
+        writeFile("app.d",
+                  q{
+                      import hdr;
+                      void main() {
+                          Struct s;
+                          static assert(is(typeof(s.protocols)) == const(char*)*);
+                      }
+                  });
+
+        shouldCompile("app.d", "hdr.d");
+    }
+}
+
+@("forward declaration")
+@safe unittest {
+    with(const IncludeSandbox()) {
+        expand(Out("hdr.d"), In("hdr.h"),
+               q{
+                   struct Struct;
+                   void fun(struct Struct* s);
+                   struct Struct* make_struct(void);
+                  });
+
+        writeFile("app.d",
+                  q{
+                      import hdr;
+                      void main() {
+                          Struct* s = make_struct();
+                          fun(s);
                       }
                   });
 

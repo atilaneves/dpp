@@ -71,13 +71,10 @@ string[] translateAggregate(
     import std.algorithm: map;
     import std.array: array;
 
-    // Avoid forward declarations. Not sure if this is the right way.
-    if(cursor.children.length == 0) return [];
+    const name = spelling.isNull ? spellingOrNickname(cursor) : spelling.get;
+    if(cursor.children.length == 0) return [keyword ~ ` ` ~ name ~ `;`];
 
     string[] lines;
-
-    const name = spelling.isNull ? spellingOrNickname(cursor) : spelling.get;
-
     lines ~= keyword ~ ` ` ~ name;
     lines ~= `{`;
 
