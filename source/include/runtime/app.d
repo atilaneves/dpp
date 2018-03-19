@@ -41,6 +41,7 @@ void preprocess(File)(in from!"include.runtime.options".Options options) {
 
         outputFile.writeln("import core.stdc.config;");
         outputFile.writeln("import core.stdc.stdarg: va_list;");
+        outputFile.writeln("struct __locale_data { int dummy; } // FIXME");
         outputFile.writeln("#define __gnuc_va_list va_list");
 
         () @trusted {
