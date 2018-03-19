@@ -11,9 +11,7 @@ alias Translation = string[] function(
     ) @safe;
 
 string translate(in from!"include.runtime.options".Options options,
-                 ref from!"clang".TranslationUnit translationUnit,
-                 ref from!"clang".Cursor cursor,
-                 ref from!"clang".Cursor parent,
+                 in from!"clang".Cursor cursor,
                  in string file = __FILE__,
                  in size_t line = __LINE__)
     @safe

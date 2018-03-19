@@ -251,7 +251,6 @@ import it.compile;
 }
 
 // TODO: convert to unit test
-@ShouldFail("BUG - Defines an enum instead of a member variable")
 @("named enum with variable inside a struct")
 @safe unittest {
     with(immutable IncludeSandbox()) {

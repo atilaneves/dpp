@@ -98,6 +98,7 @@ string expand(in string headerFileName,
     import include.translation.unit: translate;
     import clang: parse, TranslationUnitFlags;
     import std.array: join;
+    import std.algorithm: sort;
 
     string[] ret;
 
@@ -106,10 +107,14 @@ string expand(in string headerFileName,
     auto translationUnit = parse(headerFileName,
                                  TranslationUnitFlags.DetailedPreprocessingRecord);
 
-    foreach(cursor, parent; translationUnit.cursor) {
-        const lines = translate(options, translationUnit, cursor, parent, file, line);
-        if(lines.length)
-            ret ~= lines;
+    // libclang gives us macros first, so we sort by line here
+    foreach(cursor; translationUnit
+            .cursor
+            .children
+            .sort!((a, b) => a.sourceRange.start.line < b.sourceRange.start.line))
+    {
+        const lines = translate(options, cursor, file, line);
+        if(lines.length) ret ~= lines;
     }
 
     ret ~= "}";
