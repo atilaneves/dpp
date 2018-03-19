@@ -1,6 +1,10 @@
+/**
+   Integration tests.
+ */
 module it;
 
 public import unit_threaded;
+public import unit_threaded.integration;
 
 struct In {
     string value;
@@ -47,18 +51,18 @@ struct IncludeSandbox {
         realPreProcess!File(options);
     }
 
-    void shouldCompileAndRun(in string[] srcFiles...) @safe const {
+    void shouldCompileAndRun(string file = __FILE__, size_t line = __LINE__)(in string[] srcFiles...) @safe const {
         try
-            shouldSucceed(["dmd", "-run"] ~ srcFiles);
+            sandbox.shouldSucceed!(file, line)(["dmd", "-run"] ~ srcFiles);
         catch(Exception e) {
             adjustMessage(e, srcFiles);
             throw e;
         }
     }
 
-    void shouldCompileButNotLink(in string[] srcFiles...) @safe const {
+    void shouldCompileButNotLink(string file = __FILE__, size_t line = __LINE__)(in string[] srcFiles...) @safe const {
         try
-            shouldSucceed(["dmd", "-c", "-ofblob.o"] ~ srcFiles);
+            sandbox.shouldSucceed!(file, line)(["dmd", "-c", "-ofblob.o"] ~ srcFiles);
         catch(Exception e) {
             adjustMessage(e, srcFiles);
             throw e;
@@ -67,9 +71,9 @@ struct IncludeSandbox {
         shouldFail("dmd", "-ofblob", "blob.o");
     }
 
-    void shouldCompile(in string[] srcFiles...) @safe const {
+    void shouldCompile(string file = __FILE__, size_t line = __LINE__)(in string[] srcFiles...) @safe const {
         try
-            shouldSucceed(["dmd", "-o-", "-c"] ~ srcFiles);
+            sandbox.shouldSucceed!(file, line)(["dmd", "-o-", "-c"] ~ srcFiles);
         catch(Exception e) {
             adjustMessage(e, srcFiles);
             throw e;

@@ -8,18 +8,36 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     @safe
 {
     import include.translation.aggregate: spellingOrNickname;
-    import include.translation.type: cleanType, translate;
-    import clang: Type;
+    import include.translation.type: cleanType, translate, translateFunctionPointerReturnType;
+    import clang: Cursor, Type;
     import std.conv: text;
+    import std.algorithm: any, map, filter, countUntil;
+    import std.array: join;
 
     options.indent.log("TypedefDecl children: ", typedef_.children);
+    options.indent.log("Underlying type: ", typedef_.underlyingType);
+    options.indent.log("Canonical underlying type: ", typedef_.underlyingType.canonical);
+
+    // function pointer typedef
+    if(typedef_.underlyingType.kind == Type.Kind.Pointer &&
+       typedef_.children.length > 0 &&
+       typedef_.children.any!(a => a.kind == Cursor.Kind.ParmDecl))
+    {
+        const functionPointerIndex = typedef_.underlyingType.spelling.countUntil("(*)(");
+        const returnType = translateFunctionPointerReturnType(typedef_.underlyingType);
+
+        const paramTypes = typedef_
+            .children
+            .filter!(a => a.kind == Cursor.Kind.ParmDecl)
+            .map!(a => translate(a.type))
+            .join(", ");
+        return [`alias ` ~ typedef_.spelling ~ ` = ` ~ returnType ~ ` function(` ~ paramTypes ~ `);`];
+    }
 
     assert(typedef_.children.length == 1 ||
            (typedef_.children.length == 0 && typedef_.type.kind == Type.Kind.Typedef),
            text("typedefs should only have 1 member, not ", typedef_.children.length,
                 "\n", typedef_, "\n", typedef_.children));
-
-    options.indent.log("Underlying type: ", typedef_.underlyingType);
 
     const originalSpelling = typedef_.children.length
         ? spellingOrNickname(typedef_.children[0])

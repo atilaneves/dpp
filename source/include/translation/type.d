@@ -66,6 +66,15 @@ string translatePointer(in from!"clang".Type type) @safe pure {
         : type.spelling;
 }
 
+string translateFunctionPointerReturnType(in from!"clang".Type type) @safe pure {
+    import clang: Type;
+    import std.algorithm: countUntil;
+
+    const functionPointerIndex = type.spelling.countUntil("(*)(");
+    return translate(Type(Type.Kind.Pointer, type.spelling[0 .. functionPointerIndex]));
+
+}
+
 string cleanType(in string type) @safe pure {
     import std.array: replace;
     return type.replace("struct ", "");
