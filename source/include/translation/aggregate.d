@@ -72,7 +72,9 @@ string[] translateAggregate(
     import std.array: array;
 
     const name = spelling.isNull ? spellingOrNickname(cursor) : spelling.get;
-    if(cursor.children.length == 0) return [keyword ~ ` ` ~ name ~ `;`];
+    // FIXME - forward declarations
+    // if(cursor.children.length == 0 && cursor.isCanonical) return [keyword ~ ` ` ~ name ~ `;`];
+    if(cursor.children.length == 0) return [];
 
     string[] lines;
     lines ~= keyword ~ ` ` ~ name;

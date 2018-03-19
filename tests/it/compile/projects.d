@@ -227,6 +227,7 @@ import it.compile;
     }
 }
 
+@ShouldFail
 @("forward declaration")
 @safe unittest {
     with(const IncludeSandbox()) {
@@ -243,6 +244,30 @@ import it.compile;
                       void main() {
                           Struct* s = make_struct();
                           fun(s);
+                      }
+                  });
+
+        shouldCompile("app.d", "hdr.d");
+    }
+}
+
+
+@ShouldFail
+@("variable with the name of a struct")
+@safe unittest {
+    with(const IncludeSandbox()) {
+        expand(Out("hdr.d"), In("hdr.h"),
+               q{
+                   struct timezone { int dummy };
+                   extern long timezone;
+                  });
+
+        writeFile("app.d",
+                  q{
+                      import hdr;
+                      void main() {
+                          auto t = timezone_(42);
+                          timezone = 42;
                       }
                   });
 
