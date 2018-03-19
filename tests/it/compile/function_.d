@@ -60,3 +60,46 @@ import it.compile;
         shouldCompile("app.d", "hdr.d");
     }
 }
+
+@("void function()")
+@safe unittest {
+    with(const IncludeSandbox()) {
+        expand(Out("hdr.d"), In("hdr.h"),
+               q{
+                   typedef void (*function_t)(void);
+               });
+        writeFile("app.d",
+                  q{
+                      import hdr;
+                      import std.traits;
+                      import std.meta;
+                      void maid() {
+                          auto f = function_t();
+                          static assert(is(ReturnType!f == void));
+                          static assert(is(Parameters!f == AliasSeq!()));
+                      }
+                  });
+        shouldCompile("app.d", "hdr.d");
+    }
+}
+
+@("variadic")
+@safe unittest {
+    with(const IncludeSandbox()) {
+        expand(Out("hdr.d"), In("hdr.h"),
+               q{
+                   void fun(int, ...);
+               });
+        writeFile("app.d",
+                  q{
+                      import hdr;
+                      void maid() {
+                          fun(42);
+                          fun(42, 33);
+                          fun(42, 33.3);
+                          fun(42, "foobar".ptr);
+                      }
+                  });
+        shouldCompile("app.d", "hdr.d");
+    }
+}

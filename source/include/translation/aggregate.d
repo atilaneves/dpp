@@ -98,11 +98,12 @@ string[] translateField(in from!"clang".Cursor field,
     import include.translation.type: translate;
     import clang: Cursor;
     import std.conv: text;
+    import std.typecons: No;
 
     assert(field.kind == Cursor.Kind.FieldDecl,
            text("Field of wrong kind: ", field));
 
-    return [text(translate(field.type, options), " ", field.spelling, ";")];
+    return [text(translate(field.type, No.translatingFunction, options), " ", field.spelling, ";")];
 }
 
 // return the spelling if it exists, or our made-up nickname for it

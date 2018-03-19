@@ -134,3 +134,8 @@ import clang: Type;
 @safe pure unittest {
     Type(Type.Kind.IncompleteArray, "unsigned char []").translate.shouldEqual("ubyte[0]");
 }
+
+@("const char *const []")
+@safe pure unittest {
+    Type(Type.Kind.IncompleteArray, "const char *const []").translate.shouldEqual("const(char*)[0]");
+}

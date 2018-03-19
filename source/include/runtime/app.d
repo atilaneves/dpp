@@ -52,7 +52,7 @@ void preprocess(File)(in from!"include.runtime.options".Options options) {
 
 
     const ret = execute(["cpp", tmpFileName]);
-    enforce(ret.status == 0, text("Could not run cpp:\n", ret.output));
+    enforce(ret.status == 0, text("Could not run cpp on ", tmpFileName, ":\n", ret.output));
 
     {
         auto outputFile = File(options.outputFileName, "w");

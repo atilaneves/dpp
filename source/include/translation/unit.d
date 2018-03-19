@@ -63,7 +63,11 @@ string[] translate(in from!"clang".Cursor cursor,
     catch(Exception e) {
         import std.stdio: stderr;
         debug {
-            () @trusted { stderr.writeln("Could not translate cursor ", cursor); }();
+            () @trusted {
+                stderr.writeln("Could not translate cursor ", cursor,
+                               " sourceRange: ", cursor.sourceRange,
+                               " children: ", cursor.children);
+            }();
         }
         throw e;
     }
@@ -84,8 +88,9 @@ private void debugCursor(in from!"include.runtime.options".Options options,
         !cursor.spelling.startsWith("__") &&
         !["_LP64", "unix", "linux"].canFind(cursor.spelling);
 
-    if(!isMacro || isOkMacro)
-        options.log(cursor);
+    if(!isMacro || isOkMacro) {
+        options.log(cursor, " @ ", cursor.sourceRange);
+    }
 }
 
 Translation[from!"clang".Cursor.Kind] translations() @safe {

@@ -6,6 +6,7 @@ module include.translation.type;
 import include.from;
 
 string translate(in from!"clang".Type type,
+                 in from!"std.typecons".Flag!"translatingFunction" translatingFunction = from!"std.typecons".No.translatingFunction,
                  in from!"include.runtime.options".Options options =
                               from!"include.runtime.options".Options())
     @safe pure
@@ -13,6 +14,7 @@ string translate(in from!"clang".Type type,
     import clang: Type;
     import std.conv: text;
     import std.exception: enforce;
+    import std.algorithm: countUntil;
 
     switch(type.kind) with(Type.Kind) {
 
@@ -48,9 +50,17 @@ string translate(in from!"clang".Type type,
         case Half: return "float";
         case LongDouble: return "real";
         case Elaborated: return type.spelling.cleanType;
-        case ConstantArray: return type.spelling.cleanType;
+
+        case ConstantArray:
+            // -1 because clang inserts a space
+            const bracketIndex = type.spelling.countUntil("[") - 1;
+            enforce(bracketIndex > 0);
+            return translateCType(type.spelling[0 .. bracketIndex]).cleanType ~ type.spelling[bracketIndex .. $];
+
         // this will look like "type []", so strip out the last 3 chars
-        case IncompleteArray: return translateCType(type.spelling[0 .. $-3]) ~ "[0]";
+        case IncompleteArray:
+            const dType = translateCType(type.spelling[0 .. $-3]);
+            return translatingFunction ? dType ~ `*` : dType ~ "[0]";
     }
 }
 
@@ -62,29 +72,33 @@ string translatePointer(in from!"clang".Type type) @safe pure {
     assert(type.kind == Type.Kind.Pointer);
 
     return type.spelling.startsWith("const ")
-        ? `const(` ~ type.spelling.replace(" *", "").replace("const ", "") ~ `)*`
+        ? `const(` ~ translateCType(type.spelling.replace(" *", "").replace("const ", "")) ~ `)*`
         : type.spelling;
 }
 
 string translateFunctionPointerReturnType(in from!"clang".Type type) @safe pure {
     import clang: Type;
     import std.algorithm: countUntil;
+    import std.exception: enforce;
 
     const functionPointerIndex = type.spelling.countUntil("(*)(");
+    enforce(functionPointerIndex > 0, "Could not find function pointer in " ~ type.spelling);
     return translate(Type(Type.Kind.Pointer, type.spelling[0 .. functionPointerIndex]));
 }
 
 string translateFunctionProtoReturnType(in from!"clang".Type type) @safe pure {
     import clang: Type;
     import std.algorithm: countUntil;
+    import std.exception: enforce;
 
     const parenIndex = type.spelling.countUntil("(");
+    enforce(parenIndex > 0, "Could not find parameters in " ~ type.spelling);
     return translate(Type(Type.Kind.Pointer, type.spelling[0 .. parenIndex]));
 }
 
 string cleanType(in string type) @safe pure {
     import std.array: replace;
-    return type.replace("struct ", "");
+    return type.replace("struct ", "").replace("union ", "").replace("enum ", "");
 }
 
 /**
@@ -97,12 +111,15 @@ string translateCType(in string type) @safe pure {
 
     switch(type) with(Type.Kind) {
 
-        default: throw new Exception("Unsupported C type '" ~ type ~ "'");
+        // the type might be user-defined, so if we don't recognise it, return it
+        default: return type.cleanType;
 
         case "char": return "char";
+        case "const char": return "const(char)";
         case "signed char": return "byte";
         case "unsigned char": return translate(Type(UChar, type));
         case "short": return translate(Type(Short, type));
+        case "const short": return `const(` ~ translate(Type(Short, type)) ~ `)`;
         case "unsigned short": return translate(Type(UShort, type));
         case "int": return translate(Type(Int, type));
         case "unsigned int": return translate(Type(UInt, type));
@@ -110,5 +127,6 @@ string translateCType(in string type) @safe pure {
         case "unsigned long": return translate(Type(ULong, type));
         case "float": return translate(Type(Float, type));
         case "double": return translate(Type(Double, type));
+        case "const char *const": return "const(char*)";
     }
 }

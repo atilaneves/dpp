@@ -3,7 +3,7 @@ module ut.translation.function_;
 import ut.translation;
 
 @("struct Foo addFoos(struct Foo* foo1, struct Foo* foo2)")
-@safe pure unittest {
+@safe unittest {
 
     auto function_ = Cursor.functionDecl("addFoos",
                                          "struct Foo (struct Foo*, struct Foo*)",
@@ -29,7 +29,7 @@ import ut.translation;
 }
 
 @("struct Bar addBars(struct Bar* foo1, struct Bar* foo2)")
-@safe pure unittest {
+@safe unittest {
 
     auto function_ = Cursor.functionDecl("addBars",
                                          "struct Bar (struct Bar*, struct Bar*)",
@@ -55,7 +55,7 @@ import ut.translation;
 }
 
 @("struct Bar addBars(const struct Bar* foo1, const struct Bar* foo2)")
-@safe pure unittest {
+@safe unittest {
 
     auto function_ = Cursor.functionDecl("addBars",
                                          "struct Bar (const struct Bar*, const struct Bar*)",
@@ -81,7 +81,7 @@ import ut.translation;
 }
 
 @("const char *nn_strerror (int errnum)")
-@safe pure unittest {
+@safe unittest {
     auto function_ = Cursor.functionDecl("nn_strerror",
                                          "const char *(int)",
                                          Type(Type.Kind.Pointer, "const char *"));

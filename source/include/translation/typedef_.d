@@ -12,17 +12,19 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
         translateFunctionPointerReturnType, translateFunctionProtoReturnType;
     import clang: Cursor, Type;
     import std.conv: text;
-    import std.algorithm: any, map, filter, countUntil;
+    import std.algorithm: map, filter, canFind;
     import std.array: join;
+    import std.typecons: No;
 
     options.indent.log("TypedefDecl children: ", typedef_.children);
     options.indent.log("Underlying type: ", typedef_.underlyingType);
     options.indent.log("Canonical underlying type: ", typedef_.underlyingType.canonical);
 
-    // function pointer typedef
-    if((typedef_.underlyingType.kind == Type.Kind.Pointer || typedef_.underlyingType.kind == Type.Kind.FunctionProto) &&
-       typedef_.children.length > 0 &&
-       typedef_.children.any!(a => a.kind == Cursor.Kind.ParmDecl))
+    // FIXME - seems to be built-in
+    if (typedef_.spelling == "size_t") return [];
+
+    if((typedef_.underlyingType.kind == Type.Kind.Pointer && typedef_.underlyingType.spelling.canFind("(*)")) ||
+       typedef_.underlyingType.kind == Type.Kind.FunctionProto)
     {
         const returnType = typedef_.underlyingType.kind == Type.Kind.Pointer
             ? translateFunctionPointerReturnType(typedef_.underlyingType)
@@ -43,7 +45,7 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
 
     const originalSpelling = typedef_.children.length
         ? spellingOrNickname(typedef_.children[0])
-        : translate(typedef_.underlyingType, options);
+        : translate(typedef_.underlyingType, No.translatingFunction, options);
 
     return [`alias ` ~ typedef_.spelling ~ ` = ` ~ originalSpelling.cleanType  ~ `;`];
 }
