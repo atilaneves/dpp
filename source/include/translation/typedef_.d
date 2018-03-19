@@ -47,5 +47,8 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
         ? spellingOrNickname(typedef_.children[0])
         : translate(typedef_.underlyingType, No.translatingFunction, options);
 
-    return [`alias ` ~ typedef_.spelling ~ ` = ` ~ originalSpelling.cleanType  ~ `;`];
+
+    return typedef_.spelling == originalSpelling.cleanType
+        ? []
+        : [`alias ` ~ typedef_.spelling ~ ` = ` ~ originalSpelling.cleanType  ~ `;`];
 }

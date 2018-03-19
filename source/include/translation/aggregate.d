@@ -11,7 +11,10 @@ import include.from;
    that we track here so as to be able to properly transate
    those typedefs.
  */
-private shared string[from!"clang.c.index".CXCursor] gNicknames;
+private shared string[from!"clang.c.index".CXCursor] gCursorNickNames;
+
+/// the last nickname we coined (e.g. "_Anonymous_1")
+private shared string gLastNickName;
 
 
 string[] translateStruct(in from!"clang".Cursor cursor,
@@ -92,7 +95,7 @@ string[] translateField(in from!"clang".Cursor field,
                         in from!"include.runtime.options".Options options =
                                from!"include.runtime.options".Options()
                         )
-    @safe pure
+    @safe
 {
 
     import include.translation.type: translate;
@@ -100,8 +103,7 @@ string[] translateField(in from!"clang".Cursor field,
     import std.conv: text;
     import std.typecons: No;
 
-    assert(field.kind == Cursor.Kind.FieldDecl,
-           text("Field of wrong kind: ", field));
+    assert(field.kind == Cursor.Kind.FieldDecl, text("Field of wrong kind: ", field));
 
     return [text(translate(field.type, No.translatingFunction, options), " ", field.spelling, ";")];
 }
@@ -116,9 +118,22 @@ package string spellingOrNickname(in from!"clang".Cursor cursor) @safe {
 
     if(cursor.spelling != "") return cursor.spelling;
 
-    if(cursor.cx !in gNicknames) {
-        gNicknames[cursor.cx] = text("_Anonymous_", index++);
+    if(cursor.cx !in gCursorNickNames) {
+        gLastNickName = gCursorNickNames[cursor.cx] = newAnonymousName;
     }
 
-    return gNicknames[cursor.cx];
+    return gCursorNickNames[cursor.cx];
+}
+
+package string spellingOrNickname(in string typeSpelling) @safe {
+
+    import std.algorithm: canFind;
+    return typeSpelling.canFind("(anonymous") ? gLastNickName : typeSpelling;
+}
+
+private string newAnonymousName() @safe {
+    import std.conv: text;
+    import core.atomic: atomicOp;
+    shared static int index;
+    return text("_Anonymous_", index.atomicOp!"+="(1));
 }

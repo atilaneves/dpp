@@ -173,3 +173,31 @@ import it.compile;
         shouldCompile("app.d");
     }
 }
+
+@("struct with union")
+@safe unittest {
+    with(const IncludeSandbox()) {
+        expand(Out("hdr.d"), In("hdr.h"),
+                  q{
+                   struct Struct {
+                       union {
+                           void *ptr;
+                           int i;
+                       } data;
+                   };
+                   typedef struct Struct Struct;
+                  });
+
+        writeFile("app.d",
+                  q{
+                      import hdr;
+                      void main() {
+                          Struct s;
+                          s.data.ptr = null;
+                          s.data.i = 42;
+                      }
+                  });
+
+        shouldCompile("app.d", "hdr.d");
+    }
+}

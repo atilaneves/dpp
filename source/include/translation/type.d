@@ -9,12 +9,13 @@ string translate(in from!"clang".Type type,
                  in from!"std.typecons".Flag!"translatingFunction" translatingFunction = from!"std.typecons".No.translatingFunction,
                  in from!"include.runtime.options".Options options =
                               from!"include.runtime.options".Options())
-    @safe pure
+    @safe
 {
+    import include.translation.aggregate: spellingOrNickname;
     import clang: Type;
     import std.conv: text;
     import std.exception: enforce;
-    import std.algorithm: countUntil;
+    import std.algorithm: countUntil, canFind;
 
     switch(type.kind) with(Type.Kind) {
 
@@ -49,7 +50,9 @@ string translate(in from!"clang".Type type,
         case Float128: return "real";
         case Half: return "float";
         case LongDouble: return "real";
-        case Elaborated: return type.spelling.cleanType;
+
+        case Elaborated:
+            return spellingOrNickname(type.spelling).cleanType;
 
         case ConstantArray:
             // -1 because clang inserts a space
@@ -64,7 +67,7 @@ string translate(in from!"clang".Type type,
     }
 }
 
-string translatePointer(in from!"clang".Type type) @safe pure {
+string translatePointer(in from!"clang".Type type) @safe {
     import clang: Type;
     import std.algorithm: startsWith;
     import std.array: replace;
@@ -76,7 +79,7 @@ string translatePointer(in from!"clang".Type type) @safe pure {
         : type.spelling;
 }
 
-string translateFunctionPointerReturnType(in from!"clang".Type type) @safe pure {
+string translateFunctionPointerReturnType(in from!"clang".Type type) @safe {
     import clang: Type;
     import std.algorithm: countUntil;
     import std.exception: enforce;
@@ -86,7 +89,7 @@ string translateFunctionPointerReturnType(in from!"clang".Type type) @safe pure 
     return translate(Type(Type.Kind.Pointer, type.spelling[0 .. functionPointerIndex]));
 }
 
-string translateFunctionProtoReturnType(in from!"clang".Type type) @safe pure {
+string translateFunctionProtoReturnType(in from!"clang".Type type) @safe {
     import clang: Type;
     import std.algorithm: countUntil;
     import std.exception: enforce;
@@ -106,7 +109,7 @@ string cleanType(in string type) @safe pure {
    It might be that other cursors are like this as well. So the type
    inside needs to be translated from a _string_ to the equivalent D type.
  */
-string translateCType(in string type) @safe pure {
+string translateCType(in string type) @safe {
     import clang: Type;
 
     switch(type) with(Type.Kind) {

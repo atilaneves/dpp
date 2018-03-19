@@ -56,7 +56,6 @@ struct IncludeSandbox {
             sandbox.shouldSucceed!(file, line)(["dmd", "-run"] ~ srcFiles);
         catch(Exception e) {
             adjustMessage(e, srcFiles);
-            throw e;
         }
     }
 
@@ -65,7 +64,6 @@ struct IncludeSandbox {
             sandbox.shouldSucceed!(file, line)(["dmd", "-c", "-ofblob.o"] ~ srcFiles);
         catch(Exception e) {
             adjustMessage(e, srcFiles);
-            throw e;
         }
 
         shouldFail("dmd", "-ofblob", "blob.o");
@@ -76,7 +74,6 @@ struct IncludeSandbox {
             sandbox.shouldSucceed!(file, line)(["dmd", "-o-", "-c"] ~ srcFiles);
         catch(Exception e) {
             adjustMessage(e, srcFiles);
-            throw e;
         }
     }
 
@@ -85,9 +82,10 @@ struct IncludeSandbox {
         import std.array: join;
         import std.file: readText;
 
-        e.msg = e.msg ~ "\n\n" ~ srcFiles
+        throw new UnitTestException(
+            e.msg = e.msg ~ "\n\n" ~ srcFiles
             .map!(a => a ~ ":\n----------\n" ~ readText(sandbox.inSandboxPath(a)))
-            .join("\n\n");
+            .join("\n\n"), e.file, e.line);
 
     }
 
