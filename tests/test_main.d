@@ -22,7 +22,7 @@ int main(string[] args) {
         "it.compile.enum_",
         "it.compile.typedef_",
         "it.compile.function_",
-        "it.compile.nanomsg",
+        "it.compile.projects",
 
         // tests copied from dstep
         "it.dstep.ut",

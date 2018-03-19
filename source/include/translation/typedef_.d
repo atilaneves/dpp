@@ -8,7 +8,8 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     @safe
 {
     import include.translation.aggregate: spellingOrNickname;
-    import include.translation.type: cleanType, translate, translateFunctionPointerReturnType;
+    import include.translation.type: cleanType, translate,
+        translateFunctionPointerReturnType, translateFunctionProtoReturnType;
     import clang: Cursor, Type;
     import std.conv: text;
     import std.algorithm: any, map, filter, countUntil;
@@ -19,12 +20,13 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     options.indent.log("Canonical underlying type: ", typedef_.underlyingType.canonical);
 
     // function pointer typedef
-    if(typedef_.underlyingType.kind == Type.Kind.Pointer &&
+    if((typedef_.underlyingType.kind == Type.Kind.Pointer || typedef_.underlyingType.kind == Type.Kind.FunctionProto) &&
        typedef_.children.length > 0 &&
        typedef_.children.any!(a => a.kind == Cursor.Kind.ParmDecl))
     {
-        const functionPointerIndex = typedef_.underlyingType.spelling.countUntil("(*)(");
-        const returnType = translateFunctionPointerReturnType(typedef_.underlyingType);
+        const returnType = typedef_.underlyingType.kind == Type.Kind.Pointer
+            ? translateFunctionPointerReturnType(typedef_.underlyingType)
+            : translateFunctionProtoReturnType(typedef_.underlyingType);
 
         const paramTypes = typedef_
             .children

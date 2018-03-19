@@ -72,7 +72,14 @@ string translateFunctionPointerReturnType(in from!"clang".Type type) @safe pure 
 
     const functionPointerIndex = type.spelling.countUntil("(*)(");
     return translate(Type(Type.Kind.Pointer, type.spelling[0 .. functionPointerIndex]));
+}
 
+string translateFunctionProtoReturnType(in from!"clang".Type type) @safe pure {
+    import clang: Type;
+    import std.algorithm: countUntil;
+
+    const parenIndex = type.spelling.countUntil("(");
+    return translate(Type(Type.Kind.Pointer, type.spelling[0 .. parenIndex]));
 }
 
 string cleanType(in string type) @safe pure {
