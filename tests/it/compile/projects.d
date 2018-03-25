@@ -326,3 +326,36 @@ import it.compile;
         shouldCompile("app.d", "hdr.d");
     }
 }
+
+@ShouldFail
+@("curl_slist")
+@safe unittest {
+    with(const IncludeSandbox()) {
+        expand(Out("hdr.d"), In("hdr.h"),
+               q{
+                   struct curl_httppost {
+                       curl_httppost* next;
+                       char* name;
+                       c_long namelength;
+                       struct curl_slist *contentheader;
+                   };
+                   struct curl_slist {
+                       char *data;
+                       struct curl_slist *next;
+                   };
+               });
+        writeFile("app.d",
+                  q{
+                      import hdr;
+                      void maid() {
+                          curl_httppost p;
+                          p.contentheader.data = null;
+                          p.contentheader.next = null;
+                          curl_slist l;
+                          l.data = null;
+                          l.next = null;
+                      }
+                  });
+        shouldCompile("app.d", "hdr.d");
+    }
+}
