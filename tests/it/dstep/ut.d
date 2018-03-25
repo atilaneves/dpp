@@ -104,7 +104,6 @@ import it.compile;
 }
 
 
-@ShouldFail("bug - need to reverse static array declarations in D")
 @("struct with 3d arrays of #defined length")
 @safe unittest {
     with(immutable IncludeSandbox()) {

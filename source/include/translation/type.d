@@ -55,14 +55,12 @@ string translate(in from!"clang".Type type,
             return spellingOrNickname(type.spelling).cleanType;
 
         case ConstantArray:
-            // -1 because clang inserts a space
-            const bracketIndex = type.spelling.countUntil("[") - 1;
-            enforce(bracketIndex > 0);
-            return translateCType(type.spelling[0 .. bracketIndex]).cleanType ~ type.spelling[bracketIndex .. $];
+            return translate(type.elementType) ~ `[` ~ type.numElements.text ~ `]`;
 
-        // this will look like "type []", so strip out the last 3 chars
         case IncompleteArray:
-            const dType = translateCType(type.spelling[0 .. $-3]);
+            const dType = translate(type.elementType);
+            // if translating a function, we want C's T[] to translate
+            // to T*, otherwise we want a flexible array
             return translatingFunction ? dType ~ `*` : dType ~ "[0]";
     }
 }
@@ -98,34 +96,4 @@ string translateFunctionProtoReturnType(in from!"clang".Type type) @safe {
 string cleanType(in string type) @safe pure {
     import std.array: replace;
     return type.replace("struct ", "").replace("union ", "").replace("enum ", "");
-}
-
-/**
-   Unfortunately, incomplete arrays have only their spelling to go on.
-   It might be that other cursors are like this as well. So the type
-   inside needs to be translated from a _string_ to the equivalent D type.
- */
-string translateCType(in string type) @safe {
-    import clang: Type;
-
-    switch(type) with(Type.Kind) {
-
-        // the type might be user-defined, so if we don't recognise it, return it
-        default: return type.cleanType;
-
-        case "char": return "char";
-        case "const char": return "const(char)";
-        case "signed char": return "byte";
-        case "unsigned char": return translate(Type(UChar, type));
-        case "short": return translate(Type(Short, type));
-        case "const short": return `const(` ~ translate(Type(Short, type)) ~ `)`;
-        case "unsigned short": return translate(Type(UShort, type));
-        case "int": return translate(Type(Int, type));
-        case "unsigned int": return translate(Type(UInt, type));
-        case "long": return translate(Type(Long, type));
-        case "unsigned long": return translate(Type(ULong, type));
-        case "float": return translate(Type(Float, type));
-        case "double": return translate(Type(Double, type));
-        case "const char *const": return "const(char*)";
-    }
 }

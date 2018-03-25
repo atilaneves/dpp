@@ -129,13 +129,3 @@ import clang: Type;
 @safe unittest {
     Type(Type.Kind.Half).translate.shouldEqual("float");
 }
-
-@("flexible")
-@safe unittest {
-    Type(Type.Kind.IncompleteArray, "unsigned char []").translate.shouldEqual("ubyte[0]");
-}
-
-@("const char *const []")
-@safe unittest {
-    Type(Type.Kind.IncompleteArray, "const char *const []").translate.shouldEqual("const(char*)[0]");
-}
