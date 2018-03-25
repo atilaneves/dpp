@@ -25,8 +25,10 @@ import include.translation.aggregate: translateField;
 
 @("struct")
 @safe unittest {
-    translateField(Cursor(Cursor.Kind.FieldDecl, "foo", Type(Type.Kind.Pointer, "struct Foo *")))
-        .shouldEqual(["Foo * foo;"]);
+    auto type = Type.pointer("struct Foo *",
+                             new Type(Type.Kind.Elaborated, "struct Foo"));
+    translateField(Cursor(Cursor.Kind.FieldDecl, "foo", *type))
+        .shouldEqual(["Foo* foo;"]);
 }
 
 @ShouldFail("Bug - translation doesn't work well in translatePointer")

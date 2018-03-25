@@ -62,7 +62,7 @@ import clang: Type;
 
 @("char_s")
 @safe unittest {
-    Type(Type.Kind.Char_S).translate.shouldEqual("byte");
+    Type(Type.Kind.Char_S).translate.shouldEqual("char");
 }
 
 @("SChar")

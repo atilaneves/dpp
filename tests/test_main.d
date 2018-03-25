@@ -10,7 +10,6 @@ int main(string[] args) {
 
         // unit tests
         "ut.translation.field",
-        "ut.translation.function_",
         "ut.translation.type",
         "ut.translation.enum_",
 

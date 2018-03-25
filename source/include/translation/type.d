@@ -44,7 +44,7 @@ string translate(in from!"clang".Type type,
         case Float: return "float";
         case Double: return "double";
         case Char_U: return "ubyte";
-        case Char_S: return "byte";
+        case Char_S: return "char";
         case Int128: return "cent";
         case UInt128: return "ucent";
         case Float128: return "real";
@@ -69,34 +69,30 @@ string translate(in from!"clang".Type type,
 
 string translatePointer(in from!"clang".Type type) @safe {
     import clang: Type;
-    import std.algorithm: startsWith;
-    import std.array: replace;
 
-    assert(type.kind == Type.Kind.Pointer);
+    assert(type.kind == Type.Kind.Pointer, "type kind not Pointer");
+    if(type.pointee is null) throw new Exception("null pointee for " ~ type.toString);
+    assert(type.pointee !is null, "Pointee is null for " ~ type.toString);
 
-    return type.spelling.startsWith("const ")
-        ? `const(` ~ translateCType(type.spelling.replace(" *", "").replace("const ", "")) ~ `)*`
-        : type.spelling;
+    const rawType = translate(*type.pointee);
+    const pointeeType =  type.pointee.isConstQualified
+        ? `const(` ~ rawType ~ `)`
+        : rawType;
+
+    return pointeeType ~ `*`;
 }
 
 string translateFunctionPointerReturnType(in from!"clang".Type type) @safe {
     import clang: Type;
-    import std.algorithm: countUntil;
-    import std.exception: enforce;
-
-    const functionPointerIndex = type.spelling.countUntil("(*)(");
-    enforce(functionPointerIndex > 0, "Could not find function pointer in " ~ type.spelling);
-    return translate(Type(Type.Kind.Pointer, type.spelling[0 .. functionPointerIndex]));
+    assert(type.kind == Type.Kind.Pointer, "Not a function pointer");
+    assert(type.pointee !is null, "Function pointer has no pointee");
+    return translate(type.pointee.returnType);
 }
 
 string translateFunctionProtoReturnType(in from!"clang".Type type) @safe {
     import clang: Type;
-    import std.algorithm: countUntil;
-    import std.exception: enforce;
-
-    const parenIndex = type.spelling.countUntil("(");
-    enforce(parenIndex > 0, "Could not find parameters in " ~ type.spelling);
-    return translate(Type(Type.Kind.Pointer, type.spelling[0 .. parenIndex]));
+    assert(type.kind == Type.Kind.FunctionProto, "Not a function prototype");
+    return translate(type.returnType);
 }
 
 string cleanType(in string type) @safe pure {

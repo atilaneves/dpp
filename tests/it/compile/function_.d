@@ -103,3 +103,31 @@ import it.compile;
         shouldCompile("app.d", "hdr.d");
     }
 }
+
+@("old uts")
+@safe unittest {
+    with(const IncludeSandbox()) {
+        expand(Out("hdr.d"), In("hdr.h"),
+               q{
+                   struct Foo { int value; };
+                   struct Bar { int value; };
+                   struct Foo addFoos(struct Foo* foo1, struct Foo* foo2);
+                   struct Bar addBars(const struct Bar* bar1, const struct Bar* bar2);
+                   const char *nn_strerror (int errnum);
+               });
+        writeFile("app.d",
+                  q{
+                      import hdr;
+                      void maid() {
+                          auto f1 = Foo(2);
+                          auto f2 = Foo(3);
+                          Foo f = addFoos(&f1, &f2);
+                          const b1 = Bar(2);
+                          const b2 = Bar(3);
+                          Bar b = addBars(&b1, &b2);
+                          const(char*) msg = nn_strerror(42);
+                      }
+                  });
+        shouldCompile("app.d", "hdr.d");
+    }
+}

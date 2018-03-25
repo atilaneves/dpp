@@ -21,6 +21,7 @@ string[] translateFunction(in from!"clang".Cursor function_,
     assert(function_.kind == Cursor.Kind.FunctionDecl);
 
     const returnType = translate(function_.returnType, Yes.translatingFunction, options);
+    options.indent.log("Function return type: ", returnType);
     auto paramTypes = function_
         .children
         .tee!((a){ options.indent.log("Function Child: ", a); })

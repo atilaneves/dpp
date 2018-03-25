@@ -19,16 +19,18 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     options.indent.log("TypedefDecl children: ", typedef_.children);
     options.indent.log("Underlying type: ", typedef_.underlyingType);
     options.indent.log("Canonical underlying type: ", typedef_.underlyingType.canonical);
+    const underlyingType = typedef_.underlyingType.canonical;
 
     // FIXME - seems to be built-in
     if (typedef_.spelling == "size_t") return [];
 
-    if((typedef_.underlyingType.kind == Type.Kind.Pointer && typedef_.underlyingType.spelling.canFind("(*)")) ||
-       typedef_.underlyingType.kind == Type.Kind.FunctionProto)
+    if((underlyingType.kind == Type.Kind.Pointer &&
+       underlyingType.pointee.kind == Type.Kind.FunctionProto) ||
+        underlyingType.kind == Type.Kind.FunctionProto)
     {
-        const returnType = typedef_.underlyingType.kind == Type.Kind.Pointer
-            ? translateFunctionPointerReturnType(typedef_.underlyingType)
-            : translateFunctionProtoReturnType(typedef_.underlyingType);
+        const returnType = underlyingType.kind == Type.Kind.Pointer
+            ? translateFunctionPointerReturnType(underlyingType)
+            : translateFunctionProtoReturnType(underlyingType);
 
         const paramTypes = typedef_
             .children
@@ -57,7 +59,7 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
 
     const originalSpelling = typedef_.children.length
         ? getOriginalSpelling
-        : translate(typedef_.underlyingType, No.translatingFunction, options);
+        : translate(underlyingType, No.translatingFunction, options);
 
     return typedef_.spelling == originalSpelling.cleanType
         ? []

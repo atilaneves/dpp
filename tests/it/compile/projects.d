@@ -202,7 +202,6 @@ import it.compile;
     }
 }
 
-@ShouldFail("translatePointer not good enough right now")
 @("const char* const")
 @safe unittest {
     with(const IncludeSandbox()) {
@@ -219,7 +218,9 @@ import it.compile;
                       import hdr;
                       void main() {
                           Struct s;
-                          static assert(is(typeof(s.protocols)) == const(char*)*);
+                          static assert(is(typeof(s.protocols) == const(char*)*),
+                                        "Expected const(char*)*, not " ~
+                                        typeof(s.protocols).stringof);
                       }
                   });
 
@@ -275,13 +276,12 @@ import it.compile;
     }
 }
 
-@ShouldFail
 @("restrict")
 @safe unittest {
     with(const IncludeSandbox()) {
         expand(Out("hdr.d"), In("hdr.h"),
                q{
-                   struct FILE;
+                   struct FILE { int dummy; }
                    extern FILE *fopen(const char *restrict filename,
                                       const char *restrict modes);
                });
@@ -289,8 +289,9 @@ import it.compile;
         writeFile("app.d",
                   q{
                       import hdr;
+                      import std.string;
                       void main() {
-                          fopen("foo.txt", "w");
+                          fopen("foo.txt".toStringz, "w".toStringz);
                       }
                   });
 
