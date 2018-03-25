@@ -228,7 +228,6 @@ import it.compile;
     }
 }
 
-@ShouldFail
 @("forward declaration")
 @safe unittest {
     with(const IncludeSandbox()) {

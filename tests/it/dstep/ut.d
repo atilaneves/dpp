@@ -258,7 +258,6 @@ import it.compile;
     }
 }
 
-@ShouldFail("bug - immediate declarations not working")
 @("array of structs declared immediately")
 @safe unittest {
     with(immutable IncludeSandbox()) {

@@ -72,15 +72,15 @@ string[] translateAggregate(
     import std.array: array;
 
     const name = spelling.isNull ? spellingOrNickname(cursor) : spelling.get;
-    // FIXME - forward declarations
-    // if(cursor.children.length == 0 && cursor.isCanonical) return [keyword ~ ` ` ~ name ~ `;`];
-    if(cursor.children.length == 0) return [];
 
     string[] lines;
     lines ~= keyword ~ ` ` ~ name;
     lines ~= `{`;
 
-    foreach(member; cursor) {
+    const definition = cursor.definition;
+    const realCursor = definition.isNull ? cursor : definition;
+
+    foreach(member; realCursor) {
         lines ~= translate(member, options.indent).map!(a => "    " ~ a).array;
     }
 

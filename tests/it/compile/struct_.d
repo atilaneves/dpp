@@ -232,3 +232,29 @@ import it.compile;
         shouldCompile("foo.d");
     }
 }
+
+@("multiple declarations")
+@safe unittest {
+    with(const IncludeSandbox()) {
+
+        expand(Out("header.d"), In("header.h"),
+               q{
+                   struct Struct;
+                   struct Struct;
+                   struct Struct { int x, y, z; };
+               }
+        );
+
+        writeFile("main.d", q{
+            void main() {
+                import header;
+                Struct s;
+                s.x = 42;
+                s.y = 33;
+                s.z = 77;
+            }
+        });
+
+        shouldCompile("main.d", "header.d");
+    }
+}

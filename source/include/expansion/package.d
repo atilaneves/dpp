@@ -98,7 +98,7 @@ string expand(in string headerFileName,
     import include.translation.unit: translate;
     import clang: parse, TranslationUnitFlags;
     import std.array: join;
-    import std.algorithm: sort;
+    import std.algorithm: sort, filter;
 
     string[] ret;
 
@@ -111,7 +111,9 @@ string expand(in string headerFileName,
     foreach(cursor; translationUnit
             .cursor
             .children
-            .sort!((a, b) => a.sourceRange.start.line < b.sourceRange.start.line))
+            .sort!((a, b) => a.sourceRange.start.line < b.sourceRange.start.line)
+            .filter!(a => a.isCanonical)
+        )
     {
         const lines = translate(options, cursor, file, line);
         if(lines.length) ret ~= lines;
