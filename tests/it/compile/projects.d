@@ -298,3 +298,32 @@ import it.compile;
         shouldCompile("app.d", "hdr.d");
     }
 }
+
+
+@("return type typedefd enum")
+@safe unittest {
+    with(const IncludeSandbox()) {
+        expand(Out("hdr.d"), In("hdr.h"),
+               q{
+                   struct CURL { int dummy; };
+
+                   typedef enum {
+                       CURLIOE_OK,            /* I/O operation successful */
+                   } curlioerr;
+
+                   typedef curlioerr (*curl_ioctl_callback)(CURL *handle,
+                                                            int cmd,
+                                                            void *clientp);
+               });
+        writeFile("app.d",
+                  q{
+                      import hdr;
+                      void maid() {
+                          CURL handle;
+                          auto func = curl_ioctl_callback.init;
+                          curlioerr err = func(&handle, 42, null);
+                      }
+                  });
+        shouldCompile("app.d", "hdr.d");
+    }
+}

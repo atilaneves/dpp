@@ -50,6 +50,7 @@ string translate(in from!"clang".Type type,
         case Float128: return "real";
         case Half: return "float";
         case LongDouble: return "real";
+        case Enum: return type.spelling;
 
         case Elaborated:
             return spellingOrNickname(type.spelling).cleanType;
