@@ -260,7 +260,7 @@ import it.compile;
                q{
                    struct timezone { int dummy };
                    extern long timezone;
-                  });
+               });
 
         writeFile("app.d",
                   q{
@@ -268,6 +268,29 @@ import it.compile;
                       void main() {
                           auto t = timezone_(42);
                           timezone = 42;
+                      }
+                  });
+
+        shouldCompile("app.d", "hdr.d");
+    }
+}
+
+@ShouldFail
+@("restrict")
+@safe unittest {
+    with(const IncludeSandbox()) {
+        expand(Out("hdr.d"), In("hdr.h"),
+               q{
+                   struct FILE;
+                   extern FILE *fopen(const char *restrict filename,
+                                      const char *restrict modes);
+               });
+
+        writeFile("app.d",
+                  q{
+                      import hdr;
+                      void main() {
+                          fopen("foo.txt", "w");
                       }
                   });
 
