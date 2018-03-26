@@ -17,6 +17,8 @@ string translate(in from!"clang".Type type,
     import std.exception: enforce;
     import std.algorithm: countUntil, canFind;
 
+    options.indent.log("type: ", type);
+
     switch(type.kind) with(Type.Kind) {
 
         default:

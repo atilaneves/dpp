@@ -361,13 +361,13 @@ import it.compile;
 @safe unittest {
     with(const IncludeSandbox()) {
         writeFile("hdr.h",
-               q{
-                   struct timezone {
-                       int tz_minuteswest;
-                       int tz_dsttime;
-                   };
-                   extern long int timezone;
-               });
+                  q{
+                      struct timezone {
+                          int tz_minuteswest;
+                          int tz_dsttime;
+                      };
+                      extern long int timezone;
+                  });
         writeFile("app.dpp",
                   q{
                       #include "%s"
@@ -378,5 +378,27 @@ import it.compile;
                   }.format(inSandboxPath("hdr.h")));
         preprocess("app.dpp", "app.d");
         shouldCompile("app.d");
+    }
+}
+
+@("use int for enum parameter")
+@safe unittest {
+    with(const IncludeSandbox()) {
+        expand(Out("hdr.d"), In("hdr.h"),
+               q{
+                   typedef enum {
+                       foo,
+                       bar,
+                   } Enum;
+                   void func(Enum e);
+               });
+        writeFile("app.d",
+                  q{
+                      import hdr;
+                      void main() {
+                          func(Enum.bar);
+                      }
+                  });
+        shouldCompile("app.d", "hdr.d");
     }
 }

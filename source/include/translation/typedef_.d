@@ -41,6 +41,7 @@ private string[] translateFunctionTypeDef(in from!"clang".Cursor typedef_)
     @safe
 {
     import include.translation.type: translate;
+    import include.translation.function_: paramTypes;
     import clang: Cursor, Type;
     import std.algorithm: map, filter;
     import std.array: join;
@@ -50,12 +51,8 @@ private string[] translateFunctionTypeDef(in from!"clang".Cursor typedef_)
         ? translate(underlyingType.pointee.returnType)
         : translate(underlyingType.returnType);
 
-    const paramTypes = typedef_
-        .children
-        .filter!(a => a.kind == Cursor.Kind.ParmDecl)
-        .map!(a => translate(a.type))
-        .join(", ");
-    return [`alias ` ~ typedef_.spelling ~ ` = ` ~ returnType ~ ` function(` ~ paramTypes ~ `);`];
+    const params = paramTypes(typedef_).join(", ");
+    return [`alias ` ~ typedef_.spelling ~ ` = ` ~ returnType ~ ` function(` ~ params ~ `);`];
 
 }
 
