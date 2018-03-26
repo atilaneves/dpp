@@ -14,11 +14,7 @@ install:
 
 
 script:
-  - dub test --build=unittest-cov --compiler=${DC}
-  - dub build
-  - bundle exec cucumber --tags ~@wip
-  # - ./examples.sh
-
+  - ./ci.sh
 
 after_success:
  - bash <(curl -s https://codecov.io/bash)
