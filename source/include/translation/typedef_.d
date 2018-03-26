@@ -8,9 +8,11 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     @safe
 {
     import include.translation.type: cleanType, translate;
-    import clang: Type;
+    import clang: Cursor, Type;
     import std.conv: text;
     import std.typecons: No;
+    import std.algorithm: filter;
+    import std.array: array;
 
     options.indent.log("TypedefDecl children: ", typedef_.children);
     options.indent.log("Underlying type: ", typedef_.underlyingType);
@@ -23,12 +25,20 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     if(isSomeFunction(underlyingType))
         return translateFunctionTypeDef(typedef_);
 
-    assert(typedef_.children.length == 1 ||
-           (typedef_.children.length == 0 && typedef_.type.kind == Type.Kind.Typedef),
-           text("typedefs should only have 1 member, not ", typedef_.children.length,
-                "\n", typedef_, "\n", typedef_.children));
+    const children = () @trusted {
+        return typedef_
+        .children
+        .filter!(a => !a.isInvalid)
+        .filter!(a => a.kind != Cursor.Kind.FirstAttr)
+        .array;
+    }();
 
-    const originalSpelling = typedef_.children.length
+    assert(children.length == 1 ||
+           (children.length == 0 && typedef_.type.kind == Type.Kind.Typedef),
+           text("typedefs should only have 1 member, not ", children.length,
+                "\n", typedef_, "\n", children));
+
+    const originalSpelling = children.length
         ? getOriginalSpelling(typedef_)
         : translate(underlyingType, No.translatingFunction, options);
 

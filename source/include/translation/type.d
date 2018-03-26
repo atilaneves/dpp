@@ -70,10 +70,21 @@ string translate(in from!"clang".Type type,
 
 string translatePointer(in from!"clang".Type type) @safe {
     import clang: Type;
+    import std.conv: text;
 
     assert(type.kind == Type.Kind.Pointer, "type kind not Pointer");
     if(type.pointee is null) throw new Exception("null pointee for " ~ type.toString);
     assert(type.pointee !is null, "Pointee is null for " ~ type.toString);
+
+    // FIXME - horrible hack for pthread
+    if(type.pointee.kind == Type.Kind.Unexposed) {
+        switch(type.pointee.spelling) {
+        default: throw new Exception(text("Can't translate ", type));
+            case "void (void *)": return q{void function(void*)};
+            case "void *(void *)": return q{void* function(void*)};
+            case "void (void)": return q{void function(void)};
+        }
+    }
 
     const rawType = translate(*type.pointee);
     const pointeeType =  type.pointee.isConstQualified

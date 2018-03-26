@@ -252,29 +252,6 @@ import it.compile;
 }
 
 
-@ShouldFail
-@("variable with the name of a struct")
-@safe unittest {
-    with(const IncludeSandbox()) {
-        expand(Out("hdr.d"), In("hdr.h"),
-               q{
-                   struct timezone { int dummy };
-                   extern long timezone;
-               });
-
-        writeFile("app.d",
-                  q{
-                      import hdr;
-                      void main() {
-                          auto t = timezone_(42);
-                          timezone = 42;
-                      }
-                  });
-
-        shouldCompile("app.d", "hdr.d");
-    }
-}
-
 @("restrict")
 @safe unittest {
     with(const IncludeSandbox()) {
@@ -397,6 +374,50 @@ import it.compile;
                       import hdr;
                       void main() {
                           func(Enum.bar);
+                      }
+                  });
+        shouldCompile("app.d", "hdr.d");
+    }
+}
+
+@("pthread struct")
+@safe unittest {
+    with(const IncludeSandbox()) {
+        expand(Out("hdr.d"), In("hdr.h"),
+               q{
+                   typedef struct {
+                       void (*routine)(void*);
+                   } Struct;
+               });
+        writeFile("app.d",
+                  q{
+                      import hdr;
+                      extern(C) void foo(void*) {}
+
+                      void main() {
+                          Struct s;
+                          s.routine = &foo;
+                      }
+                  });
+        shouldCompile("app.d", "hdr.d");
+    }
+}
+
+
+@ShouldFail("Can only alias once")
+@("multiple typedefs")
+@safe unittest {
+    with(const IncludeSandbox()) {
+        expand(Out("hdr.d"), In("hdr.h"),
+               q{
+                   typedef long time_t;
+                   typedef long time_t;
+               });
+        writeFile("app.d",
+                  q{
+                      import hdr;
+                      void main() {
+                          time_t var = 42;
                       }
                   });
         shouldCompile("app.d", "hdr.d");

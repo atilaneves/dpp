@@ -9,3 +9,7 @@ bin/nanomsg
 bin/include example/curl.d_ bin/curl.d
 dmd -L-lcurl -ofbin/curl bin/curl.d
 bin/curl
+
+bin/include example/pthread.d_ bin/pthread.d
+dmd -L-lcurl -ofbin/pthread bin/pthread.d
+bin/pthread
