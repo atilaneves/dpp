@@ -133,7 +133,7 @@ string expand(in string headerFileName,
         .sort!((a, b) => a.canonical.sourceRange.start <
                          b.canonical.sourceRange.start)
         // each chunk is a range of cursors representing the same canonical entity
-        .chunkBy!((a, b) => a.canonical == b.canonical || a.spelling == b.spelling)
+        .chunkBy!((a, b) => a.canonical == b.canonical)
         // for each chunk, extract the one cursor we want
         .map!trueCursor
         // array is needed for sort

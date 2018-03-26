@@ -30,7 +30,7 @@ import it.compile;
                   q{
                       #include "%s"
                       void func() {
-                          pthread_attr_t attr;
+                          union_pthread_attr_t attr;
                           attr.__size[0] = 42;
                       }
                   }.format(inSandboxPath("header.h")));

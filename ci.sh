@@ -2,7 +2,6 @@
 
 set -euo pipefail
 
-dub test --build=unittest-cov --compiler=$DC
+dub test --build=unittest-cov --compiler="$DC"
 dub build
 bundle exec cucumber --tags ~@wip
-./examples.sh

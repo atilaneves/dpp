@@ -17,8 +17,8 @@ import it.compile;
                 import header;
                 static assert(foo == 0);
                 static assert(bar == 1);
-                static assert(Foo.foo == 0);
-                static assert(Foo.bar == 1);
+                static assert(enum_Foo.foo == 0);
+                static assert(enum_Foo.bar == 1);
             }
         });
 
@@ -41,8 +41,8 @@ import it.compile;
                 import header;
                 static assert(quux == 0);
                 static assert(toto == 1);
-                static assert(Enum.quux == 0);
-                static assert(Enum.toto == 1);
+                static assert(enum_Enum.quux == 0);
+                static assert(enum_Enum.toto == 1);
             }
         });
 
@@ -67,9 +67,9 @@ import it.compile;
                 static assert(foo == 2);
                 static assert(bar == 5);
                 static assert(baz == 7);
-                static assert(FooBarBaz.foo == 2);
-                static assert(FooBarBaz.bar == 5);
-                static assert(FooBarBaz.baz == 7);
+                static assert(enum_FooBarBaz.foo == 2);
+                static assert(enum_FooBarBaz.bar == 5);
+                static assert(enum_FooBarBaz.baz == 7);
             }
         });
 
@@ -116,7 +116,7 @@ import it.compile;
         writeFile("main.d", q{
             void main() {
                 import header;
-                static assert(FooBarBaz_.foo == 2);
+                static assert(enum_FooBarBaz_.foo == 2);
                 static assert(bar == 5);
                 static assert(FooBarBaz.baz == 7);
             }
@@ -143,7 +143,7 @@ import it.compile;
                 import header;
                 numbers = one;
                 numbers = two;
-                number = Numbers.one;
+                number = enum_Numbers.one;
             }
         });
 
@@ -191,7 +191,7 @@ import it.compile;
         writeFile("main.d", q{
             void main() {
                 import header;
-                static assert(Struct.two == 2);
+                static assert(struct_Struct.two == 2);
             }
         });
 
@@ -216,8 +216,8 @@ import it.compile;
         writeFile("main.d", q{
             void main() {
                 import header;
-                auto s = Struct();
-                s.numbers = Struct.one;
+                auto s = struct_Struct();
+                s.numbers = struct_Struct.one;
             }
         });
 
@@ -242,7 +242,7 @@ import it.compile;
         writeFile("main.d", q{
             void main() {
                 import header;
-                static assert(Struct.Numbers.two == 2);
+                static assert(struct_Struct.enum_Numbers.two == 2);
             }
         });
 
@@ -266,8 +266,8 @@ import it.compile;
         writeFile("main.d", q{
             void main() {
                 import header;
-                auto s = Struct();
-                s.numbers = Struct.Numbers.one;
+                auto s = struct_Struct();
+                s.numbers = struct_Struct.enum_Numbers.one;
             }
         });
 

@@ -83,5 +83,5 @@ string translatePointer(in from!"clang".Type type) @safe {
 
 string cleanType(in string type) @safe pure {
     import std.array: replace;
-    return type.replace("struct ", "").replace("union ", "").replace("enum ", "");
+    return type.replace("struct ", "struct_").replace("union ", "union_").replace("enum ", "enum_");
 }

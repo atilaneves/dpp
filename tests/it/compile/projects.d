@@ -29,7 +29,7 @@ import it.compile;
                   }.format(inSandboxPath("hdr.h")));
 
         preprocess("app.dpp", "app.d");
-        shouldCompile( "app.d");
+        shouldCompile("app.d");
     }
 }
 
@@ -109,7 +109,7 @@ import it.compile;
                       import hdr;
                       void main() {
                           CURLM handle;
-                          curl_waitfd[] extra_fds;
+                          struct_curl_waitfd[] extra_fds;
                           int ret;
                           CURLMcode code = curl_multi_wait(&handle, extra_fds.ptr, 42u, 33, &ret);
                       }
@@ -156,7 +156,7 @@ import it.compile;
         writeFile("hdr.h",
                   q{
                    struct _IO_FILE { int dummy; };
-                   extern void _IO_flockfile (_IO_FILE *);
+                   extern void _IO_flockfile (struct _IO_FILE *);
                    #define _IO_flockfile(_fp)
                   });
 
@@ -164,7 +164,7 @@ import it.compile;
                   q{
                       #include "%s"
                       void main() {
-                          _IO_FILE file;
+                          struct__IO_FILE file;
                           _IO_flockfile(&file);
                       }
                   }.format(inSandboxPath("hdr.h")));
@@ -192,7 +192,7 @@ import it.compile;
                   q{
                       import hdr;
                       void main() {
-                          Struct s;
+                          struct_Struct s;
                           s.data.ptr = null;
                           s.data.i = 42;
                       }
@@ -242,7 +242,7 @@ import it.compile;
                   q{
                       import hdr;
                       void main() {
-                          Struct* s = make_struct();
+                          struct_Struct* s = make_struct();
                           fun(s);
                       }
                   });
@@ -304,7 +304,7 @@ import it.compile;
     with(const IncludeSandbox()) {
         expand(Out("hdr.d"), In("hdr.h"),
                q{
-                   struct CURL { int dummy; };
+                   typedef struct { int dummy; } CURL;
 
                    typedef enum {
                        CURLIOE_OK,            /* I/O operation successful */
@@ -345,10 +345,10 @@ import it.compile;
                   q{
                       import hdr;
                       void main() {
-                          curl_httppost p;
+                          struct_curl_httppost p;
                           p.contentheader.data = null;
                           p.contentheader.next = null;
-                          curl_slist l;
+                          struct_curl_slist l;
                           l.data = null;
                           l.next = null;
                       }
@@ -357,11 +357,10 @@ import it.compile;
     }
 }
 
-@ShouldFail
 @("name collision between struct and var")
 @safe unittest {
     with(const IncludeSandbox()) {
-        expand(Out("hdr.d"), In("hdr.h"),
+        writeFile("hdr.h",
                q{
                    struct timezone {
                        int tz_minuteswest;
@@ -369,13 +368,15 @@ import it.compile;
                    };
                    extern long int timezone;
                });
-        writeFile("app.d",
+        writeFile("app.dpp",
                   q{
-                      import hdr;
+                      #include "%s"
                       void main() {
                           timezone = 42;
+                          auto s = struct_timezone(33, 77);
                       }
-                  });
-        shouldCompile("app.d", "hdr.d");
+                  }.format(inSandboxPath("hdr.h")));
+        preprocess("app.dpp", "app.d");
+        shouldCompile("app.d");
     }
 }

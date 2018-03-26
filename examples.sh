@@ -6,6 +6,6 @@ bin/include example/nanomsg.d_ bin/nanomsg.d
 dmd -L-lnanomsg -ofbin/nanomsg bin/nanomsg.d
 bin/nanomsg
 
-# bin/include example/curl.d_ bin/curl.d
-# dmd -L-lcurl -ofbin/curl bin/curl.d
-# bin/curl
+bin/include example/curl.d_ bin/curl.d
+dmd -L-lcurl -ofbin/curl bin/curl.d
+bin/curl

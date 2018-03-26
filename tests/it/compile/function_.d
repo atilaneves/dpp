@@ -119,12 +119,12 @@ import it.compile;
                   q{
                       import hdr;
                       void maid() {
-                          auto f1 = Foo(2);
-                          auto f2 = Foo(3);
-                          Foo f = addFoos(&f1, &f2);
-                          const b1 = Bar(2);
-                          const b2 = Bar(3);
-                          Bar b = addBars(&b1, &b2);
+                          auto f1 = struct_Foo(2);
+                          auto f2 = struct_Foo(3);
+                          struct_Foo f = addFoos(&f1, &f2);
+                          const b1 = struct_Bar(2);
+                          const b2 = struct_Bar(3);
+                          struct_Bar b = addBars(&b1, &b2);
                           const(char*) msg = nn_strerror(42);
                       }
                   });

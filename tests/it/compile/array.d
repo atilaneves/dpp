@@ -15,7 +15,7 @@ unittest {
         writeFile("main.d", q{
             void main() {
                 import header;
-                auto f = Foo();
+                auto f = struct_Foo();
                 static assert(f.sizeof == 16, "Wrong sizeof for Foo");
             }
         });
@@ -40,8 +40,8 @@ unittest {
         writeFile("main.d", q{
             void main() {
                 import header;
-                auto s = Slice();
-                static assert(s.sizeof == 4, "Wrong sizeof for Foo");
+                auto s = struct_Slice();
+                static assert(s.sizeof == 4, "Wrong sizeof for Slice");
             }
         });
 

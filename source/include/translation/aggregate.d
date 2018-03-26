@@ -90,6 +90,35 @@ string[] translateAggregate(
     return lines;
 }
 
+string identifier(in from!"clang".Cursor cursor) @safe {
+    import clang: Cursor, Type;
+    import std.conv: text;
+    import std.algorithm: startsWith;
+    import std.array: replace;
+
+    const keyword = () {
+        switch(cursor.kind) with(Cursor.Kind) {
+            default: throw new Exception(text("Unknown kind ", cursor.kind, ": ", cursor));
+            case StructDecl: return "struct";
+            case UnionDecl: return "union";
+            case EnumDecl: return "enum";
+            case TypeRef:
+            switch(cursor.type.canonical.kind) with(Type.Kind) {
+                default: return "";
+                case Record:
+                    if(cursor.type.spelling.startsWith("struct ")) return "struct";
+                    if(cursor.type.spelling.startsWith("union ")) return "union";
+                    return "";
+                case Enum: return "enum";
+            }
+        }
+    }();
+
+    // mimic C's different namespaces for struct, union and enum
+    return keyword == "" ?
+        cursor.spelling :
+        keyword ~ `_` ~ cursor.spelling.replace("struct ", "").replace("union ", "").replace("enum ", "");
+}
 
 string[] translateField(in from!"clang".Cursor field,
                         in from!"include.runtime.options".Options options =
@@ -99,13 +128,15 @@ string[] translateField(in from!"clang".Cursor field,
 {
 
     import include.translation.type: translate;
-    import clang: Cursor;
+    import clang: Cursor, Type;
     import std.conv: text;
     import std.typecons: No;
+    import std.array: replace;
 
     assert(field.kind == Cursor.Kind.FieldDecl, text("Field of wrong kind: ", field));
 
-    return [text(translate(field.type, No.translatingFunction, options), " ", field.spelling.translateIdentifier, ";")];
+    const type = translate(field.type, No.translatingFunction, options);
+    return [text(type, " ", field.spelling.translateIdentifier, ";")];
 }
 
 string translateIdentifier(in string spelling) @safe pure nothrow {
@@ -120,7 +151,7 @@ package string spellingOrNickname(in from!"clang".Cursor cursor) @safe {
 
     static int index;
 
-    if(cursor.spelling != "") return cursor.spelling;
+    if(cursor.spelling != "") return identifier(cursor);
 
     if(cursor.cx !in gCursorNickNames) {
         gLastNickName = gCursorNickNames[cursor.cx] = newAnonymousName;

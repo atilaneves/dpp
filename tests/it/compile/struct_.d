@@ -15,7 +15,7 @@ import it.compile;
         writeFile("main.d", q{
             void main() {
                 import header;
-                auto f = Foo(5);
+                auto f = struct_Foo(5);
                 static assert(f.sizeof == 4, "Wrong sizeof for Foo");
             }
         });
@@ -37,7 +37,7 @@ import it.compile;
         writeFile("main.d", q{
             void main() {
                 import header;
-                auto b = Bar(33.3);
+                auto b = struct_Bar(33.3);
                 static assert(b.sizeof == 8, "Wrong sizeof for Bar");
             }
         });
@@ -64,7 +64,7 @@ import it.compile;
         writeFile("main.d", q{
             void main() {
                 import header;
-                auto o = Outer(Outer.Inner(42));
+                auto o = struct_Outer(struct_Outer.struct_Inner(42));
                 static assert(o.sizeof == 4, "Wrong sizeof for Outer");
             }
         });
@@ -90,7 +90,7 @@ import it.compile;
             void main() {
                 import header;
                 {
-                    auto t = TypeDefd_(42, 33.3);
+                    auto t = struct_TypeDefd_(42, 33.3);
                     static assert(t.sizeof == 16, "Wrong sizeof for TypeDefd_");
                 }
                 {
@@ -151,7 +151,7 @@ import it.compile;
             void main() {
                 import header;
 
-                auto a = A(42);
+                auto a = struct_A(42);
                 auto b = B(77);
             }
         });
@@ -249,11 +249,11 @@ import it.compile;
         writeFile("main.d", q{
             void main() {
                 import header;
-                Struct s;
+                struct_Struct s;
                 s.x = 42;
                 s.y = 33;
                 s.z = 77;
-                static assert(!__traits(compiles, OtherStruct()));
+                static assert(!__traits(compiles, struct_OtherStruct()));
             }
         });
 

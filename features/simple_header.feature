@@ -33,14 +33,14 @@ Feature: Including a simple header works
           import std.stdio;
           import std.conv;
 
-          auto foo1 = Foo(5);
-          auto foo2 = Foo(7);
-          assert(addFoos(&foo1, &foo2) == Foo(12));
+          auto foo1 = struct_Foo(5);
+          auto foo2 = struct_Foo(7);
+          assert(addFoos(&foo1, &foo2) == struct_Foo(12));
 
-          foo1 = Foo(args[1].to!int);
-          foo2 = Foo(args[2].to!int);
+          foo1 = struct_Foo(args[1].to!int);
+          foo2 = struct_Foo(args[2].to!int);
 
-          writeln(`Foo(`, args[1], `) + Foo(`, args[2], `) = `, addFoos(&foo1, &foo2));
+          writeln(`struct_Foo(`, args[1], `) + struct_Foo(`, args[2], `) = `, addFoos(&foo1, &foo2));
       }
       """
 
@@ -50,5 +50,5 @@ Feature: Including a simple header works
     When I successfully run `./app 3 4`
     Then the output should contain:
       """
-      Foo(3) + Foo(4) = Foo(7)
+      struct_Foo(3) + struct_Foo(4) = struct_Foo(7)
       """

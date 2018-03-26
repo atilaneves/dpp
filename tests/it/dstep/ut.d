@@ -92,7 +92,7 @@ import it.compile;
                   q{
                       #include "%s"
                       void main() {
-                          auto f = Foo();
+                          auto f = struct_Foo();
                           static assert(f.var.sizeof == 128);
                           f.var[127] = cast(byte)3;
                       }
@@ -122,7 +122,7 @@ import it.compile;
                   q{
                       #include "%s"
                       void main() {
-                          auto f = Foo();
+                          auto f = struct_Foo();
                           // opposite order than in C
                           static assert(f.var.length == 2);
                           static assert(f.var[0].length == 4);
@@ -273,9 +273,9 @@ import it.compile;
                   q{
                       import dstep;
                       void main() {
-                          auto f = Foo();
+                          auto f = struct_Foo();
                           static assert(f.bar.length == 64);
-                          f.bar[63] = Foo.Bar();
+                          f.bar[63] = struct_Foo.struct_Bar();
                       }
                   });
 
@@ -368,7 +368,6 @@ import it.compile;
     }
 }
 
-@ShouldFail("Don't know what to do here")
 @("name collision between struct and function")
 @safe unittest {
     with(immutable IncludeSandbox()) {
@@ -391,7 +390,6 @@ import it.compile;
     }
 }
 
-@ShouldFail("Don't know what to do here")
 @("name collision between struct and enum")
 @safe unittest {
     with(immutable IncludeSandbox()) {
@@ -427,9 +425,9 @@ import it.compile;
                   q{
                       import dstep;
                       void main() {
-                          auto f = foo_t(42);
+                          auto f = struct_foo_t(42);
                           bar(&f);
-                          const cf = const foo_t(33);
+                          const cf = const struct_foo_t(33);
                           bar(&cf);
                       }
                   });
