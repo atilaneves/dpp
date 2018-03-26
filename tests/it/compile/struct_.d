@@ -241,6 +241,7 @@ import it.compile;
                q{
                    struct Struct;
                    struct Struct;
+                   struct OtherStruct;
                    struct Struct { int x, y, z; };
                }
         );
@@ -252,6 +253,7 @@ import it.compile;
                 s.x = 42;
                 s.y = 33;
                 s.z = 77;
+                static assert(!__traits(compiles, OtherStruct()));
             }
         });
 

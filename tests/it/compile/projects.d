@@ -317,7 +317,7 @@ import it.compile;
         writeFile("app.d",
                   q{
                       import hdr;
-                      void maid() {
+                      void main() {
                           CURL handle;
                           auto func = curl_ioctl_callback.init;
                           curlioerr err = func(&handle, 42, null);
@@ -327,16 +327,13 @@ import it.compile;
     }
 }
 
-@ShouldFail
+
 @("curl_slist")
 @safe unittest {
     with(const IncludeSandbox()) {
         expand(Out("hdr.d"), In("hdr.h"),
                q{
                    struct curl_httppost {
-                       curl_httppost* next;
-                       char* name;
-                       c_long namelength;
                        struct curl_slist *contentheader;
                    };
                    struct curl_slist {
@@ -347,13 +344,36 @@ import it.compile;
         writeFile("app.d",
                   q{
                       import hdr;
-                      void maid() {
+                      void main() {
                           curl_httppost p;
                           p.contentheader.data = null;
                           p.contentheader.next = null;
                           curl_slist l;
                           l.data = null;
                           l.next = null;
+                      }
+                  });
+        shouldCompile("app.d", "hdr.d");
+    }
+}
+
+@ShouldFail
+@("name collision between struct and var")
+@safe unittest {
+    with(const IncludeSandbox()) {
+        expand(Out("hdr.d"), In("hdr.h"),
+               q{
+                   struct timezone {
+                       int tz_minuteswest;
+                       int tz_dsttime;
+                   };
+                   extern long int timezone;
+               });
+        writeFile("app.d",
+                  q{
+                      import hdr;
+                      void main() {
+                          timezone = 42;
                       }
                   });
         shouldCompile("app.d", "hdr.d");

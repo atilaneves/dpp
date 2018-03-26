@@ -72,15 +72,16 @@ string[] translateAggregate(
     import std.array: array;
 
     const name = spelling.isNull ? spellingOrNickname(cursor) : spelling.get;
+    const firstLine = keyword ~ ` ` ~ name;
+
+    if(!cursor.isDefinition) return [firstLine ~ `;`];
 
     string[] lines;
-    lines ~= keyword ~ ` ` ~ name;
+    lines ~= firstLine;
     lines ~= `{`;
 
-    const definition = cursor.definition;
-    const realCursor = definition.isNull ? cursor : definition;
-
-    foreach(member; realCursor) {
+    foreach(member; cursor) {
+        if(!member.isDefinition) continue;
         lines ~= translate(member, options.indent).map!(a => "    " ~ a).array;
     }
 

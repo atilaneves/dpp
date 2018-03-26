@@ -96,26 +96,60 @@ string expand(in string headerFileName,
     @safe
 {
     import include.translation.unit: translate;
-    import clang: parse, TranslationUnitFlags;
-    import std.array: join;
-    import std.algorithm: sort, filter;
+    import clang: parse, TranslationUnitFlags, Cursor;
+    import std.array: join, array;
+    import std.algorithm: sort, filter, map, chunkBy, any;
+
+    auto translationUnit = parse(headerFileName,
+                                 TranslationUnitFlags.DetailedPreprocessingRecord);
+
+    // In C there can be several declarations and one definition of a type.
+    // In D we can have only ever one of either. There might be multiple
+    // cursors in the translation unit that all refer to the same canonical type.
+    // Unfortunately, the canonical type is orthogonal to which cursor is the actual
+    // definition, so we prefer to find the definition if it exists, and if not, we
+    // take the canonical declaration so as to not repeat ourselves in D.
+    static Cursor trueCursor(R)(R cursors) {
+
+        if(cursors.save.any!(a => a.isDefinition))
+            return cursors.filter!(a => a.isDefinition).front;
+
+        if(cursors.save.any!(a => a.isCanonical))
+            return cursors.filter!(a => a.isCanonical).front;
+
+        assert(!cursors.empty);
+        return cursors.front;
+    }
+
+    static bool goodCursor(in Cursor cursor) {
+        return cursor.isCanonical || cursor.isDefinition;
+    }
+
+    auto cursors = () @trusted {
+        return translationUnit
+        .cursor
+        .children
+        // sort them by canonical cursor
+        .sort!((a, b) => a.canonical.sourceRange.start <
+                         b.canonical.sourceRange.start)
+        // each chunk is a range of cursors representing the same canonical entity
+        .chunkBy!((a, b) => a.canonical == b.canonical || a.spelling == b.spelling)
+        // for each chunk, extract the one cursor we want
+        .map!trueCursor
+        // array is needed for sort
+        .array
+        // libclang gives us macros first, so we sort by line here
+        // (we also just messed up the order above as well)
+        .sort!((a, b) => a.sourceRange.start.line < b.sourceRange.start.line)
+        ;
+    }();
 
     string[] ret;
 
     ret ~= "extern(C) {";
 
-    auto translationUnit = parse(headerFileName,
-                                 TranslationUnitFlags.DetailedPreprocessingRecord);
-
-    // libclang gives us macros first, so we sort by line here
-    foreach(cursor; translationUnit
-            .cursor
-            .children
-            .sort!((a, b) => a.sourceRange.start.line < b.sourceRange.start.line)
-            .filter!(a => a.isCanonical)
-        )
-    {
-        const lines = translate(options, cursor, file, line);
+    foreach(cursor; cursors) {
+        const lines = translate(options.indent, cursor, file, line);
         if(lines.length) ret ~= lines;
     }
 

@@ -383,6 +383,7 @@ import it.compile;
                   q{
                       import dstep;
                       void main() {
+                          foo();
                       }
                   });
 
@@ -404,6 +405,8 @@ import it.compile;
                   q{
                       import dstep;
                       void main() {
+                          foo();
+                          auto x = FOO;
                       }
                   });
 

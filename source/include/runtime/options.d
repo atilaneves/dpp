@@ -43,7 +43,7 @@ struct Options {
         return ret;
     }
 
-    void log(T...)(auto ref T args) const {
+    void log(T...)(auto ref T args) @trusted const {
         version(unittest) import unit_threaded.io: writeln = writelnUt;
         else import std.stdio: writeln;
 

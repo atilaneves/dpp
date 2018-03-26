@@ -54,7 +54,9 @@ string[] translate(in from!"clang".Cursor cursor,
     debugCursor(options, cursor);
 
     if(cursor.kind !in translations)
-        throw new Exception(text("Cannot translate unknown cursor kind ", cursor.kind), file, line);
+        throw new Exception(text("Cannot translate unknown cursor kind ", cursor.kind),
+                            file,
+                            line);
 
     try
         return translations[cursor.kind](cursor, options);
@@ -85,9 +87,11 @@ private void debugCursor(in from!"include.runtime.options".Options options,
     const isOkMacro =
         !cursor.spelling.startsWith("__") &&
         !["_LP64", "unix", "linux"].canFind(cursor.spelling);
+    const canonical = cursor.isCanonical ? " CAN" : "";
+    const definition = cursor.isDefinition ? " DEF" : "";
 
     if(!isMacro || isOkMacro) {
-        options.log(cursor, " @ ", cursor.sourceRange);
+        options.log(cursor, canonical, definition, " @ ", cursor.sourceRange);
     }
 }
 
