@@ -81,19 +81,6 @@ string translatePointer(in from!"clang".Type type) @safe {
     return pointeeType ~ `*`;
 }
 
-string translateFunctionPointerReturnType(in from!"clang".Type type) @safe {
-    import clang: Type;
-    assert(type.kind == Type.Kind.Pointer, "Not a function pointer");
-    assert(type.pointee !is null, "Function pointer has no pointee");
-    return translate(type.pointee.returnType);
-}
-
-string translateFunctionProtoReturnType(in from!"clang".Type type) @safe {
-    import clang: Type;
-    assert(type.kind == Type.Kind.FunctionProto, "Not a function prototype");
-    return translate(type.returnType);
-}
-
 string cleanType(in string type) @safe pure {
     import std.array: replace;
     return type.replace("struct ", "").replace("union ", "").replace("enum ", "");
