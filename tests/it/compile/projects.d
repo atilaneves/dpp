@@ -174,6 +174,7 @@ import it.compile;
     }
 }
 
+@Tags("travis")
 @("struct with union")
 @safe unittest {
     with(const IncludeSandbox()) {
