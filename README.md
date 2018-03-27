@@ -1,7 +1,7 @@
 include
 ========
 
-| [![Build Status](https://travis-ci.org/atilaneves/include.png?branch=master)](https://travis-ci.org/atilaneves/include) |  [![Build Status](https://ci.appveyor.com/api/projects/status/github/atilaneves/include?branch=master&svg=true)](https://ci.appveyor.com/project/atilaneves/include) | [![Coverage](https://codecov.io/gh/atilaneves/include/branch/master/graph/badge.svg)](https://codecov.io/gh/atilaneves/include) |
+| [![Build Status](https://travis-ci.org/atilaneves/include.png?branch=master)](https://travis-ci.org/atilaneves/include) | [![Coverage](https://codecov.io/gh/atilaneves/include/branch/master/graph/badge.svg)](https://codecov.io/gh/atilaneves/include) |
 
 
 include is an executable that has as input a D file with C `#include` preprocessor directives and outputs
