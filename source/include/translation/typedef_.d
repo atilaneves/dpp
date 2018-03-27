@@ -8,6 +8,7 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     @safe
 {
     import include.translation.type: cleanType, translate;
+    import include.translation.aggregate: spellingOrNickname;
     import clang: Cursor, Type;
     import std.conv: text;
     import std.typecons: No;
@@ -39,7 +40,7 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
                 "\n", typedef_, "\n", children));
 
     const originalSpelling = children.length
-        ? getOriginalSpelling(typedef_)
+        ? spellingOrNickname(typedef_.children[0])
         : translate(underlyingType, No.translatingFunction, options);
 
     return typedef_.spelling == originalSpelling.cleanType
@@ -75,18 +76,4 @@ private bool isSomeFunction(in from!"clang".Type type) @safe @nogc pure nothrow 
     const isFunction = type.kind == Type.Kind.FunctionProto;
 
     return isFunctionPointer || isFunction;
-}
-
-// FIXME
-private string getOriginalSpelling(in from!"clang".Cursor typedef_) @safe {
-    import include.translation.aggregate: spellingOrNickname;
-    switch(typedef_.spelling) {
-        default: return spellingOrNickname(typedef_.children[0]);
-        case "u_int128_t": return "ulong";
-        case "u_int64_t": return "ulong";
-        case "u_int32_t": return "uint";
-        case "u_int16_t": return "ushort";
-        case "u_int8_t": return "ubyte";
-        case "register_t": return "ulong";
-    }
 }
