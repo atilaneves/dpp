@@ -405,22 +405,30 @@ import it.compile;
 }
 
 
-@ShouldFail("Can only alias once")
-@("multiple typedefs")
+@ShouldFail
+@("multiple headers with the same typedef")
 @safe unittest {
     with(const IncludeSandbox()) {
-        expand(Out("hdr.d"), In("hdr.h"),
-               q{
-                   typedef long time_t;
-                   typedef long time_t;
-               });
-        writeFile("app.d",
+        writeFile("hdr1.h",
                   q{
-                      import hdr;
+                      typedef long time_t;
+                      typedef long time_t;
+                  });
+        writeFile("hdr2.h",
+                  q{
+                      typedef long time_t;
+                      typedef long time_t;
+                  });
+        writeFile("app.d_",
+                  q{
+                      #include "%s"
+                      #include "%s"
                       void main() {
                           time_t var = 42;
                       }
-                  });
-        shouldCompile("app.d", "hdr.d");
+                  }.format(inSandboxPath("hdr1.h"), inSandboxPath("hdr2.h")));
+
+        preprocess("app.d_", "app.d");
+        shouldCompile("app.d");
     }
 }

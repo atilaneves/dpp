@@ -83,7 +83,7 @@ struct IncludeSandbox {
         import std.file: readText;
 
         throw new UnitTestException(
-            e.msg = e.msg ~ "\n\n" ~ srcFiles
+            e.msg ~ "\n\n" ~ srcFiles
             .map!(a => a ~ ":\n----------\n" ~ readText(sandbox.inSandboxPath(a)))
             .join("\n\n"), e.file, e.line);
 
