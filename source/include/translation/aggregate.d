@@ -5,13 +5,15 @@ module include.translation.aggregate;
 
 import include.from;
 
+alias CursorHash = uint;
+
 /**
-   Structs can be anomymous in C, and it's even common
+   Structs can be anonymous in C, and it's even common
    to typedef them to a name. We come up with new names
    that we track here so as to be able to properly transate
    those typedefs.
  */
-private shared string[from!"clang.c.index".CXCursor] gCursorNickNames;
+private shared string[CursorHash] gCursorNickNames;
 
 // FIXME - there must be a better way
 /// the last nickname we coined (e.g. "_Anonymous_1")
@@ -154,11 +156,11 @@ package string spellingOrNickname(in from!"clang".Cursor cursor) @safe {
 
     if(cursor.spelling != "") return identifier(cursor);
 
-    if(cursor.cx !in gCursorNickNames) {
-        gLastNickName = gCursorNickNames[cursor.cx] = newAnonymousName;
+    if(cursor.hash !in gCursorNickNames) {
+        gLastNickName = gCursorNickNames[cursor.hash] = newAnonymousName;
     }
 
-    return gCursorNickNames[cursor.cx];
+    return gCursorNickNames[cursor.hash];
 }
 
 package string spellingOrNickname(in string typeSpelling) @safe {
