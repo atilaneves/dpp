@@ -13,6 +13,7 @@ import include.from;
  */
 private shared string[from!"clang.c.index".CXCursor] gCursorNickNames;
 
+// FIXME - there must be a better way
 /// the last nickname we coined (e.g. "_Anonymous_1")
 private shared string gLastNickName;
 
