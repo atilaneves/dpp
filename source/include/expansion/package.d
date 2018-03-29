@@ -141,8 +141,6 @@ string expand(in string headerFileName,
     ret ~= "extern(C) {";
 
     foreach(cursor; cursors) {
-        if(seenCursors.hasSeen(cursor) && cursor.kind != from!"clang".Cursor.Kind.MacroDefinition)
-            options.log("****** Ignoring: ", cursor);
         if(seenCursors.hasSeen(cursor)) continue;
         seenCursors.remember(cursor);
         const lines = translate(options.indent, cursor, file, line);
