@@ -136,7 +136,7 @@ import it.compile;
     }
 }
 
-@ShouldFail("bug - doesn't declare nested variables")
+@ShouldFail("BUG - using gLastNickName doesn't work")
 @("nested anonymous structures with associated fields")
 @safe unittest {
     with(immutable IncludeSandbox()) {
@@ -159,7 +159,11 @@ import it.compile;
                   q{
                       import dstep;
                       void main() {
-                          auto c = C();
+                          auto c = struct_C();
+                          c.point.x = 42;
+                          c.point.y = 77;
+                          c.point.nested.z = 2;
+                          c.point.nested.w = 3;
                       }
                   });
 
@@ -167,7 +171,6 @@ import it.compile;
     }
 }
 
-@ShouldFail("bug - multidimensional arrays")
 @("interleaved enum-based array size consts and macro based array size counts")
 @safe unittest {
     with(immutable IncludeSandbox()) {
@@ -177,13 +180,13 @@ import it.compile;
                           char scale;
                       };
 
-                      #define FOO 4
+                      #define FOO 2
                       #define BAZ 8
 
                       struct stats_t {
                           enum
                           {
-                              BAR = 55,
+                              BAR = 4,
                           };
 
                           struct qux stat[FOO][BAR][FOO][BAZ];
@@ -195,12 +198,11 @@ import it.compile;
                   q{
                       #include "%s"
                       void main() {
-                          auto s = stats_t();
+                          auto s = struct_stats_t();
                           // opposite order than in C
-                          static assert(stats_t.BAR == 55);
-                          static assert(BAR == 55);
+                          static assert(struct_stats_t.BAR == 4);
                           // accessing at the limits of each dimension
-                          qux q = s.stat[3][7][3][54];
+                          auto q = s.stat[1][3][1][7];
                       }
                   }.format(inSandboxPath("dstep.h")));
 
@@ -209,8 +211,6 @@ import it.compile;
     }
 }
 
-// FIXME
-@ShouldFail("bug - function pointers not supported")
 @("function pointer with unnamed parameter")
 @safe unittest {
     with(immutable IncludeSandbox()) {
@@ -225,7 +225,7 @@ import it.compile;
                       void main() {
                           read_char func;
                           int val;
-                          int ret = read_char(&val);
+                          int ret = func(&val);
                       }
                   });
 
@@ -281,14 +281,13 @@ import it.compile;
     }
 }
 
-// FIXME
-@ShouldFail("bug - variadic C functions not supported")
-@("void foo()")
+@ShouldFail("BUG - should treat an empty parameter list as variadic for C")
+@("variadic function without ...")
 @safe unittest {
     with(immutable IncludeSandbox()) {
         expand(Out("dstep.d"), In("dstep.h"),
                q{
-                   void foo();
+                   void foo(...);
                });
 
         writeFile("main.d",
@@ -308,8 +307,7 @@ import it.compile;
 }
 
 
-// FIXME
-@ShouldFail("bug - function pointers")
+@ShouldFail("BUG - Uncovered unexposed case in include.translation.type hack")
 @("function pointers")
 @safe unittest {
     with(immutable IncludeSandbox()) {
@@ -338,16 +336,16 @@ import it.compile;
 }
 
 
-@ShouldFail("bug - type kind IncompleteArray not supported")
+@ShouldFail("BUG - qux should be int[64]*, not int[64][32]")
 @("array function parameters")
 @safe unittest {
     with(immutable IncludeSandbox()) {
         expand(Out("dstep.d"), In("dstep.h"),
                q{
-                   int foo (int data[]);
-                   int bar (const int data[]);
-                   int baz (const int data[32]);
-                   int qux (const int data[32][64]);
+                   int foo (int data[]);             // int*
+                   int bar (const int data[]);       // const int*
+                   int baz (const int data[32]);     // const int*
+                   int qux (const int data[32][64]); // const int(*)[64]
                });
 
         writeFile("main.d",
@@ -359,6 +357,8 @@ import it.compile;
                           bar(data);
                           baz(data);
                           static assert(!__traits(compiles, qux(data)));
+                          const(int)[64] arr;
+                          qux(&arr);
                       }
                   });
 
