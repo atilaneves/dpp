@@ -11,21 +11,26 @@ string[] translateFunction(in from!"clang".Cursor function_,
     @safe
 {
     import include.translation.type: translate;
-    import clang: Cursor;
+    import clang: Cursor, Language;
     import std.array: join;
     import std.conv: text;
     import std.algorithm: endsWith;
     import std.typecons: Yes;
+    import std.array: array;
+    import std.range: chain, only;
 
     assert(function_.kind == Cursor.Kind.FunctionDecl);
 
     const returnType = translate(function_.returnType, Yes.translatingFunction, options);
     options.indent.log("Function return type: ", returnType);
-    const variadicParams = function_.type.spelling.endsWith("...)") ? ", ..." : "";
+    const isVariadic =
+        function_.type.spelling.endsWith("...)") ||
+        (function_.language == Language.C && function_.type.spelling.endsWith("()"));
+    const variadicParams = isVariadic ? "..." : "";
+    const allParams = paramTypes(function_).array ~ variadicParams;
 
     return [
-        text(returnType, " ", function_.spelling, "(", paramTypes(function_).join(", "),
-             variadicParams, ");"),
+        text(returnType, " ", function_.spelling, "(", allParams.join(", "), ");")
     ];
 }
 

@@ -281,28 +281,25 @@ import it.compile;
     }
 }
 
-@ShouldFail("BUG - should treat an empty parameter list as variadic for C")
 @("variadic function without ...")
 @safe unittest {
     with(immutable IncludeSandbox()) {
         expand(Out("dstep.d"), In("dstep.h"),
                q{
-                   void foo(...);
+                   void foo();
                });
 
         writeFile("main.d",
                   q{
                       import dstep;
                       void main() {
-                          import std.traits;
-                          // empty in C means variadic
-                          foo();
-                          foo(2, 3, 4);
-                          static assert(is(ReturnType!foo == void));
                       }
                   });
 
-        shouldCompile("main.d", "dstep.d");
+        // Fully variadic C functions aren't allowed in D.
+        // The declaration is void foo(...) but D requires at least
+        // one mandatory parameter.
+        shouldNotCompile("main.d", "dstep.d");
     }
 }
 

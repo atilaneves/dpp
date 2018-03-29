@@ -81,6 +81,17 @@ struct IncludeSandbox {
         }
     }
 
+    void shouldNotCompile(string file = __FILE__, size_t line = __LINE__)
+                         (in string[] srcFiles...)
+        @safe const
+    {
+        try
+            sandbox.shouldFail!(file, line)(["dmd", "-o-", "-c"] ~ srcFiles);
+        catch(Exception e) {
+            adjustMessage(e, srcFiles);
+        }
+    }
+
     private void adjustMessage(Exception e, in string[] srcFiles) @safe const {
         import std.algorithm: map;
         import std.array: join;
