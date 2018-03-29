@@ -14,27 +14,27 @@ version(unittest) {
    If an #include directive, expand in place,
    otherwise do nothing (i.e. return the same line)
  */
-string maybeExpand(string line) @safe {
-    import include.runtime.options: Options;
-    const options = Options();
-    return maybeExpand(line, options);
-}
-
-/// ditto
-string maybeExpand(string line, in from!"include.runtime.options".Options options) @safe {
+string maybeExpand(string line,
+                   in from!"include.runtime.options".Options options,
+                   ref from!"include.runtime.context".SeenCursors seenCursors)
+    @safe
+{
 
     const headerName = getHeaderName(line);
 
     return headerName == ""
         ? line
-        : expand(headerName.toFileName, options);
+        : expand(headerName.toFileName, options, seenCursors);
 }
 
 
 @("translate no include")
 @safe unittest {
-    "foo".maybeExpand.shouldEqual("foo");
-    "bar".maybeExpand.shouldEqual("bar");
+    import include.runtime.options: Options;
+    import include.runtime.context: SeenCursors;
+    SeenCursors cursors;
+    maybeExpand("foo", Options(), cursors).shouldEqual("foo");
+    maybeExpand("bar", Options(), cursors).shouldEqual("bar");
 }
 
 private string getHeaderName(string line) @safe pure {
@@ -80,21 +80,13 @@ private string toFileName(in string headerName) @safe {
 
 
 string expand(in string headerFileName,
-              in string file = __FILE__,
-              in size_t line = __LINE__)
-    @safe
-{
-    import include.runtime.options: Options;
-    const options = Options();
-    return expand(headerFileName, options, file, line);
-}
-
-string expand(in string headerFileName,
               in from!"include.runtime.options".Options options,
+              ref from!"include.runtime.context".SeenCursors seenCursors,
               in string file = __FILE__,
               in size_t line = __LINE__)
     @safe
 {
+    import include.runtime.context: hasSeen, remember;
     import include.translation.unit: translate;
     import clang: parse, TranslationUnitFlags, Cursor;
     import std.array: join, array;
@@ -149,6 +141,10 @@ string expand(in string headerFileName,
     ret ~= "extern(C) {";
 
     foreach(cursor; cursors) {
+        if(seenCursors.hasSeen(cursor) && cursor.kind != from!"clang".Cursor.Kind.MacroDefinition)
+            options.log("****** Ignoring: ", cursor);
+        if(seenCursors.hasSeen(cursor)) continue;
+        seenCursors.remember(cursor);
         const lines = translate(options.indent, cursor, file, line);
         if(lines.length) ret ~= lines;
     }

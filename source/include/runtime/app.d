@@ -25,6 +25,7 @@ void run(in from!"include.runtime.options".Options options) @safe {
  */
 void preprocess(File)(in from!"include.runtime.options".Options options) {
 
+    import include.runtime.context: SeenCursors;
     import include.expansion: maybeExpand;
     import std.algorithm: map, startsWith;
     import std.process: execute;
@@ -44,9 +45,15 @@ void preprocess(File)(in from!"include.runtime.options".Options options) {
         outputFile.writeln("struct struct___locale_data { int dummy; } // FIXME");
         outputFile.writeln("#define __gnuc_va_list va_list");
 
+        /**
+           We remember the cursors already seen so as to not try and define
+           something twice (legal in C, illegal in D).
+        */
+        SeenCursors seenTopLevelCursors;
+
         () @trusted {
             foreach(line; File(options.inputFileName).byLine.map!(a => cast(string)a)) {
-                outputFile.writeln(line.maybeExpand(options));
+                outputFile.writeln(line.maybeExpand(options, seenTopLevelCursors));
             }
         }();
     }

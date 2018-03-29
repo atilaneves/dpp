@@ -405,7 +405,6 @@ import it.compile;
 }
 
 
-@ShouldFail
 @("multiple headers with the same typedef")
 @safe unittest {
     with(const IncludeSandbox()) {

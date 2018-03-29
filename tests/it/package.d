@@ -36,11 +36,15 @@ struct IncludeSandbox {
     void expand(in Out out_, in In in_, in string inText, in string file = __FILE__, in size_t line = __LINE__)
         @safe const
     {
+        import include.runtime.options: Options;
+        import include.runtime.context: SeenCursors;
         import include.expansion: realExpand = expand;
+
         const outFileName = inSandboxPath(out_.value);
         const inFileName = inSandboxPath(in_.value);
         writeFile(inFileName, inText);
-        writeFile(outFileName, realExpand(inFileName, file, line));
+        SeenCursors seenCursors;
+        writeFile(outFileName, realExpand(inFileName, Options(), seenCursors, file, line));
     }
 
     void preprocess(in string inputFileName, in string outputFileName) @safe {
