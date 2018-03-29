@@ -16,8 +16,8 @@ alias CursorHash = uint;
 private shared string[CursorHash] gCursorNickNames;
 
 // FIXME - there must be a better way
-/// the last nickname we coined (e.g. "_Anonymous_1")
-private shared string gLastNickName;
+/// Used to find the last nickname we coined (e.g. "_Anonymous_1")
+private shared string[] gNickNames;
 
 
 string[] translateStruct(in from!"clang".Cursor cursor,
@@ -157,7 +157,9 @@ package string spellingOrNickname(in from!"clang".Cursor cursor) @safe {
     if(cursor.spelling != "") return identifier(cursor);
 
     if(cursor.hash !in gCursorNickNames) {
-        gLastNickName = gCursorNickNames[cursor.hash] = newAnonymousName;
+        auto nick = newAnonymousName;
+        gNickNames ~= nick;
+        gCursorNickNames[cursor.hash] = nick;
     }
 
     return gCursorNickNames[cursor.hash];
@@ -168,7 +170,12 @@ package string spellingOrNickname(in string typeSpelling) @safe {
     import std.algorithm: canFind;
     // clang names anonymous types with a long name indicating where the type
     // was declared
-    return typeSpelling.canFind("(anonymous") ? gLastNickName : typeSpelling;
+    if(typeSpelling.canFind("(anonymous")) {
+        auto ret = gNickNames[$-1];
+        gNickNames = gNickNames[0 .. $-1];
+        return ret;
+    }
+    return typeSpelling;
 }
 
 private string newAnonymousName() @safe {

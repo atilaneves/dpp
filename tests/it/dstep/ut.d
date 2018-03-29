@@ -136,7 +136,6 @@ import it.compile;
     }
 }
 
-@ShouldFail("BUG - using gLastNickName doesn't work")
 @("nested anonymous structures")
 @safe unittest {
     with(immutable IncludeSandbox()) {
