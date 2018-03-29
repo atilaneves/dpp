@@ -5,7 +5,6 @@ module it.dstep.functional;
 
 import it.compile;
 
-@ShouldFail
 @("const int")
 @safe unittest {
     with(immutable IncludeSandbox()) {
@@ -47,7 +46,6 @@ import it.compile;
     }
 }
 
-@ShouldFail
 @("const struct")
 @safe unittest {
     with(immutable IncludeSandbox()) {

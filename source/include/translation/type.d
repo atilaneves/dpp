@@ -23,34 +23,34 @@ string translate(in from!"clang".Type type,
             throw new Exception(text("Type kind ", type.kind, " not supported: ", type));
             assert(0);
 
-        case Long: return "c_long";
-        case ULong: return "c_ulong";
-        case Pointer: return translatePointer(type).cleanType;
-        case Typedef: return type.spelling.cleanType;
-        case Void: return "void";
-        case NullPtr: return "void*";
-        case Bool: return "bool";
-        case WChar: return "wchar";
-        case SChar: return "byte";
-        case Char16: return "wchar";
-        case Char32: return "dchar";
-        case UChar: return "ubyte";
-        case UShort: return "ushort";
-        case Short: return "short";
-        case Int: return "int";
-        case UInt: return "uint";
-        case LongLong: return "long";
-        case ULongLong: return "ulong";
-        case Float: return "float";
-        case Double: return "double";
-        case Char_U: return "ubyte";
-        case Char_S: return "char";
-        case Int128: return "cent";
-        case UInt128: return "ucent";
-        case Float128: return "real";
-        case Half: return "float";
-        case LongDouble: return "real";
-        case Enum: return type.spelling;
+        case Long: return addModifiers(type, "c_long");
+        case ULong: return addModifiers(type, "c_ulong");
+        case Pointer: return translatePointer(type, options).cleanType;
+        case Typedef: return addModifiers(type, type.spelling.cleanType);
+        case Void: return addModifiers(type, "void");
+        case NullPtr: return addModifiers(type, "void*");
+        case Bool: return addModifiers(type, "bool");
+        case WChar: return addModifiers(type, "wchar");
+        case SChar: return addModifiers(type, "byte");
+        case Char16: return addModifiers(type, "wchar");
+        case Char32: return addModifiers(type, "dchar");
+        case UChar: return addModifiers(type, "ubyte");
+        case UShort: return addModifiers(type, "ushort");
+        case Short: return addModifiers(type, "short");
+        case Int: return addModifiers(type, "int");
+        case UInt: return addModifiers(type, "uint");
+        case LongLong: return addModifiers(type, "long");
+        case ULongLong: return addModifiers(type, "ulong");
+        case Float: return addModifiers(type, "float");
+        case Double: return addModifiers(type, "double");
+        case Char_U: return addModifiers(type, "ubyte");
+        case Char_S: return addModifiers(type, "char");
+        case Int128: return addModifiers(type, "cent");
+        case UInt128: return addModifiers(type, "ucent");
+        case Float128: return addModifiers(type, "real");
+        case Half: return addModifiers(type, "float");
+        case LongDouble: return addModifiers(type, "real");
+        case Enum: return addModifiers(type, type.spelling);
         case FunctionProto: return translateFunctionProto(type);
 
         case Elaborated:
@@ -68,7 +68,16 @@ string translate(in from!"clang".Type type,
     }
 }
 
-string translatePointer(in from!"clang".Type type) @safe {
+private string addModifiers(in from!"clang".Type type, in string translation) @safe {
+    return type.isConstQualified
+        ? `const(` ~ translation ~ `)`
+        : translation;
+}
+
+private string translatePointer(in from!"clang".Type type,
+                                in from!"include.runtime.options".Options options)
+    @safe
+{
     import clang: Type;
     import std.conv: text;
 
@@ -81,16 +90,30 @@ string translatePointer(in from!"clang".Type type) @safe {
 
     // usually "*" but sometimes not needed if already a reference type
     const pointer = isFunctionProto ? "" : "*";
+    options.indent.log("Pointee:           ", *type.pointee);
+    options.indent.log("Pointee canonical: ", type.pointee.canonical);
 
     const rawType = type.pointee.kind == Type.Kind.Unexposed
         ? translate(type.pointee.canonical)
         : translate(*type.pointee);
 
-    const pointeeType =  type.pointee.isConstQualified
-        ? `const(` ~ rawType ~ `)`
-        : rawType;
+    // Only add top-level const if it's const all the way down
+    bool addConst() @trusted {
+        auto ptr = &type;
+        while(ptr.kind == Type.Kind.Pointer) {
+            if(!ptr.isConstQualified || !ptr.pointee.isConstQualified)
+                return false;
+            ptr = ptr.pointee;
+        }
 
-    return pointeeType ~ pointer;
+        return true;
+    }
+
+    const ptrType = addConst
+        ? `const(` ~ rawType ~ pointer ~ `)`
+        : rawType ~ pointer;
+
+    return ptrType;
 }
 
 // currently only getting here from function pointer variables
