@@ -233,8 +233,6 @@ import it.compile;
     }
 }
 
-// FIXME
-@ShouldFail("bug - array typedef not supported")
 @("array typedef")
 @safe unittest {
     with(immutable IncludeSandbox()) {

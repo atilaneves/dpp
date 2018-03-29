@@ -2,7 +2,7 @@ module it.compile.typedef_;
 
 import it.compile;
 
-@("typedef to unsigned char")
+@("unsigned char")
 unittest {
     with(const IncludeSandbox()) {
         expand(Out("foo.d"), In("foo.h"),
@@ -20,7 +20,7 @@ unittest {
     }
 }
 
-@("typedef to const char*")
+@("const char*")
 unittest {
     with(const IncludeSandbox()) {
         expand(Out("foo.d"), In("foo.h"),

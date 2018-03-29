@@ -431,3 +431,23 @@ import it.compile;
         shouldCompile("app.d");
     }
 }
+
+@("jmp_buf")
+@safe unittest {
+    with(const IncludeSandbox()) {
+        writeFile("hdr.h",
+                  q{
+                      typedef long int __jmp_buf[8];
+                  });
+        writeFile("app.d_",
+                  q{
+                      #include "%s"
+                      void main() {
+                          __jmp_buf buf;
+                          static assert(buf.length == 8);
+                      }
+                  }.format(inSandboxPath("hdr.h")));
+        preprocess("app.d_", "app.d");
+        shouldCompile("app.d");
+    }
+}

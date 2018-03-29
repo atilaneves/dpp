@@ -58,6 +58,7 @@ string translate(in from!"clang".Type type,
             return spellingOrNickname(type.spelling).cleanType;
 
         case ConstantArray:
+            options.indent.log("Constant array of # ", type.numElements);
             return translate(type.elementType) ~ `[` ~ type.numElements.text ~ `]`;
 
         case IncompleteArray:

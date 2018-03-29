@@ -15,10 +15,11 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     import std.algorithm: filter;
     import std.array: array;
 
-    options.indent.log("TypedefDecl children: ", typedef_.children);
-    options.indent.log("Underlying type: ", typedef_.underlyingType);
-    options.indent.log("Canonical underlying type: ", typedef_.underlyingType.canonical);
     const underlyingType = typedef_.underlyingType.canonical;
+
+    options.indent.log("TypedefDecl children: ", typedef_.children);
+    options.indent.log("Underlying type: ", underlyingType);
+    options.indent.log("Canonical underlying type: ", underlyingType.canonical);
 
     // FIXME - seems to be built-in
     if (typedef_.spelling == "size_t") return [];
@@ -39,9 +40,13 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
            text("typedefs should only have 1 member, not ", children.length,
                 "\n", typedef_, "\n", children));
 
-    const originalSpelling = children.length
-        ? spellingOrNickname(typedef_.children[0])
-        : translate(underlyingType, No.translatingFunction, options);
+    // I'm not sure under which conditions the type has to be translated
+    // Right now arrays are being special cased due to a pthread bug
+    // (see the jmp_buf test)
+    const translateType = children.length == 0 || underlyingType.kind == Type.Kind.ConstantArray;
+    const originalSpelling = translateType
+        ? translate(underlyingType, No.translatingFunction, options)
+        : spellingOrNickname(typedef_.children[0]);
 
     return typedef_.spelling == originalSpelling.cleanType
         ? []
