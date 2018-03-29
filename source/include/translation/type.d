@@ -83,7 +83,7 @@ string translatePointer(in from!"clang".Type type) @safe {
         default: throw new Exception(text("Can't translate ", type));
             case "void (void *)": return q{void function(void*)};
             case "void *(void *)": return q{void* function(void*)};
-            case "void (void)": return q{void function(void)};
+            case "void (void)": return q{void function()};
         }
     }
 
