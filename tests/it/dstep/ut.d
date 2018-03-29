@@ -137,7 +137,7 @@ import it.compile;
 }
 
 @ShouldFail("BUG - using gLastNickName doesn't work")
-@("nested anonymous structures with associated fields")
+@("nested anonymous structures")
 @safe unittest {
     with(immutable IncludeSandbox()) {
         expand(Out("dstep.d"), In("dstep.h"),
