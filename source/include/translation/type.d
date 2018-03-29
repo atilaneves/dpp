@@ -76,16 +76,21 @@ string translatePointer(in from!"clang".Type type) @safe {
     if(type.pointee is null) throw new Exception("null pointee for " ~ type.toString);
     assert(type.pointee !is null, "Pointee is null for " ~ type.toString);
 
-    if(type.pointee.kind == Type.Kind.Unexposed &&
-       type.pointee.canonical.kind == Type.Kind.FunctionProto)
-        return translate(type.pointee.canonical);
+    const isFunctionProto = type.pointee.kind == Type.Kind.Unexposed &&
+        type.pointee.canonical.kind == Type.Kind.FunctionProto;
 
-    const rawType = translate(*type.pointee);
+    // usually "*" but sometimes not needed if already a reference type
+    const pointer = isFunctionProto ? "" : "*";
+
+    const rawType = type.pointee.kind == Type.Kind.Unexposed
+        ? translate(type.pointee.canonical)
+        : translate(*type.pointee);
+
     const pointeeType =  type.pointee.isConstQualified
         ? `const(` ~ rawType ~ `)`
         : rawType;
 
-    return pointeeType ~ `*`;
+    return pointeeType ~ pointer;
 }
 
 // currently only getting here from function pointer variables
