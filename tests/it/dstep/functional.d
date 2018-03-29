@@ -120,7 +120,6 @@ import it.compile;
     }
 }
 
-@ShouldFail("Unexposed function pointer types")
 @("function_pointers")
 @safe unittest {
     with(immutable IncludeSandbox()) {
@@ -138,12 +137,12 @@ import it.compile;
                   q{
                       import dstep;
                       void main() {
-                          static assert(is(typeof(a.init()) == void));
-                          static assert(is(typeof(b.init()) == int));
-                          c.init(42);
-                          int dres = d.init(2, 3);
-                          int eres = e.init(4, 5);
-                          int fres = f.init(6, 7, 9.0, null);
+                          static assert(is(typeof(a()) == void));
+                          static assert(is(typeof(b()) == int));
+                          c(42);
+                          int dres = d(2, 3);
+                          int eres = e(4, 5);
+                          int fres = f(6, 7, 9.0, null);
                           static assert(!__traits(compiles, f.init(6)));
                           static assert(!__traits(compiles, f.init(6, 9.0)));
                       }

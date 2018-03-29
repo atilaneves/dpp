@@ -93,10 +93,12 @@ string translatePointer(in from!"clang".Type type) @safe {
 private string translateFunctionProto(in from!"clang".Type type) @safe {
     import std.conv: text;
     import std.algorithm: map;
-    import std.array: join;
+    import std.array: join, array;
 
-    auto params = type.paramTypes.map!(a => translate(a));
-    return text(translate(type.returnType), " function(", params.join(", "), ")");
+    const params = type.paramTypes.map!(a => translate(a)).array;
+    const variadicParams = type.isVariadicFunction ? ["..."] : [];
+    const allParams = params ~ variadicParams;
+    return text(translate(type.returnType), " function(", allParams.join(", "), ")");
 }
 
 string cleanType(in string type) @safe pure {
