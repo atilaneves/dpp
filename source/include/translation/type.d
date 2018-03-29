@@ -51,6 +51,7 @@ string translate(in from!"clang".Type type,
         case Half: return "float";
         case LongDouble: return "real";
         case Enum: return type.spelling;
+        case FunctionProto: return translateFunctionProto(type);
 
         case Elaborated:
             return spellingOrNickname(type.spelling).cleanType;
@@ -75,15 +76,9 @@ string translatePointer(in from!"clang".Type type) @safe {
     if(type.pointee is null) throw new Exception("null pointee for " ~ type.toString);
     assert(type.pointee !is null, "Pointee is null for " ~ type.toString);
 
-    // FIXME - horrible hack for pthread
-    if(type.pointee.kind == Type.Kind.Unexposed) {
-        switch(type.pointee.spelling) {
-        default: throw new Exception(text("Can't translate ", type));
-            case "void (void *)": return q{void function(void*)};
-            case "void *(void *)": return q{void* function(void*)};
-            case "void (void)": return q{void function()};
-        }
-    }
+    if(type.pointee.kind == Type.Kind.Unexposed &&
+       type.pointee.canonical.kind == Type.Kind.FunctionProto)
+        return translate(type.pointee.canonical);
 
     const rawType = translate(*type.pointee);
     const pointeeType =  type.pointee.isConstQualified
@@ -91,6 +86,17 @@ string translatePointer(in from!"clang".Type type) @safe {
         : rawType;
 
     return pointeeType ~ `*`;
+}
+
+// currently only getting here from function pointer variables
+// with have kind unexposed but canonical kind FunctionProto
+private string translateFunctionProto(in from!"clang".Type type) @safe {
+    import std.conv: text;
+    import std.algorithm: map;
+    import std.array: join;
+
+    auto params = type.paramTypes.map!(a => translate(a));
+    return text(translate(type.returnType), " function(", params.join(", "), ")");
 }
 
 string cleanType(in string type) @safe pure {

@@ -131,3 +131,21 @@ import it.compile;
         shouldCompile("app.d", "hdr.d");
     }
 }
+
+@("unexposed function pointer variable")
+@safe unittest {
+    with(const IncludeSandbox()) {
+        expand(Out("hdr.d"), In("hdr.h"),
+               q{
+                   int (*func_t) (int, int);
+               });
+        writeFile("app.d",
+                  q{
+                      import hdr;
+                      void main() {
+                          int res = func_t.init(2, 3);
+                      }
+                  });
+        shouldCompile("app.d", "hdr.d");
+    }
+}
