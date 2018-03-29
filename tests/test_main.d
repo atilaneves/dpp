@@ -25,6 +25,7 @@ int main(string[] args) {
 
         // tests copied from dstep
         "it.dstep.ut",
+        "it.dstep.functional",
 
         // integration tests with code that should run
         "it.run.struct_",
