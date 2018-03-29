@@ -30,11 +30,3 @@ import include.translation.aggregate: translateField;
     translateField(Cursor(Cursor.Kind.FieldDecl, "foo", *type))
         .shouldEqual(["struct_Foo* foo;"]);
 }
-
-@ShouldFail("Bug - translation doesn't work well in translatePointer")
-@("const char* const")
-@safe unittest {
-    // pointer to const pointer to const char
-    translateField(Cursor(Cursor.Kind.FieldDecl, " foo", Type(Type.Kind.Pointer, `const char * const *protocols`)))
-        .shouldEqual(["const(char*)* protocotols"]);
-}
