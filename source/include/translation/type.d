@@ -61,7 +61,9 @@ string translate(in from!"clang".Type type,
 
         case ConstantArray:
             options.indent.log("Constant array of # ", type.numElements);
-            return translate(type.elementType) ~ `[` ~ type.numElements.text ~ `]`;
+            return translatingFunction
+                ? translate(type.elementType) ~ `*`
+                : translate(type.elementType) ~ `[` ~ type.numElements.text ~ `]`;
 
         case IncompleteArray:
             const dType = translate(type.elementType);

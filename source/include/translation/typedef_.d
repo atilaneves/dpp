@@ -33,7 +33,7 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     if (typedef_.spelling == "size_t") return [];
 
     if(isSomeFunction(underlyingType))
-        return translateFunctionTypeDef(typedef_);
+        return translateFunctionTypeDef(typedef_, options);
 
     assert(children.length == 1 ||
            (children.length == 0 && typedef_.type.kind == Type.Kind.Typedef),
@@ -53,7 +53,8 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
         : [`alias ` ~ typedef_.spelling ~ ` = ` ~ originalSpelling.cleanType  ~ `;`];
 }
 
-private string[] translateFunctionTypeDef(in from!"clang".Cursor typedef_)
+private string[] translateFunctionTypeDef(in from!"clang".Cursor typedef_,
+                                          in from!"include.runtime.options".Options options)
     @safe
 {
     import include.translation.type: translate;
@@ -67,7 +68,7 @@ private string[] translateFunctionTypeDef(in from!"clang".Cursor typedef_)
         ? translate(underlyingType.pointee.returnType)
         : translate(underlyingType.returnType);
 
-    const params = paramTypes(typedef_).join(", ");
+    const params = paramTypes(typedef_, options.indent).join(", ");
     return [`alias ` ~ typedef_.spelling ~ ` = ` ~ returnType ~ ` function(` ~ params ~ `);`];
 
 }

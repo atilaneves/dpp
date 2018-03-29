@@ -330,7 +330,6 @@ import it.compile;
 }
 
 
-@ShouldFail("BUG - qux should be int[64]*, not int[64][32]")
 @("array function parameters")
 @safe unittest {
     with(immutable IncludeSandbox()) {
@@ -346,11 +345,19 @@ import it.compile;
                   q{
                       import dstep;
                       void main() {
+
                           int* data;
                           foo(data);
                           bar(data);
                           baz(data);
+
+                          const(int)* cdata;
+                          static assert(!__traits(compiles, foo(cdata)));
+                          bar(cdata);
+                          baz(cdata);
+
                           static assert(!__traits(compiles, qux(data)));
+                          static assert(!__traits(compiles, qux(cdata)));
                           const(int)[64] arr;
                           qux(&arr);
                       }

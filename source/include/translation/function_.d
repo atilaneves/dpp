@@ -27,7 +27,7 @@ string[] translateFunction(in from!"clang".Cursor function_,
         function_.type.spelling.endsWith("...)") ||
         (function_.language == Language.C && function_.type.spelling.endsWith("()"));
     const variadicParams = isVariadic ? "..." : "";
-    const allParams = paramTypes(function_).array ~ variadicParams;
+    const allParams = paramTypes(function_, options.indent).array ~ variadicParams;
 
     return [
         text(returnType, " ", function_.spelling, "(", allParams.join(", "), ");")
@@ -35,8 +35,7 @@ string[] translateFunction(in from!"clang".Cursor function_,
 }
 
 auto paramTypes(in from!"clang".Cursor function_,
-                in from!"include.runtime.options".Options options =
-                       from!"include.runtime.options".Options())
+                in from!"include.runtime.options".Options options)
     @safe
 {
     import include.translation.type: translate;
@@ -47,7 +46,7 @@ auto paramTypes(in from!"clang".Cursor function_,
 
     return function_
         .children
-        .tee!((a){ options.indent.log("Function Child: ", a); })
+        .tee!((a){ options.log("Function Child: ", a); })
         .filter!(a => a.kind == Cursor.Kind.ParmDecl)
         .map!(a => translate(a.type, Yes.translatingFunction, options))
         ;
