@@ -304,14 +304,13 @@ import it.compile;
 }
 
 
-@ShouldFail("BUG - Uncovered unexposed case in include.translation.type hack")
 @("function pointers")
 @safe unittest {
     with(immutable IncludeSandbox()) {
         expand(Out("dstep.d"), In("dstep.h"),
                q{
-                   typedef void *ClientData;
-                   typedef struct { } EntityInfo;
+                   typedef void* ClientData;
+                   typedef struct { int dummy; } EntityInfo;
                    void (*fun)(ClientData client_data, const EntityInfo*, unsigned last);
                });
 
@@ -319,12 +318,11 @@ import it.compile;
                   q{
                       import dstep;
                       void main() {
-                          auto eInfo = EntityInfo();
+                          auto eInfo = EntityInfo(77);
                           struct Data { int value; }
                           auto data = Data(42);
                           uint last = 33;
-                          fun theFunction;
-                          fun(&data, &info, last);
+                          fun(&data, &eInfo, last);
                       }
                   });
 

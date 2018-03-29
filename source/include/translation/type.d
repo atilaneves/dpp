@@ -16,6 +16,7 @@ string translate(in from!"clang".Type type,
     import std.conv: text;
     import std.exception: enforce;
     import std.algorithm: countUntil, canFind;
+    import std.array: replace;
 
     switch(type.kind) with(Type.Kind) {
 
@@ -52,6 +53,8 @@ string translate(in from!"clang".Type type,
         case LongDouble: return addModifiers(type, "real");
         case Enum: return addModifiers(type, type.spelling);
         case FunctionProto: return translateFunctionProto(type);
+        case Record:
+            return addModifiers(type, type.spelling.replace("const ", ""));
 
         case Elaborated:
             return spellingOrNickname(type.spelling).cleanType;
