@@ -126,8 +126,6 @@ import it.compile;
     }
 }
 
-// TODO: convert to unit test
-@ShouldFail("Have to do global variables 1st")
 @("named enum with immediate variable declaration")
 @safe unittest {
     with(immutable IncludeSandbox()) {
@@ -141,9 +139,9 @@ import it.compile;
         writeFile("main.d", q{
             void main() {
                 import header;
-                numbers = one;
-                numbers = two;
-                number = enum_Numbers.one;
+                numbers = cast(enum_Numbers)one;
+                numbers = cast(enum_Numbers)two;
+                numbers = enum_Numbers.one;
             }
         });
 
@@ -151,8 +149,6 @@ import it.compile;
     }
 }
 
-// TODO: convert to unit test
-@ShouldFail("Have to do global variables 1st")
 @("nameless enum with immediate variable declaration")
 @safe unittest {
     with(immutable IncludeSandbox()) {
@@ -166,8 +162,8 @@ import it.compile;
         writeFile("main.d", q{
             void main() {
                 import header;
-                numbers = one;
-                numbers = two;
+                numbers = cast(typeof(numbers))one;
+                numbers = cast(typeof(numbers))two;
             }
         });
 
@@ -199,8 +195,6 @@ import it.compile;
     }
 }
 
-// TODO: convert to unit test
-@ShouldFail("BUG - Uses anonymous enum name to declare variable. Also doesn't declare a variable")
 @("nameless enum with variable inside a struct")
 @safe unittest {
     with(immutable IncludeSandbox()) {
@@ -217,7 +211,7 @@ import it.compile;
             void main() {
                 import header;
                 auto s = struct_Struct();
-                s.numbers = struct_Struct.one;
+                s.numbers = cast(typeof(s.numbers)) struct_Struct.one;
             }
         });
 
