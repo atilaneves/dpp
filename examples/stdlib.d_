@@ -1,6 +1,16 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 void main() {
     import std.string;
     printf("Hello world\n".toStringz);
+    enum numInts = 4;
+    auto ints = cast(int*) malloc(int.sizeof * numInts);
+    scope(exit) free(ints);
+    foreach(int i; 0 .. numInts) {
+        ints[i] = i;
+        printf("ints[%d]: %d   ".toStringz, i, ints[i]);
+    }
+    printf("\n".toStringz);
+
 }
