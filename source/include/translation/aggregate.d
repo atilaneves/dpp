@@ -166,6 +166,8 @@ package string spellingOrNickname(in from!"clang".Cursor cursor) @safe {
 package string spellingOrNickname(in string typeSpelling) @safe {
 
     import std.algorithm: canFind;
+    // clang names anonymous types with a long name indicating where the type
+    // was declared
     return typeSpelling.canFind("(anonymous") ? gLastNickName : typeSpelling;
 }
 

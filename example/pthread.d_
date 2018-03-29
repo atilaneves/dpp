@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 /* this function is run by the second thread */
-void *inc_x(void *x_void_ptr) {
+extern(C) void* inc_x(void *x_void_ptr) {
 
     /* increment x to 100 */
     int *x_ptr = cast(int *)x_void_ptr;
@@ -25,7 +25,7 @@ int main() {
     pthread_t inc_x_thread;
 
     /* create a second thread which executes inc_x(&x) */
-    if(pthread_create(&inc_x_thread, null, inc_x, &x)) {
+    if(pthread_create(&inc_x_thread, null, &inc_x, &x)) {
 
         fprintf(stderr, "Error creating thread\n");
         return 1;
@@ -41,4 +41,6 @@ int main() {
         fprintf(stderr, "Error joining thread\n");
         return 2;
     }
+
+    return 0;
 }

@@ -15,9 +15,17 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     import std.algorithm: filter;
     import std.array: array;
 
+    const children = () @trusted {
+        return typedef_
+        .children
+        .filter!(a => !a.isInvalid)
+        .filter!(a => a.kind != Cursor.Kind.FirstAttr)
+        .array;
+    }();
+
     const underlyingType = typedef_.underlyingType.canonical;
 
-    options.indent.log("TypedefDecl children: ", typedef_.children);
+    options.indent.log("TypedefDecl children: ", children);
     options.indent.log("Underlying type: ", underlyingType);
     options.indent.log("Canonical underlying type: ", underlyingType.canonical);
 
@@ -26,14 +34,6 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
 
     if(isSomeFunction(underlyingType))
         return translateFunctionTypeDef(typedef_);
-
-    const children = () @trusted {
-        return typedef_
-        .children
-        .filter!(a => !a.isInvalid)
-        .filter!(a => a.kind != Cursor.Kind.FirstAttr)
-        .array;
-    }();
 
     assert(children.length == 1 ||
            (children.length == 0 && typedef_.type.kind == Type.Kind.Typedef),
@@ -46,7 +46,7 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     const translateType = children.length == 0 || underlyingType.kind == Type.Kind.ConstantArray;
     const originalSpelling = translateType
         ? translate(underlyingType, No.translatingFunction, options)
-        : spellingOrNickname(typedef_.children[0]);
+        : spellingOrNickname(children[0]);
 
     return typedef_.spelling == originalSpelling.cleanType
         ? []

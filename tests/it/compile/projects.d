@@ -451,3 +451,29 @@ import it.compile;
         shouldCompile("app.d");
     }
 }
+
+@("__pthread_unwind_buf_t")
+@safe unittest {
+    with(const IncludeSandbox()) {
+        writeFile("hdr.h",
+                  q{
+                      typedef long int __jmp_buf[8];
+                      typedef struct {
+                          struct {
+                              __jmp_buf __cancel_jmp_buf;
+                              int __mask_was_saved;
+                          } __cancel_jmp_buf[1];
+                          void *__pad[4];
+                      } __pthread_unwind_buf_t __attribute__ ((__aligned__));
+                  });
+        writeFile("app.d_",
+                  q{
+                      #include "%s"
+                      void main() {
+                          __pthread_unwind_buf_t buf;
+                      }
+                  }.format(inSandboxPath("hdr.h")));
+        preprocess("app.d_", "app.d");
+        shouldCompile("app.d");
+    }
+}
