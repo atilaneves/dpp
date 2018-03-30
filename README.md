@@ -74,8 +74,10 @@ $ ./foo
 $ 30
 ```
 
-Structs, enums and unions
--------------------------
+Traslation notes
+----------------
+
+### Names of structs, enums and unions
 
 C has a different namespace for the aforementioned user-defined types. As such, this is legal C:
 
@@ -95,3 +97,37 @@ Changing the variable name would cause linker errors. `struct_foo` is
 close to C's `struct foo` (and similary for `enum` and `union`) and
 since most C structs have a `typedef` anyway, it shouldn't impact user
 code too much.
+
+
+### enum
+
+For convenience, this declaration:
+
+```c
+enum Enum { foo, bar, baz}
+```
+
+Will generate this translation:
+
+```d
+enum { foo, bar, baz}
+enum Enum { foo, bar, baz}
+```
+
+This is to mimic C semantics with regards to the global namespace whilst also allowing
+one to, say, reflect on the enum type.
+
+Function parameters declared as an enum in C will also be an enum in D, i.e. it won't accept
+an `int` as C would, so:
+
+```c
+void func(Enum e);
+func(foo);
+```
+becomes:
+
+```d
+void func(enum_Enum e);
+// func(foo); // won't compile, func takes enum_Enum, not int
+func(enum_Enum.foo);
+```
