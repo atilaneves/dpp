@@ -4,91 +4,74 @@ import it.compile;
 
 @("simple int struct")
 @safe unittest {
-    with(const IncludeSandbox()) {
-
-        expand(Out("header.d"), In("header.h"),
-               q{
-                   struct Foo { int i; };
-               }
-        );
-
-        writeFile("main.d", q{
-            void main() {
-                import header;
+    shouldCompile(
+        C(
+            q{
+                struct Foo { int i; };
+            }
+        ),
+        D(
+            q{
                 auto f = struct_Foo(5);
                 static assert(f.sizeof == 4, "Wrong sizeof for Foo");
             }
-        });
-
-        shouldCompile("main.d", "header.d");
-    }
+        )
+    );
 }
 
 @("simple double struct")
 @safe unittest {
-    with(const IncludeSandbox()) {
+    shouldCompile(
+        C(
+            q{
+                struct Bar { double d; };
+            }
+        ),
 
-        expand(Out("header.d"), In("header.h"),
-               q{
-                   struct Bar { double d; };
-               }
-        );
-
-        writeFile("main.d", q{
-            void main() {
-                import header;
+        D(
+            q{
                 auto b = struct_Bar(33.3);
                 static assert(b.sizeof == 8, "Wrong sizeof for Bar");
             }
-        });
-
-        shouldCompile("main.d", "header.d");
-    }
+        )
+    );
 }
 
 
 @("Outer struct with Inner")
 @safe unittest {
-    with(const IncludeSandbox()) {
-
-        expand(Out("header.d"), In("header.h"),
-               q{
-                   struct Outer {
-                       struct Inner {
-                           int x;
-                       } inner;
-                   };
-               }
-        );
-
-        writeFile("main.d", q{
-            void main() {
-                import header;
+    shouldCompile(
+        C(
+            q{
+                struct Outer {
+                    struct Inner {
+                        int x;
+                    } inner;
+                };
+            }
+        ),
+        D(
+            q{
                 auto o = struct_Outer(struct_Outer.struct_Inner(42));
                 static assert(o.sizeof == 4, "Wrong sizeof for Outer");
             }
-        });
-
-        shouldCompile("main.d", "header.d");
-    }
+        )
+    );
 }
 
 @("typedef struct with name")
 @safe unittest {
-    with(const IncludeSandbox()) {
-
-        expand(Out("header.d"), In("header.h"),
-               q{
-                   typedef struct TypeDefd_ {
-                       int i;
-                       double d;
-                   } TypeDefd;
-               }
-        );
-
-        writeFile("main.d", q{
-            void main() {
-                import header;
+    shouldCompile(
+        C(
+            q{
+                typedef struct TypeDefd_ {
+                    int i;
+                    double d;
+                } TypeDefd;
+            }
+        ),
+        D(
+            q{
                 {
                     auto t = struct_TypeDefd_(42, 33.3);
                     static assert(t.sizeof == 16, "Wrong sizeof for TypeDefd_");
@@ -98,95 +81,74 @@ import it.compile;
                     static assert(t.sizeof == 16, "Wrong sizeof for TypeDefd");
                 }
             }
-        });
-
-        shouldCompile("main.d", "header.d");
-    }
+        )
+    );
 }
 
 @("typedef struct with no name")
 @safe unittest {
-    with(const IncludeSandbox()) {
+    shouldCompile(
+        C(
+            q{
+                typedef struct {
+                    int x, y, z;
+                } Nameless1;
 
-        expand(Out("header.d"), In("header.h"),
-               q{
-                   typedef struct {
-                       int x, y, z;
-                   } Nameless1;
-
-                   typedef struct {
-                       double d;
-                   } Nameless2;
-               }
-        );
-
-        writeFile("main.d", q{
-            void main() {
-                import header;
-
+                typedef struct {
+                    double d;
+                } Nameless2;
+            }
+        ),
+        D(
+            q{
                 auto n1 = Nameless1(2, 3, 4);
                 static assert(n1.sizeof == 12, "Wrong sizeof for Nameless1");
 
                 auto n2 = Nameless2(33.3);
                 static assert(n2.sizeof == 8, "Wrong sizeof for Nameless2");
             }
-        });
-
-        shouldCompile("main.d", "header.d");
-    }
+        )
+    );
 }
 
 @("typedef before struct declaration")
 @safe unittest {
-    with(const IncludeSandbox()) {
-
-        expand(Out("header.d"), In("header.h"),
-               q{
-                   typedef struct A B;
-                   struct A { int a; }
-               }
-        );
-
-        writeFile("main.d", q{
-            void main() {
-                import header;
-
+    shouldCompile(
+        C(
+            q{
+                typedef struct A B;
+                struct A { int a; }
+            }
+        ),
+        D(
+            q{
                 auto a = struct_A(42);
                 auto b = B(77);
             }
-        });
-
-        shouldCompile("main.d", "header.d");
-    }
+        )
+    );
 }
 
 @("fsid_t")
 @safe unittest {
-    with(immutable IncludeSandbox()) {
-
-        writeFile("header.h",
-                  q{
-                      #define __FSID_T_TYPE struct { int __val[2]; }
-                      typedef  __FSID_T_TYPE __fsid_t;
-                      typedef __fsid_t fsid_t;
-                  });
-
-
-        writeFile("foo.d_",
-                  q{
-                      #include "%s"
-                      void func() {
-                          fsid_t foo;
-                          foo.__val[0] = 2;
-                          foo.__val[1] = 3;
-                      }
-                  }.format(inSandboxPath("header.h")));
-
-
-        preprocess("foo.d_", "foo.d");
-        shouldCompile("foo.d");
-    }
+    shouldCompile(
+        C(
+            q{
+                #define __FSID_T_TYPE struct { int __val[2]; }
+                typedef  __FSID_T_TYPE __fsid_t;
+                typedef __fsid_t fsid_t;
+            }
+        ),
+        D(
+            q{
+                fsid_t foo;
+                foo.__val[0] = 2;
+                foo.__val[1] = 3;
+            }
+        )
+    );
 }
+
 
 @("fd_set")
 @safe unittest {
@@ -235,28 +197,23 @@ import it.compile;
 
 @("multiple declarations")
 @safe unittest {
-    with(const IncludeSandbox()) {
-
-        expand(Out("header.d"), In("header.h"),
-               q{
-                   struct Struct;
-                   struct Struct;
-                   struct OtherStruct;
-                   struct Struct { int x, y, z; };
-               }
-        );
-
-        writeFile("main.d", q{
-            void main() {
-                import header;
+    shouldCompile(
+        C(
+            q{
+                struct Struct;
+                struct Struct;
+                struct OtherStruct;
+                struct Struct { int x, y, z; };
+            }
+        ),
+        D(
+            q{
                 struct_Struct s;
                 s.x = 42;
                 s.y = 33;
                 s.z = 77;
                 static assert(!__traits(compiles, struct_OtherStruct()));
             }
-        });
-
-        shouldCompile("main.d", "header.d");
-    }
+        )
+    );
 }

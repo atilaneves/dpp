@@ -14,6 +14,16 @@ struct Out {
     string value;
 }
 
+/// C code
+struct C {
+    string code;
+}
+
+/// D code
+struct D {
+    string code;
+}
+
 struct IncludeSandbox {
 
     alias sandbox this;
@@ -55,7 +65,7 @@ struct IncludeSandbox {
         writeFile(outFileName, realExpand(inFileName, Options(), seenCursors, file, line));
     }
 
-    void preprocess(in string inputFileName, in string outputFileName) @safe {
+    void preprocess(in string inputFileName, in string outputFileName) @safe const {
         import include.runtime.options: Options;
         import include.runtime.app: realPreProcess = preprocess;
         import std.stdio: File;
@@ -120,5 +130,24 @@ struct IncludeSandbox {
             .join("\n\n"), e.file, e.line);
 
     }
+}
 
+/**
+   Convenience function in the typical case that a test has a C
+   header and a D main file.
+*/
+void shouldCompile(string file = __FILE__, size_t line = __LINE__)
+                  (in C header, in D app)
+{
+    with(const IncludeSandbox()) {
+        writeFile("hdr.h", header.code);
+        // take care of including the header and putting the D
+        // code in a function
+        const dCode = `#include "` ~ inSandboxPath("hdr.h") ~ `"` ~ "\n" ~
+            `void main() {` ~ "\n" ~ app.code ~ "\n}\n";
+
+        writeFile("app.dpp", dCode);
+        preprocess("app.dpp", "app.d");
+        shouldCompile!(file, line)("app.d");
+    }
 }
