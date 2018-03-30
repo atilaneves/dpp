@@ -19,9 +19,18 @@ struct C {
     string code;
 }
 
+/// C++ code
+struct Cpp {
+    string code;
+}
+
 /// D code
 struct D {
     string code;
+}
+
+struct RuntimeArgs {
+    string[] args;
 }
 
 struct IncludeSandbox {
@@ -119,7 +128,7 @@ struct IncludeSandbox {
         shouldFail("dmd", "-ofblob", "blob.o");
     }
 
-    private void adjustMessage(Exception e, in string[] srcFiles) @safe const {
+    void adjustMessage(Exception e, in string[] srcFiles) @safe const {
         import std.algorithm: map;
         import std.array: join;
         import std.file: readText;
@@ -149,5 +158,36 @@ void shouldCompile(string file = __FILE__, size_t line = __LINE__)
         writeFile("app.dpp", dCode);
         preprocess("app.dpp", "app.d");
         shouldCompile!(file, line)("app.d");
+    }
+}
+
+/**
+   Convenience function in the typical case that a test has a C
+   header and a D main file.
+*/
+void shouldCompileAndRun(string file = __FILE__, size_t line = __LINE__)
+                        (in Cpp header, in Cpp source, in D app, in RuntimeArgs args = RuntimeArgs())
+{
+    with(const IncludeSandbox()) {
+        writeFile("hdr.hpp", header.code);
+        const includeLine = `#include "` ~ inSandboxPath("hdr.hpp") ~ `"` ~ "\n";
+        const cppSource = includeLine ~ source.code;
+        writeFile("cpp.cpp", cppSource);
+        shouldSucceed("gcc", "-std=c++14", "-c", "cpp.cpp");
+
+        // take care of including the header and putting the D
+        // code in a function
+        const dCode = includeLine ~
+            `void main() {` ~ "\n" ~ app.code ~ "\n}\n";
+
+        writeFile("app.dpp", dCode);
+        preprocess("app.dpp", "app.d");
+
+        try
+            shouldSucceed!(file, line)(["dmd", "app.d", "cpp.o"]);
+        catch(Exception e)
+            adjustMessage(e, ["app.d"]);
+
+        shouldSucceed!(file, line)(["./app"] ~ args.args);
     }
 }

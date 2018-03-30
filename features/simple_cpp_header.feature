@@ -1,14 +1,15 @@
-Feature: Including a simple header works
+Feature: Including a simple C header works
   As a D programmer
-  I want to include a C header in my program
+  I want to include a C++ header in my program
   So I can call legacy code
 
+  @wip
   Scenario: A C header with a struct and a function
 
-    Given a file named "foo.h" with:
+    Given a file named "foo.hpp" with:
       """
-      #ifndef FOO_H
-      #define FOO_H
+      #ifndef FOO_HPP
+      #define FOO_HPP
       struct Foo {
           int i;
       };
@@ -16,19 +17,17 @@ Feature: Including a simple header works
       #endif
       """
 
-    And a file named "foo.c" with:
+    And a file named "foo.cpp" with:
       """
-      #include "foo.h"
-      struct Foo addFoos(struct Foo* foo1, struct Foo* foo2) {
-          struct Foo foo;
-          foo.i = foo1->i + foo2->i;
-          return foo;
+      #include "foo.hpp"
+      Foo addFoos(Foo* foo1, Foo* foo2) {
+          return { foo1->i + foo2-> i};
       }
       """
 
     And a file named "main.d_" with:
       """
-      #include "foo.h"
+      #include "foo.hpp"
       void main(string[] args) {
           import std.stdio;
           import std.conv;
@@ -44,11 +43,11 @@ Feature: Including a simple header works
       }
       """
 
-    When I successfully run `gcc -o foo.o -c foo.c`
+    When I successfully run `g++ -std=c++14 -o foo.o -c foo.cpp`
     And I successfully run `include main.d_ main.d`
     And I successfully run `dmd -ofapp main.d foo.o`
     When I successfully run `./app 3 4`
     Then the output should contain:
       """
-      struct_Foo(3) + struct_Foo(4) = struct_Foo(7)
+      Foo(3) + Foo(4) = Foo(7)
       """

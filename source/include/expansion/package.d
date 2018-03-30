@@ -138,7 +138,8 @@ string expand(in string headerFileName,
 
     string[] ret;
 
-    ret ~= "extern(C) {";
+    ret ~= isCppHeader(headerFileName) ? "extern(C++)" : "extern(C)";
+    ret ~= "{";
 
     foreach(cursor; cursors) {
         if(seenCursors.hasSeen(cursor)) continue;
@@ -151,4 +152,9 @@ string expand(in string headerFileName,
     ret ~= "";
 
     return ret.join("\n");
+}
+
+private bool isCppHeader(in string headerFileName) @safe pure {
+    import std.path: extension;
+    return headerFileName.extension != ".h";
 }

@@ -91,7 +91,7 @@ private void debugCursor(in from!"include.runtime.options".Options options,
     const definition = cursor.isDefinition ? " DEF" : "";
 
     if(!isMacro || isOkMacro) {
-        options.log(cursor, canonical, definition, " @ ", cursor.sourceRange);
+        options.log(cursor, canonical, definition, "  ", cursor.language, " @ ", cursor.sourceRange);
     }
 }
 
