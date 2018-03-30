@@ -26,14 +26,22 @@ struct IncludeSandbox {
         return ret;
     }
 
-    void expand(in Out out_, in In in_, in string[] inLines, in string file = __FILE__, in size_t line = __LINE__)
+    void expand(in Out out_,
+                in In in_,
+                in string[] inLines,
+                in string file = __FILE__,
+                in size_t line = __LINE__)
         @safe const
     {
         import std.array: join;
         expand(out_, in_, inLines.join("\n"), file, line);
     }
 
-    void expand(in Out out_, in In in_, in string inText, in string file = __FILE__, in size_t line = __LINE__)
+    void expand(in Out out_,
+                in In in_,
+                in string inText,
+                in string file = __FILE__,
+                in size_t line = __LINE__)
         @safe const
     {
         import include.runtime.options: Options;
@@ -55,7 +63,10 @@ struct IncludeSandbox {
         realPreProcess!File(options);
     }
 
-    void shouldCompileAndRun(string file = __FILE__, size_t line = __LINE__)(in string[] srcFiles...) @safe const {
+    void shouldCompileAndRun(string file = __FILE__, size_t line = __LINE__)
+                            (in string[] srcFiles...)
+        @safe const
+    {
         try
             sandbox.shouldSucceed!(file, line)(["dmd", "-run"] ~ srcFiles);
         catch(Exception e) {
@@ -63,7 +74,10 @@ struct IncludeSandbox {
         }
     }
 
-    void shouldCompileButNotLink(string file = __FILE__, size_t line = __LINE__)(in string[] srcFiles...) @safe const {
+    void shouldCompileButNotLink(string file = __FILE__, size_t line = __LINE__)
+                                (in string[] srcFiles...)
+        @safe const
+    {
         try
             sandbox.shouldSucceed!(file, line)(["dmd", "-c", "-ofblob.o"] ~ srcFiles);
         catch(Exception e) {
@@ -73,7 +87,10 @@ struct IncludeSandbox {
         shouldFail("dmd", "-ofblob", "blob.o");
     }
 
-    void shouldCompile(string file = __FILE__, size_t line = __LINE__)(in string[] srcFiles...) @safe const {
+    void shouldCompile(string file = __FILE__, size_t line = __LINE__)
+                      (in string[] srcFiles...)
+        @safe const
+    {
         try
             sandbox.shouldSucceed!(file, line)(["dmd", "-o-", "-c"] ~ srcFiles);
         catch(Exception e) {
