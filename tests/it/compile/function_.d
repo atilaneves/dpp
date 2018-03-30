@@ -135,3 +135,118 @@ import it.compile;
         ),
     );
 }
+
+
+@("enum param")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                enum Enum { foo, bar, baz };
+                void fun(enum Enum e);
+                enum Enum gun(int i);
+            }
+        ),
+        D(
+            q{
+                fun(enum_Enum.foo);
+                enum_Enum ret = gun(42);
+            }
+         ),
+    );
+}
+
+@("typedef enum param")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                typedef enum { foo, bar, baz } Enum;
+                void fun(Enum e);
+                Enum gun(int i);
+            }
+        ),
+        D(
+            q{
+                fun(Enum.foo);
+                Enum ret = gun(42);
+            }
+         ),
+    );
+}
+
+@("enum param function pointer")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                enum Enum { foo, bar, baz };
+                typedef void (*fun)(enum Enum e);
+                typedef enum Enum (*gun)(int i);
+            }
+        ),
+        D(
+            q{
+                fun.init(enum_Enum.foo);
+                enum_Enum ret = gun.init(42);
+            }
+         ),
+    );
+}
+
+@("typedef enum param function pointer")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                typedef enum { foo, bar, baz } Enum;
+                typedef void (*fun)(Enum e);
+                typedef Enum (*gun)(int i);
+            }
+        ),
+        D(
+            q{
+                fun.init(Enum.foo);
+                Enum ret = gun.init(42);
+            }
+         ),
+    );
+}
+
+@("enum param function var")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                enum Enum { foo, bar, baz };
+                void (*fun)(enum Enum e);
+                enum Enum (*gun)(int i);
+            }
+        ),
+        D(
+            q{
+                fun(enum_Enum.foo);
+                enum_Enum ret = gun(42);
+            }
+         ),
+    );
+}
+
+@("typedef enum param function var")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                typedef enum { foo, bar, baz } Enum;
+                void (*fun)(Enum e);
+                Enum (*gun)(int i);
+            }
+        ),
+        D(
+            q{
+                fun(Enum.foo);
+                Enum ret = gun(42);
+            }
+         ),
+    );
+}

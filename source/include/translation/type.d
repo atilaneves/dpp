@@ -15,7 +15,7 @@ string translate(in from!"clang".Type type,
     import clang: Type;
     import std.conv: text;
     import std.exception: enforce;
-    import std.algorithm: countUntil, canFind;
+    import std.algorithm: countUntil, canFind, startsWith;
     import std.array: replace;
 
     switch(type.kind) with(Type.Kind) {
@@ -27,7 +27,10 @@ string translate(in from!"clang".Type type,
         case Long: return addModifiers(type, "c_long");
         case ULong: return addModifiers(type, "c_ulong");
         case Pointer: return translatePointer(type, options).cleanType;
-        case Typedef: return addModifiers(type, type.spelling.cleanType);
+        case Typedef:
+            // Here we may get a Typedef with a canonical type of Enum. It might be worth
+            // translating to int for function parameters
+            return addModifiers(type, type.spelling.cleanType);
         case Void: return addModifiers(type, "void");
         case NullPtr: return addModifiers(type, "void*");
         case Bool: return addModifiers(type, "bool");
@@ -51,12 +54,15 @@ string translate(in from!"clang".Type type,
         case Float128: return addModifiers(type, "real");
         case Half: return addModifiers(type, "float");
         case LongDouble: return addModifiers(type, "real");
-        case Enum: return addModifiers(type, type.spelling);
+        case Enum: return addModifiers(type, type.spelling.cleanType);
         case FunctionProto: return translateFunctionProto(type);
         case Record:
             return addModifiers(type, type.spelling.replace("const ", ""));
 
         case Elaborated:
+            // Here we may get an elaborated enum. It's possible to know that
+            // because the spelling begins with "enum ". It might be worth
+            // translating to int for function parameters
             return spellingOrNickname(type.spelling).cleanType;
 
         case ConstantArray:

@@ -65,11 +65,13 @@ private string[] translateFunctionTypeDef(in from!"clang".Cursor typedef_,
 
     const underlyingType = typedef_.underlyingType.canonical;
     const returnType = underlyingType.kind == Type.Kind.Pointer
-        ? translate(underlyingType.pointee.returnType)
-        : translate(underlyingType.returnType);
+        ? underlyingType.pointee.returnType
+        : underlyingType.returnType;
+    options.indent.log("Function typedef return type: ", returnType);
+    const returnTypeTransl = translate(returnType);
 
     const params = paramTypes(typedef_, options.indent).join(", ");
-    return [`alias ` ~ typedef_.spelling ~ ` = ` ~ returnType ~ ` function(` ~ params ~ `);`];
+    return [`alias ` ~ typedef_.spelling ~ ` = ` ~ returnTypeTransl ~ ` function(` ~ params ~ `);`];
 
 }
 
