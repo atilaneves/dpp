@@ -4,7 +4,24 @@ include
 | [![Build Status](https://travis-ci.org/atilaneves/include.png?branch=master)](https://travis-ci.org/atilaneves/include) | [![Coverage](https://codecov.io/gh/atilaneves/include/branch/master/graph/badge.svg)](https://codecov.io/gh/atilaneves/include) |
 
 
-include is an executable that has as input a D file with C `#include` preprocessor directives and outputs
+Goal
+----
+
+To directly `#include` C and C++ headers in (D)[https://dlang.org] files and have the same semantics and ease-of-use
+as if the file had been `#included` from C or C++ themselves. Warts and all, meaning that C `enum` declarations
+will pollute the global namespace, just as it does "back home".
+
+Limitations
+-----------
+
+It currently only supports C headers, but C++ is planned. Also see "Translation Notes" below.
+
+
+Details
+-------
+
+
+`include` is an executable that has as input a D file with C `#include` preprocessor directives and outputs
 a valid D file that can be compiled. The original can't be compiled since D has no integrated preprocessor.
 
 The only supported preprocessor directive is `#include`.
@@ -12,7 +29,7 @@ The only supported preprocessor directive is `#include`.
 The input file may also use C preprocessor macros defined in the file(s) it ``#include`s, just as a C/C++
 program would. It may not, however, define macros of its own.
 
-include goes through the input file line-by-line, and upon encountering an `#include` directive, parses
+`include` goes through the input file line-by-line, and upon encountering an `#include` directive, parses
 the file to be included with libclang, loops over the definitions of data structures and functions
 therein and expands in-place the relevant D translations. e.g. if a header contains:
 
