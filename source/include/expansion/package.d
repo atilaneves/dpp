@@ -69,10 +69,12 @@ private string toFileName(in string headerName) @safe {
     import std.file: exists;
     import std.conv: text;
     import std.exception: enforce;
+    import std.process;
+    import std.string:split;
 
     if(headerName.exists) return headerName;
 
-    const dirs = ["/usr/include"];
+    const dirs = ["/usr/include"] ~ environment.get("C_INCLUDE_PATH").split(":");
     auto filePaths = dirs.map!(a => buildPath(a, headerName).absolutePath).filter!exists;
     enforce(!filePaths.empty, text("Cannot find file path for header '", headerName, "'"));
     return filePaths.front;
