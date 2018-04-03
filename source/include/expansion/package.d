@@ -143,8 +143,11 @@ string expand(in string headerFileName,
     foreach(cursor; cursors) {
         if(context.hasSeen(cursor)) continue;
         context.remember(cursor);
+
+        const indentation = context.indentation;
         const lines = translate(context, cursor, file, line);
         if(lines.length) ret ~= lines;
+        context.setIndentation(indentation);
     }
 
     ret ~= "}";

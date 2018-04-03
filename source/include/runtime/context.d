@@ -55,6 +55,14 @@ struct Context {
         return this;
     }
 
+    string indentation() @safe @nogc pure const {
+        return options.indentation;
+    }
+
+    void setIndentation(in string indentation) @safe pure {
+        options.indentation = indentation;
+    }
+
     void log(A...)(auto ref A args) const {
         import std.functional: forward;
         options.log(forward!args);
