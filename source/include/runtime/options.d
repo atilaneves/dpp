@@ -18,24 +18,26 @@ struct Options {
 
         import std.exception: enforce;
         import std.getopt: getopt, defaultGetoptPrinter;
+        import std.path: stripExtension;
 
         auto helpInfo = getopt(args,
                "debug|d", "Print debug information", &debugOutput,
                "i", "Include paths", &includePaths,
         );
 
+        const usage = "Usage: include <inFile> [outFile]";
+
         if(helpInfo.helpWanted) {
             () @trusted {
-                defaultGetoptPrinter("Usage: reggae -b <ninja|make|binary|tup> </path/to/project>",
-                                     helpInfo.options);
+                defaultGetoptPrinter(usage, helpInfo.options);
             }();
             earlyExit = true;
         }
 
-        enforce(args.length == 3, "Usage: include <inFile> <outFile>");
+        enforce(args.length == 2 || args.length == 3, usage);
 
         inputFileName = args[1];
-        outputFileName = args[2];
+        outputFileName = args.length == 3 ? args[2] : args[1].stripExtension ~ ".d";
         includePaths = "/usr/include" ~ includePaths;
     }
 
