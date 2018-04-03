@@ -14,7 +14,18 @@ will pollute the global namespace, just as it does "back home".
 Limitations
 -----------
 
-It currently only supports C headers, but C++ is planned. Also see "Translation Notes" below.
+It currently only supports C headers, but C++ is planned, templates and all. See also "Translation Notes" below.
+
+This is alpha sofware. It has however been made to work with several "real-life" C headers:
+
+* nanomsg/nn.h, nanomsg/pubsub.h
+* curl/curl.h
+* stdio.h, stdlib.h
+* pthread.h
+* xlsxwriter.h
+* libvirt/libvirt.h, libvirt/virterror.h
+
+See the examples.
 
 
 Details
