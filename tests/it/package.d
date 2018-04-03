@@ -184,7 +184,7 @@ void shouldCompileAndRun(string file = __FILE__, size_t line = __LINE__)
         const includeLine = `#include "` ~ inSandboxPath("hdr.hpp") ~ `"` ~ "\n";
         const cppSource = includeLine ~ source.code;
         writeFile("cpp.cpp", cppSource);
-        shouldSucceed("gcc", "-std=c++14", "-c", "cpp.cpp");
+        shouldSucceed("gcc", "-std=c++1y", "-c", "cpp.cpp");
 
         // take care of including the header and putting the D
         // code in a function
