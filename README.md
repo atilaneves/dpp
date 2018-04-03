@@ -26,7 +26,7 @@ a valid D file that can be compiled. The original can't be compiled since D has 
 
 The only supported preprocessor directive is `#include`.
 
-The input file may also use C preprocessor macros defined in the file(s) it ``#include`s, just as a C/C++
+The input file may also use C preprocessor macros defined in the file(s) it q`#include`s, just as a C/C++
 program would. It may not, however, define macros of its own.
 
 `include` goes through the input file line-by-line, and upon encountering an `#include` directive, parses
