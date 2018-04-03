@@ -24,3 +24,56 @@ import it.compile;
         shouldCompile("main.d");
     }
 }
+
+
+@("Output should be a D file")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+
+        writeFile("foo.h",
+                  q{
+                      typedef int foo;
+                  });
+        writeFile("foo.dpp",
+                  q{
+                      #include "foo.h"
+                  });
+
+        run("foo.dpp", "foo.c").shouldThrowWithMessage(
+            "Output should be a D file (the extension should be .d or .di)");
+    }
+}
+
+@("Output can be a .d file")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+
+        writeFile("foo.h",
+                  q{
+                      typedef int foo;
+                  });
+        writeFile("foo.dpp",
+                  q{
+                      #include "foo.h"
+                  });
+
+        run("foo.dpp", "foo.d");
+    }
+}
+
+@("Output can be a .di file")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+
+        writeFile("foo.h",
+                  q{
+                      typedef int foo;
+                  });
+        writeFile("foo.dpp",
+                  q{
+                      #include "foo.h"
+                  });
+
+        run("foo.dpp", "foo.di");
+    }
+}

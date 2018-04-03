@@ -10,6 +10,15 @@ import include.from;
  */
 void run(in from!"include.runtime.options".Options options) @safe {
     import std.stdio: File;
+    import std.exception: enforce;
+    import std.path: extension;
+
+    enforce(options.inputFileName.extension != ".h",
+            "Cannot directly translate C headers. Please run `include` on a D file.");
+
+    enforce(options.outputFileName.extension == ".d" || options.outputFileName.extension == ".di",
+            "Output should be a D file (the extension should be .d or .di)");
+
     preprocess!File(options);
 }
 
