@@ -79,7 +79,7 @@ string[] translateAggregate(
     return lines;
 }
 
-string identifier(in from!"clang".Cursor cursor) @safe {
+string identifier(in from!"clang".Cursor cursor) @safe pure {
     import clang: Cursor, Type;
     import std.conv: text;
     import std.algorithm: startsWith;

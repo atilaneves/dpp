@@ -78,7 +78,7 @@ string translate(in from!"clang".Type type,
     }
 }
 
-private string addModifiers(in from!"clang".Type type, in string translation) @safe {
+private string addModifiers(in from!"clang".Type type, in string translation) @safe pure {
     return type.isConstQualified
         ? `const(` ~ translation ~ `)`
         : translation;
