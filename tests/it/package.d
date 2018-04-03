@@ -63,7 +63,7 @@ struct IncludeSandbox {
                 in size_t line = __LINE__)
         @safe const
     {
-        import include.runtime.context: Context, SeenCursors;
+        import include.runtime.context: Context;
         import include.expansion: realExpand = expand;
 
         const outFileName = inSandboxPath(out_.value);
@@ -71,8 +71,7 @@ struct IncludeSandbox {
         writeFile(inFileName, inText);
         Context context;
         context.options.includePaths = [sandboxPath];
-        SeenCursors seenCursors;
-        writeFile(outFileName, realExpand(inFileName, context, seenCursors, file, line));
+        writeFile(outFileName, realExpand(inFileName, context, file, line));
     }
 
     void run(string[] args...) @safe const {

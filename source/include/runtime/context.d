@@ -3,7 +3,6 @@
  */
 module include.runtime.context;
 
-import include.from;
 
 /**
    Context for the current translation, to avoid global variables
@@ -11,8 +10,10 @@ import include.from;
 struct Context {
 
     import include.runtime.options: Options;
+    import clang: Cursor;
 
     alias CursorHash = uint;
+    alias SeenCursors = bool[CursorId];
 
     this(Options options) @safe pure {
         this.options = options;
@@ -41,6 +42,11 @@ struct Context {
      */
     bool[string] aggregateDeclarations;
 
+    /**
+       All previously seen cursors
+     */
+    SeenCursors seenCursors;
+
     /// Command-line options
     Options options;
 
@@ -57,6 +63,16 @@ struct Context {
     bool debugOutput() @safe @nogc pure nothrow const {
         return options.debugOutput;
     }
+
+    bool hasSeen(in Cursor cursor) @safe pure nothrow const {
+        return cast(bool)(CursorId(cursor) in seenCursors);
+    }
+
+    void remember(in Cursor cursor) @safe pure nothrow {
+        if(cursor.spelling != "")
+            seenCursors[CursorId(cursor)] = true;
+    }
+
 }
 
 
@@ -71,16 +87,4 @@ private struct CursorId {
         spelling = cursor.spelling;
         kind = cursor.kind;
     }
-}
-
-alias SeenCursors = bool[CursorId];
-
-
-bool hasSeen(in SeenCursors cursors, in from!"clang".Cursor cursor) @safe pure nothrow {
-    return cast(bool)(CursorId(cursor) in cursors);
-}
-
-void remember(ref SeenCursors cursors, in from!"clang".Cursor cursor) @safe pure nothrow {
-    if(cursor.spelling != "")
-        cursors[CursorId(cursor)] = true;
 }

@@ -15,8 +15,7 @@ version(unittest) {
    otherwise do nothing (i.e. return the same line)
  */
 string maybeExpand(string line,
-                   ref from!"include.runtime.context".Context context,
-                   ref from!"include.runtime.context".SeenCursors seenCursors)
+                   ref from!"include.runtime.context".Context context)
     @safe
 {
     const headerName = getHeaderName(line);
@@ -24,18 +23,16 @@ string maybeExpand(string line,
     return headerName == ""
         ? line
         : expand(toFileName(context.options.includePaths, headerName),
-                 context,
-                 seenCursors);
+                 context);
 }
 
 
 @("translate no include")
 @safe unittest {
-    import include.runtime.context: Context, SeenCursors;
-    SeenCursors cursors;
+    import include.runtime.context: Context;
     Context context;
-    maybeExpand("foo", context, cursors).shouldEqual("foo");
-    maybeExpand("bar", context, cursors).shouldEqual("bar");
+    maybeExpand("foo", context).shouldEqual("foo");
+    maybeExpand("bar", context).shouldEqual("bar");
 }
 
 private string getHeaderName(string line) @safe pure {
@@ -85,12 +82,10 @@ private string toFileName(in string[] includePaths, in string headerName) @safe 
 
 string expand(in string headerFileName,
               ref from!"include.runtime.context".Context context,
-              ref from!"include.runtime.context".SeenCursors seenCursors,
               in string file = __FILE__,
               in size_t line = __LINE__)
     @safe
 {
-    import include.runtime.context: hasSeen, remember;
     import include.translation.unit: translate;
     import clang: parse, TranslationUnitFlags, Cursor;
     import std.array: join, array;
@@ -146,8 +141,8 @@ string expand(in string headerFileName,
     ret ~= "{";
 
     foreach(cursor; cursors) {
-        if(seenCursors.hasSeen(cursor)) continue;
-        seenCursors.remember(cursor);
+        if(context.hasSeen(cursor)) continue;
+        context.remember(cursor);
         const lines = translate(context, cursor, file, line);
         if(lines.length) ret ~= lines;
     }
