@@ -25,7 +25,7 @@ string translate(in from!"clang".Type type,
 
         case Long: return addModifiers(type, "c_long");
         case ULong: return addModifiers(type, "c_ulong");
-        case Pointer: return translatePointer(type, context).cleanType;
+        case Pointer: return translatePointer(type, context.indent).cleanType;
         case Typedef:
             // Here we may get a Typedef with a canonical type of Enum. It might be worth
             // translating to int for function parameters
@@ -100,8 +100,8 @@ private string translatePointer(in from!"clang".Type type,
 
     // usually "*" but sometimes not needed if already a reference type
     const pointer = isFunctionProto ? "" : "*";
-    context.indent.log("Pointee:           ", *type.pointee);
-    context.indent.log("Pointee canonical: ", type.pointee.canonical);
+    context.log("Pointee:           ", *type.pointee);
+    context.log("Pointee canonical: ", type.pointee.canonical);
 
     const rawType = type.pointee.kind == Type.Kind.Unexposed
         ? translate(type.pointee.canonical, context)

@@ -432,3 +432,50 @@ import it.compile;
         ),
     );
 }
+
+@ShouldFail
+@("struct pointer to unknown struct")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                typedef struct Foo {
+                    struct Bar* bar;
+                } Foo;
+            }
+        ),
+        D(
+            q{
+                Foo f;
+                f.bar = null;
+            }
+        ),
+    );
+}
+
+@("struct pointer to unknown struct that is defined by a later header")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        writeFile("hdr1.h",
+                  q{
+                      typedef struct Foo {
+                          struct Bar* bar;
+                      } Foo;
+                  });
+        writeFile("hdr2.h",
+                  q{
+                      struct Bar;
+                  });
+        writeFile("app.dpp",
+                  q{
+                      #include "hdr1.h"
+                      #include "hdr2.h"
+                      void main() {
+                          Foo f;
+                          f.bar = null;
+                      }
+                  });
+        run("app.dpp", "app.d");
+        shouldCompile("app.d");
+    }
+}
