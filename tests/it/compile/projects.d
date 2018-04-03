@@ -478,3 +478,22 @@ import it.compile;
         shouldCompile("app.d");
     }
 }
+
+@("typedef struct pointer with no declaration")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                typedef struct _Foo Foo;
+                typedef Foo *FooPtr;
+            }
+        ),
+        D(
+            q{
+                void fun(FooPtr ptr) { }
+                FooPtr ptr;
+                fun(ptr);
+            }
+        ),
+    );
+}

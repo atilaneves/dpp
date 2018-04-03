@@ -39,10 +39,15 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
            text("typedefs should only have 1 member, not ", children.length,
                 "\n", typedef_, "\n", children));
 
+    // FIXME
     // I'm not sure under which conditions the type has to be translated
     // Right now arrays are being special cased due to a pthread bug
     // (see the jmp_buf test)
-    const translateType = children.length == 0 || underlyingType.kind == Type.Kind.ConstantArray;
+    const translateType =
+        children.length == 0 ||
+        underlyingType.kind == Type.Kind.ConstantArray ||
+        underlyingType.kind == Type.Kind.Pointer;
+
     const originalSpelling = translateType
         ? translate(underlyingType, context, No.translatingFunction)
         : spellingOrNickname(children[0], context);
