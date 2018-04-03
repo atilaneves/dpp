@@ -54,8 +54,8 @@ import it.compile;
                   });
         writeFile("foo.dpp",
                   q{
-                      #include "foo.h"
-                  });
+                      #include "%s"
+                  }.format(inSandboxPath("foo.h")));
 
         run("foo.dpp", "foo.d");
     }
@@ -71,8 +71,8 @@ import it.compile;
                   });
         writeFile("foo.dpp",
                   q{
-                      #include "foo.h"
-                  });
+                      #include "%s"
+                  }.format(inSandboxPath("foo.h")));
 
         run("foo.dpp", "foo.di");
     }
