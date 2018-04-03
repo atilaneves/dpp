@@ -4,8 +4,11 @@ sudo: false
 
 addons:
   apt:
+    sources:
+      - ubuntu-toolchain-r-test
     packages:
       - libclang-3.9-dev
+      - g++-7
 
 
 install:

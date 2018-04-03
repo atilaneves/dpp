@@ -179,12 +179,19 @@ void shouldCompile(string file = __FILE__, size_t line = __LINE__)
 void shouldCompileAndRun(string file = __FILE__, size_t line = __LINE__)
                         (in Cpp header, in Cpp source, in D app, in RuntimeArgs args = RuntimeArgs())
 {
+    import std.process: environment;
+
     with(const IncludeSandbox()) {
         writeFile("hdr.hpp", header.code);
         const includeLine = `#include "` ~ inSandboxPath("hdr.hpp") ~ `"` ~ "\n";
         const cppSource = includeLine ~ source.code;
         writeFile("cpp.cpp", cppSource);
-        shouldSucceed("gcc", "-std=c++1y", "-c", "cpp.cpp");
+
+        const compiler = environment.get("TRAVIS", "") == ""
+            ? "g++"
+            : "g++-7";
+
+        shouldSucceed(compiler, "-std=c++17", "-c", "cpp.cpp");
 
         // take care of including the header and putting the D
         // code in a function
