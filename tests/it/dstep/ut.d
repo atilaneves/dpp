@@ -434,31 +434,3 @@ import it.compile;
         shouldCompile("main.d", "dstep.d");
     }
 }
-
-@ShouldFail("BUG - doesn't handle packed structs")
-@("packed struct")
-@safe unittest {
-    shouldCompile(
-        C(
-            q{
-                struct NotPacked {
-                    char x;
-                    short y;
-                    int z;
-                };
-
-                struct Packed {
-                    char x;
-                    short y;
-                    int z;
-                } __attribute__((__packed__));
-            }
-        ),
-        D(
-            q{
-                static assert(NotPacked.sizeof == 8, "NotPacked should be 8 bytes");
-                static assert(Packed.sizeof == 7, "Packed should be 7 bytes");
-            }
-        ),
-    );
-}
