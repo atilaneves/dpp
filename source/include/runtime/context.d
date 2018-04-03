@@ -77,7 +77,9 @@ struct Context {
     }
 
     void remember(in Cursor cursor) @safe pure nothrow {
-        if(cursor.spelling != "")
+        // EnumDecl can have no spelling but end up defining an enum anyway
+        // See "it.compile.projects.double enum typedef"
+        if(cursor.spelling != "" || cursor.kind == Cursor.Kind.EnumDecl)
             seenCursors[CursorId(cursor)] = true;
     }
 
@@ -86,13 +88,17 @@ struct Context {
 
 // to identify a cursor
 private struct CursorId {
-    import clang: Cursor;
+    import clang: Cursor, Type;
 
-    string spelling;
-    Cursor.Kind kind;
+    string cursorSpelling;
+    Cursor.Kind cursorKind;
+    string typeSpelling;
+    Type.Kind typeKind;
 
     this(in Cursor cursor) @safe pure nothrow {
-        spelling = cursor.spelling;
-        kind = cursor.kind;
+        cursorSpelling = cursor.spelling;
+        cursorKind = cursor.kind;
+        typeSpelling = cursor.type.spelling;
+        typeKind = cursor.type.kind;
     }
 }

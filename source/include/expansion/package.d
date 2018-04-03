@@ -142,6 +142,7 @@ string expand(in string headerFileName,
     ret ~= "{";
 
     foreach(cursor; cursors) {
+
         if(context.hasSeen(cursor)) continue;
         context.remember(cursor);
 

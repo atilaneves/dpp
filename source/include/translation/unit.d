@@ -50,7 +50,7 @@ string[] translate(in from!"clang".Cursor cursor,
 {
     import std.conv: text;
 
-    debugCursor(context, cursor);
+    //debugCursor(cursor, context);
 
     if(cursor.kind !in translations)
         throw new Exception(text("Cannot translate unknown cursor kind ", cursor.kind),
@@ -72,8 +72,8 @@ string[] translate(in from!"clang".Cursor cursor,
     }
 }
 
-void debugCursor(in from!"include.runtime.context".Context context,
-                 in from!"clang".Cursor cursor)
+void debugCursor(in from!"clang".Cursor cursor,
+                 in from!"include.runtime.context".Context context)
     @safe
 {
     import clang: Cursor;

@@ -556,3 +556,38 @@ import it.compile;
     }
 
 }
+
+
+@("double enum typedef")
+@safe unittest {
+
+    with(immutable IncludeSandbox()) {
+
+        writeFile("enum.h",
+                  q{
+                      typedef enum {
+                          only_value,
+                      } Enum;
+                  });
+
+        writeFile("hdr1.h",
+                  q{
+                      #include "enum.h"
+                  });
+
+        writeFile("hdr2.h",
+                  q{
+                      #include "enum.h"
+                  });
+
+        writeFile("app.dpp",
+                  q{
+                      #include "hdr1.h"
+                      #include "hdr2.h"
+                  });
+
+        run("app.dpp", "app.d");
+        shouldCompile("app.d");
+    }
+
+}
