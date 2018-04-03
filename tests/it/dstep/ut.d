@@ -282,24 +282,24 @@ import it.compile;
 
 @("variadic function without ...")
 @safe unittest {
-    with(immutable IncludeSandbox()) {
-        expand(Out("dstep.d"), In("dstep.h"),
-               q{
-                   void foo();
-               });
 
-        writeFile("main.d",
-                  q{
-                      import dstep;
-                      void main() {
-                      }
-                  });
-
-        // Fully variadic C functions aren't allowed in D.
-        // The declaration is void foo(...) but D requires at least
-        // one mandatory parameter.
-        shouldNotCompile("main.d", "dstep.d");
-    }
+    shouldCompile(
+        C(
+            q{
+                // Since fully variadic C functions aren't allowed in D,
+                // we assume the header means `void foo(void);`
+                // The reason being that void foo(...) wouldn't compile
+                // anyway and it's possible they meant foo(void).
+                void foo();
+            }
+        ),
+        D(
+            q{
+                foo();
+                static assert(!__traits(compiles, foo(2, 3)));
+            }
+        ),
+    );
 }
 
 

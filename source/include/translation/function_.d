@@ -22,9 +22,14 @@ string[] translateFunction(in from!"clang".Cursor function_,
 
     const returnType = translate(function_.returnType, context, Yes.translatingFunction);
     context.indent.log("Function return type: ", returnType);
-    const isVariadic =
-        function_.type.spelling.endsWith("...)") ||
-        (function_.language == Language.C && function_.type.spelling.endsWith("()"));
+
+    // Here we used to check that if there were no parameters and the language is C,
+    // then the correct translation in D would be (...);
+    // However, that's not allowed in D. It just so happens that C production code
+    // exists that doesn't bother with (void), so instead of producing something that
+    // doesn't compile, we compromise and assume the user meant (void)
+
+    const isVariadic = function_.type.spelling.endsWith("...)");
     const variadicParams = isVariadic ? "..." : "";
     const allParams = paramTypes(function_, context.indent).array ~ variadicParams;
 
