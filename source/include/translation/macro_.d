@@ -7,12 +7,12 @@ string[] translateMacro(in from!"clang".Cursor cursor,
     @safe
 {
     import clang: Cursor;
-    import std.format: format;
     import std.algorithm: map;
     import std.string: join;
     import std.file: exists;
     import std.stdio: File;
     import std.algorithm: startsWith;
+    import std.conv: text;
 
     assert(cursor.kind == Cursor.Kind.MacroDefinition);
 
@@ -47,5 +47,5 @@ string[] translateMacro(in from!"clang".Cursor cursor,
 
     alreadyDefined[cursor.spelling] = true;
 
-    return [maybeUndef ~ "#define %s\n".format(chars)];
+    return [maybeUndef ~ "#define " ~ text(chars) ~ "\n"];
 }

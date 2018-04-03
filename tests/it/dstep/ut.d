@@ -64,12 +64,12 @@ import it.compile;
 
         writeFile("main.dpp",
                   q{
-                      #include "%s"
+                      #include "dstep.h"
                       void main() {
                           static assert(var.sizeof == 4);
                           var[0] = cast(byte)3;
                       }
-                  }.format(inSandboxPath("dstep.h")));
+                  });
 
         preprocess("main.dpp", "main.d");
         shouldCompile("main.d");
@@ -90,13 +90,13 @@ import it.compile;
 
         writeFile("main.dpp",
                   q{
-                      #include "%s"
+                      #include "dstep.h"
                       void main() {
                           auto f = struct_Foo();
                           static assert(f.var.sizeof == 128);
                           f.var[127] = cast(byte)3;
                       }
-                  }.format(inSandboxPath("dstep.h")));
+                  });
 
         preprocess("main.dpp", "main.d");
         shouldCompile("main.d");
@@ -120,7 +120,7 @@ import it.compile;
 
         writeFile("main.dpp",
                   q{
-                      #include "%s"
+                      #include "dstep.h"
                       void main() {
                           auto f = struct_Foo();
                           // opposite order than in C
@@ -129,7 +129,7 @@ import it.compile;
                           static assert(f.var[0][0].length == 8);
                           auto v = f.var[0][0][7];
                       }
-                  }.format(inSandboxPath("dstep.h")));
+                  });
 
         preprocess("main.dpp", "main.d");
         shouldCompile("main.d");
@@ -195,7 +195,7 @@ import it.compile;
 
         writeFile("main.dpp",
                   q{
-                      #include "%s"
+                      #include "dstep.h"
                       void main() {
                           auto s = struct_stats_t();
                           // opposite order than in C
@@ -203,7 +203,7 @@ import it.compile;
                           // accessing at the limits of each dimension
                           auto q = s.stat[1][3][1][7];
                       }
-                  }.format(inSandboxPath("dstep.h")));
+                  });
 
         preprocess("main.dpp", "main.d");
         shouldCompile("main.d");

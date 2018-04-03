@@ -182,12 +182,12 @@ import it.compile;
         const inputFileName = "foo.dpp";
         writeFile("foo.dpp",
                   q{
-                      #include "%s"
+                      #include "header.h"
                       void func() {
                           fd_set foo;
                           foo.__fds_bits[0] = 5;
                       }
-                  }.format(inSandboxPath("header.h")));
+                  });
 
 
         preprocess("foo.dpp", "foo.d");

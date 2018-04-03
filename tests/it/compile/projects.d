@@ -379,12 +379,12 @@ import it.compile;
 
         writeFile("app.dpp",
                   q{
-                      #include "%s"
-                      #include "%s"
+                      #include "hdr1.h"
+                      #include "hdr2.h"
                       void main() {
                           time_t var = 42;
                       }
-                  }.format(inSandboxPath("hdr1.h"), inSandboxPath("hdr2.h")));
+                  });
 
         preprocess("app.dpp", "app.d");
         shouldCompile("app.d");

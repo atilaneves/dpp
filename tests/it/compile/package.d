@@ -4,4 +4,3 @@
 module it.compile;
 
 public import it;
-public import std.format: format;
