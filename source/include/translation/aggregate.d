@@ -57,6 +57,9 @@ string[] translateAggregate(
     import std.algorithm: map;
     import std.array: array;
 
+    // remember all aggregate declarations
+    context.aggregateDeclarations[spellingOrNickname(cursor, context)] = true;
+
     const name = spelling.isNull ? spellingOrNickname(cursor, context) : spelling.get;
     const firstLine = keyword ~ ` ` ~ name;
 
@@ -111,13 +114,19 @@ string[] translateField(in from!"clang".Cursor field,
     @safe
 {
 
-    import include.translation.type: translate;
+    import include.translation.type: translate, cleanType;
     import clang: Cursor, Type;
     import std.conv: text;
     import std.typecons: No;
     import std.array: replace;
 
     assert(field.kind == Cursor.Kind.FieldDecl, text("Field of wrong kind: ", field));
+
+    // It's possible one of the fields is a pointer to a structure that isn't declared anywhere,
+    // so we try and remember it here to fix it later
+    if(field.type.kind == Type.Kind.Pointer && field.type.pointee.canonical.kind == Type.Kind.Record) {
+        context.fieldStructPointerSpellings[field.type.pointee.canonical.spelling.cleanType] = true;
+    }
 
     const type = translate(field.type, context, No.translatingFunction);
     return [text(type, " ", field.spelling.translateIdentifier, ";")];

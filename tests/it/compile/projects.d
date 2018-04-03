@@ -433,7 +433,6 @@ import it.compile;
     );
 }
 
-@ShouldFail
 @("struct pointer to unknown struct")
 @safe unittest {
     shouldCompile(

@@ -15,7 +15,7 @@ version(unittest) {
    otherwise do nothing (i.e. return the same line)
  */
 string maybeExpand(string line,
-                   in from!"include.runtime.options".Options options,
+                   ref from!"include.runtime.context".Context context,
                    ref from!"include.runtime.context".SeenCursors seenCursors)
     @safe
 {
@@ -23,17 +23,19 @@ string maybeExpand(string line,
 
     return headerName == ""
         ? line
-        : expand(toFileName(options.includePaths, headerName), options, seenCursors);
+        : expand(toFileName(context.options.includePaths, headerName),
+                 context,
+                 seenCursors);
 }
 
 
 @("translate no include")
 @safe unittest {
-    import include.runtime.options: Options;
-    import include.runtime.context: SeenCursors;
+    import include.runtime.context: Context, SeenCursors;
     SeenCursors cursors;
-    maybeExpand("foo", Options(), cursors).shouldEqual("foo");
-    maybeExpand("bar", Options(), cursors).shouldEqual("bar");
+    Context context;
+    maybeExpand("foo", context, cursors).shouldEqual("foo");
+    maybeExpand("bar", context, cursors).shouldEqual("bar");
 }
 
 private string getHeaderName(string line) @safe pure {
@@ -82,13 +84,13 @@ private string toFileName(in string[] includePaths, in string headerName) @safe 
 
 
 string expand(in string headerFileName,
-              in from!"include.runtime.options".Options options,
+              ref from!"include.runtime.context".Context context,
               ref from!"include.runtime.context".SeenCursors seenCursors,
               in string file = __FILE__,
               in size_t line = __LINE__)
     @safe
 {
-    import include.runtime.context: Context, hasSeen, remember;
+    import include.runtime.context: hasSeen, remember;
     import include.translation.unit: translate;
     import clang: parse, TranslationUnitFlags, Cursor;
     import std.array: join, array;
@@ -142,8 +144,6 @@ string expand(in string headerFileName,
 
     ret ~= isCppHeader(headerFileName) ? "extern(C++)" : "extern(C)";
     ret ~= "{";
-
-    auto context = Context(options.indent);
 
     foreach(cursor; cursors) {
         if(seenCursors.hasSeen(cursor)) continue;

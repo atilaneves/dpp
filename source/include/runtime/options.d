@@ -53,6 +53,7 @@ struct Options {
 
     Options indent() pure nothrow const {
         auto ret = Options(inputFileName, outputFileName, indentation ~ "    ", debugOutput);
+        ret.includePaths = includePaths.dup;
         return ret;
     }
 

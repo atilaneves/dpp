@@ -5,6 +5,9 @@ module include.runtime.context;
 
 import include.from;
 
+/**
+   Context for the current translation, to avoid global variables
+ */
 struct Context {
 
     import include.runtime.options: Options;
@@ -27,6 +30,18 @@ struct Context {
     /// Used to find the last nickname we coined (e.g. "_Anonymous_1")
     string[] nickNames;
 
+    /**
+       Remembers the seen struct pointers so that if any are undeclared in C,
+       we do so in D at the end.
+     */
+    bool[string] fieldStructPointerSpellings;
+
+    /**
+       All the aggregates that have been declared
+     */
+    bool[string] aggregateDeclarations;
+
+    /// Command-line options
     Options options;
 
     ref Context indent() @safe pure return {

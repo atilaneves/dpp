@@ -34,7 +34,7 @@ void run(in from!"include.runtime.options".Options options) @safe {
  */
 void preprocess(File)(in from!"include.runtime.options".Options options) {
 
-    import include.runtime.context: SeenCursors;
+    import include.runtime.context: Context, SeenCursors;
     import include.expansion: maybeExpand;
     import std.algorithm: map, startsWith;
     import std.process: execute;
@@ -59,12 +59,21 @@ void preprocess(File)(in from!"include.runtime.options".Options options) {
            something twice (legal in C, illegal in D).
         */
         SeenCursors seenTopLevelCursors;
+        auto context = Context(options.indent);
 
         () @trusted {
             foreach(line; File(options.inputFileName).byLine.map!(a => cast(string)a)) {
-                outputFile.writeln(line.maybeExpand(options, seenTopLevelCursors));
+                outputFile.writeln(line.maybeExpand(context, seenTopLevelCursors));
             }
         }();
+
+        // if there are any fields that were struct pointers
+        // but the struct wasn't declared anywhere, do so now
+        foreach(name, _; context.fieldStructPointerSpellings) {
+            if(name !in context.aggregateDeclarations)
+                outputFile.writeln("struct " ~ name ~ ";");
+        }
+
     }
 
 
