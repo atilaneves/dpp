@@ -6,9 +6,8 @@ module include.translation.type;
 import include.from;
 
 string translate(in from!"clang".Type type,
-                 in from!"std.typecons".Flag!"translatingFunction" translatingFunction = from!"std.typecons".No.translatingFunction,
-                 in from!"include.runtime.options".Options options =
-                              from!"include.runtime.options".Options())
+                 ref from!"include.runtime.context".Context context,
+                 in from!"std.typecons".Flag!"translatingFunction" translatingFunction = from!"std.typecons".No.translatingFunction)
     @safe
 {
     import include.translation.aggregate: spellingOrNickname;
@@ -26,7 +25,7 @@ string translate(in from!"clang".Type type,
 
         case Long: return addModifiers(type, "c_long");
         case ULong: return addModifiers(type, "c_ulong");
-        case Pointer: return translatePointer(type, options).cleanType;
+        case Pointer: return translatePointer(type, context).cleanType;
         case Typedef:
             // Here we may get a Typedef with a canonical type of Enum. It might be worth
             // translating to int for function parameters
@@ -55,7 +54,7 @@ string translate(in from!"clang".Type type,
         case Half: return addModifiers(type, "float");
         case LongDouble: return addModifiers(type, "real");
         case Enum: return addModifiers(type, type.spelling.cleanType);
-        case FunctionProto: return translateFunctionProto(type);
+        case FunctionProto: return translateFunctionProto(type, context);
         case Record:
             return addModifiers(type, type.spelling.replace("const ", ""));
 
@@ -63,16 +62,16 @@ string translate(in from!"clang".Type type,
             // Here we may get an elaborated enum. It's possible to know that
             // because the spelling begins with "enum ". It might be worth
             // translating to int for function parameters
-            return spellingOrNickname(type.spelling).cleanType;
+            return spellingOrNickname(type.spelling, context).cleanType;
 
         case ConstantArray:
-            options.indent.log("Constant array of # ", type.numElements);
+            context.indent.log("Constant array of # ", type.numElements);
             return translatingFunction
-                ? translate(type.elementType) ~ `*`
-                : translate(type.elementType) ~ `[` ~ type.numElements.text ~ `]`;
+                ? translate(type.elementType, context) ~ `*`
+                : translate(type.elementType, context) ~ `[` ~ type.numElements.text ~ `]`;
 
         case IncompleteArray:
-            const dType = translate(type.elementType);
+            const dType = translate(type.elementType, context);
             // if translating a function, we want C's T[] to translate
             // to T*, otherwise we want a flexible array
             return translatingFunction ? dType ~ `*` : dType ~ "[0]";
@@ -86,7 +85,7 @@ private string addModifiers(in from!"clang".Type type, in string translation) @s
 }
 
 private string translatePointer(in from!"clang".Type type,
-                                in from!"include.runtime.options".Options options)
+                                ref from!"include.runtime.context".Context context)
     @safe
 {
     import clang: Type;
@@ -101,12 +100,12 @@ private string translatePointer(in from!"clang".Type type,
 
     // usually "*" but sometimes not needed if already a reference type
     const pointer = isFunctionProto ? "" : "*";
-    options.indent.log("Pointee:           ", *type.pointee);
-    options.indent.log("Pointee canonical: ", type.pointee.canonical);
+    context.indent.log("Pointee:           ", *type.pointee);
+    context.indent.log("Pointee canonical: ", type.pointee.canonical);
 
     const rawType = type.pointee.kind == Type.Kind.Unexposed
-        ? translate(type.pointee.canonical)
-        : translate(*type.pointee);
+        ? translate(type.pointee.canonical, context)
+        : translate(*type.pointee, context);
 
     // Only add top-level const if it's const all the way down
     bool addConst() @trusted {
@@ -129,15 +128,18 @@ private string translatePointer(in from!"clang".Type type,
 
 // currently only getting here from function pointer variables
 // with have kind unexposed but canonical kind FunctionProto
-private string translateFunctionProto(in from!"clang".Type type) @safe {
+private string translateFunctionProto(in from!"clang".Type type,
+                                      ref from!"include.runtime.context".Context context)
+    @safe
+{
     import std.conv: text;
     import std.algorithm: map;
     import std.array: join, array;
 
-    const params = type.paramTypes.map!(a => translate(a)).array;
+    const params = type.paramTypes.map!(a => translate(a, context)).array;
     const variadicParams = type.isVariadicFunction ? ["..."] : [];
     const allParams = params ~ variadicParams;
-    return text(translate(type.returnType), " function(", allParams.join(", "), ")");
+    return text(translate(type.returnType, context), " function(", allParams.join(", "), ")");
 }
 
 string cleanType(in string type) @safe pure {

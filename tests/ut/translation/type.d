@@ -1,9 +1,14 @@
 module ut.translation.type;
 
 import ut.translation;
-import include.translation.type;
 import clang: Type;
 
+string translate(in from!"clang".Type type) @safe {
+    import include.translation.type: translate_ = translate;
+    import include.runtime.context: Context;
+    Context context;
+    return translate_(type, context);
+}
 
 @("void")
 @safe unittest {

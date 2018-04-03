@@ -3,8 +3,7 @@ module include.translation.variable;
 import include.from;
 
 string[] translateVariable(in from!"clang".Cursor cursor,
-                           in from!"include.runtime.options".Options options =
-                                  from!"include.runtime.options".Options())
+                           ref from!"include.runtime.context".Context context)
     @safe
 {
     import include.translation.type: translate;
@@ -18,5 +17,5 @@ string[] translateVariable(in from!"clang".Cursor cursor,
     if(!cursor.isCanonical) return [];
 
     return [text("extern __gshared ",
-                 translate(cursor.type, No.translatingFunction, options), " ", cursor.spelling, ";")];
+                 translate(cursor.type, context, No.translatingFunction), " ", cursor.spelling, ";")];
 }

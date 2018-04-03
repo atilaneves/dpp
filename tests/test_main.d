@@ -9,7 +9,6 @@ int main(string[] args) {
         "include.expansion",
 
         // unit tests
-        "ut.translation.field",
         "ut.translation.type",
         "ut.translation.enum_",
 

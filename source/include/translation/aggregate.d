@@ -5,44 +5,27 @@ module include.translation.aggregate;
 
 import include.from;
 
-alias CursorHash = uint;
-
-/**
-   Structs can be anonymous in C, and it's even common
-   to typedef them to a name. We come up with new names
-   that we track here so as to be able to properly transate
-   those typedefs.
- */
-private shared string[CursorHash] gCursorNickNames;
-
-// FIXME - there must be a better way
-/// Used to find the last nickname we coined (e.g. "_Anonymous_1")
-private shared string[] gNickNames;
-
 
 string[] translateStruct(in from!"clang".Cursor cursor,
-                         in from!"include.runtime.options".Options options =
-                                from!"include.runtime.options".Options())
+                         ref from!"include.runtime.context".Context context)
     @safe
 {
     import clang: Cursor;
     assert(cursor.kind == Cursor.Kind.StructDecl);
-    return translateAggregate(options, cursor, "struct");
+    return translateAggregate(context, cursor, "struct");
 }
 
 string[] translateUnion(in from!"clang".Cursor cursor,
-                        in from!"include.runtime.options".Options options =
-                               from!"include.runtime.options".Options())
+                        ref from!"include.runtime.context".Context context)
     @safe
 {
     import clang: Cursor;
     assert(cursor.kind == Cursor.Kind.UnionDecl);
-    return translateAggregate(options, cursor, "union");
+    return translateAggregate(context, cursor, "union");
 }
 
 string[] translateEnum(in from!"clang".Cursor cursor,
-                       in from!"include.runtime.options".Options options =
-                              from!"include.runtime.options".Options())
+                       ref from!"include.runtime.context".Context context)
     @safe
 {
     import clang: Cursor;
@@ -56,13 +39,13 @@ string[] translateEnum(in from!"clang".Cursor cursor,
     // This means that `enum Foo { foo, bar }` in C will become:
     // `enum Foo { foo, bar }` _and_ `enum { foo, bar }` in D.
     return
-        translateAggregate(options, cursor, "enum") ~
-        translateAggregate(options, cursor, "enum", nullable(""));
+        translateAggregate(context, cursor, "enum") ~
+        translateAggregate(context, cursor, "enum", nullable(""));
 }
 
 // not pure due to Cursor.opApply not being pure
 string[] translateAggregate(
-    in from!"include.runtime.options".Options options,
+    ref from!"include.runtime.context".Context context,
     in from!"clang".Cursor cursor,
     in string keyword,
     in from!"std.typecons".Nullable!string spelling = from!"std.typecons".Nullable!string()
@@ -74,7 +57,7 @@ string[] translateAggregate(
     import std.algorithm: map;
     import std.array: array;
 
-    const name = spelling.isNull ? spellingOrNickname(cursor) : spelling.get;
+    const name = spelling.isNull ? spellingOrNickname(cursor, context) : spelling.get;
     const firstLine = keyword ~ ` ` ~ name;
 
     if(!cursor.isDefinition) return [firstLine ~ `;`];
@@ -85,7 +68,7 @@ string[] translateAggregate(
 
     foreach(member; cursor) {
         if(!member.isDefinition) continue;
-        lines ~= translate(member, options.indent).map!(a => "    " ~ a).array;
+        lines ~= translate(member, context.indent).map!(a => "    " ~ a).array;
     }
 
     lines ~= `}`;
@@ -124,9 +107,7 @@ string identifier(in from!"clang".Cursor cursor) @safe {
 }
 
 string[] translateField(in from!"clang".Cursor field,
-                        in from!"include.runtime.options".Options options =
-                               from!"include.runtime.options".Options()
-                        )
+                        ref from!"include.runtime.context".Context context)
     @safe
 {
 
@@ -138,7 +119,7 @@ string[] translateField(in from!"clang".Cursor field,
 
     assert(field.kind == Cursor.Kind.FieldDecl, text("Field of wrong kind: ", field));
 
-    const type = translate(field.type, No.translatingFunction, options);
+    const type = translate(field.type, context, No.translatingFunction);
     return [text(type, " ", field.spelling.translateIdentifier, ";")];
 }
 
@@ -148,7 +129,10 @@ string translateIdentifier(in string spelling) @safe pure nothrow {
 
 // return the spelling if it exists, or our made-up nickname for it
 // if not
-package string spellingOrNickname(in from!"clang".Cursor cursor) @safe {
+package string spellingOrNickname(in from!"clang".Cursor cursor,
+                                  ref from!"include.runtime.context".Context context)
+    @safe
+{
 
     import std.conv: text;
 
@@ -156,23 +140,26 @@ package string spellingOrNickname(in from!"clang".Cursor cursor) @safe {
 
     if(cursor.spelling != "") return identifier(cursor);
 
-    if(cursor.hash !in gCursorNickNames) {
+    if(cursor.hash !in context.cursorNickNames) {
         auto nick = newAnonymousName;
-        gNickNames ~= nick;
-        gCursorNickNames[cursor.hash] = nick;
+        context.nickNames ~= nick;
+        context.cursorNickNames[cursor.hash] = nick;
     }
 
-    return gCursorNickNames[cursor.hash];
+    return context.cursorNickNames[cursor.hash];
 }
 
-package string spellingOrNickname(in string typeSpelling) @safe {
+package string spellingOrNickname(in string typeSpelling,
+                                  ref from!"include.runtime.context".Context context)
+    @safe
+{
 
     import std.algorithm: canFind;
     // clang names anonymous types with a long name indicating where the type
     // was declared
     if(typeSpelling.canFind("(anonymous")) {
-        auto ret = gNickNames[$-1];
-        gNickNames = gNickNames[0 .. $-1];
+        auto ret = context.nickNames[$-1];
+        context.nickNames = context.nickNames[0 .. $-1];
         return ret;
     }
     return typeSpelling;

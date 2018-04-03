@@ -3,8 +3,7 @@ module include.translation.typedef_;
 import include.from;
 
 string[] translateTypedef(in from!"clang".Cursor typedef_,
-                          in from!"include.runtime.options".Options options =
-                                 from!"include.runtime.options".Options())
+                          ref from!"include.runtime.context".Context context)
     @safe
 {
     import include.translation.type: cleanType, translate;
@@ -25,15 +24,15 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
 
     const underlyingType = typedef_.underlyingType.canonical;
 
-    options.indent.log("TypedefDecl children: ", children);
-    options.indent.log("Underlying type: ", underlyingType);
-    options.indent.log("Canonical underlying type: ", underlyingType.canonical);
+    context.indent.log("TypedefDecl children: ", children);
+    context.indent.log("Underlying type: ", underlyingType);
+    context.indent.log("Canonical underlying type: ", underlyingType.canonical);
 
     // FIXME - seems to be built-in
     if (typedef_.spelling == "size_t") return [];
 
     if(isSomeFunction(underlyingType))
-        return translateFunctionTypeDef(typedef_, options);
+        return translateFunctionTypeDef(typedef_, context);
 
     assert(children.length == 1 ||
            (children.length == 0 && typedef_.type.kind == Type.Kind.Typedef),
@@ -45,8 +44,8 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     // (see the jmp_buf test)
     const translateType = children.length == 0 || underlyingType.kind == Type.Kind.ConstantArray;
     const originalSpelling = translateType
-        ? translate(underlyingType, No.translatingFunction, options)
-        : spellingOrNickname(children[0]);
+        ? translate(underlyingType, context, No.translatingFunction)
+        : spellingOrNickname(children[0], context);
 
     return typedef_.spelling == originalSpelling.cleanType
         ? []
@@ -54,7 +53,7 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
 }
 
 private string[] translateFunctionTypeDef(in from!"clang".Cursor typedef_,
-                                          in from!"include.runtime.options".Options options)
+                                          ref from!"include.runtime.context".Context context)
     @safe
 {
     import include.translation.type: translate;
@@ -67,10 +66,10 @@ private string[] translateFunctionTypeDef(in from!"clang".Cursor typedef_,
     const returnType = underlyingType.kind == Type.Kind.Pointer
         ? underlyingType.pointee.returnType
         : underlyingType.returnType;
-    options.indent.log("Function typedef return type: ", returnType);
-    const returnTypeTransl = translate(returnType);
+    context.indent.log("Function typedef return type: ", returnType);
+    const returnTypeTransl = translate(returnType, context);
 
-    const params = paramTypes(typedef_, options.indent).join(", ");
+    const params = paramTypes(typedef_, context.indent).join(", ");
     return [`alias ` ~ typedef_.spelling ~ ` = ` ~ returnTypeTransl ~ ` function(` ~ params ~ `);`];
 
 }

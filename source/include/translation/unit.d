@@ -7,10 +7,10 @@ import include.from;
 
 alias Translation = string[] function(
     in from!"clang".Cursor cursor,
-    in from!"include.runtime.options".Options options = from!"include.runtime.options".Options(),
-    ) @safe;
+    ref from!"include.runtime.context".Context context,
+) @safe;
 
-string translate(in from!"include.runtime.options".Options options,
+string translate(ref from!"include.runtime.context".Context context,
                  in from!"clang".Cursor cursor,
                  in string file = __FILE__,
                  in size_t line = __LINE__)
@@ -21,7 +21,7 @@ string translate(in from!"include.runtime.options".Options options,
 
     return cursor.skip
         ? ""
-        : translate(cursor, options, file, line).map!(a => "    " ~ a).join("\n");
+        : translate(cursor, context, file, line).map!(a => "    " ~ a).join("\n");
 }
 
 private bool skip(in from!"clang".Cursor cursor) @safe pure {
@@ -43,15 +43,14 @@ private bool skip(in from!"clang".Cursor cursor) @safe pure {
 
 
 string[] translate(in from!"clang".Cursor cursor,
-                   in from!"include.runtime.options".Options options =
-                          from!"include.runtime.options".Options(),
+                   ref from!"include.runtime.context".Context context,
                    in string file = __FILE__,
                    in size_t line = __LINE__)
     @safe
 {
     import std.conv: text;
 
-    debugCursor(options, cursor);
+    debugCursor(context, cursor);
 
     if(cursor.kind !in translations)
         throw new Exception(text("Cannot translate unknown cursor kind ", cursor.kind),
@@ -59,7 +58,7 @@ string[] translate(in from!"clang".Cursor cursor,
                             line);
 
     try
-        return translations[cursor.kind](cursor, options);
+        return translations[cursor.kind](cursor, context);
     catch(Exception e) {
         import std.stdio: stderr;
         debug {
@@ -73,7 +72,7 @@ string[] translate(in from!"clang".Cursor cursor,
     }
 }
 
-private void debugCursor(in from!"include.runtime.options".Options options,
+private void debugCursor(in from!"include.runtime.context".Context context,
                          in from!"clang".Cursor cursor)
     @safe
 {
@@ -81,7 +80,7 @@ private void debugCursor(in from!"include.runtime.options".Options options,
     import std.algorithm: startsWith, canFind;
 
     version(unittest) {}
-    else if(!options.debugOutput) return;
+    else if(!context.debugOutput) return;
 
     const isMacro = cursor.kind == Cursor.Kind.MacroDefinition;
     const isOkMacro =
@@ -91,7 +90,7 @@ private void debugCursor(in from!"include.runtime.options".Options options,
     const definition = cursor.isDefinition ? " DEF" : "";
 
     if(!isMacro || isOkMacro) {
-        options.log(cursor, canonical, definition, "  ", cursor.language, " @ ", cursor.sourceRange);
+        context.log(cursor, canonical, definition, "  ", cursor.language, " @ ", cursor.sourceRange);
     }
 }
 
@@ -101,7 +100,7 @@ Translation[from!"clang".Cursor.Kind] translations() @safe {
     import include.expansion: expand;
 
     static string[] ignore(in Cursor cursor,
-                           in from!"include.runtime.options".Options options) {
+                           ref from!"include.runtime.context".Context context) {
         return [];
     }
 

@@ -88,7 +88,7 @@ string expand(in string headerFileName,
               in size_t line = __LINE__)
     @safe
 {
-    import include.runtime.context: hasSeen, remember;
+    import include.runtime.context: Context, hasSeen, remember;
     import include.translation.unit: translate;
     import clang: parse, TranslationUnitFlags, Cursor;
     import std.array: join, array;
@@ -143,10 +143,12 @@ string expand(in string headerFileName,
     ret ~= isCppHeader(headerFileName) ? "extern(C++)" : "extern(C)";
     ret ~= "{";
 
+    auto context = Context(options.indent);
+
     foreach(cursor; cursors) {
         if(seenCursors.hasSeen(cursor)) continue;
         seenCursors.remember(cursor);
-        const lines = translate(options.indent, cursor, file, line);
+        const lines = translate(context, cursor, file, line);
         if(lines.length) ret ~= lines;
     }
 
