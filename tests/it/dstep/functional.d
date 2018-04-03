@@ -96,7 +96,7 @@ import it.compile;
                    typedef struct
                    {
                        int x;
-                       int[0] data;
+                       int data[0];
                    } Dynamic;
                });
 

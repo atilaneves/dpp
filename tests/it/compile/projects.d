@@ -34,7 +34,7 @@ import it.compile;
         C(
             q{
                 typedef long long __ssize_t;
-                typedef __ssize_t __io_read_fn (void *__cookie, char *__buf, size_t __nbytes);
+                typedef __ssize_t __io_read_fn (void *__cookie, char *__buf, long __nbytes);
             }
         ),
 
@@ -221,9 +221,9 @@ import it.compile;
     shouldCompile(
         C(
             q{
-                struct FILE { int dummy; }
-                extern FILE *fopen(const char *restrict filename,
-                                   const char *restrict modes);
+                struct FILE { int dummy; };
+                extern struct FILE *fopen(const char *restrict filename,
+                                          const char *restrict modes);
             }
         ),
 
@@ -498,22 +498,25 @@ import it.compile;
     );
 }
 
-@ShouldFail
 @("extern global variable with undefined macro")
 @safe unittest {
-    shouldCompile(
-        C(
-            q{
-                // EXPORT_VAR not defined anywhere
-                typedef struct _Foo Foo;
-                typedef Foo *FooPtr;
-                EXPORT_VAR FooPtr theFoo;
-            }
-        ),
-        D(
-            q{
-                theFoo = null;
-            }
-        ),
-    );
+    with(immutable IncludeSandbox()) {
+        writeFile("hdr.h",
+                  q{
+                      // EXPORT_VAR not defined anywhere
+                      typedef struct _Foo Foo;
+                      typedef Foo *FooPtr;
+                      EXPORT_VAR FooPtr theFoo;
+                  });
+        writeFile("app.dpp",
+                  q{
+                      #include "hdr.h"
+                  });
+        try {
+            preprocess("app.dpp", "app.d");
+            assert(0, "Should not get here");
+        } catch(Exception e) {
+            "unknown type name 'EXPORT_VAR'".shouldBeIn(e.msg);
+        }
+    }
 }

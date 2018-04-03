@@ -117,7 +117,7 @@ import it.compile;
         C(
             q{
                 typedef struct A B;
-                struct A { int a; }
+                struct A { int a; };
             }
         ),
         D(

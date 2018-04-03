@@ -179,7 +179,7 @@ import it.compile;
                         one = 1,
                         two = 2,
                     };
-                }
+                };
             }
         ),
 
@@ -202,7 +202,7 @@ import it.compile;
                         one = 1,
                         two = 2,
                     } numbers;
-                }
+                };
             }
         ),
 
@@ -228,7 +228,7 @@ import it.compile;
                         one = 1,
                         two = 2,
                     };
-                }
+                };
             }
         ),
 
@@ -252,7 +252,7 @@ import it.compile;
                         one = 1,
                         two = 2,
                     } numbers;
-                }
+                };
             }
         ),
 

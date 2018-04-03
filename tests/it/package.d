@@ -176,6 +176,23 @@ void shouldCompile(string file = __FILE__, size_t line = __LINE__)
     }
 }
 
+void shouldNotCompile(string file = __FILE__, size_t line = __LINE__)
+                  (in C header, in D app)
+{
+    with(const IncludeSandbox()) {
+        writeFile("hdr.h", header.code);
+        // take care of including the header and putting the D
+        // code in a function
+        const dCode = `#include "` ~ inSandboxPath("hdr.h") ~ `"` ~ "\n" ~
+            `void main() {` ~ "\n" ~ app.code ~ "\n}\n";
+
+        writeFile("app.dpp", dCode);
+        preprocess("app.dpp", "app.d");
+        shouldNotCompile!(file, line)("app.d");
+    }
+}
+
+
 /**
    Convenience function in the typical case that a test has a C
    header and a D main file.
