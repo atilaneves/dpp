@@ -4,7 +4,9 @@ int main(string[] args) {
     import std.stdio: stderr;
 
     try {
-        run(Options(args));
+        const options = Options(args);
+        if(options.earlyExit) return 0;
+        run(options);
         return 0;
     } catch(Exception ex) {
         stderr.writeln("Error: ", ex);

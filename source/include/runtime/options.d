@@ -11,19 +11,32 @@ struct Options {
     string outputFileName;
     string indentation;
     bool debugOutput;
+    string[] includePaths;
+    bool earlyExit;
 
     this(string[] args) {
+
         import std.exception: enforce;
         import std.getopt: getopt, defaultGetoptPrinter;
 
-        getopt(args,
+        auto helpInfo = getopt(args,
                "debug|d", "Print debug information", &debugOutput,
+               "i", "Include paths", &includePaths,
         );
+
+        if(helpInfo.helpWanted) {
+            () @trusted {
+                defaultGetoptPrinter("Usage: reggae -b <ninja|make|binary|tup> </path/to/project>",
+                                     helpInfo.options);
+            }();
+            earlyExit = true;
+        }
 
         enforce(args.length == 3, "Usage: include <inFile> <outFile>");
 
         inputFileName = args[1];
         outputFileName = args[2];
+        includePaths = "/usr/include" ~ includePaths;
     }
 
     this(in string inputFileName,

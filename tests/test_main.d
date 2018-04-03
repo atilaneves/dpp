@@ -22,6 +22,7 @@ int main(string[] args) {
         "it.compile.typedef_",
         "it.compile.function_",
         "it.compile.projects",
+        "it.compile.runtime_args",
 
         // tests copied from dstep
         "it.dstep.ut",

@@ -74,6 +74,17 @@ struct IncludeSandbox {
         writeFile(outFileName, realExpand(inFileName, Options(), seenCursors, file, line));
     }
 
+    void run(string[] args...) @safe const {
+        import include.runtime.options: Options;
+        import include.runtime.app: realRun = run;
+
+        auto options = Options("./include" ~ args);
+        options.inputFileName = inSandboxPath(options.inputFileName);
+        options.outputFileName = inSandboxPath(options.outputFileName);
+
+        realRun(options);
+    }
+
     void preprocess(in string inputFileName, in string outputFileName) @safe const {
         import include.runtime.options: Options;
         import include.runtime.app: realPreProcess = preprocess;

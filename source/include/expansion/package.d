@@ -19,12 +19,11 @@ string maybeExpand(string line,
                    ref from!"include.runtime.context".SeenCursors seenCursors)
     @safe
 {
-
     const headerName = getHeaderName(line);
 
     return headerName == ""
         ? line
-        : expand(headerName.toFileName, options, seenCursors);
+        : expand(toFileName(options.includePaths, headerName), options, seenCursors);
 }
 
 
@@ -62,7 +61,7 @@ private string getHeaderName(string line) @safe pure {
 
 // transforms a header name, e.g. stdio.h
 // into a full file path, e.g. /usr/include/stdio.h
-private string toFileName(in string headerName) @safe {
+private string toFileName(in string[] includePaths, in string headerName) @safe {
 
     import std.algorithm: map, filter;
     import std.path: buildPath, absolutePath;
@@ -72,9 +71,12 @@ private string toFileName(in string headerName) @safe {
 
     if(headerName.exists) return headerName;
 
-    const dirs = ["/usr/include"];
-    auto filePaths = dirs.map!(a => buildPath(a, headerName).absolutePath).filter!exists;
+    auto filePaths = includePaths
+        .map!(a => buildPath(a, headerName).absolutePath)
+        .filter!exists;
+
     enforce(!filePaths.empty, text("Cannot find file path for header '", headerName, "'"));
+
     return filePaths.front;
 }
 
