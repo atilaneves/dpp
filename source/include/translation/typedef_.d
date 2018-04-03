@@ -24,15 +24,15 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
 
     const underlyingType = typedef_.underlyingType.canonical;
 
-    context.indent.log("TypedefDecl children: ", children);
-    context.indent.log("Underlying type: ", underlyingType);
-    context.indent.log("Canonical underlying type: ", underlyingType.canonical);
+    context.log("TypedefDecl children: ", children);
+    context.log("Underlying type: ", underlyingType);
+    context.log("Canonical underlying type: ", underlyingType.canonical);
 
     // FIXME - seems to be built-in
     if (typedef_.spelling == "size_t") return [];
 
     if(isSomeFunction(underlyingType))
-        return translateFunctionTypeDef(typedef_, context);
+        return translateFunctionTypeDef(typedef_, context.indent);
 
     assert(children.length == 1 ||
            (children.length == 0 && typedef_.type.kind == Type.Kind.Typedef),
@@ -71,7 +71,7 @@ private string[] translateFunctionTypeDef(in from!"clang".Cursor typedef_,
     const returnType = underlyingType.kind == Type.Kind.Pointer
         ? underlyingType.pointee.returnType
         : underlyingType.returnType;
-    context.indent.log("Function typedef return type: ", returnType);
+    context.log("Function typedef return type: ", returnType);
     const returnTypeTransl = translate(returnType, context);
 
     const params = paramTypes(typedef_, context.indent).join(", ");

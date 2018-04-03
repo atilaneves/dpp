@@ -21,7 +21,7 @@ string[] translateFunction(in from!"clang".Cursor function_,
     assert(function_.kind == Cursor.Kind.FunctionDecl);
 
     const returnType = translate(function_.returnType, context, Yes.translatingFunction);
-    context.indent.log("Function return type: ", returnType);
+    context.log("Function return type: ", returnType);
 
     // Here we used to check that if there were no parameters and the language is C,
     // then the correct translation in D would be (...);

@@ -58,7 +58,7 @@ string[] translate(in from!"clang".Cursor cursor,
                             line);
 
     try
-        return translations[cursor.kind](cursor, context);
+        return translations[cursor.kind](cursor, context.indent);
     catch(Exception e) {
         import std.stdio: stderr;
         debug {

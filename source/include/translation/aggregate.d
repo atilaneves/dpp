@@ -71,7 +71,7 @@ string[] translateAggregate(
 
     foreach(member; cursor) {
         if(!member.isDefinition) continue;
-        lines ~= translate(member, context.indent).map!(a => "    " ~ a).array;
+        lines ~= translate(member, context).map!(a => "    " ~ a).array;
     }
 
     lines ~= `}`;
