@@ -377,7 +377,7 @@ import it.compile;
             }
         ),
 
-        writeFile("app.d_",
+        writeFile("app.dpp",
                   q{
                       #include "%s"
                       #include "%s"
@@ -386,7 +386,7 @@ import it.compile;
                       }
                   }.format(inSandboxPath("hdr1.h"), inSandboxPath("hdr2.h")));
 
-        preprocess("app.d_", "app.d");
+        preprocess("app.dpp", "app.d");
         shouldCompile("app.d");
     }
 }

@@ -179,8 +179,8 @@ import it.compile;
                       #include "system.h"
                   });
 
-        const inputFileName = "foo.d_";
-        writeFile("foo.d_",
+        const inputFileName = "foo.dpp";
+        writeFile("foo.dpp",
                   q{
                       #include "%s"
                       void func() {
@@ -190,7 +190,7 @@ import it.compile;
                   }.format(inSandboxPath("header.h")));
 
 
-        preprocess("foo.d_", "foo.d");
+        preprocess("foo.dpp", "foo.d");
         shouldCompile("foo.d");
     }
 }

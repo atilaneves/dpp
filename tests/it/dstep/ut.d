@@ -62,7 +62,7 @@ import it.compile;
                       char var[FOO];
                   });
 
-        writeFile("main.d_",
+        writeFile("main.dpp",
                   q{
                       #include "%s"
                       void main() {
@@ -71,7 +71,7 @@ import it.compile;
                       }
                   }.format(inSandboxPath("dstep.h")));
 
-        preprocess("main.d_", "main.d");
+        preprocess("main.dpp", "main.d");
         shouldCompile("main.d");
     }
 }
@@ -88,7 +88,7 @@ import it.compile;
                       };
                   });
 
-        writeFile("main.d_",
+        writeFile("main.dpp",
                   q{
                       #include "%s"
                       void main() {
@@ -98,7 +98,7 @@ import it.compile;
                       }
                   }.format(inSandboxPath("dstep.h")));
 
-        preprocess("main.d_", "main.d");
+        preprocess("main.dpp", "main.d");
         shouldCompile("main.d");
     }
 }
@@ -118,7 +118,7 @@ import it.compile;
                       };
                   });
 
-        writeFile("main.d_",
+        writeFile("main.dpp",
                   q{
                       #include "%s"
                       void main() {
@@ -131,7 +131,7 @@ import it.compile;
                       }
                   }.format(inSandboxPath("dstep.h")));
 
-        preprocess("main.d_", "main.d");
+        preprocess("main.dpp", "main.d");
         shouldCompile("main.d");
     }
 }
@@ -193,7 +193,7 @@ import it.compile;
 
                   });
 
-        writeFile("main.d_",
+        writeFile("main.dpp",
                   q{
                       #include "%s"
                       void main() {
@@ -205,7 +205,7 @@ import it.compile;
                       }
                   }.format(inSandboxPath("dstep.h")));
 
-        preprocess("main.d_", "main.d");
+        preprocess("main.dpp", "main.d");
         shouldCompile("main.d");
     }
 }

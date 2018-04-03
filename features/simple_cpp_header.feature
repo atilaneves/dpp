@@ -25,7 +25,7 @@ Feature: Including a simple C header works
       }
       """
 
-    And a file named "main.d_" with:
+    And a file named "main.dpp" with:
       """
       #include "foo.hpp"
       void main(string[] args) {
@@ -44,7 +44,7 @@ Feature: Including a simple C header works
       """
 
     When I successfully run `g++ -std=c++14 -o foo.o -c foo.cpp`
-    And I successfully run `include main.d_ main.d`
+    And I successfully run `include main.dpp main.d`
     And I successfully run `dmd -ofapp main.d foo.o`
     When I successfully run `./app 3 4`
     Then the output should contain:
