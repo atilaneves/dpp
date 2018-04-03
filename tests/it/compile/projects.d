@@ -497,3 +497,23 @@ import it.compile;
         ),
     );
 }
+
+@ShouldFail
+@("extern global variable with undefined macro")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                // EXPORT_VAR not defined anywhere
+                typedef struct _Foo Foo;
+                typedef Foo *FooPtr;
+                EXPORT_VAR FooPtr theFoo;
+            }
+        ),
+        D(
+            q{
+                theFoo = null;
+            }
+        ),
+    );
+}
