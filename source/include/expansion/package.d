@@ -92,6 +92,7 @@ string expand(in string headerFileName,
     import std.algorithm: sort, filter, map, chunkBy, any;
 
     auto translationUnit = parse(headerFileName,
+                                 context.options.includePaths.map!(a => "-I" ~ a).array,
                                  TranslationUnitFlags.DetailedPreprocessingRecord);
 
     // In C there can be several declarations and one definition of a type.

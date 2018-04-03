@@ -72,8 +72,8 @@ string[] translate(in from!"clang".Cursor cursor,
     }
 }
 
-private void debugCursor(in from!"include.runtime.context".Context context,
-                         in from!"clang".Cursor cursor)
+void debugCursor(in from!"include.runtime.context".Context context,
+                 in from!"clang".Cursor cursor)
     @safe
 {
     import clang: Cursor;

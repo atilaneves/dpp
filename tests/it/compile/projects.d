@@ -520,3 +520,39 @@ import it.compile;
         }
     }
 }
+
+@("angle brackets headers with more angle brackets")
+@safe unittest {
+
+    with(immutable IncludeSandbox()) {
+
+        writeFile("includes/libfoo/libfoo.h",
+                  q{
+                      #include <libfoo/libfoo-common.h>
+                      #include <libfoo/libfoo-host.h>
+                  });
+
+        writeFile("includes/libfoo/libfoo-common.h",
+                  q{
+                      #define EXPORT_VAR extern
+                  });
+
+        writeFile("includes/libfoo/libfoo-host.h",
+                  q{
+                      typedef struct _Foo Foo;
+                      typedef Foo *FooPtr;
+                  });
+
+        writeFile("app.dpp",
+                  q{
+                      #include <libfoo/libfoo.h>
+                      void func(FooPtr foo) {
+                          assert(foo is null);
+                      }
+                  });
+
+        run("-I", inSandboxPath("includes"), "app.dpp", "app.d");
+        shouldCompile("app.d");
+    }
+
+}
