@@ -25,11 +25,12 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
         .array;
     }();
 
-    const underlyingType = typedef_.underlyingType.canonical;
+    const nonCanonicalUnderlyingType = typedef_.underlyingType;
+    const underlyingType = nonCanonicalUnderlyingType.canonical;
 
     context.log("Children: ", children);
-    context.log("          Underlying type: ", underlyingType);
-    context.log("Canonical underlying type: ", underlyingType.canonical);
+    context.log("          Underlying type: ", nonCanonicalUnderlyingType);
+    context.log("Canonical underlying type: ", underlyingType);
 
     if(isSomeFunction(underlyingType))
         return translateFunctionTypeDef(typedef_, context.indent);

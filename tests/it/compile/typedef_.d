@@ -41,7 +41,7 @@ unittest {
 }
 
 //  1 child: StructDecl(""), Type.Record("Foo")
-// underlying:           Record("Foo")
+// underlying:           Elaborated("struct Foo")
 // underlying canonical: Record("Foo")
 @("anonymous struct")
 unittest {
@@ -61,6 +61,8 @@ unittest {
 }
 
 //  1 child, StructDecl("Foo"), Type.Record("struct Foo")
+// underlying:           Elaborated("struct Foo")
+// underlying canonical: Record("struct Foo")
 @("struct")
 unittest {
     shouldCompile(
@@ -81,6 +83,8 @@ unittest {
 }
 
 //  1 child, UnionDecl("Foo"), Type.Record("union Foo")
+// underlying:           Elaborated("union Foo")
+// underlying canonical: Record("union Foo")
 @("union")
 unittest {
     shouldCompile(
@@ -101,6 +105,8 @@ unittest {
 }
 
 //  1 child, EnumDecl("Foo"), Type.Enum("enum Foo")
+// underlying:           Elaborated("enum Foo")
+// underlying canonical: Enum("enum Foo")
 @("enum")
 unittest {
     shouldCompile(
