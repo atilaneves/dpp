@@ -110,7 +110,8 @@ private string translateElaborated(in from!"clang".Type type,
 
     // spellingOrNickname because of anonymous types
     const name = spellingOrNickname(type, context);
-    context.indentLog("Named type: ", type.namedType);
+    context.indentLog("Elaborated type: ", type);
+    context.indentLog("Named      type: ", type.namedType);
     return addModifiers(type, name).unelaborate;
 
 }
