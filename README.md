@@ -162,3 +162,19 @@ void func(enum_Enum e);
 // func(foo); // won't compile, func takes enum_Enum, not int
 func(enum_Enum.foo);
 ```
+
+### Functions with a name that is a D keyword
+
+Those get an underscore appended and a `pragma(mangle)` added so they link:
+
+```c
+void debug(const char* msg);
+```
+
+Becomes:
+
+
+```d
+pragma(mangle, "debug")
+void debug_(const(char)*);
+```

@@ -10,6 +10,7 @@ string[] translateFunction(in from!"clang".Cursor function_,
     @safe
 {
     import include.translation.type: translate;
+    import include.translation.dlang: isKeyword;
     import clang: Cursor, Language;
     import std.array: join;
     import std.conv: text;
@@ -33,9 +34,18 @@ string[] translateFunction(in from!"clang".Cursor function_,
     const variadicParams = isVariadic ? "..." : "";
     const allParams = paramTypes(function_, context.indent).array ~ variadicParams;
 
-    return [
-        text(returnType, " ", function_.spelling, "(", allParams.join(", "), ");")
-    ];
+    // if a D keyword, append an underscore
+    const spellingSuffix = function_.spelling.isKeyword ? "_" :  "";
+    const spelling = function_.spelling ~ spellingSuffix;
+
+    // if a D keyword, mangle it correctly so it can link
+    auto translationPrefix = function_.spelling.isKeyword
+        ? [`pragma(mangle, "` ~ function_.spelling ~ `")`]
+        : [];
+
+    return
+        translationPrefix ~
+        text(returnType, " ", spelling, "(", allParams.join(", "), ");");
 }
 
 auto paramTypes(in from!"clang".Cursor function_,
