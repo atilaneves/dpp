@@ -111,7 +111,7 @@ string[] translateField(in from!"clang".Cursor field,
     return [text(type, " ", field.spelling.translateIdentifier, ";")];
 }
 
-string translateIdentifier(in string spelling) @safe pure nothrow {
+private string translateIdentifier(in string spelling) @safe pure nothrow {
     import include.cursor.dlang: isKeyword;
     return spelling.isKeyword ? spelling ~ "_" : spelling;
 }
@@ -138,7 +138,7 @@ package string spellingOrNickname(in from!"clang".Cursor cursor,
     return context.cursorNickNames[cursor.hash];
 }
 
-string identifier(in from!"clang".Cursor cursor) @safe pure {
+private string identifier(in from!"clang".Cursor cursor) @safe pure {
     import clang: Cursor, Type;
     import std.conv: text;
     import std.algorithm: startsWith;
