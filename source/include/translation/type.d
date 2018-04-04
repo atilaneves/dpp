@@ -3,7 +3,7 @@
  */
 module include.translation.type;
 
-import include.from;
+import include.from: from;
 
 string translate(in from!"clang".Type type,
                  ref from!"include.runtime.context".Context context,
