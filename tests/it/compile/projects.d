@@ -618,23 +618,15 @@ import it.compile;
     shouldCompile(
         C(
             q{
-                typedef struct nv_alloc_ops nv_alloc_ops_t;
-                typedef struct nv_alloc {
-                    const nv_alloc_ops_t *nva_ops;
-                    void *nva_arg;
-                } nv_alloc_t;
+                typedef struct Inner_ Inner;
 
-                struct nv_alloc_ops {
-                    int (*nv_ao_init)(nv_alloc_t *, va_list);
-                    void (*nv_ao_fini)(nv_alloc_t *);
-                    void *(*nv_ao_alloc)(nv_alloc_t *, size_t);
-                    void (*nv_ao_free)(nv_alloc_t *, void *, size_t);
-                    void (*nv_ao_reset)(nv_alloc_t *);
+                typedef struct Outer {
+                    const Inner *nva_ops;
+                } Outer;
+
+                struct Inner_ {
+                    int dummy;
                 };
-
-
-                int nv_alloc_init(nv_alloc_t *, const nv_alloc_ops_t *, /* args */ ...);
-
             }
         ),
         D(
