@@ -125,7 +125,11 @@ string[] translateField(in from!"clang".Cursor field,
     // It's possible one of the fields is a pointer to a structure that isn't declared anywhere,
     // so we try and remember it here to fix it later
     if(field.type.kind == Type.Kind.Pointer && field.type.pointee.canonical.kind == Type.Kind.Record) {
-        context.fieldStructPointerSpellings[field.type.pointee.canonical.spelling.cleanType] = true;
+        const type = field.type.pointee.canonical;
+        // const becomes a problem if we have to define a struct at the end of all translations.
+        // See it.compile.projects.nv_alloc_ops
+        const cleanedType = type.spelling.cleanType.replace("const ", "");
+        context.fieldStructPointerSpellings[cleanedType] = true;
     }
 
     const type = translate(field.type, context, No.translatingFunction);

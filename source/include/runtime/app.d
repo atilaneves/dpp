@@ -69,8 +69,10 @@ void preprocess(File)(in from!"include.runtime.options".Options options) {
         // if there are any fields that were struct pointers
         // but the struct wasn't declared anywhere, do so now
         foreach(name, _; context.fieldStructPointerSpellings) {
-            if(name !in context.aggregateDeclarations)
+            if(name !in context.aggregateDeclarations) {
+                context.log("Could not find '", name, "' in aggregate declarations, defining it");
                 outputFile.writeln("struct " ~ name ~ ";");
+            }
         }
 
     }

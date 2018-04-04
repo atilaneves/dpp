@@ -612,7 +612,6 @@ import it.compile;
 }
 
 
-@ShouldFail
 @("nv_alloc_ops")
 @safe unittest {
     shouldCompile(
