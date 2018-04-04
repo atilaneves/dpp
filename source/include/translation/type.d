@@ -83,7 +83,7 @@ private string translateEnum(in from!"clang".Type type,
                              in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
 @safe
 {
-    return addModifiers(type, type.spelling.cleanType);
+    return addModifiers(type, type.spelling.unelaborate);
 }
 
 private string translateRecord(in from!"clang".Type type,
@@ -95,7 +95,7 @@ private string translateRecord(in from!"clang".Type type,
     if(type.spelling == "struct __va_list_tag")
         return "va_list";
 
-    return addModifiers(type, type.spelling.cleanType);
+    return addModifiers(type, type.spelling.unelaborate);
 }
 
 private string translateElaborated(in from!"clang".Type type,
@@ -109,11 +109,11 @@ private string translateElaborated(in from!"clang".Type type,
     // translating to int for function parameters
     const name = spellingOrNickname(type.spelling, context);
     context.indentLog("Named type: ", type.namedType);
-    return addModifiers(type, name).cleanType;
+    return addModifiers(type, name).unelaborate;
 
 }
 
-private string cleanType(in string type) @safe pure {
+private string unelaborate(in string type) @safe pure {
     import std.array: replace;
     return type.replace("struct ", "struct_").replace("union ", "union_").replace("enum ", "enum_");
 }
