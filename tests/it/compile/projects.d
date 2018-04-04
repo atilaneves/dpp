@@ -634,3 +634,22 @@ import it.compile;
         ),
     );
 }
+
+@ShouldFail
+@("va_list")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                #include <stdarg.h>
+                typedef struct Struct {
+                    int (*func)(int, va_list);
+                };
+            }
+        ),
+        D(
+            q{
+            }
+        ),
+    );
+}

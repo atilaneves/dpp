@@ -91,8 +91,7 @@ struct IncludeSandbox {
         import include.runtime.app: realPreProcess = preprocess;
         import std.stdio: File;
 
-        auto options = Options(inSandboxPath(inputFileName), inSandboxPath(outputFileName));
-        options.includePaths = [sandboxPath];
+        auto options = Options(["./include", "-I", sandboxPath, inSandboxPath(inputFileName), inSandboxPath(outputFileName)]);
 
         realPreProcess!File(options);
     }
