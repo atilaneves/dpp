@@ -690,3 +690,20 @@ import it.compile;
         ),
     );
 }
+
+
+@("double semicolon after function declaration")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                void foo(void);;
+            }
+        ),
+        D(
+            q{
+
+            }
+        ),
+    );
+}

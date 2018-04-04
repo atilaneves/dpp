@@ -99,10 +99,29 @@ Translation[from!"clang".Cursor.Kind] translations() @safe {
     import clang: Cursor;
     import include.expansion: expand;
 
-    static string[] ignore(in Cursor cursor,
-                           ref from!"include.runtime.context".Context context) {
+    static string[] ignore(
+        in Cursor cursor,
+        ref from!"include.runtime.context".Context context)
+    {
         return [];
     }
+
+    static string[] translateUnexposed(
+        in Cursor cursor,
+        ref from!"include.runtime.context".Context context)
+    {
+        import clang: Type;
+        import std.conv: text;
+
+        switch(cursor.type.kind) with(Type.Kind) {
+            default:
+                throw new Exception(text("Unknown unexposed declaration type ", cursor.type));
+            case Invalid:
+                return [];
+        }
+        assert(0);
+    }
+
 
     with(Cursor.Kind) {
         return [
@@ -116,6 +135,7 @@ Translation[from!"clang".Cursor.Kind] translations() @safe {
             InclusionDirective: &ignore,
             EnumConstantDecl:   &translateEnumConstant,
             VarDecl:            &translateVariable,
+            UnexposedDecl:      &translateUnexposed,
         ];
     }
 }
