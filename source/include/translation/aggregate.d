@@ -106,7 +106,7 @@ string identifier(in from!"clang".Cursor cursor) @safe pure {
     // mimic C's different namespaces for struct, union and enum
     return keyword == "" ?
         cursor.spelling :
-        keyword ~ `_` ~ cursor.spelling.replace("struct ", "").replace("union ", "").replace("enum ", "");
+        keyword ~ "_" ~ cursor.spelling.replace(keyword ~ " ", "");
 }
 
 string[] translateField(in from!"clang".Cursor field,
