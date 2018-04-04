@@ -1,6 +1,6 @@
 module it.compile.struct_;
 
-import it.compile;
+import it;
 
 @("simple int struct")
 @safe unittest {

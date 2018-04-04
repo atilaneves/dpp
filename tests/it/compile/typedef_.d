@@ -1,6 +1,6 @@
 module it.compile.typedef_;
 
-import it.compile;
+import it;
 
 @("unsigned char")
 unittest {

@@ -3,7 +3,7 @@
  */
 module it.dstep.functional;
 
-import it.compile;
+import it;
 
 @("const int")
 @safe unittest {

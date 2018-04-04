@@ -4,7 +4,7 @@
 module it.compile.runtime_args;
 
 
-import it.compile;
+import it;
 
 @("include paths")
 @safe unittest {

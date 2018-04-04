@@ -1,6 +1,6 @@
 module it.compile.preprocessor;
 
-import it.compile;
+import it;
 
 @("simple macro")
 @safe unittest {

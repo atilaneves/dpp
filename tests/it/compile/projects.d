@@ -3,7 +3,7 @@
  */
 module it.compile.projects;
 
-import it.compile;
+import it;
 
 @("nn_get_statistic")
 @safe unittest {

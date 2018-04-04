@@ -3,7 +3,7 @@
  */
 module it.issues;
 
-import it.compile;
+import it;
 
 
 @("10")

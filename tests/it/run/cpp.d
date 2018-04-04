@@ -3,7 +3,7 @@
  */
 module it.run.cpp;
 
-import it.run;
+import it;
 
 @("function")
 @safe unittest {

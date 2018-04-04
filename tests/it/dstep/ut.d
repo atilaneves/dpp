@@ -3,7 +3,7 @@
  */
 module it.dstep.ut;
 
-import it.compile;
+import it;
 
 @("2 functions and a global variable")
 @safe unittest {

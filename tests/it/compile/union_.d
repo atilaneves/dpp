@@ -1,6 +1,6 @@
 module it.compile.union_;
 
-import it.compile;
+import it;
 
 @("__SIZEOF_PTHREAD_ATTR_T")
 @safe unittest {

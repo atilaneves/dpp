@@ -1,6 +1,6 @@
 module it.run.struct_;
 
-import it.run;
+import it;
 
 @("structs")
 @safe unittest {

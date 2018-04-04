@@ -3,7 +3,7 @@
  */
 module it.run.c;
 
-import it.run;
+import it;
 
 @("function named debug")
 @safe unittest {

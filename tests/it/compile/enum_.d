@@ -1,6 +1,6 @@
 module it.compile.enum_;
 
-import it.compile;
+import it;
 
 @("Named enum with non-assigned members foo and bar")
 @safe unittest {

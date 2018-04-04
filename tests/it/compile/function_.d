@@ -1,6 +1,6 @@
 module it.compile.function_;
 
-import it.compile;
+import it;
 
 @("nn_strerror")
 @safe unittest {
