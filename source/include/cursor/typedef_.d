@@ -1,3 +1,6 @@
+/**
+   typedef translations
+ */
 module include.cursor.typedef_;
 
 import include.from;
@@ -27,9 +30,6 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     context.log("TypedefDecl children: ", children);
     context.log("Underlying type: ", underlyingType);
     context.log("Canonical underlying type: ", underlyingType.canonical);
-
-    // FIXME - seems to be built-in
-    if (typedef_.spelling == "size_t") return [];
 
     if(isSomeFunction(underlyingType))
         return translateFunctionTypeDef(typedef_, context.indent);
