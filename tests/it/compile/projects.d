@@ -654,7 +654,6 @@ import it.compile;
 }
 
 
-@ShouldFail
 @("ASN1_ITEM")
 @safe unittest {
     shouldCompile(
@@ -663,6 +662,10 @@ import it.compile;
                 struct Struct_st;
                 typedef struct Struct_st Struct;
                 extern const Struct gVar;
+
+                // struct Foo;
+                // extern struct Foo gFoo;
+                // struct Foo { int dummy; };
             }
         ),
         D(
