@@ -116,8 +116,7 @@ private string translateIdentifier(in string spelling) @safe pure nothrow {
     return spelling.isKeyword ? spelling ~ "_" : spelling;
 }
 
-// return the spelling if it exists, or our made-up nickname for it
-// if not
+// return the spelling if it exists, or our made-up nickname for it if not
 package string spellingOrNickname(in from!"clang".Cursor cursor,
                                   ref from!"include.runtime.context".Context context)
     @safe
@@ -127,7 +126,10 @@ package string spellingOrNickname(in from!"clang".Cursor cursor,
 
     static int index;
 
+    // If not anonymous, just return the spelling
     if(cursor.spelling != "") return identifier(cursor);
+
+    // otherwise find what nickname we gave it
 
     if(cursor.hash !in context.cursorNickNames) {
         auto nick = newAnonymousName;
@@ -165,6 +167,7 @@ private string identifier(in from!"clang".Cursor cursor) @safe pure {
     // mimic C's different namespaces for struct, union and enum
     return keyword == "" ?
         cursor.spelling :
+        // Foo -> struct_Foo | union_Foo | enum_Foo
         keyword ~ "_" ~ cursor.spelling.replace(keyword ~ " ", "");
 }
 
