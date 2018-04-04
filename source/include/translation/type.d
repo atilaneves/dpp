@@ -61,7 +61,7 @@ string translate(in from!"clang".Type type,
             if(type.spelling == "struct __va_list_tag")
                 return "va_list";
 
-            return addModifiers(type, type.spelling.replace("const ", ""));
+            return addModifiers(type, type.spelling);
 
         case FunctionNoProto:
             // FIXME - No idea what this means
