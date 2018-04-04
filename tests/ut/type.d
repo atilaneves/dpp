@@ -1,7 +1,9 @@
-module ut.translation.type;
+module ut.type;
 
-import ut.translation;
+import include.test;
+import include.type;
 import clang: Type;
+
 
 string translate(in from!"clang".Type type) @safe {
     import include.type: translate_ = translate;

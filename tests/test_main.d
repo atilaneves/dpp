@@ -9,8 +9,7 @@ int main(string[] args) {
         "include.expansion",
 
         // unit tests
-        "ut.translation.type",
-        "ut.translation.enum_",
+        "ut.type",
 
         // integration tests with code that should compile
         "it.compile.preprocessor",
