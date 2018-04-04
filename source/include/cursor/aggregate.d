@@ -1,7 +1,7 @@
 /**
    Translate aggregates
  */
-module include.translation.aggregate;
+module include.cursor.aggregate;
 
 import include.from;
 
@@ -52,7 +52,7 @@ string[] translateAggregate(
 )
     @safe
 {
-    import include.translation.unit: translate;
+    import include.cursor.unit: translate;
     import clang: Cursor;
     import std.algorithm: map;
     import std.array: array;
@@ -142,7 +142,7 @@ string[] translateField(in from!"clang".Cursor field,
 }
 
 string translateIdentifier(in string spelling) @safe pure nothrow {
-    import include.translation.dlang: isKeyword;
+    import include.cursor.dlang: isKeyword;
     return spelling.isKeyword ? spelling ~ "_" : spelling;
 }
 

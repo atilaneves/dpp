@@ -86,7 +86,7 @@ string expand(in string headerFileName,
               in size_t line = __LINE__)
     @safe
 {
-    import include.translation.unit: translate;
+    import include.cursor.unit: translate;
     import clang: parse, TranslationUnitFlags, Cursor;
     import std.array: join, array;
     import std.algorithm: sort, filter, map, chunkBy, any;

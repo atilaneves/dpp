@@ -8,13 +8,13 @@
    otherwise it asks dstep to it for us.
  */
 
-module include.translation;
+module include.cursor;
 
-public import include.translation.unit;
-public import include.translation.aggregate;
+public import include.cursor.unit;
+public import include.cursor.aggregate;
 public import include.type;
-public import include.translation.function_;
-public import include.translation.typedef_;
-public import include.translation.macro_;
-public import include.translation.enum_;
-public import include.translation.variable;
+public import include.cursor.function_;
+public import include.cursor.typedef_;
+public import include.cursor.macro_;
+public import include.cursor.enum_;
+public import include.cursor.variable;

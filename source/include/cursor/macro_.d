@@ -1,4 +1,4 @@
-module include.translation.macro_;
+module include.cursor.macro_;
 
 import include.from;
 

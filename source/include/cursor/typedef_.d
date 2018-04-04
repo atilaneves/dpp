@@ -1,4 +1,4 @@
-module include.translation.typedef_;
+module include.cursor.typedef_;
 
 import include.from;
 
@@ -7,7 +7,7 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     @safe
 {
     import include.type: translate;
-    import include.translation.aggregate: spellingOrNickname;
+    import include.cursor.aggregate: spellingOrNickname;
     import clang: Cursor, Type;
     import std.conv: text;
     import std.typecons: No;
@@ -61,7 +61,7 @@ private string[] translateFunctionTypeDef(in from!"clang".Cursor typedef_,
     @safe
 {
     import include.type: translate;
-    import include.translation.function_: paramTypes;
+    import include.cursor.function_: paramTypes;
     import clang: Cursor, Type;
     import std.algorithm: map, filter;
     import std.array: join;

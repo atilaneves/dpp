@@ -1,4 +1,4 @@
-module include.translation.variable;
+module include.cursor.variable;
 
 import include.from;
 

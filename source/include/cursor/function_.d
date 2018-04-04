@@ -1,7 +1,7 @@
 /**
    Function translations.
  */
-module include.translation.function_;
+module include.cursor.function_;
 
 import include.from;
 
@@ -10,7 +10,7 @@ string[] translateFunction(in from!"clang".Cursor function_,
     @safe
 {
     import include.type: translate;
-    import include.translation.dlang: isKeyword;
+    import include.cursor.dlang: isKeyword;
     import clang: Cursor, Language;
     import std.array: join;
     import std.conv: text;

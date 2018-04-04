@@ -1,7 +1,7 @@
 /**
    Translation unit translations.
  */
-module include.translation.unit;
+module include.cursor.unit;
 
 import include.from;
 
@@ -95,7 +95,7 @@ void debugCursor(in from!"clang".Cursor cursor,
 }
 
 Translation[from!"clang".Cursor.Kind] translations() @safe {
-    import include.translation;
+    import include.cursor;
     import clang: Cursor;
     import include.expansion: expand;
 

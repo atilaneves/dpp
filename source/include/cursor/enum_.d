@@ -1,7 +1,7 @@
 /**
    Enum translation
  */
-module include.translation.enum_;
+module include.cursor.enum_;
 
 import include.from;
 

@@ -1,7 +1,7 @@
 /**
    Deals with D-specific translation, such as avoiding keywords
  */
-module include.translation.dlang;
+module include.cursor.dlang;
 
 bool isKeyword (string str) @safe @nogc pure nothrow {
     switch (str) {
