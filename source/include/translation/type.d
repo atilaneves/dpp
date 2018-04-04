@@ -5,101 +5,166 @@ module include.translation.type;
 
 import include.from: from;
 
+alias Translator = string function(
+    in from!"clang".Type type,
+    ref from!"include.runtime.context".Context context,
+    in from!"std.typecons".Flag!"translatingFunction" translatingFunction
+) @safe;
+
+alias Translators = Translator[from!"clang".Type.Kind];
+
 string translate(in from!"clang".Type type,
                  ref from!"include.runtime.context".Context context,
                  in from!"std.typecons".Flag!"translatingFunction" translatingFunction = from!"std.typecons".No.translatingFunction)
     @safe
 {
-    import include.translation.aggregate: spellingOrNickname;
-    import clang: Type;
     import std.conv: text;
-    import std.exception: enforce;
-    import std.algorithm: countUntil, canFind, startsWith;
-    import std.array: replace;
+    if(type.kind !in translators)
+        throw new Exception(text("Type kind ", type.kind, " not supported: ", type));
 
-    switch(type.kind) with(Type.Kind) {
+    return translators[type.kind](type, context, translatingFunction);
+}
 
-        default:
-            throw new Exception(text("Type kind ", type.kind, " not supported: ", type));
-            assert(0);
+Translators translators() @safe pure {
+    import clang: Type;
 
-        case Long: return addModifiers(type, "c_long");
-        case ULong: return addModifiers(type, "c_ulong");
-        case Pointer: return translatePointer(type, context.indent).cleanType;
-        case Typedef:
-            // Here we may get a Typedef with a canonical type of Enum. It might be worth
-            // translating to int for function parameters
-            return addModifiers(type, type.spelling.cleanType);
-        case Void: return addModifiers(type, "void");
-        case NullPtr: return addModifiers(type, "void*");
-        case Bool: return addModifiers(type, "bool");
-        case WChar: return addModifiers(type, "wchar");
-        case SChar: return addModifiers(type, "byte");
-        case Char16: return addModifiers(type, "wchar");
-        case Char32: return addModifiers(type, "dchar");
-        case UChar: return addModifiers(type, "ubyte");
-        case UShort: return addModifiers(type, "ushort");
-        case Short: return addModifiers(type, "short");
-        case Int: return addModifiers(type, "int");
-        case UInt: return addModifiers(type, "uint");
-        case LongLong: return addModifiers(type, "long");
-        case ULongLong: return addModifiers(type, "ulong");
-        case Float: return addModifiers(type, "float");
-        case Double: return addModifiers(type, "double");
-        case Char_U: return addModifiers(type, "ubyte");
-        case Char_S: return addModifiers(type, "char");
-        case Int128: return addModifiers(type, "cent");
-        case UInt128: return addModifiers(type, "ucent");
-        case Float128: return addModifiers(type, "real");
-        case Half: return addModifiers(type, "float");
-        case LongDouble: return addModifiers(type, "real");
-        case Enum: return addModifiers(type, type.spelling.cleanType);
-        case FunctionProto: return translateFunctionProto(type, context);
-        case Record:
-
-            // see it.compile.projects.va_list
-            if(type.spelling == "struct __va_list_tag")
-                return "va_list";
-
-            return addModifiers(type, type.spelling.cleanType);
-
-        case FunctionNoProto:
-            // FIXME - No idea what this means
-            if(type.spelling != "int ()")
-                throw new Exception(text("Don't know how to translate type ", type));
-            return "int";
-
-        case Elaborated:
-            // Here we may get an elaborated enum. It's possible to know that
-            // because the spelling begins with "enum ". It might be worth
-            // translating to int for function parameters
-            const name = spellingOrNickname(type.spelling, context);
-            return addModifiers(type, name).cleanType;
-
-        case ConstantArray:
-            context.indent.log("Constant array of # ", type.numElements);
-            return translatingFunction
-                ? translate(type.elementType, context) ~ `*`
-                : translate(type.elementType, context) ~ `[` ~ type.numElements.text ~ `]`;
-
-        case IncompleteArray:
-            const dType = translate(type.elementType, context);
-            // if translating a function, we want C's T[] to translate
-            // to T*, otherwise we want a flexible array
-            return translatingFunction ? dType ~ `*` : dType ~ "[0]";
+    with(Type.Kind) {
+        return [
+            Long: &simple!"c_long",
+            ULong: &simple!"c_ulong",
+            Void: &simple!"void",
+            NullPtr: &simple!"void*",
+            Bool: &simple!"bool",
+            WChar: &simple!"wchar",
+            SChar: &simple!"byte",
+            Char16: &simple!"wchar",
+            Char32: &simple!"dchar",
+            UChar: &simple!"ubyte",
+            UShort: &simple!"ushort",
+            Short: &simple!"short",
+            Int: &simple!"int",
+            UInt: &simple!"uint",
+            LongLong: &simple!"long",
+            ULongLong: &simple!"ulong",
+            Float: &simple!"float",
+            Double: &simple!"double",
+            Char_U: &simple!"ubyte",
+            Char_S: &simple!"char",
+            Int128: &simple!"cent",
+            UInt128: &simple!"ucent",
+            Float128: &simple!"real",
+            Half: &simple!"float",
+            LongDouble: &simple!"real",
+            Enum: &translateEnum,
+            Pointer: &translatePointer,
+            FunctionProto: &translateFunctionProto,
+            Record: &translateRecord,
+            FunctionNoProto: &translateFunctionNoProto,
+            Elaborated: &translateElaborated,
+            ConstantArray: &translateConstantArray,
+            IncompleteArray: &translateIncompleteArray,
+            Typedef: &translateTypedef,
+        ];
     }
 }
 
-private string addModifiers(in from!"clang".Type type, in string translation) @safe pure {
-    import std.array: replace;
-    const realTranslation = translation.replace("const ", "");
-    return type.isConstQualified
-        ? `const(` ~  realTranslation ~ `)`
-        : realTranslation;
+
+private string simple(string translation)
+                     (in from!"clang".Type type,
+                      ref from!"include.runtime.context".Context context,
+                      in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
+@safe
+{
+    return addModifiers(type, translation);
+}
+
+private string translateEnum(in from!"clang".Type type,
+                             ref from!"include.runtime.context".Context context,
+                             in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
+@safe
+{
+    return addModifiers(type, type.spelling.cleanType);
+}
+
+private string translateRecord(in from!"clang".Type type,
+                               ref from!"include.runtime.context".Context context,
+                               in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
+@safe
+{
+    // see it.compile.projects.va_list
+    if(type.spelling == "struct __va_list_tag")
+        return "va_list";
+
+    return addModifiers(type, type.spelling.cleanType);
+}
+
+private string translateFunctionNoProto(in from!"clang".Type type,
+                                        ref from!"include.runtime.context".Context context,
+                                        in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
+@safe
+{
+    import std.conv: text;
+    // FIXME - No idea what this means
+    if(type.spelling != "int ()")
+        throw new Exception(text("Don't know how to translate type ", type));
+    return "int";
+
+}
+
+private string translateElaborated(in from!"clang".Type type,
+                                   ref from!"include.runtime.context".Context context,
+                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
+@safe
+{
+    import include.translation.aggregate: spellingOrNickname;
+    // Here we may get an elaborated enum. It's possible to know that
+    // because the spelling begins with "enum ". It might be worth
+    // translating to int for function parameters
+    const name = spellingOrNickname(type.spelling, context);
+    return addModifiers(type, name).cleanType;
+
+}
+
+private string translateConstantArray(in from!"clang".Type type,
+                                      ref from!"include.runtime.context".Context context,
+                                      in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
+@safe
+{
+    import std.conv: text;
+
+    context.indent.log("Constant array of # ", type.numElements);
+
+    return translatingFunction
+        ? translate(type.elementType, context) ~ `*`
+        : translate(type.elementType, context) ~ `[` ~ type.numElements.text ~ `]`;
+
+}
+
+private string translateIncompleteArray(in from!"clang".Type type,
+                                        ref from!"include.runtime.context".Context context,
+                                        in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
+@safe
+{
+    const dType = translate(type.elementType, context);
+    // if translating a function, we want C's T[] to translate
+    // to T*, otherwise we want a flexible array
+    return translatingFunction ? dType ~ `*` : dType ~ "[0]";
+
+}
+
+private string translateTypedef(in from!"clang".Type type,
+                                ref from!"include.runtime.context".Context context,
+                                in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
+@safe
+{
+    // Here we may get a Typedef with a canonical type of Enum. It might be worth
+    // translating to int for function parameters
+    return addModifiers(type, type.spelling.cleanType);
 }
 
 private string translatePointer(in from!"clang".Type type,
-                                ref from!"include.runtime.context".Context context)
+                                ref from!"include.runtime.context".Context context,
+                                in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
     @safe
 {
     import clang: Type;
@@ -148,7 +213,8 @@ private string translatePointer(in from!"clang".Type type,
 // currently only getting here from function pointer variables
 // with have kind unexposed but canonical kind FunctionProto
 private string translateFunctionProto(in from!"clang".Type type,
-                                      ref from!"include.runtime.context".Context context)
+                                      ref from!"include.runtime.context".Context context,
+                                      in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
     @safe
 {
     import std.conv: text;
@@ -164,4 +230,13 @@ private string translateFunctionProto(in from!"clang".Type type,
 string cleanType(in string type) @safe pure {
     import std.array: replace;
     return type.replace("struct ", "struct_").replace("union ", "union_").replace("enum ", "enum_");
+}
+
+
+private string addModifiers(in from!"clang".Type type, in string translation) @safe pure {
+    import std.array: replace;
+    const realTranslation = translation.replace("const ", "");
+    return type.isConstQualified
+        ? `const(` ~  realTranslation ~ `)`
+        : realTranslation;
 }
