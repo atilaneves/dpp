@@ -107,7 +107,9 @@ private string translateElaborated(in from!"clang".Type type,
     // Here we may get an elaborated enum. It's possible to know that
     // because the spelling begins with "enum ". It might be worth
     // translating to int for function parameters
-    const name = spellingOrNickname(type.spelling, context);
+
+    // spellingOrNickname because of anonymous types
+    const name = spellingOrNickname(type, context);
     context.indentLog("Named type: ", type.namedType);
     return addModifiers(type, name).unelaborate;
 
