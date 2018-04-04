@@ -9,14 +9,14 @@ alias Translator = string function(
     in from!"clang".Type type,
     ref from!"include.runtime.context".Context context,
     in from!"std.typecons".Flag!"translatingFunction" translatingFunction
-) @safe;
+) @safe pure;
 
 alias Translators = Translator[from!"clang".Type.Kind];
 
 string translate(in from!"clang".Type type,
                  ref from!"include.runtime.context".Context context,
                  in from!"std.typecons".Flag!"translatingFunction" translatingFunction = from!"std.typecons".No.translatingFunction)
-    @safe
+    @safe pure
 {
     import std.conv: text;
     if(type.kind !in translators)
@@ -73,7 +73,7 @@ private string simple(string translation)
                      (in from!"clang".Type type,
                       ref from!"include.runtime.context".Context context,
                       in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
-@safe
+@safe pure
 {
     return addModifiers(type, translation);
 }
@@ -82,7 +82,7 @@ private string simple(string translation)
 private string translateRecord(in from!"clang".Type type,
                                ref from!"include.runtime.context".Context context,
                                in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
-@safe
+@safe pure
 {
     // see it.compile.projects.va_list
     return type.spelling == "struct __va_list_tag"
@@ -93,7 +93,7 @@ private string translateRecord(in from!"clang".Type type,
 private string translateAggregate(in from!"clang".Type type,
                                   ref from!"include.runtime.context".Context context,
                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
-    @safe
+    @safe pure
 {
     import std.array: replace;
 
@@ -113,6 +113,7 @@ private string translateAggregate(in from!"clang".Type type,
     }
 
     return addModifiers(type, spelling)
+        // "struct Foo" -> struct_Foo, "union Foo" -> union_Foo, "enum Foo" -> enum_Foo
         .replace("struct ", "struct_").replace("union ", "union_").replace("enum ", "enum_")
         ;
 }
@@ -121,7 +122,7 @@ private string translateAggregate(in from!"clang".Type type,
 private string translateFunctionNoProto(in from!"clang".Type type,
                                         ref from!"include.runtime.context".Context context,
                                         in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
-@safe
+@safe pure
 {
     import std.conv: text;
     // FIXME - No idea what this means
@@ -135,7 +136,7 @@ private string translateFunctionNoProto(in from!"clang".Type type,
 private string translateConstantArray(in from!"clang".Type type,
                                       ref from!"include.runtime.context".Context context,
                                       in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
-@safe
+@safe pure
 {
     import std.conv: text;
 
@@ -150,7 +151,7 @@ private string translateConstantArray(in from!"clang".Type type,
 private string translateIncompleteArray(in from!"clang".Type type,
                                         ref from!"include.runtime.context".Context context,
                                         in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
-@safe
+@safe pure
 {
     const dType = translate(type.elementType, context);
     // if translating a function, we want C's T[] to translate
@@ -162,7 +163,7 @@ private string translateIncompleteArray(in from!"clang".Type type,
 private string translateTypedef(in from!"clang".Type type,
                                 ref from!"include.runtime.context".Context context,
                                 in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
-@safe
+@safe pure
 {
     // Here we may get a Typedef with a canonical type of Enum. It might be worth
     // translating to int for function parameters
@@ -172,7 +173,7 @@ private string translateTypedef(in from!"clang".Type type,
 private string translatePointer(in from!"clang".Type type,
                                 ref from!"include.runtime.context".Context context,
                                 in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
-    @safe
+    @safe pure
 {
     import clang: Type;
     import std.conv: text;
@@ -222,7 +223,7 @@ private string translatePointer(in from!"clang".Type type,
 private string translateFunctionProto(in from!"clang".Type type,
                                       ref from!"include.runtime.context".Context context,
                                       in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
-    @safe
+    @safe pure
 {
     import std.conv: text;
     import std.algorithm: map;
