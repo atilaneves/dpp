@@ -27,8 +27,11 @@ This is alpha sofware. It has however produced programs that compile that #inclu
 * xlsxwriter.h
 * libvirt/libvirt.h, libvirt/virterror.h
 * libzfs
+* openssl/ssl.h
+* imapfilter.h
+* libetpan/libetpan.h
 
-See the examples.
+Compilation however doesn't guarantee they work as expected and YMMV. Please consult the examples.
 
 
 Details
