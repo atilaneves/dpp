@@ -49,10 +49,7 @@ void preprocess(File)(in from!"include.runtime.options".Options options) {
     {
         auto outputFile = File(tmpFileName, "w");
 
-        outputFile.writeln("import core.stdc.config;");
-        outputFile.writeln("import core.stdc.stdarg: va_list;");
-        outputFile.writeln("struct struct___locale_data { int dummy; } // FIXME");
-        outputFile.writeln("#define __gnuc_va_list va_list");
+        outputFile.writeln(preamble);
 
         /**
            We remember the cursors already seen so as to not try and define
@@ -89,4 +86,20 @@ void preprocess(File)(in from!"include.runtime.options".Options options) {
                 outputFile.writeln(line);
         }
     }
+}
+
+private string preamble() @safe pure {
+    import std.array: replace, join;
+    import std.algorithm: filter;
+    import std.string: splitLines;
+
+    return q{
+
+        import core.stdc.config;
+        import core.stdc.stdarg: va_list;
+        struct struct___locale_data { int dummy; }  // FIXME
+        #define __gnuc_va_list va_list
+        alias _Bool = bool;
+
+    }.replace("        ", "").splitLines.filter!(a => a != "").join("\n");
 }

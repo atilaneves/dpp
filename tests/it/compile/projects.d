@@ -707,3 +707,22 @@ import it.compile;
         ),
     );
 }
+
+
+@("_Bool")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                #include <stdbool.h>
+                typedef bool handler_t(int, double);
+            }
+        ),
+        D(
+            q{
+                handler_t handler;
+                bool b = handler(42, 33.3);
+            }
+        ),
+    );
+}
