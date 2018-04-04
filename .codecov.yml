@@ -13,3 +13,6 @@ coverage:
     changes: true
 
 comment: false
+
+ignore:
+  - "tests/*"
