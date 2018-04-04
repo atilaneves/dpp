@@ -662,10 +662,25 @@ import it.compile;
                 struct Struct_st;
                 typedef struct Struct_st Struct;
                 extern const Struct gVar;
+            }
+        ),
+        D(
+            q{
 
-                // struct Foo;
-                // extern struct Foo gFoo;
-                // struct Foo { int dummy; };
+            }
+        ),
+    );
+}
+
+
+@("X509_get0_extensions")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                typedef struct { int dummy; } Param;
+                struct Ret;
+                const struct Ret *func(const Param *x);
             }
         ),
         D(

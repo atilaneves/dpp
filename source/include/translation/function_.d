@@ -21,8 +21,11 @@ string[] translateFunction(in from!"clang".Cursor function_,
 
     assert(function_.kind == Cursor.Kind.FunctionDecl);
 
+    const indentation = context.indentation;
+    context.log("Function return type (raw):        ", function_.returnType);
     const returnType = translate(function_.returnType, context, Yes.translatingFunction);
-    context.log("Function return type: ", returnType);
+    context.setIndentation(indentation);
+    context.log("Function return type (translated): ", returnType);
 
     // Here we used to check that if there were no parameters and the language is C,
     // then the correct translation in D would be (...);
@@ -32,7 +35,7 @@ string[] translateFunction(in from!"clang".Cursor function_,
 
     const isVariadic = function_.type.spelling.endsWith("...)");
     const variadicParams = isVariadic ? "..." : "";
-    const allParams = paramTypes(function_, context.indent).array ~ variadicParams;
+    const allParams = paramTypes(function_, context).array ~ variadicParams;
 
     // if a D keyword, append an underscore
     const spellingSuffix = function_.spelling.isKeyword ? "_" :  "";

@@ -62,6 +62,7 @@ string translate(in from!"clang".Type type,
                 return "va_list";
 
             return addModifiers(type, type.spelling.replace("const ", ""));
+
         case FunctionNoProto:
             // FIXME - No idea what this means
             assert(type.spelling == "int ()");
@@ -71,7 +72,8 @@ string translate(in from!"clang".Type type,
             // Here we may get an elaborated enum. It's possible to know that
             // because the spelling begins with "enum ". It might be worth
             // translating to int for function parameters
-            return spellingOrNickname(type.spelling, context).cleanType;
+            const name = spellingOrNickname(type.spelling, context);
+            return addModifiers(type, name).cleanType;
 
         case ConstantArray:
             context.indent.log("Constant array of # ", type.numElements);
@@ -88,9 +90,11 @@ string translate(in from!"clang".Type type,
 }
 
 private string addModifiers(in from!"clang".Type type, in string translation) @safe pure {
+    import std.array: replace;
+    const realTranslation = translation.replace("const ", "");
     return type.isConstQualified
-        ? `const(` ~ translation ~ `)`
-        : translation;
+        ? `const(` ~  realTranslation ~ `)`
+        : realTranslation;
 }
 
 private string translatePointer(in from!"clang".Type type,
@@ -112,9 +116,14 @@ private string translatePointer(in from!"clang".Type type,
     context.log("Pointee:           ", *type.pointee);
     context.log("Pointee canonical: ", type.pointee.canonical);
 
-    const rawType = type.pointee.kind == Type.Kind.Unexposed
+    const translateCanonical = type.pointee.kind == Type.Kind.Unexposed;
+    context.log("Translate canonical? ", translateCanonical);
+
+    const rawType = translateCanonical
         ? translate(type.pointee.canonical, context)
         : translate(*type.pointee, context);
+
+    context.log("Raw type: ", rawType);
 
     // Only add top-level const if it's const all the way down
     bool addConst() @trusted {
