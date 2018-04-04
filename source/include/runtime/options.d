@@ -38,8 +38,6 @@ struct Options {
 
         inputFileName = args[1];
         outputFileName = args.length == 3 ? args[2] : args[1].stripExtension ~ ".d";
-
-        includePaths = systemPaths ~ includePaths;
     }
 
     this(in string inputFileName,
@@ -70,24 +68,4 @@ struct Options {
         if(shouldLog)
             debug writeln(indentation, args);
     }
-}
-
-
-string[] systemPaths() @safe {
-    import std.process: execute;
-    import std.string: splitLines, stripLeft;
-    import std.algorithm: map, countUntil;
-    import std.array: array;
-
-    const res = execute(["gcc", "-v", "-xc", "/dev/null", "-fsyntax-only"]);
-    if(res.status != 0) throw new Exception("Failed to call gcc:\n" ~ res.output);
-
-    auto lines = res.output.splitLines;
-
-    const startIndex = lines.countUntil("#include <...> search starts here:") + 1;
-    assert(startIndex > 0);
-    const endIndex = lines.countUntil("End of search list.");
-    assert(endIndex > 0);
-
-    return lines[startIndex .. endIndex].map!stripLeft.array;
 }
