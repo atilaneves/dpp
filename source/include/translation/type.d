@@ -55,12 +55,12 @@ Translators translators() @safe pure {
             Float128: &simple!"real",
             Half: &simple!"float",
             LongDouble: &simple!"real",
-            Enum: &translateEnum,
+            Enum: &translateAggregate,
             Pointer: &translatePointer,
             FunctionProto: &translateFunctionProto,
             Record: &translateRecord,
             FunctionNoProto: &translateFunctionNoProto,
-            Elaborated: &translateElaborated,
+            Elaborated: &translateAggregate,
             ConstantArray: &translateConstantArray,
             IncompleteArray: &translateIncompleteArray,
             Typedef: &translateTypedef,
@@ -78,13 +78,6 @@ private string simple(string translation)
     return addModifiers(type, translation);
 }
 
-private string translateEnum(in from!"clang".Type type,
-                             ref from!"include.runtime.context".Context context,
-                             in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
-@safe
-{
-    return addModifiers(type, type.spelling.unelaborate);
-}
 
 private string translateRecord(in from!"clang".Type type,
                                ref from!"include.runtime.context".Context context,
@@ -92,34 +85,24 @@ private string translateRecord(in from!"clang".Type type,
 @safe
 {
     // see it.compile.projects.va_list
-    if(type.spelling == "struct __va_list_tag")
-        return "va_list";
-
-    return addModifiers(type, type.spelling.unelaborate);
+    return type.spelling == "struct __va_list_tag"
+        ? "va_list"
+        : translateAggregate(type, context, translatingFunction);
 }
 
-private string translateElaborated(in from!"clang".Type type,
-                                   ref from!"include.runtime.context".Context context,
-                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
-@safe
+private string translateAggregate(in from!"clang".Type type,
+                                  ref from!"include.runtime.context".Context context,
+                                  in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
+    @safe
 {
-    import include.translation.aggregate: spellingOrNickname;
-    // Here we may get an elaborated enum. It's possible to know that
-    // because the spelling begins with "enum ". It might be worth
-    // translating to int for function parameters
-
     // spellingOrNickname because of anonymous types
-    const name = spellingOrNickname(type, context);
-    context.indentLog("Elaborated type: ", type);
-    context.indentLog("Named      type: ", type.namedType);
-    return addModifiers(type, name).unelaborate;
-
-}
-
-private string unelaborate(in string type) @safe pure {
+    import include.translation.aggregate: spellingOrNickname;
     import std.array: replace;
-    return type.replace("struct ", "struct_").replace("union ", "union_").replace("enum ", "enum_");
+
+    return addModifiers(type, spellingOrNickname(type, context))
+        .replace("struct ", "struct_").replace("union ", "union_").replace("enum ", "enum_");
 }
+
 
 
 private string translateFunctionNoProto(in from!"clang".Type type,
