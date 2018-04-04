@@ -40,20 +40,20 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
 
     // FIXME
     // I'm not sure under which conditions the type has to be translated
-    // Right now arrays are being special cased due to a pthread bug
+    // Arrays are being special cased due to a pthread bug
     // (see the jmp_buf test)
     const translateType =
         children.length == 0 ||
         underlyingType.kind == Type.Kind.ConstantArray ||
         underlyingType.kind == Type.Kind.Pointer;
 
-    const originalSpelling = translateType
+    const underlyingSpelling = translateType
         ? translate(underlyingType, context, No.translatingFunction)
         : spellingOrNickname(children[0], context);
 
-    return typedef_.spelling == originalSpelling
+    return typedef_.spelling == underlyingSpelling
         ? []
-        : [`alias ` ~ typedef_.spelling ~ ` = ` ~ originalSpelling  ~ `;`];
+        : [`alias ` ~ typedef_.spelling ~ ` = ` ~ underlyingSpelling  ~ `;`];
 }
 
 private string[] translateFunctionTypeDef(in from!"clang".Cursor typedef_,
