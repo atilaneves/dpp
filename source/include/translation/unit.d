@@ -50,7 +50,7 @@ string[] translate(in from!"clang".Cursor cursor,
 {
     import std.conv: text;
 
-    //debugCursor(cursor, context);
+    debugCursor(cursor, context);
 
     if(cursor.kind !in translations)
         throw new Exception(text("Cannot translate unknown cursor kind ", cursor.kind),
@@ -90,7 +90,7 @@ void debugCursor(in from!"clang".Cursor cursor,
     const definition = cursor.isDefinition ? " DEF" : "";
 
     if(!isMacro || isOkMacro) {
-        context.log(cursor, canonical, definition, "  ", cursor.language, " @ ", cursor.sourceRange);
+        context.log(cursor, canonical, definition, " @ ", cursor.sourceRange);
     }
 }
 
