@@ -168,26 +168,6 @@ package string spellingOrNickname(in from!"clang".Cursor cursor,
     return context.cursorNickNames[cursor.hash];
 }
 
-package string spellingOrNickname(in from!"clang".Type type,
-                                  ref from!"include.runtime.context".Context context)
-    @safe pure
-{
-
-    import std.algorithm: canFind;
-    // clang names anonymous types with a long name indicating where the type
-    // was declared
-    return type.spelling.canFind("(anonymous")
-        ? popLastNickName(context)
-        : type.spelling;
-}
-
-private string popLastNickName(ref from!"include.runtime.context".Context context) @safe pure {
-    // find the last one we named, pop it off, and return it
-    auto ret = context.nickNames[$-1];
-    context.nickNames = context.nickNames[0 .. $-1];
-    return ret;
-}
-
 private string newAnonymousName() @safe {
     import std.conv: text;
     import core.atomic: atomicOp;

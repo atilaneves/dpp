@@ -95,14 +95,26 @@ private string translateAggregate(in from!"clang".Type type,
                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
     @safe
 {
-    // spellingOrNickname because of anonymous types
-    import include.translation.aggregate: spellingOrNickname;
     import std.array: replace;
 
-    return addModifiers(type, spellingOrNickname(type, context))
+    // find the last one we named, pop it off, and return it
+    string popLastNickName() {
+        auto ret = context.nickNames[$-1];
+        context.nickNames = context.nickNames[0 .. $-1];
+        return ret;
+    }
+
+    // if it's anonymous, find the nickname, otherwise return the spelling
+    string spellingOrNickname() {
+        import std.algorithm: canFind;
+        // clang names anonymous types with a long name indicating where the type
+        // was declared
+        return type.spelling.canFind("(anonymous") ? popLastNickName : type.spelling;
+    }
+
+    return addModifiers(type, spellingOrNickname)
         .replace("struct ", "struct_").replace("union ", "union_").replace("enum ", "enum_");
 }
-
 
 
 private string translateFunctionNoProto(in from!"clang".Type type,
