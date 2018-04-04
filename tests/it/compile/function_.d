@@ -250,3 +250,22 @@ import it.compile;
          ),
     );
 }
+
+
+@("return pointer to const struct")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                typedef struct Foo { int dummy; } Foo;
+                const Foo* create_foo(int dummy);
+            }
+        ),
+        D(
+            q{
+                const(Foo)* foo = create_foo(42);
+            }
+         ),
+    );
+
+}
