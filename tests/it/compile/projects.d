@@ -652,3 +652,23 @@ import it.compile;
         ),
     );
 }
+
+
+@ShouldFail
+@("ASN1_ITEM")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                struct Struct_st;
+                typedef struct Struct_st Struct;
+                extern const Struct gVar;
+            }
+        ),
+        D(
+            q{
+
+            }
+        ),
+    );
+}
