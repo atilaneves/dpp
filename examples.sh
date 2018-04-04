@@ -6,3 +6,4 @@ set -euo pipefail
 ./example.sh curl
 ./example.sh pthread
 ./example.sh stdlib
+./example.sh openssl
