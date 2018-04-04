@@ -591,3 +591,23 @@ import it.compile;
     }
 
 }
+
+@ShouldFail
+@("gregset_t")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                typedef long long int greg_t;
+                #define __NGREG 23
+                typedef greg_t gregset_t[__NGREG];
+            }
+        ),
+        D(
+            q{
+                static assert(greg_t.sizeof == 8);
+                static assert(gregset_t.sizeof == 23 * 8);
+            }
+        ),
+    );
+}
