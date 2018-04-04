@@ -31,6 +31,7 @@ int main(string[] args) {
 
         // integration tests with code that should run
         "it.run.struct_",
+        "it.run.c",
         "it.run.cpp",
     );
 }

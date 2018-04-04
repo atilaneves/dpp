@@ -197,6 +197,42 @@ void shouldNotCompile(string file = __FILE__, size_t line = __LINE__)
    header and a D main file.
 */
 void shouldCompileAndRun(string file = __FILE__, size_t line = __LINE__)
+                        (in C header, in C source, in D app, in RuntimeArgs args = RuntimeArgs())
+{
+    import std.process: environment;
+
+    with(const IncludeSandbox()) {
+        writeFile("hdr.h", header.code);
+        const includeLine = `#include "` ~ inSandboxPath("hdr.h") ~ `"` ~ "\n";
+        const cSource = includeLine ~ source.code;
+        writeFile("c.c", cSource);
+
+        const compiler = "gcc";
+
+        shouldSucceed(compiler, "-c", "c.c");
+
+        // take care of including the header and putting the D
+        // code in a function
+        const dCode = includeLine ~
+            `void main() {` ~ "\n" ~ app.code ~ "\n}\n";
+
+        writeFile("app.dpp", dCode);
+        preprocess("app.dpp", "app.d");
+
+        try
+            shouldSucceed!(file, line)(["dmd", "app.d", "c.o"]);
+        catch(Exception e)
+            adjustMessage(e, ["app.d"]);
+
+        shouldSucceed!(file, line)(["./app"] ~ args.args);
+    }
+}
+
+/**
+   Convenience function in the typical case that a test has a C
+   header and a D main file.
+*/
+void shouldCompileAndRun(string file = __FILE__, size_t line = __LINE__)
                         (in Cpp header, in Cpp source, in D app, in RuntimeArgs args = RuntimeArgs())
 {
     import std.process: environment;
