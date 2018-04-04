@@ -105,14 +105,14 @@ private string translateAggregate(in from!"clang".Type type,
     }
 
     // if it's anonymous, find the nickname, otherwise return the spelling
-    string spellingOrNickname() {
+    string spelling() {
         import std.algorithm: canFind;
         // clang names anonymous types with a long name indicating where the type
         // was declared
         return type.spelling.canFind("(anonymous") ? popLastNickName : type.spelling;
     }
 
-    return addModifiers(type, spellingOrNickname)
+    return addModifiers(type, spelling)
         .replace("struct ", "struct_").replace("union ", "union_").replace("enum ", "enum_")
         ;
 }
