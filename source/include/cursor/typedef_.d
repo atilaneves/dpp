@@ -10,7 +10,7 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     @safe
 {
     import include.type: translate;
-    import include.cursor.aggregate: spellingOrNickname;
+    import include.cursor.aggregate: spellingOrNickname, isAggregateC;
     import clang: Cursor, Type;
     import std.conv: text;
     import std.typecons: No;
@@ -35,11 +35,7 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
         return translateFunctionTypeDef(typedef_, context.indent);
 
     // FIXME - still not sure I understand this
-    const oneAggregateChild =
-        children.length == 1 &&
-        (children[0].kind == Cursor.Kind.StructDecl ||
-         children[0].kind == Cursor.Kind.UnionDecl ||
-         children[0].kind == Cursor.Kind.EnumDecl);
+    const oneAggregateChild = children.length == 1 && isAggregateC(children[0]);
 
     const underlyingSpelling = oneAggregateChild
         ? spellingOrNickname(children[0], context)

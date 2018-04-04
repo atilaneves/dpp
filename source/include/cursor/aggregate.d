@@ -116,6 +116,16 @@ private string translateIdentifier(in string spelling) @safe pure nothrow {
     return spelling.isKeyword ? spelling ~ "_" : spelling;
 }
 
+// if the cursor is an aggregate in C, i.e. struct, union or enum
+package bool isAggregateC(in from!"clang".Cursor cursor) @safe @nogc pure nothrow {
+    import clang: Cursor;
+    return
+        cursor.kind == Cursor.Kind.StructDecl ||
+        cursor.kind == Cursor.Kind.UnionDecl ||
+        cursor.kind == Cursor.Kind.EnumDecl;
+
+}
+
 // return the spelling if it exists, or our made-up nickname for it if not
 package string spellingOrNickname(in from!"clang".Cursor cursor,
                                   ref from!"include.runtime.context".Context context)
