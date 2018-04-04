@@ -34,8 +34,7 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     if(isSomeFunction(underlyingType))
         return translateFunctionTypeDef(typedef_, context.indent);
 
-    assert(children.length == 1 ||
-           (children.length == 0 && typedef_.type.kind == Type.Kind.Typedef),
+    assert(children.length == 1 || typedef_.type.kind == Type.Kind.Typedef,
            text("typedefs should only have 1 member, not ", children.length,
                 "\n", typedef_, "\n", children));
 

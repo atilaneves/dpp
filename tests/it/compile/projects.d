@@ -592,7 +592,6 @@ import it.compile;
 
 }
 
-@ShouldFail
 @("gregset_t")
 @safe unittest {
     shouldCompile(
