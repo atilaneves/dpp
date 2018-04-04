@@ -55,7 +55,13 @@ string translate(in from!"clang".Type type,
         case LongDouble: return addModifiers(type, "real");
         case Enum: return addModifiers(type, type.spelling.cleanType);
         case FunctionProto: return translateFunctionProto(type, context);
-        case Record: return addModifiers(type, type.spelling.replace("const ", ""));
+        case Record:
+
+            // see it.compile.projects.va_list
+            if(type.spelling == "struct __va_list_tag")
+                return "va_list";
+
+            return addModifiers(type, type.spelling.replace("const ", ""));
         case FunctionNoProto:
             // FIXME - No idea what this means
             assert(type.spelling == "int ()");

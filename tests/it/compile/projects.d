@@ -635,7 +635,6 @@ import it.compile;
     );
 }
 
-@ShouldFail
 @("va_list")
 @safe unittest {
     shouldCompile(
