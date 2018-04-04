@@ -291,23 +291,38 @@ import it.compile;
     );
 }
 
-@("name collision between struct and var")
+
+@("union var collision")
 @safe unittest {
     shouldCompile(
         C(
             q{
-                struct timezone {
-                    int tz_minuteswest;
-                    int tz_dsttime;
-                };
-                extern long int timezone;
+                union foo { int dummy; };
+                extern int foo;
             }
         ),
-
         D(
             q{
-                timezone = 42;
-                auto s = struct_timezone(33, 77);
+                auto u = union_foo(44);
+                foo = 42;
+            }
+        ),
+    );
+}
+
+@("enum var collision")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                enum foo { one, two, three };
+                extern int foo;
+            }
+        ),
+        D(
+            q{
+                auto e = enum_foo.three;
+                foo = 42;
             }
         ),
     );
