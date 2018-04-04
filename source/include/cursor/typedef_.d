@@ -27,29 +27,23 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
 
     const underlyingType = typedef_.underlyingType.canonical;
 
-    context.log("TypedefDecl children: ", children);
-    context.log("Underlying type: ", underlyingType);
+    context.log("Children: ", children);
+    context.log("          Underlying type: ", underlyingType);
     context.log("Canonical underlying type: ", underlyingType.canonical);
 
     if(isSomeFunction(underlyingType))
         return translateFunctionTypeDef(typedef_, context.indent);
 
-    assert(children.length == 1 || typedef_.type.kind == Type.Kind.Typedef,
-           text("typedefs should only have 1 member, not ", children.length,
-                "\n", typedef_, "\n", children));
+    // FIXME - still not sure I understand this
+    const oneAggregateChild =
+        children.length == 1 &&
+        (children[0].kind == Cursor.Kind.StructDecl ||
+         children[0].kind == Cursor.Kind.UnionDecl ||
+         children[0].kind == Cursor.Kind.EnumDecl);
 
-    // FIXME
-    // I'm not sure under which conditions the type has to be translated
-    // Arrays are being special cased due to a pthread bug
-    // (see the jmp_buf test)
-    const translateType =
-        children.length == 0 ||
-        underlyingType.kind == Type.Kind.ConstantArray ||
-        underlyingType.kind == Type.Kind.Pointer;
-
-    const underlyingSpelling = translateType
-        ? translate(underlyingType, context, No.translatingFunction)
-        : spellingOrNickname(children[0], context);
+    const underlyingSpelling = oneAggregateChild
+        ? spellingOrNickname(children[0], context)
+        : translate(underlyingType, context, No.translatingFunction);
 
     return typedef_.spelling == underlyingSpelling
         ? []
