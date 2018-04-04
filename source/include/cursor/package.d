@@ -10,9 +10,7 @@
 
 module include.cursor;
 
-public import include.cursor.unit;
 public import include.cursor.aggregate;
-public import include.type;
 public import include.cursor.function_;
 public import include.cursor.typedef_;
 public import include.cursor.macro_;

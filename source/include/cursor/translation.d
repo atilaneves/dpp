@@ -1,7 +1,7 @@
 /**
    Translation unit translations.
  */
-module include.cursor.unit;
+module include.cursor.translation;
 
 import include.from;
 

@@ -52,7 +52,7 @@ string[] translateAggregate(
 )
     @safe
 {
-    import include.cursor.unit: translate;
+    import include.cursor.translation: translate;
     import clang: Cursor;
     import std.algorithm: map;
     import std.array: array;
