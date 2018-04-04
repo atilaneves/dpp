@@ -14,7 +14,9 @@ will pollute the global namespace, just as it does "back home".
 Limitations
 -----------
 
-It currently only supports C headers, but C++ is planned, templates and all. See also "Translation Notes" below.
+* It currently only supports C headers, but C++ is planned, templates and all. See also "Translation Notes" below.
+* Packed structs are not supported yet.
+* C99 bitfields are not supported yet.
 
 This is alpha sofware. It has however produced programs that compile that #included several "real-life" C headers:
 
