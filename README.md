@@ -16,7 +16,7 @@ Limitations
 
 It currently only supports C headers, but C++ is planned, templates and all. See also "Translation Notes" below.
 
-This is alpha sofware. It has however been made to work with several "real-life" C headers:
+This is alpha sofware. It has however produced programs that compile that #included several "real-life" C headers:
 
 * nanomsg/nn.h, nanomsg/pubsub.h
 * curl/curl.h
@@ -24,6 +24,7 @@ This is alpha sofware. It has however been made to work with several "real-life"
 * pthread.h
 * xlsxwriter.h
 * libvirt/libvirt.h, libvirt/virterror.h
+* libzfs
 
 See the examples.
 
