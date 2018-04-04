@@ -65,7 +65,8 @@ string translate(in from!"clang".Type type,
 
         case FunctionNoProto:
             // FIXME - No idea what this means
-            assert(type.spelling == "int ()");
+            if(type.spelling != "int ()")
+                throw new Exception(text("Don't know how to translate type ", type));
             return "int";
 
         case Elaborated:
