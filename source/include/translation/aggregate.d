@@ -115,7 +115,7 @@ string[] translateField(in from!"clang".Cursor field,
     @safe
 {
 
-    import include.translation.type: translate;
+    import include.type: translate;
     import clang: Cursor, Type;
     import std.conv: text;
     import std.typecons: No;

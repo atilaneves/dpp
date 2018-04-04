@@ -6,7 +6,7 @@ string[] translateVariable(in from!"clang".Cursor cursor,
                            ref from!"include.runtime.context".Context context)
     @safe
 {
-    import include.translation.type: translate;
+    import include.type: translate;
     import clang: Cursor;
     import std.conv: text;
     import std.typecons: No;

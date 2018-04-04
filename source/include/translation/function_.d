@@ -9,7 +9,7 @@ string[] translateFunction(in from!"clang".Cursor function_,
                            ref from!"include.runtime.context".Context context)
     @safe
 {
-    import include.translation.type: translate;
+    import include.type: translate;
     import include.translation.dlang: isKeyword;
     import clang: Cursor, Language;
     import std.array: join;
@@ -55,7 +55,7 @@ auto paramTypes(in from!"clang".Cursor function_,
                 ref from!"include.runtime.context".Context context)
     @safe
 {
-    import include.translation.type: translate;
+    import include.type: translate;
     import clang: Cursor;
     import std.algorithm: map, filter;
     import std.range: tee;

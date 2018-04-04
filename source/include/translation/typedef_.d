@@ -6,7 +6,7 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
                           ref from!"include.runtime.context".Context context)
     @safe
 {
-    import include.translation.type: translate;
+    import include.type: translate;
     import include.translation.aggregate: spellingOrNickname;
     import clang: Cursor, Type;
     import std.conv: text;
@@ -60,7 +60,7 @@ private string[] translateFunctionTypeDef(in from!"clang".Cursor typedef_,
                                           ref from!"include.runtime.context".Context context)
     @safe
 {
-    import include.translation.type: translate;
+    import include.type: translate;
     import include.translation.function_: paramTypes;
     import clang: Cursor, Type;
     import std.algorithm: map, filter;

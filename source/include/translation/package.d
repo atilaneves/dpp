@@ -12,7 +12,7 @@ module include.translation;
 
 public import include.translation.unit;
 public import include.translation.aggregate;
-public import include.translation.type;
+public import include.type;
 public import include.translation.function_;
 public import include.translation.typedef_;
 public import include.translation.macro_;

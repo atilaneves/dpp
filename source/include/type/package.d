@@ -1,7 +1,7 @@
 /**
    Type translations
  */
-module include.translation.type;
+module include.type;
 
 import include.from: from;
 
@@ -113,7 +113,8 @@ private string translateAggregate(in from!"clang".Type type,
     }
 
     return addModifiers(type, spellingOrNickname)
-        .replace("struct ", "struct_").replace("union ", "union_").replace("enum ", "enum_");
+        .replace("struct ", "struct_").replace("union ", "union_").replace("enum ", "enum_")
+        ;
 }
 
 

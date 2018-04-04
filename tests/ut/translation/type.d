@@ -4,7 +4,7 @@ import ut.translation;
 import clang: Type;
 
 string translate(in from!"clang".Type type) @safe {
-    import include.translation.type: translate_ = translate;
+    import include.type: translate_ = translate;
     import include.runtime.context: Context;
     Context context;
     return translate_(type, context);
