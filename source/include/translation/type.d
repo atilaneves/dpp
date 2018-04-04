@@ -98,6 +98,27 @@ private string translateRecord(in from!"clang".Type type,
     return addModifiers(type, type.spelling.cleanType);
 }
 
+private string translateElaborated(in from!"clang".Type type,
+                                   ref from!"include.runtime.context".Context context,
+                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
+@safe
+{
+    import include.translation.aggregate: spellingOrNickname;
+    // Here we may get an elaborated enum. It's possible to know that
+    // because the spelling begins with "enum ". It might be worth
+    // translating to int for function parameters
+    const name = spellingOrNickname(type.spelling, context);
+    context.indentLog("Named type: ", type.namedType);
+    return addModifiers(type, name).cleanType;
+
+}
+
+private string cleanType(in string type) @safe pure {
+    import std.array: replace;
+    return type.replace("struct ", "struct_").replace("union ", "union_").replace("enum ", "enum_");
+}
+
+
 private string translateFunctionNoProto(in from!"clang".Type type,
                                         ref from!"include.runtime.context".Context context,
                                         in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
@@ -111,19 +132,6 @@ private string translateFunctionNoProto(in from!"clang".Type type,
 
 }
 
-private string translateElaborated(in from!"clang".Type type,
-                                   ref from!"include.runtime.context".Context context,
-                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
-@safe
-{
-    import include.translation.aggregate: spellingOrNickname;
-    // Here we may get an elaborated enum. It's possible to know that
-    // because the spelling begins with "enum ". It might be worth
-    // translating to int for function parameters
-    const name = spellingOrNickname(type.spelling, context);
-    return addModifiers(type, name).cleanType;
-
-}
 
 private string translateConstantArray(in from!"clang".Type type,
                                       ref from!"include.runtime.context".Context context,
@@ -159,7 +167,7 @@ private string translateTypedef(in from!"clang".Type type,
 {
     // Here we may get a Typedef with a canonical type of Enum. It might be worth
     // translating to int for function parameters
-    return addModifiers(type, type.spelling.cleanType);
+    return addModifiers(type, type.spelling);
 }
 
 private string translatePointer(in from!"clang".Type type,
@@ -225,11 +233,6 @@ private string translateFunctionProto(in from!"clang".Type type,
     const variadicParams = type.isVariadicFunction ? ["..."] : [];
     const allParams = params ~ variadicParams;
     return text(translate(type.returnType, context), " function(", allParams.join(", "), ")");
-}
-
-string cleanType(in string type) @safe pure {
-    import std.array: replace;
-    return type.replace("struct ", "struct_").replace("union ", "union_").replace("enum ", "enum_");
 }
 
 

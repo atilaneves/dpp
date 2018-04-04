@@ -6,7 +6,7 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
                           ref from!"include.runtime.context".Context context)
     @safe
 {
-    import include.translation.type: cleanType, translate;
+    import include.translation.type: translate;
     import include.translation.aggregate: spellingOrNickname;
     import clang: Cursor, Type;
     import std.conv: text;
@@ -51,9 +51,9 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
         ? translate(underlyingType, context, No.translatingFunction)
         : spellingOrNickname(children[0], context);
 
-    return typedef_.spelling == originalSpelling.cleanType
+    return typedef_.spelling == originalSpelling
         ? []
-        : [`alias ` ~ typedef_.spelling ~ ` = ` ~ originalSpelling.cleanType  ~ `;`];
+        : [`alias ` ~ typedef_.spelling ~ ` = ` ~ originalSpelling  ~ `;`];
 }
 
 private string[] translateFunctionTypeDef(in from!"clang".Cursor typedef_,

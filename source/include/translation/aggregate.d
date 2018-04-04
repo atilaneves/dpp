@@ -109,12 +109,13 @@ string identifier(in from!"clang".Cursor cursor) @safe pure {
         keyword ~ "_" ~ cursor.spelling.replace(keyword ~ " ", "");
 }
 
+
 string[] translateField(in from!"clang".Cursor field,
                         ref from!"include.runtime.context".Context context)
     @safe
 {
 
-    import include.translation.type: translate, cleanType;
+    import include.translation.type: translate;
     import clang: Cursor, Type;
     import std.conv: text;
     import std.typecons: No;
@@ -126,9 +127,13 @@ string[] translateField(in from!"clang".Cursor field,
     // so we try and remember it here to fix it later
     if(field.type.kind == Type.Kind.Pointer && field.type.pointee.canonical.kind == Type.Kind.Record) {
         const type = field.type.pointee.canonical;
+        const translatedType = translate(type, context);
         // const becomes a problem if we have to define a struct at the end of all translations.
         // See it.compile.projects.nv_alloc_ops
-        const cleanedType = type.spelling.cleanType.replace("const ", "");
+        enum constPrefix = "const(";
+        const cleanedType = type.isConstQualified
+            ? translatedType[constPrefix.length .. $-1] // unpack from const(T)
+            : translatedType;
         context.fieldStructPointerSpellings[cleanedType] = true;
     }
 
