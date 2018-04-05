@@ -291,6 +291,25 @@ import it;
     );
 }
 
+@ShouldFail
+@("struct var collision with var before")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                extern int foo;
+                struct foo { int dummy; };
+            }
+        ),
+        D(
+            q{
+                auto u = foo(44);
+                foo_ = 42;
+            }
+        ),
+    );
+}
+
 
 @("union var collision")
 @safe unittest {
