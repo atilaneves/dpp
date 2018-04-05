@@ -25,7 +25,7 @@ struct Options {
         auto helpInfo =
             getopt(args,
                    "debug|d", "Print debug information", &debugOutput,
-                   "i", "Include paths", &includePaths,
+                   "i|clang-include-path", "Include paths", &includePaths,
                    "keep-tmp-file", "Do not delete the temporary pre-preprocessed file", &keepTempFile,
         );
 

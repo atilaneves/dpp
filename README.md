@@ -39,7 +39,8 @@ Command-line arguments
 ----------------------
 
 It is likely that the header or headers need `-I` flags to indicate paths to be searched,
-both by this executable and by libclang itself.
+both by this executable and by libclang itself. The `--clang-include-path` option can be
+used for that, once for each such path.
 
 Use `-h` or `--help` to learn more.
 

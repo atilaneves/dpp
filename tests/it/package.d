@@ -79,7 +79,7 @@ struct IncludeSandbox {
         import include.runtime.options: Options;
         import include.runtime.app: realRun = run;
 
-        const baseLineArgs = ["./include", "-I", sandboxPath];
+        const baseLineArgs = ["./include", "--clang-include-path", sandboxPath];
         auto options = Options(baseLineArgs ~ args);
         options.inputFileName = inSandboxPath(options.inputFileName);
         options.outputFileName = inSandboxPath(options.outputFileName);
@@ -92,7 +92,15 @@ struct IncludeSandbox {
         import include.runtime.app: realPreProcess = preprocess;
         import std.stdio: File;
 
-        auto options = Options(["./include", "-I", sandboxPath, inSandboxPath(inputFileName), inSandboxPath(outputFileName)]);
+        auto options = Options(
+            [
+                "./include",
+                "--clang-include-path",
+                sandboxPath,
+                inSandboxPath(inputFileName),
+                inSandboxPath(outputFileName)
+            ]
+        );
 
         realPreProcess!File(options);
     }

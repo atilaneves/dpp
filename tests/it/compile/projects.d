@@ -602,7 +602,7 @@ import it;
                       }
                   });
 
-        run("-I", inSandboxPath("includes"), "app.dpp", "app.d");
+        run("--clang-include-path", inSandboxPath("includes"), "app.dpp", "app.d");
         shouldCompile("app.d");
     }
 

@@ -20,7 +20,7 @@ import it;
                           int ret = add(2, 3);
                       }
                   });
-        run("-I", inSandboxPath("includes"), "main.dpp", "main.d");
+        run("--clang-include-path", inSandboxPath("includes"), "main.dpp", "main.d");
         shouldCompile("main.d");
     }
 }
