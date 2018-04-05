@@ -205,6 +205,7 @@ void shouldNotCompile(string file = __FILE__, size_t line = __LINE__)
     }
 }
 
+alias shouldRun = shouldCompileAndRun;
 
 /**
    Convenience function in the typical case that a test has a C
