@@ -58,10 +58,14 @@ void preprocess(File)(in from!"include.runtime.options".Options options) {
         auto context = Context(options.indent);
 
         () @trusted {
-            foreach(line; File(options.inputFileName).byLine.map!(a => cast(string)a)) {
-                outputFile.writeln(line.maybeExpand(context));
+            foreach(immutable line; File(options.inputFileName).byLine.map!(a => cast(string)a)) {
+                // If the line is an #include directive, expand its translations "inline"
+                // into the context structure.
+                line.maybeExpand(context);
             }
         }();
+
+        outputFile.writeln(context.translation);
 
         // if there are any fields that were struct pointers
         // but the struct wasn't declared anywhere, do so now

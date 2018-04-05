@@ -14,10 +14,14 @@ struct Context {
 
     alias CursorHash = uint;
     alias SeenCursors = bool[CursorId];
+    alias LineNumber = size_t;
 
-    this(Options options) @safe pure {
-        this.options = options;
-    }
+    /**
+       The lines of output so far. This is needed in order to fix
+       any name collisions between functions or variables with aggregates
+       such as structs, unions and enums.
+     */
+    string[] lines;
 
     /**
        Structs can be anonymous in C, and it's even common
@@ -49,6 +53,11 @@ struct Context {
 
     /// Command-line options
     Options options;
+
+
+    this(Options options) @safe pure {
+        this.options = options;
+    }
 
     ref Context indent() @safe pure return {
         options = options.indent;
@@ -88,6 +97,10 @@ struct Context {
             seenCursors[CursorId(cursor)] = true;
     }
 
+    string translation() @safe pure nothrow const {
+        import std.array: join;
+        return lines.join("\n");
+    }
 }
 
 
