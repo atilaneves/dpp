@@ -19,10 +19,12 @@ mk() {
     make -j"$(nproc)"
 }
 
+# just to shut it up
 pushd () {
     command pushd "$@" > /dev/null
 }
 
+# just to shut it up
 popd () {
     command popd > /dev/null
 }
@@ -37,6 +39,8 @@ pushd "$REPOS_DIR"
 [[ -e "$REPOS_DIR"/imapfilter ]] || git_clone git@github.com:lefcha/imapfilter.git
 [[ -e "$REPOS_DIR"/libvirt ]] || git_clone git@github.com:libvirt/libvirt.git
 [[ -e "$REPOS_DIR"/zfs ]] || git_clone git@github.com:zfsonlinux/zfs.git
+[[ -e "$REPOS_DIR"/nanomsg ]] || git_clone git@github.com:nanomsg/nanomsg.git
+
 
 if [[ ! -e "$REPOS_DIR"/libetpan/include/libetpan ]]; then
     pushd "$REPOS_DIR"/libetpan
@@ -60,6 +64,8 @@ if [[ ! -e "$REPOS_DIR"/libvirt/config.h ]]; then
 fi
 popd
 
+echo Testing download nanomsg
+"$BIN_DIR"/d++ --clang-include-path "$REPOS_DIR" "$SCRIPT_DIR"/nanomsg.dpp -c
 
 
 echo Testing download libxlsxwriter
