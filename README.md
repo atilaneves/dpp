@@ -162,30 +162,17 @@ void debug_(const(char)*);
 For convenience, this declaration:
 
 ```c
-enum Enum { foo, bar, baz}
+enum Enum { foo, bar, baz }
 ```
 
 Will generate this translation:
 
 ```d
-enum { foo, bar, baz}
-enum Enum { foo, bar, baz}
+enum Enum { foo, bar, baz }
+enum foo = Enum.foo;
+enum bar = Enum.bar;
+enum baz = Enum.baz;
 ```
 
 This is to mimic C semantics with regards to the global namespace whilst also allowing
 one to, say, reflect on the enum type.
-
-Function parameters declared as an enum in C will also be an enum in D, i.e. it won't accept
-an `int` as C would, so:
-
-```c
-void func(Enum e);
-func(foo);
-```
-becomes:
-
-```d
-void func(Enum e);
-// func(foo); // won't compile, func takes Enum, not int
-func(Enum.foo);
-```
