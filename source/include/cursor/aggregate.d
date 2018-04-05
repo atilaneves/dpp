@@ -37,10 +37,21 @@ string[] translateEnum(in from!"clang".Cursor cursor,
     // but also have a named version for optional type correctness and
     // reflection capabilities.
     // This means that `enum Foo { foo, bar }` in C will become:
-    // `enum Foo { foo, bar }` _and_ `enum { foo, bar }` in D.
+    // `enum Foo { foo, bar }` _and_
+    // `enum foo = Foo.foo; enum bar = Foo.bar;` in D.
+
+    auto enumName = spellingOrNickname(cursor, context);
+
+    string[] lines;
+    foreach(member; cursor) {
+        if(!member.isDefinition) continue;
+        auto memName = member.spelling;
+        lines ~= `enum ` ~ memName ~ ` = ` ~ enumName ~ `.` ~ memName ~ `;`;
+    }
+
     return
-        translateAggregate(context, cursor, "enum") ~
-        translateAggregate(context, cursor, "enum", nullable(""));
+        translateAggregate(context, cursor, "enum", nullable(enumName)) ~
+        lines;
 }
 
 // not pure due to Cursor.opApply not being pure
