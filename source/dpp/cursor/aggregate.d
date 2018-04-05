@@ -1,13 +1,13 @@
 /**
    Translate aggregates
  */
-module include.cursor.aggregate;
+module dpp.cursor.aggregate;
 
-import include.from;
+import dpp.from;
 
 
 string[] translateStruct(in from!"clang".Cursor cursor,
-                         ref from!"include.runtime.context".Context context)
+                         ref from!"dpp.runtime.context".Context context)
     @safe
 {
     import clang: Cursor;
@@ -16,7 +16,7 @@ string[] translateStruct(in from!"clang".Cursor cursor,
 }
 
 string[] translateUnion(in from!"clang".Cursor cursor,
-                        ref from!"include.runtime.context".Context context)
+                        ref from!"dpp.runtime.context".Context context)
     @safe
 {
     import clang: Cursor;
@@ -25,7 +25,7 @@ string[] translateUnion(in from!"clang".Cursor cursor,
 }
 
 string[] translateEnum(in from!"clang".Cursor cursor,
-                       ref from!"include.runtime.context".Context context)
+                       ref from!"dpp.runtime.context".Context context)
     @safe
 {
     import clang: Cursor;
@@ -56,14 +56,14 @@ string[] translateEnum(in from!"clang".Cursor cursor,
 
 // not pure due to Cursor.opApply not being pure
 string[] translateAggregate(
-    ref from!"include.runtime.context".Context context,
+    ref from!"dpp.runtime.context".Context context,
     in from!"clang".Cursor cursor,
     in string keyword,
     in from!"std.typecons".Nullable!string spelling = from!"std.typecons".Nullable!string()
 )
     @safe
 {
-    import include.cursor.translation: translate;
+    import dpp.cursor.translation: translate;
     import clang: Cursor;
     import std.algorithm: map;
     import std.array: array;
@@ -92,12 +92,12 @@ string[] translateAggregate(
 
 
 string[] translateField(in from!"clang".Cursor field,
-                        ref from!"include.runtime.context".Context context)
+                        ref from!"dpp.runtime.context".Context context)
     @safe
 {
 
-    import include.cursor.dlang: maybeRename;
-    import include.type: translate;
+    import dpp.cursor.dlang: maybeRename;
+    import dpp.type: translate;
     import clang: Cursor, Type;
     import std.conv: text;
     import std.typecons: No;
@@ -136,7 +136,7 @@ package bool isAggregateC(in from!"clang".Cursor cursor) @safe @nogc pure nothro
 
 // return the spelling if it exists, or our made-up nickname for it if not
 package string spellingOrNickname(in from!"clang".Cursor cursor,
-                                  ref from!"include.runtime.context".Context context)
+                                  ref from!"dpp.runtime.context".Context context)
     @safe
 {
 

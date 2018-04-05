@@ -1,17 +1,17 @@
 /**
    Cursor translations
  */
-module include.cursor.translation;
+module dpp.cursor.translation;
 
-import include.from;
+import dpp.from;
 
 alias Translator = string[] function(
     in from!"clang".Cursor cursor,
-    ref from!"include.runtime.context".Context context,
+    ref from!"dpp.runtime.context".Context context,
 ) @safe;
 
 string translateTopLevelCursor(in from!"clang".Cursor cursor,
-                               ref from!"include.runtime.context".Context context,
+                               ref from!"dpp.runtime.context".Context context,
                                in string file = __FILE__,
                                in size_t line = __LINE__)
     @safe
@@ -43,7 +43,7 @@ private bool skip(in from!"clang".Cursor cursor) @safe pure {
 
 
 string[] translate(in from!"clang".Cursor cursor,
-                   ref from!"include.runtime.context".Context context,
+                   ref from!"dpp.runtime.context".Context context,
                    in string file = __FILE__,
                    in size_t line = __LINE__)
     @safe
@@ -73,7 +73,7 @@ string[] translate(in from!"clang".Cursor cursor,
 }
 
 void debugCursor(in from!"clang".Cursor cursor,
-                 in from!"include.runtime.context".Context context)
+                 in from!"dpp.runtime.context".Context context)
     @safe
 {
     import clang: Cursor;
@@ -95,20 +95,20 @@ void debugCursor(in from!"clang".Cursor cursor,
 }
 
 Translator[from!"clang".Cursor.Kind] translators() @safe {
-    import include.cursor;
+    import dpp.cursor;
     import clang: Cursor;
-    import include.expansion: expand;
+    import dpp.expansion: expand;
 
     static string[] ignore(
         in Cursor cursor,
-        ref from!"include.runtime.context".Context context)
+        ref from!"dpp.runtime.context".Context context)
     {
         return [];
     }
 
     static string[] translateUnexposed(
         in Cursor cursor,
-        ref from!"include.runtime.context".Context context)
+        ref from!"dpp.runtime.context".Context context)
     {
         import clang: Type;
         import std.conv: text;

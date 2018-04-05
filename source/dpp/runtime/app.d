@@ -1,14 +1,14 @@
 /**
    Code to make the executable do what it does at runtime.
  */
-module include.runtime.app;
+module dpp.runtime.app;
 
-import include.from;
+import dpp.from;
 
 /**
    The "real" main
  */
-void run(in from!"include.runtime.options".Options options) @safe {
+void run(in from!"dpp.runtime.options".Options options) @safe {
     import std.stdio: File;
     import std.exception: enforce;
     import std.path: extension;
@@ -38,10 +38,10 @@ void run(in from!"include.runtime.options".Options options) @safe {
    Params:
         options = The runtime options.
  */
-void preprocess(File)(in from!"include.runtime.options".Options options) {
+void preprocess(File)(in from!"dpp.runtime.options".Options options) {
 
-    import include.runtime.context: Context;
-    import include.expansion: maybeExpand;
+    import dpp.runtime.context: Context;
+    import dpp.expansion: maybeExpand;
     import std.algorithm: map, startsWith;
     import std.process: execute;
     import std.exception: enforce;

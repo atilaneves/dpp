@@ -63,8 +63,8 @@ struct IncludeSandbox {
                 in size_t line = __LINE__)
         @safe const
     {
-        import include.runtime.context: Context;
-        import include.expansion: realExpand = expand;
+        import dpp.runtime.context: Context;
+        import dpp.expansion: realExpand = expand;
 
         const outFileName = inSandboxPath(out_.value);
         const inFileName = inSandboxPath(in_.value);
@@ -76,8 +76,8 @@ struct IncludeSandbox {
     }
 
     void run(string[] args...) @safe const {
-        import include.runtime.options: Options;
-        import include.runtime.app: realRun = run;
+        import dpp.runtime.options: Options;
+        import dpp.runtime.app: realRun = run;
 
         const baseLineArgs = [
             "./include",
@@ -93,8 +93,8 @@ struct IncludeSandbox {
     }
 
     void preprocess(in string dppFileName, in string dFileName) @safe const {
-        import include.runtime.options: Options;
-        import include.runtime.app: realPreProcess = preprocess;
+        import dpp.runtime.options: Options;
+        import dpp.runtime.app: realPreProcess = preprocess;
         import std.stdio: File;
 
         auto options = Options(

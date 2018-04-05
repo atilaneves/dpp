@@ -1,9 +1,9 @@
 /**
    Deals with expanding 3include directives inline.
  */
-module include.expansion;
+module dpp.expansion;
 
-import include.from;
+import dpp.from;
 
 version(unittest) {
     import unit_threaded: shouldEqual;
@@ -14,7 +14,7 @@ version(unittest) {
    If an #include directive, expand in place (add to context lines)
    otherwise do nothing (add the line to the context)
  */
-void maybeExpand(in string line, ref from!"include.runtime.context".Context context)
+void maybeExpand(in string line, ref from!"dpp.runtime.context".Context context)
     @safe
 {
     const headerName = getHeaderName(line);
@@ -28,7 +28,7 @@ void maybeExpand(in string line, ref from!"include.runtime.context".Context cont
 
 @("translate no include")
 @safe unittest {
-    import include.runtime.context: Context;
+    import dpp.runtime.context: Context;
     {
         Context context;
         maybeExpand("foo", context);
@@ -87,12 +87,12 @@ private string toFileName(in string[] includePaths, in string headerName) @safe 
 
 
 void expand(in string headerFileName,
-            ref from!"include.runtime.context".Context context,
+            ref from!"dpp.runtime.context".Context context,
             in string file = __FILE__,
             in size_t line = __LINE__)
     @safe
 {
-    import include.cursor.translation: translateTopLevelCursor;
+    import dpp.cursor.translation: translateTopLevelCursor;
     import clang: parse, TranslationUnitFlags, Cursor;
     import std.array: join, array;
     import std.algorithm: sort, filter, map, chunkBy, any;

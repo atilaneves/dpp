@@ -1,20 +1,20 @@
 /**
    Deals with D-specific translation, such as avoiding keywords
  */
-module include.cursor.dlang;
+module dpp.cursor.dlang;
 
-import include.from;
+import dpp.from;
 
 
 string maybeRename(in from!"clang".Cursor cursor,
-                   in from!"include.runtime.context".Context context)
+                   in from!"dpp.runtime.context".Context context)
     @safe pure
 {
     return nameClashes(cursor, context) ? rename(cursor.spelling) : cursor.spelling;
 }
 
 string maybePragma(in from!"clang".Cursor cursor,
-                     in from!"include.runtime.context".Context context)
+                     in from!"dpp.runtime.context".Context context)
     @safe pure
 {
     return nameClashes(cursor, context) ? pragmaMangle(cursor.spelling) : "";
@@ -29,7 +29,7 @@ string pragmaMangle(in string spelling) @safe pure nothrow {
 }
 
 private bool nameClashes(in from!"clang".Cursor cursor,
-                 in from!"include.runtime.context".Context context)
+                 in from!"dpp.runtime.context".Context context)
     @safe pure
 {
     return

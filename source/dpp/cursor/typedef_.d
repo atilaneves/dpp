@@ -1,16 +1,16 @@
 /**
    typedef translations
  */
-module include.cursor.typedef_;
+module dpp.cursor.typedef_;
 
-import include.from;
+import dpp.from;
 
 string[] translateTypedef(in from!"clang".Cursor typedef_,
-                          ref from!"include.runtime.context".Context context)
+                          ref from!"dpp.runtime.context".Context context)
     @safe
 {
-    import include.type: translate;
-    import include.cursor.aggregate: spellingOrNickname, isAggregateC;
+    import dpp.type: translate;
+    import dpp.cursor.aggregate: spellingOrNickname, isAggregateC;
     import clang: Cursor, Type;
     import std.conv: text;
     import std.typecons: No;
@@ -48,11 +48,11 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
 }
 
 private string[] translateFunctionTypeDef(in from!"clang".Cursor typedef_,
-                                          ref from!"include.runtime.context".Context context)
+                                          ref from!"dpp.runtime.context".Context context)
     @safe
 {
-    import include.type: translate;
-    import include.cursor.function_: paramTypes;
+    import dpp.type: translate;
+    import dpp.cursor.function_: paramTypes;
     import clang: Cursor, Type;
     import std.algorithm: map, filter;
     import std.array: join;

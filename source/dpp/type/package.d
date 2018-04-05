@@ -1,20 +1,20 @@
 /**
    Type translations
  */
-module include.type;
+module dpp.type;
 
-import include.from: from;
+import dpp.from: from;
 
 alias Translator = string function(
     in from!"clang".Type type,
-    ref from!"include.runtime.context".Context context,
+    ref from!"dpp.runtime.context".Context context,
     in from!"std.typecons".Flag!"translatingFunction" translatingFunction
 ) @safe pure;
 
 alias Translators = Translator[from!"clang".Type.Kind];
 
 string translate(in from!"clang".Type type,
-                 ref from!"include.runtime.context".Context context,
+                 ref from!"dpp.runtime.context".Context context,
                  in from!"std.typecons".Flag!"translatingFunction" translatingFunction = from!"std.typecons".No.translatingFunction)
     @safe pure
 {
@@ -71,7 +71,7 @@ Translators translators() @safe pure {
 
 private string simple(string translation)
                      (in from!"clang".Type type,
-                      ref from!"include.runtime.context".Context context,
+                      ref from!"dpp.runtime.context".Context context,
                       in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
 @safe pure
 {
@@ -80,7 +80,7 @@ private string simple(string translation)
 
 
 private string translateRecord(in from!"clang".Type type,
-                               ref from!"include.runtime.context".Context context,
+                               ref from!"dpp.runtime.context".Context context,
                                in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
 @safe pure
 {
@@ -91,7 +91,7 @@ private string translateRecord(in from!"clang".Type type,
 }
 
 private string translateAggregate(in from!"clang".Type type,
-                                  ref from!"include.runtime.context".Context context,
+                                  ref from!"dpp.runtime.context".Context context,
                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
     @safe pure
 {
@@ -120,7 +120,7 @@ private string translateAggregate(in from!"clang".Type type,
 
 
 private string translateFunctionNoProto(in from!"clang".Type type,
-                                        ref from!"include.runtime.context".Context context,
+                                        ref from!"dpp.runtime.context".Context context,
                                         in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
 @safe pure
 {
@@ -134,7 +134,7 @@ private string translateFunctionNoProto(in from!"clang".Type type,
 
 
 private string translateConstantArray(in from!"clang".Type type,
-                                      ref from!"include.runtime.context".Context context,
+                                      ref from!"dpp.runtime.context".Context context,
                                       in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
 @safe pure
 {
@@ -149,7 +149,7 @@ private string translateConstantArray(in from!"clang".Type type,
 }
 
 private string translateIncompleteArray(in from!"clang".Type type,
-                                        ref from!"include.runtime.context".Context context,
+                                        ref from!"dpp.runtime.context".Context context,
                                         in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
 @safe pure
 {
@@ -161,7 +161,7 @@ private string translateIncompleteArray(in from!"clang".Type type,
 }
 
 private string translateTypedef(in from!"clang".Type type,
-                                ref from!"include.runtime.context".Context context,
+                                ref from!"dpp.runtime.context".Context context,
                                 in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
 @safe pure
 {
@@ -171,7 +171,7 @@ private string translateTypedef(in from!"clang".Type type,
 }
 
 private string translatePointer(in from!"clang".Type type,
-                                ref from!"include.runtime.context".Context context,
+                                ref from!"dpp.runtime.context".Context context,
                                 in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
     @safe pure
 {
@@ -221,7 +221,7 @@ private string translatePointer(in from!"clang".Type type,
 // currently only getting here from function pointer variables
 // with have kind unexposed but canonical kind FunctionProto
 private string translateFunctionProto(in from!"clang".Type type,
-                                      ref from!"include.runtime.context".Context context,
+                                      ref from!"dpp.runtime.context".Context context,
                                       in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
     @safe pure
 {

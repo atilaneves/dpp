@@ -1,16 +1,16 @@
 /**
    Function translations.
  */
-module include.cursor.function_;
+module dpp.cursor.function_;
 
-import include.from;
+import dpp.from;
 
 string[] translateFunction(in from!"clang".Cursor function_,
-                           ref from!"include.runtime.context".Context context)
+                           ref from!"dpp.runtime.context".Context context)
     @safe
 {
-    import include.cursor.dlang: maybeRename, maybePragma;
-    import include.type: translate;
+    import dpp.cursor.dlang: maybeRename, maybePragma;
+    import dpp.type: translate;
     import clang: Cursor, Language;
     import std.array: join;
     import std.conv: text;
@@ -47,10 +47,10 @@ string[] translateFunction(in from!"clang".Cursor function_,
 }
 
 auto paramTypes(in from!"clang".Cursor function_,
-                ref from!"include.runtime.context".Context context)
+                ref from!"dpp.runtime.context".Context context)
     @safe
 {
-    import include.type: translate;
+    import dpp.type: translate;
     import clang: Cursor;
     import std.algorithm: map, filter;
     import std.range: tee;

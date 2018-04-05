@@ -4,9 +4,9 @@ int main(string[] args) {
     return args.runTests!(
 
         // in-file
-        "include.runtime",
-        "include.cursor",
-        "include.expansion",
+        "dpp.runtime",
+        "dpp.cursor",
+        "dpp.expansion",
 
         // unit tests
         "ut.type",

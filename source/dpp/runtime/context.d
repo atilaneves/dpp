@@ -1,7 +1,7 @@
 /**
    The context the translation happens in, to avoid global variables
  */
-module include.runtime.context;
+module dpp.runtime.context;
 
 
 /**
@@ -9,7 +9,7 @@ module include.runtime.context;
  */
 struct Context {
 
-    import include.runtime.options: Options;
+    import dpp.runtime.options: Options;
     import clang: Cursor;
 
     alias CursorHash = uint;
@@ -138,7 +138,7 @@ struct Context {
 }
 
 private void resolveClash(ref string line, in string spelling) @safe pure {
-    import include.cursor.dlang: pragmaMangle, rename;
+    import dpp.cursor.dlang: pragmaMangle, rename;
     import std.string: replace;
     line = pragmaMangle(spelling) ~ line.replace(spelling, rename(spelling));
 }

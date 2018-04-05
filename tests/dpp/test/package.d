@@ -1,3 +1,3 @@
-module include.test;
+module dpp.test;
 
 public import unit_threaded;

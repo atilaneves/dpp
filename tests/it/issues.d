@@ -30,7 +30,7 @@ import it;
 
 @("14")
 @safe unittest {
-    import include.runtime.options: Options;
+    import dpp.runtime.options: Options;
     with(immutable IncludeSandbox()) {
 
         writeFile("foo.h",

@@ -8,11 +8,11 @@
    otherwise it asks dstep to it for us.
  */
 
-module include.cursor;
+module dpp.cursor;
 
-public import include.cursor.aggregate;
-public import include.cursor.function_;
-public import include.cursor.typedef_;
-public import include.cursor.macro_;
-public import include.cursor.enum_;
-public import include.cursor.variable;
+public import dpp.cursor.aggregate;
+public import dpp.cursor.function_;
+public import dpp.cursor.typedef_;
+public import dpp.cursor.macro_;
+public import dpp.cursor.enum_;
+public import dpp.cursor.variable;

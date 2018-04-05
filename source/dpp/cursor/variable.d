@@ -1,13 +1,13 @@
-module include.cursor.variable;
+module dpp.cursor.variable;
 
-import include.from;
+import dpp.from;
 
 string[] translateVariable(in from!"clang".Cursor cursor,
-                           ref from!"include.runtime.context".Context context)
+                           ref from!"dpp.runtime.context".Context context)
     @safe
 {
-    import include.cursor.dlang: maybeRename, maybePragma;
-    import include.type: translate;
+    import dpp.cursor.dlang: maybeRename, maybePragma;
+    import dpp.type: translate;
     import clang: Cursor;
     import std.conv: text;
     import std.typecons: No;
@@ -40,7 +40,7 @@ string[] translateVariable(in from!"clang".Cursor cursor,
 
 private bool isRecordWithoutDefinition(
     in from!"clang".Cursor cursor,
-    ref from!"include.runtime.context".Context context)
+    ref from!"dpp.runtime.context".Context context)
     @safe
 {
     import clang: Type;

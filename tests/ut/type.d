@@ -1,13 +1,13 @@
 module ut.type;
 
-import include.test;
-import include.type;
+import dpp.test;
+import dpp.type;
 import clang: Type;
 
 
 string translate(in from!"clang".Type type) @safe {
-    import include.type: translate_ = translate;
-    import include.runtime.context: Context;
+    import dpp.type: translate_ = translate;
+    import dpp.runtime.context: Context;
     Context context;
     return translate_(type, context);
 }

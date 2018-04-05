@@ -1,12 +1,12 @@
 /**
    Enum translation
  */
-module include.cursor.enum_;
+module dpp.cursor.enum_;
 
-import include.from;
+import dpp.from;
 
 string[] translateEnumConstant(in from!"clang".Cursor cursor,
-                               ref from!"include.runtime.context".Context context)
+                               ref from!"dpp.runtime.context".Context context)
     @safe pure
 {
     import clang: Cursor;

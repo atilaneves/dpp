@@ -1,7 +1,7 @@
 /**
    Command-line options
  */
-module include.runtime.options;
+module dpp.runtime.options;
 
 @safe:
 

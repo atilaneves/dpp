@@ -1,9 +1,9 @@
-module include.cursor.macro_;
+module dpp.cursor.macro_;
 
-import include.from;
+import dpp.from;
 
 string[] translateMacro(in from!"clang".Cursor cursor,
-                        ref from!"include.runtime.context".Context context)
+                        ref from!"dpp.runtime.context".Context context)
     @safe
 {
     import clang: Cursor;

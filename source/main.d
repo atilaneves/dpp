@@ -1,6 +1,6 @@
 int main(string[] args) {
 
-    import include.runtime: run, Options;
+    import dpp.runtime: run, Options;
     import std.stdio: stderr;
 
     try {
