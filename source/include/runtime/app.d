@@ -44,7 +44,7 @@ void preprocess(File)(in from!"include.runtime.options".Options options) {
     import std.file: remove;
 
     const tmpFileName = options.outputFileName ~ ".tmp";
-    scope(exit) remove(tmpFileName);
+    scope(exit) if(!options.keepTempFile) remove(tmpFileName);
 
     {
         auto outputFile = File(tmpFileName, "w");
