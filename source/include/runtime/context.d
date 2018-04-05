@@ -14,10 +14,14 @@ struct Context {
 
     alias CursorHash = uint;
     alias SeenCursors = bool[CursorId];
+    alias LineNumber = size_t;
 
-    this(Options options) @safe pure {
-        this.options = options;
-    }
+    /**
+       The lines of output so far. This is needed in order to fix
+       any name collisions between functions or variables with aggregates
+       such as structs, unions and enums.
+     */
+    private string[] lines;
 
     /**
        Structs can be anonymous in C, and it's even common
@@ -43,12 +47,25 @@ struct Context {
     bool[string] aggregateDeclarations;
 
     /**
+       A linkable is a function or a global variable.
+       We remember all the ones we saw here so that if there's a name clash
+       with an aggregate we can come back and fix the declarations after
+       the fact with  pragma(mangle).
+     */
+    LineNumber[string] linkableDeclarations;
+
+    /**
        All previously seen cursors
      */
     SeenCursors seenCursors;
 
     /// Command-line options
     Options options;
+
+
+    this(Options options) @safe pure {
+        this.options = options;
+    }
 
     ref Context indent() @safe pure return {
         options = options.indent;
@@ -81,13 +98,49 @@ struct Context {
         return cast(bool)(CursorId(cursor) in seenCursors);
     }
 
-    void remember(in Cursor cursor) @safe pure nothrow {
+    void rememberCursor(in Cursor cursor) @safe pure nothrow {
         // EnumDecl can have no spelling but end up defining an enum anyway
         // See "it.compile.projects.double enum typedef"
         if(cursor.spelling != "" || cursor.kind == Cursor.Kind.EnumDecl)
             seenCursors[CursorId(cursor)] = true;
     }
 
+    string translation() @safe pure nothrow const {
+        import std.array: join;
+        return lines.join("\n");
+    }
+
+    void writeln(in string line) @safe pure nothrow {
+        lines ~= line.dup;
+    }
+
+    void writeln(in string[] lines) @safe pure nothrow {
+        this.lines ~= lines;
+    }
+
+    // remember a function or variable declaration
+    void rememberLinkable(in string spelling) @safe pure nothrow {
+        // since linkables produce one-line translations, the next
+        // will be the linkable
+        linkableDeclarations[spelling] = lines.length;
+    }
+
+    void fixLinkables() @safe pure {
+        foreach(aggregate, _; aggregateDeclarations) {
+            // if there's a name clash, fix it
+            auto clashLineNumber = aggregate in linkableDeclarations;
+            if(clashLineNumber) {
+                resolveClash(lines[*clashLineNumber], aggregate);
+            }
+        }
+
+    }
+}
+
+private void resolveClash(ref string line, in string spelling) @safe pure {
+    import include.cursor.dlang: pragmaMangle, rename;
+    import std.string: replace;
+    line = pragmaMangle(spelling) ~ line.replace(spelling, rename(spelling));
 }
 
 

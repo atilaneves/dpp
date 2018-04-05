@@ -1,19 +1,19 @@
 /**
-   Translation unit translations.
+   Cursor translations
  */
 module include.cursor.translation;
 
 import include.from;
 
-alias Translation = string[] function(
+alias Translator = string[] function(
     in from!"clang".Cursor cursor,
     ref from!"include.runtime.context".Context context,
 ) @safe;
 
-string translate(ref from!"include.runtime.context".Context context,
-                 in from!"clang".Cursor cursor,
-                 in string file = __FILE__,
-                 in size_t line = __LINE__)
+string translateTopLevelCursor(in from!"clang".Cursor cursor,
+                               ref from!"include.runtime.context".Context context,
+                               in string file = __FILE__,
+                               in size_t line = __LINE__)
     @safe
 {
     import std.array: join;
@@ -52,13 +52,13 @@ string[] translate(in from!"clang".Cursor cursor,
 
     debugCursor(cursor, context);
 
-    if(cursor.kind !in translations)
+    if(cursor.kind !in translators)
         throw new Exception(text("Cannot translate unknown cursor kind ", cursor.kind),
                             file,
                             line);
 
     try
-        return translations[cursor.kind](cursor, context.indent);
+        return translators[cursor.kind](cursor, context.indent);
     catch(Exception e) {
         import std.stdio: stderr;
         debug {
@@ -94,7 +94,7 @@ void debugCursor(in from!"clang".Cursor cursor,
     }
 }
 
-Translation[from!"clang".Cursor.Kind] translations() @safe {
+Translator[from!"clang".Cursor.Kind] translators() @safe {
     import include.cursor;
     import clang: Cursor;
     import include.expansion: expand;

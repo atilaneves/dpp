@@ -11,28 +11,34 @@ version(unittest) {
 
 
 /**
-   If an #include directive, expand in place,
-   otherwise do nothing (i.e. return the same line)
+   If an #include directive, expand in place (add to context lines)
+   otherwise do nothing (add the line to the context)
  */
-string maybeExpand(string line,
-                   ref from!"include.runtime.context".Context context)
+void maybeExpand(in string line, ref from!"include.runtime.context".Context context)
     @safe
 {
     const headerName = getHeaderName(line);
 
-    return headerName == ""
-        ? line
-        : expand(toFileName(context.options.includePaths, headerName),
-                 context);
+    if(headerName == "")
+        context.writeln(line);
+    else
+        expand(toFileName(context.options.includePaths, headerName),  context);
 }
 
 
 @("translate no include")
 @safe unittest {
     import include.runtime.context: Context;
-    Context context;
-    maybeExpand("foo", context).shouldEqual("foo");
-    maybeExpand("bar", context).shouldEqual("bar");
+    {
+        Context context;
+        maybeExpand("foo", context);
+        context.translation.shouldEqual("foo");
+    }
+    {
+        Context context;
+        maybeExpand("bar", context);
+        context.translation.shouldEqual("bar");
+    }
 }
 
 private string getHeaderName(string line) @safe pure {
@@ -80,13 +86,13 @@ private string toFileName(in string[] includePaths, in string headerName) @safe 
 }
 
 
-string expand(in string headerFileName,
-              ref from!"include.runtime.context".Context context,
-              in string file = __FILE__,
-              in size_t line = __LINE__)
+void expand(in string headerFileName,
+            ref from!"include.runtime.context".Context context,
+            in string file = __FILE__,
+            in size_t line = __LINE__)
     @safe
 {
-    import include.cursor.translation: translate;
+    import include.cursor.translation: translateTopLevelCursor;
     import clang: parse, TranslationUnitFlags, Cursor;
     import std.array: join, array;
     import std.algorithm: sort, filter, map, chunkBy, any;
@@ -136,26 +142,21 @@ string expand(in string headerFileName,
         ;
     }();
 
-    string[] ret;
-
-    ret ~= isCppHeader(headerFileName) ? "extern(C++)" : "extern(C)";
-    ret ~= "{";
+    const extern_ = isCppHeader(headerFileName) ? "extern(C++)" : "extern(C)";
+    context.writeln([extern_, "{"]);
 
     foreach(cursor; cursors) {
 
         if(context.hasSeen(cursor)) continue;
-        context.remember(cursor);
+        context.rememberCursor(cursor);
 
         const indentation = context.indentation;
-        const lines = translate(context, cursor, file, line);
-        if(lines.length) ret ~= lines;
+        const lines = translateTopLevelCursor(cursor, context, file, line);
+        if(lines.length) context.writeln(lines);
         context.setIndentation(indentation);
     }
 
-    ret ~= "}";
-    ret ~= "";
-
-    return ret.join("\n");
+    context.writeln(["}", ""]);
 }
 
 private bool isCppHeader(in string headerFileName) @safe pure {

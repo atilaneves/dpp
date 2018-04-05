@@ -122,6 +122,7 @@ import it;
 
         D(
             q{
+
                 static assert(is(typeof(bar) == FooBarBaz_));
                 static assert(FooBarBaz_.foo == 2);
                 static assert(bar == 5);
@@ -146,6 +147,7 @@ import it;
 
         D(
             q{
+
                 static assert(is(typeof(one) == Numbers));
                 static assert(is(typeof(two) == Numbers));
                 numbers = one;
@@ -198,6 +200,7 @@ import it;
 
         D(
             q{
+
                 static assert(is(typeof(Struct.one) == enum));
                 static assert(Struct.two == 2);
             }

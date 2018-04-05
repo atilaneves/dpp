@@ -6,6 +6,7 @@ string[] translateVariable(in from!"clang".Cursor cursor,
                            ref from!"include.runtime.context".Context context)
     @safe
 {
+    import include.cursor.dlang: maybeRename, maybePragma;
     import include.type: translate;
     import clang: Cursor;
     import std.conv: text;
@@ -26,8 +27,14 @@ string[] translateVariable(in from!"clang".Cursor cursor,
     // extern Foo gFoo;
     if(isRecordWithoutDefinition(cursor, context)) return [];
 
-    return [text("extern __gshared ",
-                 translate(cursor.type, context, No.translatingFunction), " ", cursor.spelling, ";")];
+    const spelling = maybeRename(cursor, context);
+    context.rememberLinkable(spelling);
+
+    return [
+        maybePragma(cursor, context) ~
+        text("extern __gshared ",
+             translate(cursor.type, context, No.translatingFunction), " ", spelling, ";")
+    ];
 }
 
 

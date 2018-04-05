@@ -44,7 +44,7 @@ void preprocess(File)(in from!"include.runtime.options".Options options) {
     import std.file: remove;
 
     const tmpFileName = options.outputFileName ~ ".tmp";
-    scope(exit) remove(tmpFileName);
+    scope(exit) if(!options.keepTempFile) remove(tmpFileName);
 
     {
         auto outputFile = File(tmpFileName, "w");
@@ -58,10 +58,15 @@ void preprocess(File)(in from!"include.runtime.options".Options options) {
         auto context = Context(options.indent);
 
         () @trusted {
-            foreach(line; File(options.inputFileName).byLine.map!(a => cast(string)a)) {
-                outputFile.writeln(line.maybeExpand(context));
+            foreach(immutable line; File(options.inputFileName).byLine.map!(a => cast(string)a)) {
+                // If the line is an #include directive, expand its translations "inline"
+                // into the context structure.
+                line.maybeExpand(context);
             }
         }();
+
+        context.fixLinkables;
+        outputFile.writeln(context.translation);
 
         // if there are any fields that were struct pointers
         // but the struct wasn't declared anywhere, do so now
@@ -97,7 +102,7 @@ private string preamble() @safe pure {
 
         import core.stdc.config;
         import core.stdc.stdarg: va_list;
-        struct struct___locale_data { int dummy; }  // FIXME
+        struct __locale_data { int dummy; }  // FIXME
         #define __gnuc_va_list va_list
         alias _Bool = bool;
 

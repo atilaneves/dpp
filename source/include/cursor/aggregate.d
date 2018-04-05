@@ -96,6 +96,7 @@ string[] translateField(in from!"clang".Cursor field,
     @safe
 {
 
+    import include.cursor.dlang: maybeRename;
     import include.type: translate;
     import clang: Cursor, Type;
     import std.conv: text;
@@ -119,13 +120,9 @@ string[] translateField(in from!"clang".Cursor field,
     }
 
     const type = translate(field.type, context, No.translatingFunction);
-    return [text(type, " ", field.spelling.translateIdentifier, ";")];
+    return [text(type, " ", maybeRename(field, context), ";")];
 }
 
-private string translateIdentifier(in string spelling) @safe pure nothrow {
-    import include.cursor.dlang: isKeyword;
-    return spelling.isKeyword ? spelling ~ "_" : spelling;
-}
 
 // if the cursor is an aggregate in C, i.e. struct, union or enum
 package bool isAggregateC(in from!"clang".Cursor cursor) @safe @nogc pure nothrow {
@@ -148,7 +145,7 @@ package string spellingOrNickname(in from!"clang".Cursor cursor,
     static int index;
 
     // If not anonymous, just return the spelling
-    if(cursor.spelling != "") return identifier(cursor);
+    if(cursor.spelling != "") return cursor.spelling;
 
     // otherwise find what nickname we gave it
 
@@ -161,36 +158,6 @@ package string spellingOrNickname(in from!"clang".Cursor cursor,
     return context.cursorNickNames[cursor.hash];
 }
 
-private string identifier(in from!"clang".Cursor cursor) @safe pure {
-    import clang: Cursor, Type;
-    import std.conv: text;
-    import std.algorithm: startsWith;
-    import std.array: replace;
-
-    const keyword = () {
-        switch(cursor.kind) with(Cursor.Kind) {
-            default: throw new Exception(text("Unknown kind ", cursor.kind, ": ", cursor));
-            case StructDecl: return "struct";
-            case UnionDecl: return "union";
-            case EnumDecl: return "enum";
-            case TypeRef:
-            switch(cursor.type.canonical.kind) with(Type.Kind) {
-                default: return "";
-                case Record:
-                    if(cursor.type.spelling.startsWith("struct ")) return "struct";
-                    if(cursor.type.spelling.startsWith("union ")) return "union";
-                    return "";
-                case Enum: return "enum";
-            }
-        }
-    }();
-
-    // mimic C's different namespaces for struct, union and enum
-    return keyword == "" ?
-        cursor.spelling :
-        // Foo -> struct_Foo | union_Foo | enum_Foo
-        keyword ~ "_" ~ cursor.spelling.replace(keyword ~ " ", "");
-}
 
 private string newAnonymousName() @safe {
     import std.conv: text;

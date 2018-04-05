@@ -3,7 +3,41 @@
  */
 module include.cursor.dlang;
 
-bool isKeyword (string str) @safe @nogc pure nothrow {
+import include.from;
+
+
+string maybeRename(in from!"clang".Cursor cursor,
+                   in from!"include.runtime.context".Context context)
+    @safe pure
+{
+    return nameClashes(cursor, context) ? rename(cursor.spelling) : cursor.spelling;
+}
+
+string maybePragma(in from!"clang".Cursor cursor,
+                     in from!"include.runtime.context".Context context)
+    @safe pure
+{
+    return nameClashes(cursor, context) ? pragmaMangle(cursor.spelling) : "";
+}
+
+string rename(in string spelling) @safe pure nothrow {
+    return spelling ~ "_";
+}
+
+string pragmaMangle(in string spelling) @safe pure nothrow {
+    return `pragma(mangle, "` ~ spelling ~ `") `;
+}
+
+private bool nameClashes(in from!"clang".Cursor cursor,
+                 in from!"include.runtime.context".Context context)
+    @safe pure
+{
+    return
+        cursor.spelling.isKeyword ||
+        cursor.spelling in context.aggregateDeclarations;
+}
+
+private bool isKeyword (string str) @safe @nogc pure nothrow {
     switch (str) {
         default: return false;
         case "abstract":

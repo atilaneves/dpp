@@ -71,7 +71,8 @@ struct IncludeSandbox {
         writeFile(inFileName, inText);
         Context context;
         context.options.includePaths = [sandboxPath];
-        writeFile(outFileName, realExpand(inFileName, context, file, line));
+        realExpand(inFileName, context, file, line);
+        writeFile(outFileName, context.translation);
     }
 
     void run(string[] args...) @safe const {

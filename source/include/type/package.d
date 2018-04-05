@@ -113,8 +113,8 @@ private string translateAggregate(in from!"clang".Type type,
     }
 
     return addModifiers(type, spelling)
-        // "struct Foo" -> struct_Foo, "union Foo" -> union_Foo, "enum Foo" -> enum_Foo
-        .replace("struct ", "struct_").replace("union ", "union_").replace("enum ", "enum_")
+        // "struct Foo" -> Foo, "union Foo" -> Foo, "enum Foo" -> Foo
+        .replace("struct ", "").replace("union ", "").replace("enum ", "")
         ;
 }
 

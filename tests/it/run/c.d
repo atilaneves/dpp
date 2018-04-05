@@ -44,8 +44,31 @@ import it;
         ),
         D(
             q{
-                auto s = struct_foo(33);
-                foo = 42;
+                auto s = foo(33);
+                foo_ = 42;
+            }
+        ),
+    );
+}
+
+@("struct function collision")
+@safe unittest {
+    shouldCompileAndRun(
+        C(
+            q{
+                struct foo { int dummy; };
+                void foo(void);
+            }
+        ),
+        C(
+            q{
+                void foo(void) {}
+            }
+        ),
+        D(
+            q{
+                auto s = foo(33);
+                foo_();
             }
         ),
     );

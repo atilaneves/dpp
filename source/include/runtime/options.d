@@ -12,6 +12,7 @@ struct Options {
     string indentation;
     bool debugOutput;
     string[] includePaths;
+    bool keepTempFile;
     bool earlyExit;
 
     this(string[] args) {
@@ -21,9 +22,11 @@ struct Options {
         import std.getopt: getopt, defaultGetoptPrinter;
         import std.path: stripExtension;
 
-        auto helpInfo = getopt(args,
-               "debug|d", "Print debug information", &debugOutput,
-               "i", "Include paths", &includePaths,
+        auto helpInfo =
+            getopt(args,
+                   "debug|d", "Print debug information", &debugOutput,
+                   "i", "Include paths", &includePaths,
+                   "keep-tmp-file", "Do not delete the temporary pre-preprocessed file", &keepTempFile,
         );
 
         const usage = "Usage: include <inFile> [outFile]";
