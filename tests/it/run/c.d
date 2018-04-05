@@ -50,3 +50,26 @@ import it;
         ),
     );
 }
+
+@("struct function collision")
+@safe unittest {
+    shouldCompileAndRun(
+        C(
+            q{
+                struct foo { int dummy; };
+                void foo(void);
+            }
+        ),
+        C(
+            q{
+                void foo(void) {}
+            }
+        ),
+        D(
+            q{
+                auto s = foo(33);
+                foo_();
+            }
+        ),
+    );
+}

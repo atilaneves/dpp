@@ -310,6 +310,25 @@ import it;
     );
 }
 
+@ShouldFail
+@("struct function collision with function before")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                void foo(void);
+                struct foo { int dummy; };
+            }
+        ),
+        D(
+            q{
+                auto u = foo(44);
+                foo_();
+            }
+        ),
+    );
+}
+
 
 @("union var collision")
 @safe unittest {
