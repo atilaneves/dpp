@@ -86,7 +86,7 @@ string expand(in string headerFileName,
               in size_t line = __LINE__)
     @safe
 {
-    import include.cursor.translation: translate;
+    import include.cursor.translation: translateTopLevelCursor;
     import clang: parse, TranslationUnitFlags, Cursor;
     import std.array: join, array;
     import std.algorithm: sort, filter, map, chunkBy, any;
@@ -147,7 +147,7 @@ string expand(in string headerFileName,
         context.remember(cursor);
 
         const indentation = context.indentation;
-        const lines = translate(context, cursor, file, line);
+        const lines = translateTopLevelCursor(cursor, context, file, line);
         if(lines.length) ret ~= lines;
         context.setIndentation(indentation);
     }
