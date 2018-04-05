@@ -602,10 +602,14 @@ import it;
                       }
                   });
 
-        run("--clang-include-path", inSandboxPath("includes"), "app.dpp", "app.d");
+        run("--preprocess-only",
+            "--clang-include-path",
+            inSandboxPath("includes"),
+            "app.dpp",
+            "app.d");
+
         shouldCompile("app.d");
     }
-
 }
 
 

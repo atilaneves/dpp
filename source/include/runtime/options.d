@@ -13,6 +13,7 @@ struct Options {
     bool debugOutput;
     string[] includePaths;
     bool keepTempFile;
+    bool preprocessOnly;
     bool earlyExit;
 
     this(string[] args) {
@@ -27,6 +28,7 @@ struct Options {
                    "debug|d", "Print debug information", &debugOutput,
                    "i|clang-include-path", "Include paths", &includePaths,
                    "keep-tmp-file", "Do not delete the temporary pre-preprocessed file", &keepTempFile,
+                   "preprocess-only", "Only transform the .dpp file into a .d file, don't compile", &preprocessOnly,
         );
 
         const usage = "Usage: include <inFile> [outFile]";
@@ -37,6 +39,8 @@ struct Options {
             }();
             earlyExit = true;
         }
+
+        enforce(preprocessOnly, "d++ functionality is not developed yet");
 
         enforce(args.length == 2 || args.length == 3, usage);
 
