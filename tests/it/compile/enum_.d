@@ -282,3 +282,23 @@ import it;
         ),
     );
 }
+
+@("call and return enums")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                enum Enum { one, two, three };
+                enum Enum fun(int, int);
+                void gun(enum Enum);
+            }
+         ),
+
+        D(
+            q{
+                enum_Enum e = fun(42, 33);
+                gun(two);
+            }
+         ),
+    );
+}
