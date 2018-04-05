@@ -39,9 +39,10 @@ string[] translateFunction(in from!"clang".Cursor function_,
 
     const spelling = maybeRename(function_, context);
 
-    return
+    return [
         maybePragma(function_, context) ~
-        text(returnType, " ", spelling, "(", allParams.join(", "), ");");
+        text(returnType, " ", spelling, "(", allParams.join(", "), ");")
+    ];
 }
 
 auto paramTypes(in from!"clang".Cursor function_,

@@ -148,7 +148,7 @@ void expand(in string headerFileName,
     foreach(cursor; cursors) {
 
         if(context.hasSeen(cursor)) continue;
-        context.remember(cursor);
+        context.rememberCursor(cursor);
 
         const indentation = context.indentation;
         const lines = translateTopLevelCursor(cursor, context, file, line);

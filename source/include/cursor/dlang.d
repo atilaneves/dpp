@@ -14,13 +14,13 @@ string maybeRename(in from!"clang".Cursor cursor,
     return cursor.spelling ~ spellingSuffix;
 }
 
-string[] maybePragma(in from!"clang".Cursor cursor,
+string maybePragma(in from!"clang".Cursor cursor,
                      in from!"include.runtime.context".Context context)
     @safe pure
 {
     return nameClashes(cursor, context)
-        ? [`pragma(mangle, "` ~ cursor.spelling ~ `")`]
-        : [];
+        ? `pragma(mangle, "` ~ cursor.spelling ~ `") `
+        : "";
 }
 
 private bool nameClashes(in from!"clang".Cursor cursor,

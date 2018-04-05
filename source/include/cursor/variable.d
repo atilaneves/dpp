@@ -28,11 +28,13 @@ string[] translateVariable(in from!"clang".Cursor cursor,
     if(isRecordWithoutDefinition(cursor, context)) return [];
 
     const spelling = maybeRename(cursor, context);
+    context.rememberLinkable(spelling);
 
-    return
+    return [
         maybePragma(cursor, context) ~
         text("extern __gshared ",
-             translate(cursor.type, context, No.translatingFunction), " ", spelling, ";");
+             translate(cursor.type, context, No.translatingFunction), " ", spelling, ";")
+    ];
 }
 
 

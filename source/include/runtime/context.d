@@ -47,6 +47,14 @@ struct Context {
     bool[string] aggregateDeclarations;
 
     /**
+       A linkable is a function or a global variable.
+       We remember all the ones we saw here so that if there's a name clash
+       with an aggregate we can come back and fix the declarations after
+       the fact with  pragma(mangle).
+     */
+    LineNumber[string] linkableDeclarations;
+
+    /**
        All previously seen cursors
      */
     SeenCursors seenCursors;
@@ -90,7 +98,7 @@ struct Context {
         return cast(bool)(CursorId(cursor) in seenCursors);
     }
 
-    void remember(in Cursor cursor) @safe pure nothrow {
+    void rememberCursor(in Cursor cursor) @safe pure nothrow {
         // EnumDecl can have no spelling but end up defining an enum anyway
         // See "it.compile.projects.double enum typedef"
         if(cursor.spelling != "" || cursor.kind == Cursor.Kind.EnumDecl)
@@ -110,6 +118,12 @@ struct Context {
         this.lines ~= lines;
     }
 
+    // remember a function or variable declaration
+    void rememberLinkable(in string spelling) @safe pure nothrow {
+        // since linkables produce one-line translations, the next
+        // will be the linkable
+        linkableDeclarations[spelling] = lines.length;
+    }
 }
 
 
