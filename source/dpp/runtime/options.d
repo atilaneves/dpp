@@ -13,7 +13,7 @@ else
 
 struct Options {
 
-    enum usage = "Usage: d++ [d++ options] [D compiler options] <filename.dpp> [D compiler args]";
+    enum usage = "Usage: d++ [options] [D compiler options] <filename.dpp> [D compiler args]";
 
     string dppFileName;
     string dFileName;
