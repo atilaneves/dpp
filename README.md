@@ -1,5 +1,5 @@
-d++
-========
+d++ - #include C and C++ headers in D files
+====================================================
 
 | [![Build Status](https://travis-ci.org/atilaneves/dpp.png?branch=master)](https://travis-ci.org/atilaneves/dpp) | [![Coverage](https://codecov.io/gh/atilaneves/dpp/branch/master/graph/badge.svg)](https://codecov.io/gh/atilaneves/dpp) |
 
