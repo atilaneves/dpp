@@ -35,9 +35,17 @@ This is alpha sofware. It has however produced programs that compile that #inclu
 Compilation however doesn't guarantee they work as expected and YMMV. Please consult the examples.
 
 
+Command-line arguments
+----------------------
+
+It is likely that the header or headers need `-I` flags to indicate paths to be searched,
+both by this executable and by libclang itself.
+
+Use `-h` or `--help` to learn more.
+
+
 Details
 -------
-
 
 `include` is an executable that has as input a D file with C `#include` preprocessor directives and outputs
 a valid D file that can be compiled. The original can't be compiled since D has no integrated preprocessor.
