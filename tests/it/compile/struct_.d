@@ -179,7 +179,7 @@ import it;
                       #include "system.h"
                   });
 
-        const inputFileName = "foo.dpp";
+        const dppFileName = "foo.dpp";
         writeFile("foo.dpp",
                   q{
                       #include "header.h"

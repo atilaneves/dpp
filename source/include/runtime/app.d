@@ -16,7 +16,7 @@ void run(in from!"include.runtime.options".Options options) @safe {
     import std.array: join;
     import std.file: remove;
 
-    enforce(options.outputFileName.extension == ".d" || options.outputFileName.extension == ".di",
+    enforce(options.dFileName.extension == ".d" || options.dFileName.extension == ".di",
             "Output should be a D file (the extension should be .d or .di)");
 
     preprocess!File(options);
@@ -25,7 +25,7 @@ void run(in from!"include.runtime.options".Options options) @safe {
     const args = options.dlangCompiler ~ options.dlangCompilerArgs;
     const res = execute(args);
     enforce(res.status == 0, "Could not execute `" ~ args.join(" ") ~ "`:\n" ~ res.output);
-    if(!options.keepDlangFile) remove(options.outputFileName);
+    if(!options.keepDlangFile) remove(options.dFileName);
 }
 
 
@@ -49,7 +49,7 @@ void preprocess(File)(in from!"include.runtime.options".Options options) {
     import std.string: splitLines;
     import std.file: remove;
 
-    const tmpFileName = options.outputFileName ~ ".tmp";
+    const tmpFileName = options.dFileName ~ ".tmp";
     scope(exit) if(!options.keepPreCppFile) remove(tmpFileName);
 
     {
@@ -64,7 +64,7 @@ void preprocess(File)(in from!"include.runtime.options".Options options) {
         auto context = Context(options.indent);
 
         () @trusted {
-            foreach(immutable line; File(options.inputFileName).byLine.map!(a => cast(string)a)) {
+            foreach(immutable line; File(options.dppFileName).byLine.map!(a => cast(string)a)) {
                 // If the line is an #include directive, expand its translations "inline"
                 // into the context structure.
                 line.maybeExpand(context);
@@ -89,7 +89,7 @@ void preprocess(File)(in from!"include.runtime.options".Options options) {
     enforce(ret.status == 0, text("Could not run cpp on ", tmpFileName, ":\n", ret.output));
 
     {
-        auto outputFile = File(options.outputFileName, "w");
+        auto outputFile = File(options.dFileName, "w");
 
         foreach(line; ret.output.splitLines) {
             if(!line.startsWith("#"))
