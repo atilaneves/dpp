@@ -31,33 +31,14 @@ struct Options {
 
         import clang: systemPaths;
         import std.exception: enforce;
-        import std.getopt: getopt, defaultGetoptPrinter, config;
         import std.path: stripExtension, extension, buildPath, absolutePath;
         import std.file: tempDir;
         import std.algorithm: find, filter, canFind, startsWith;
         import std.array: array;
         import std.conv: text;
 
-        auto helpInfo =
-            getopt(
-                args,
-                config.passThrough,
-                "debug|d", "Print debug information", &debugOutput,
-                "i|clang-include-path", "Include paths", &includePaths,
-                "keep-pre-cpp-file", "Do not delete the temporary pre-preprocessed file", &keepPreCppFile,
-                "keep-d-file", "Do not delete the temporary D file to be compiled", &keepDlangFile,
-                "preprocess-only", "Only transform the .dpp file into a .d file, don't compile", &preprocessOnly,
-                "d-file-name", "D output file name (defaults to replacing .dpp with .d)", &dFileName,
-                "compiler", "D compiler to use", &dlangCompiler,
-            );
-
-        if(helpInfo.helpWanted) {
-            () @trusted {
-                defaultGetoptPrinter(usage, helpInfo.options);
-            }();
-            earlyExit = true;
-            return;
-        }
+        parseArgs(args);
+        if(earlyExit) return;
 
         if(preprocessOnly)
             enforce(args.length == 2,
@@ -92,6 +73,29 @@ struct Options {
             dlangCompilerArgs ~= "-of" ~ dppFileName.stripExtension ~ exeExtension;
 
         includePaths = systemPaths ~ includePaths;
+    }
+
+    private void parseArgs(ref string[] args) {
+        import std.getopt: getopt, defaultGetoptPrinter, config;
+        auto helpInfo =
+            getopt(
+                args,
+                config.passThrough,
+                "debug|d", "Print debug information", &debugOutput,
+                "i|clang-include-path", "Include paths", &includePaths,
+                "keep-pre-cpp-file", "Do not delete the temporary pre-preprocessed file", &keepPreCppFile,
+                "keep-d-file", "Do not delete the temporary D file to be compiled", &keepDlangFile,
+                "preprocess-only", "Only transform the .dpp file into a .d file, don't compile", &preprocessOnly,
+                "d-file-name", "D output file name (defaults to replacing .dpp with .d)", &dFileName,
+                "compiler", "D compiler to use", &dlangCompiler,
+            );
+
+        if(helpInfo.helpWanted) {
+            () @trusted {
+                defaultGetoptPrinter(usage, helpInfo.options);
+            }();
+            earlyExit = true;
+        }
     }
 
     this(in string dppFileName,
