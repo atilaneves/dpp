@@ -16,12 +16,12 @@ import it;
 
         D(
             q{
-                static assert(is(typeof(foo) == enum_Foo));
-                static assert(is(typeof(bar) == enum_Foo));
+                static assert(is(typeof(foo) == Foo));
+                static assert(is(typeof(bar) == Foo));
                 static assert(foo == 0);
                 static assert(bar == 1);
-                static assert(enum_Foo.foo == 0);
-                static assert(enum_Foo.bar == 1);
+                static assert(Foo.foo == 0);
+                static assert(Foo.bar == 1);
             }
         ),
 
@@ -41,12 +41,12 @@ import it;
 
         D(
             q{
-                static assert(is(typeof(quux) == enum_Enum));
-                static assert(is(typeof(toto) == enum_Enum));
+                static assert(is(typeof(quux) == Enum));
+                static assert(is(typeof(toto) == Enum));
                 static assert(quux == 0);
                 static assert(toto == 1);
-                static assert(enum_Enum.quux == 0);
-                static assert(enum_Enum.toto == 1);
+                static assert(Enum.quux == 0);
+                static assert(Enum.toto == 1);
             }
         ),
 
@@ -67,15 +67,15 @@ import it;
 
         D(
             q{
-                static assert(is(typeof(foo) == enum_FooBarBaz));
-                static assert(is(typeof(bar) == enum_FooBarBaz));
-                static assert(is(typeof(baz) == enum_FooBarBaz));
+                static assert(is(typeof(foo) == FooBarBaz));
+                static assert(is(typeof(bar) == FooBarBaz));
+                static assert(is(typeof(baz) == FooBarBaz));
                 static assert(foo == 2);
                 static assert(bar == 5);
                 static assert(baz == 7);
-                static assert(enum_FooBarBaz.foo == 2);
-                static assert(enum_FooBarBaz.bar == 5);
-                static assert(enum_FooBarBaz.baz == 7);
+                static assert(FooBarBaz.foo == 2);
+                static assert(FooBarBaz.bar == 5);
+                static assert(FooBarBaz.baz == 7);
             }
         ),
 
@@ -122,8 +122,8 @@ import it;
 
         D(
             q{
-                static assert(is(typeof(bar) == enum_FooBarBaz_));
-                static assert(enum_FooBarBaz_.foo == 2);
+                static assert(is(typeof(bar) == FooBarBaz_));
+                static assert(FooBarBaz_.foo == 2);
                 static assert(bar == 5);
                 static assert(FooBarBaz.baz == 7);
             }
@@ -146,11 +146,11 @@ import it;
 
         D(
             q{
-                static assert(is(typeof(one) == enum_Numbers));
-                static assert(is(typeof(two) == enum_Numbers));
+                static assert(is(typeof(one) == Numbers));
+                static assert(is(typeof(two) == Numbers));
                 numbers = one;
                 numbers = two;
-                numbers = enum_Numbers.one;
+                numbers = Numbers.one;
             }
         ),
 
@@ -198,8 +198,8 @@ import it;
 
         D(
             q{
-                static assert(is(typeof(struct_Struct.one) == enum));
-                static assert(struct_Struct.two == 2);
+                static assert(is(typeof(Struct.one) == enum));
+                static assert(Struct.two == 2);
             }
         ),
 
@@ -222,9 +222,9 @@ import it;
 
         D(
             q{
-                auto s = struct_Struct();
+                auto s = Struct();
                 static assert(is(typeof(s.one) == typeof(s.numbers)));
-                s.numbers = struct_Struct.one;
+                s.numbers = Struct.one;
             }
         ),
 
@@ -249,8 +249,8 @@ import it;
 
         D(
             q{
-                static assert(is(typeof(struct_Struct.one) == struct_Struct.enum_Numbers));
-                static assert(struct_Struct.enum_Numbers.two == 2);
+                static assert(is(typeof(Struct.one) == Struct.Numbers));
+                static assert(Struct.Numbers.two == 2);
             }
         ),
 
@@ -274,10 +274,10 @@ import it;
 
         D(
             q{
-                static assert(is(typeof(struct_Struct.one) == struct_Struct.enum_Numbers));
-                static assert(is(typeof(struct_Struct.numbers) == struct_Struct.enum_Numbers));
-                auto s = struct_Struct();
-                s.numbers = struct_Struct.enum_Numbers.one;
+                static assert(is(typeof(Struct.one) == Struct.Numbers));
+                static assert(is(typeof(Struct.numbers) == Struct.Numbers));
+                auto s = Struct();
+                s.numbers = Struct.Numbers.one;
             }
         ),
     );
@@ -296,7 +296,7 @@ import it;
 
         D(
             q{
-                enum_Enum e = fun(42, 33);
+                Enum e = fun(42, 33);
                 gun(two);
             }
          ),
