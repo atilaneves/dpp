@@ -3,8 +3,7 @@ Feature: Compiling a .dpp file that includes a simple C header
   I want to compile a .dpp file including a C header in my program
   So I can call legacy code
 
-  Scenario: A C header with a struct and a function
-
+  Background:
     Given a file named "foo.h" with:
       """
       #ifndef FOO_H
@@ -44,9 +43,23 @@ Feature: Compiling a .dpp file that includes a simple C header
       }
       """
 
+  Scenario: A C header with a struct and a function
+
     When I successfully run `gcc -o foo.o -c foo.c`
     And I successfully run `d++ -ofapp main.dpp foo.o`
     When I successfully run `./app 3 4`
+    Then the output should contain:
+      """
+      Foo(3) + Foo(4) = Foo(7)
+      """
+    And a file named "main.d" should not exist
+
+
+  Scenario: A C header with a struct and a function and no -of option
+
+    When I successfully run `gcc -o foo.o -c foo.c`
+    And I successfully run `d++ main.dpp foo.o`
+    When I successfully run `./main 3 4`
     Then the output should contain:
       """
       Foo(3) + Foo(4) = Foo(7)

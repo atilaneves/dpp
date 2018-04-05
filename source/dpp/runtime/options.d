@@ -5,6 +5,12 @@ module dpp.runtime.options;
 
 @safe:
 
+version(Windows)
+    enum exeExtension = ".exe";
+else
+    enum exeExtension = "";
+
+
 struct Options {
 
     enum usage = "Usage: d++ [d++ options] [D compiler options] <filename.dpp> [D compiler args]";
@@ -28,7 +34,7 @@ struct Options {
         import std.getopt: getopt, defaultGetoptPrinter, config;
         import std.path: stripExtension, extension, buildPath, absolutePath;
         import std.file: tempDir;
-        import std.algorithm: find, filter;
+        import std.algorithm: find, filter, canFind, startsWith;
         import std.array: array;
         import std.conv: text;
 
@@ -77,6 +83,10 @@ struct Options {
         // Remove the name of this binary and the name of the .dpp input file from args
         // so that a D compiler can use the remaining entries.
         dlangCompilerArgs = args[1..$].filter!(a => a != dppFileName).array ~ dFileName;
+
+        // if no -of option is given, default to the name of the .dpp file
+        if(!dlangCompilerArgs.canFind!(a => a.startsWith("-of")))
+            dlangCompilerArgs ~= "-of" ~ dppFileName.stripExtension ~ exeExtension;
 
         includePaths = systemPaths ~ includePaths;
     }

@@ -3,9 +3,7 @@ Feature: Preprocessing a .dpp file that includes a simple C++ header
   I want to compile a .dpp file including a C++ header in my program
   So I can call legacy code
 
-  @notravis
-  Scenario: A C header with a struct and a function
-
+  Background:
     Given a file named "foo.hpp" with:
       """
       #ifndef FOO_HPP
@@ -43,9 +41,21 @@ Feature: Preprocessing a .dpp file that includes a simple C++ header
       }
       """
 
+  @notravis
+  Scenario: A C header with a struct and a function
     When I successfully run `g++ -std=c++14 -o foo.o -c foo.cpp`
     And I successfully run `d++ -ofapp main.dpp foo.o`
     When I successfully run `./app 3 4`
+    Then the output should contain:
+      """
+      Foo(3) + Foo(4) = Foo(7)
+      """
+
+  @notravis
+  Scenario: A C header with a struct and a function and no -of option
+    When I successfully run `g++ -std=c++14 -o foo.o -c foo.cpp`
+    And I successfully run `d++ main.dpp foo.o`
+    When I successfully run `./main 3 4`
     Then the output should contain:
       """
       Foo(3) + Foo(4) = Foo(7)

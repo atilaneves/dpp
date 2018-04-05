@@ -4,7 +4,7 @@ Feature: Preprocessing a .dpp file that includes a simple C++ header
   So I can call legacy code
 
   @notravis
-  Scenario: A C header with a struct and a function
+  Scenario: A C++ header with a struct and a function
 
     Given a file named "foo.hpp" with:
       """
