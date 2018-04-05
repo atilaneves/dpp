@@ -124,6 +124,23 @@ struct Context {
         // will be the linkable
         linkableDeclarations[spelling] = lines.length;
     }
+
+    void fixLinkables() @safe pure {
+        foreach(aggregate, _; aggregateDeclarations) {
+            // if there's a name clash, fix it
+            auto clashLineNumber = aggregate in linkableDeclarations;
+            if(clashLineNumber) {
+                resolveClash(lines[*clashLineNumber], aggregate);
+            }
+        }
+
+    }
+}
+
+private void resolveClash(ref string line, in string spelling) @safe pure {
+    import include.cursor.dlang: pragmaMangle, rename;
+    import std.string: replace;
+    line = pragmaMangle(spelling) ~ line.replace(spelling, rename(spelling));
 }
 
 

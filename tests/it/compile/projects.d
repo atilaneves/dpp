@@ -291,7 +291,6 @@ import it;
     );
 }
 
-@ShouldFail
 @("struct var collision with var before")
 @safe unittest {
     shouldCompile(
@@ -310,7 +309,6 @@ import it;
     );
 }
 
-@ShouldFail
 @("struct function collision with function before")
 @safe unittest {
     shouldCompile(

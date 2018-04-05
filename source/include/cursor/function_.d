@@ -38,6 +38,7 @@ string[] translateFunction(in from!"clang".Cursor function_,
     const allParams = paramTypes(function_, context).array ~ variadicParams;
 
     const spelling = maybeRename(function_, context);
+    context.rememberLinkable(spelling);
 
     return [
         maybePragma(function_, context) ~

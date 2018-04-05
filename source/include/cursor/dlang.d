@@ -10,17 +10,22 @@ string maybeRename(in from!"clang".Cursor cursor,
                    in from!"include.runtime.context".Context context)
     @safe pure
 {
-    const spellingSuffix = nameClashes(cursor, context) ? "_" :  "";
-    return cursor.spelling ~ spellingSuffix;
+    return nameClashes(cursor, context) ? rename(cursor.spelling) : cursor.spelling;
 }
 
 string maybePragma(in from!"clang".Cursor cursor,
                      in from!"include.runtime.context".Context context)
     @safe pure
 {
-    return nameClashes(cursor, context)
-        ? `pragma(mangle, "` ~ cursor.spelling ~ `") `
-        : "";
+    return nameClashes(cursor, context) ? pragmaMangle(cursor.spelling) : "";
+}
+
+string rename(in string spelling) @safe pure nothrow {
+    return spelling ~ "_";
+}
+
+string pragmaMangle(in string spelling) @safe pure nothrow {
+    return `pragma(mangle, "` ~ spelling ~ `") `;
 }
 
 private bool nameClashes(in from!"clang".Cursor cursor,

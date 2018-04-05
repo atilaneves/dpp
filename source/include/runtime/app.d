@@ -65,6 +65,7 @@ void preprocess(File)(in from!"include.runtime.options".Options options) {
             }
         }();
 
+        context.fixLinkables;
         outputFile.writeln(context.translation);
 
         // if there are any fields that were struct pointers
