@@ -41,7 +41,7 @@ struct Options {
                 "keep-pre-cpp-file", "Do not delete the temporary pre-preprocessed file", &keepPreCppFile,
                 "keep-d-file", "Do not delete the temporary D file to be compiled", &keepDlangFile,
                 "preprocess-only", "Only transform the .dpp file into a .d file, don't compile", &preprocessOnly,
-                "output", "D output file name (defaults to the input with a .d extension)", &outputFileName,
+                "d-file-name", "D output file name (defaults to replacing .dpp with .d)", &outputFileName,
                 "compiler", "D compiler to use", &dlangCompiler,
             );
 

@@ -45,7 +45,7 @@ import it;
                       #include "foo.h"
                   });
 
-        run("--output", "foo.c", "foo.dpp").shouldThrowWithMessage(
+        run("--d-file-name", "foo.c", "foo.dpp").shouldThrowWithMessage(
             "Output should be a D file (the extension should be .d or .di)");
     }
 }
@@ -63,7 +63,7 @@ import it;
                       #include "foo.h"
                   });
 
-        run("--output", "foo.d", "foo.dpp");
+        run("--d-file-name", "foo.d", "foo.dpp");
     }
 }
 
@@ -80,6 +80,6 @@ import it;
                       #include "foo.h"
                   });
 
-        run("--output", "foo.di", "foo.dpp");
+        run("--d-file-name", "foo.di", "foo.dpp");
     }
 }
