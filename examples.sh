@@ -2,8 +2,9 @@
 
 set -euo pipefail
 
-./example.sh nanomsg
-./example.sh curl
-./example.sh pthread
-./example.sh stdlib
-./example.sh openssl
+for x in examples/*.dpp
+do
+    filename=$(basename -- "$x")
+    name="${filename%.*}"
+    ./example.sh "$name"
+done
