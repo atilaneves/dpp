@@ -108,7 +108,7 @@ $ ./foo
 $ 30
 ```
 
-Traslation notes
+Translation notes
 ----------------
 
 ### Names of structs, enums and unions
