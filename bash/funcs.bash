@@ -21,7 +21,7 @@ build_dpp () {
     if [[ -e "$BIN_DIR"/build.ninja ]]; then
         ninja -C "$BIN_DIR" d++ > /dev/null
     else
-        pushd "$SCRIPT_DIR/.." || exit 1
+        pushd "$BIN_DIR/.." || exit 1
         dub build
         popd || exit 1
     fi

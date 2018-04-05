@@ -2,6 +2,6 @@
 
 set -euo pipefail
 
-dub test --build=unittest-cov --compiler="$DC" -- ~@travis
+dub test --build=unittest-cov --compiler="$DC" -- ~@notravis
 dub build
 bundle exec cucumber --tags ~@wip --tags ~@notravis

@@ -11,22 +11,16 @@ BIN_DIR="$SCRIPT_DIR"/../bin
 source "$SCRIPT_DIR/../bash/funcs.bash"
 
 build_dpp
+echo
 
 # Files that should compile with no dependencies
-for x in "$SCRIPT_DIR"/compile/*.dpp
-do
-    echo "Testing compileable $x"
-    "$BIN_DIR"/d++ -c -of/tmp/compile.o "$x"
-done
+"$SCRIPT_DIR"/compile/all.sh
+echo
 
 # Files that should run with no dependencies
-for x in "$SCRIPT_DIR"/run/*.dpp
-do
-    filename=$(basename -- "$x")
-    name="${filename%.*}"
-    echo "Testing runnable $x"
-    "$SCRIPT_DIR"/run.sh "$name" > /dev/null
-done
+"$SCRIPT_DIR"/run/all.sh
+echo
 
 # Files that need downloaded dependencies
 "$SCRIPT_DIR"/download/all.sh
+echo

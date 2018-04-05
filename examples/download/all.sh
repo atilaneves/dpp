@@ -66,5 +66,9 @@ echo Testing download zfs
 echo Testing download libvirt
 "$BIN_DIR"/d++ --clang-include-path "$REPOS_DIR"/libvirt --clang-include-path "$REPOS_DIR"/libvirt/include "$SCRIPT_DIR"/virt.dpp -c
 
-echo Testing download imapfilter
-"$BIN_DIR"/d++ --clang-include-path "$REPOS_DIR"/imapfilter/src "$SCRIPT_DIR"/imap.dpp -c
+if [ ! -z "${TRAVIS-}" ]; then
+    echo "    Skipping imapfilter for Travis CI"
+else
+    echo Testing download imapfilter
+    "$BIN_DIR"/d++ --clang-include-path "$REPOS_DIR"/imapfilter/src "$SCRIPT_DIR"/imap.dpp -c
+fi
