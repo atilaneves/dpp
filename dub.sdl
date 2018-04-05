@@ -10,6 +10,7 @@ dependency "libclang" version="~master"
 
 configuration "executable" {
     mainSourceFile "source/main.d"
+    targetName "d++"
 }
 
 configuration "unittest" {

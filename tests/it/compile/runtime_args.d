@@ -20,7 +20,13 @@ import it;
                           int ret = add(2, 3);
                       }
                   });
-        run("--clang-include-path", inSandboxPath("includes"), "main.dpp", "main.d");
+        run(
+            "--preprocess-only",
+            "--clang-include-path",
+            inSandboxPath("includes"),
+            "main.dpp",
+        );
+
         shouldCompile("main.d");
     }
 }
@@ -39,7 +45,7 @@ import it;
                       #include "foo.h"
                   });
 
-        run("foo.dpp", "foo.c").shouldThrowWithMessage(
+        run("--output", "foo.c", "foo.dpp").shouldThrowWithMessage(
             "Output should be a D file (the extension should be .d or .di)");
     }
 }
@@ -57,7 +63,7 @@ import it;
                       #include "foo.h"
                   });
 
-        run("foo.dpp", "foo.d");
+        run("--output", "foo.d", "foo.dpp");
     }
 }
 
@@ -74,6 +80,6 @@ import it;
                       #include "foo.h"
                   });
 
-        run("foo.dpp", "foo.di");
+        run("--output", "foo.di", "foo.dpp");
     }
 }

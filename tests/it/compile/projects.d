@@ -525,7 +525,7 @@ import it;
                           f.bar = null;
                       }
                   });
-        run("app.dpp", "app.d");
+        run("app.dpp");
         shouldCompile("app.d");
     }
 }
@@ -602,10 +602,13 @@ import it;
                       }
                   });
 
-        run("--clang-include-path", inSandboxPath("includes"), "app.dpp", "app.d");
+        run("--preprocess-only",
+            "--clang-include-path",
+            inSandboxPath("includes"),
+            "app.dpp");
+
         shouldCompile("app.d");
     }
-
 }
 
 
@@ -637,7 +640,7 @@ import it;
                       #include "hdr2.h"
                   });
 
-        run("app.dpp", "app.d");
+        run("app.dpp");
         shouldCompile("app.d");
     }
 

@@ -1,6 +1,6 @@
-Feature: Including a simple C header works
+Feature: Compiling a .dpp file that includes a simple C header
   As a D programmer
-  I want to include a C header in my program
+  I want to compile a .dpp file including a C header in my program
   So I can call legacy code
 
   Scenario: A C header with a struct and a function
@@ -45,10 +45,10 @@ Feature: Including a simple C header works
       """
 
     When I successfully run `gcc -o foo.o -c foo.c`
-    And I successfully run `include main.dpp main.d`
-    And I successfully run `dmd -ofapp main.d foo.o`
+    And I successfully run `d++ -ofapp main.dpp foo.o`
     When I successfully run `./app 3 4`
     Then the output should contain:
       """
       Foo(3) + Foo(4) = Foo(7)
       """
+    And a file named "main.d" should not exist

@@ -1,15 +1,14 @@
-Feature: Preprocessing a .dpp file that includes a simple C++ header
+Feature: Preprocessing a .dpp file that includes a simple C header
   As a D programmer
-  I want to compile a .dpp file including a C++ header in my program
+  I want to include a C header in my program
   So I can call legacy code
 
-  @notravis
   Scenario: A C header with a struct and a function
 
-    Given a file named "foo.hpp" with:
+    Given a file named "foo.h" with:
       """
-      #ifndef FOO_HPP
-      #define FOO_HPP
+      #ifndef FOO_H
+      #define FOO_H
       struct Foo {
           int i;
       };
@@ -17,17 +16,19 @@ Feature: Preprocessing a .dpp file that includes a simple C++ header
       #endif
       """
 
-    And a file named "foo.cpp" with:
+    And a file named "foo.c" with:
       """
-      #include "foo.hpp"
-      Foo addFoos(Foo* foo1, Foo* foo2) {
-          return { foo1->i + foo2-> i};
+      #include "foo.h"
+      struct Foo addFoos(struct Foo* foo1, struct Foo* foo2) {
+          struct Foo foo;
+          foo.i = foo1->i + foo2->i;
+          return foo;
       }
       """
 
     And a file named "main.dpp" with:
       """
-      #include "foo.hpp"
+      #include "foo.h"
       void main(string[] args) {
           import std.stdio;
           import std.conv;
@@ -43,8 +44,9 @@ Feature: Preprocessing a .dpp file that includes a simple C++ header
       }
       """
 
-    When I successfully run `g++ -std=c++14 -o foo.o -c foo.cpp`
-    And I successfully run `d++ -ofapp main.dpp foo.o`
+    When I successfully run `gcc -o foo.o -c foo.c`
+    And I successfully run `d++ --preprocess-only main.dpp`
+    And I successfully run `dmd -ofapp main.d foo.o`
     When I successfully run `./app 3 4`
     Then the output should contain:
       """

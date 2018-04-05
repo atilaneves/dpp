@@ -1,6 +1,6 @@
 Feature: Preprocessing a .dpp file that includes a simple C++ header
   As a D programmer
-  I want to compile a .dpp file including a C++ header in my program
+  I want to include a C++ header in my program
   So I can call legacy code
 
   @notravis
@@ -44,7 +44,8 @@ Feature: Preprocessing a .dpp file that includes a simple C++ header
       """
 
     When I successfully run `g++ -std=c++14 -o foo.o -c foo.cpp`
-    And I successfully run `d++ -ofapp main.dpp foo.o`
+    And I successfully run `d++ --preprocess-only main.dpp`
+    And I successfully run `dmd -ofapp main.d foo.o`
     When I successfully run `./app 3 4`
     Then the output should contain:
       """
