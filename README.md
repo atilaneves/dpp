@@ -133,6 +133,27 @@ call into a C/C++ API by `#include`ing the appropriate header(s).
 Translation notes
 ----------------
 
+### enum
+
+For convenience, this declaration:
+
+```c
+enum Enum { foo, bar, baz }
+```
+
+Will generate this translation:
+
+```d
+enum Enum { foo, bar, baz }
+enum foo = Enum.foo;
+enum bar = Enum.bar;
+enum baz = Enum.baz;
+```
+
+This is to mimic C semantics with regards to the global namespace whilst also allowing
+one to, say, reflect on the enum type.
+
+
 ### Names of structs, enums and unions
 
 C has a different namespace for the aforementioned user-defined types. As such, this is legal C:
@@ -168,24 +189,3 @@ Becomes:
 pragma(mangle, "debug")
 void debug_(const(char)*);
 ```
-
-
-### enum
-
-For convenience, this declaration:
-
-```c
-enum Enum { foo, bar, baz }
-```
-
-Will generate this translation:
-
-```d
-enum Enum { foo, bar, baz }
-enum foo = Enum.foo;
-enum bar = Enum.bar;
-enum baz = Enum.baz;
-```
-
-This is to mimic C semantics with regards to the global namespace whilst also allowing
-one to, say, reflect on the enum type.
