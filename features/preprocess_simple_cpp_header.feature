@@ -3,7 +3,6 @@ Feature: Preprocessing a .dpp file that includes a simple C++ header
   I want to include a C++ header in my program
   So I can call legacy code
 
-  @notravis
   Scenario: A C++ header with a struct and a function
 
     Given a file named "foo.hpp" with:
@@ -43,7 +42,7 @@ Feature: Preprocessing a .dpp file that includes a simple C++ header
       }
       """
 
-    When I successfully run `g++ -std=c++14 -o foo.o -c foo.cpp`
+    When I successfully run `g++ -o foo.o -c foo.cpp`
     And I successfully run `d++ --preprocess-only main.dpp`
     And I successfully run `dmd -ofapp main.d foo.o`
     When I successfully run `./app 3 4`
