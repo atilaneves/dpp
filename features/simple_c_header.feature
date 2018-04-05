@@ -1,4 +1,4 @@
-Feature: Including a simple C header works
+Feature: Preprocessing a .dpp file that includes a simple C header
   As a D programmer
   I want to include a C header in my program
   So I can call legacy code
@@ -45,7 +45,7 @@ Feature: Including a simple C header works
       """
 
     When I successfully run `gcc -o foo.o -c foo.c`
-    And I successfully run `include main.dpp main.d`
+    And I successfully run `d++ --preprocess-only main.dpp main.d`
     And I successfully run `dmd -ofapp main.d foo.o`
     When I successfully run `./app 3 4`
     Then the output should contain:
