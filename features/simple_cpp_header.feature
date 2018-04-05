@@ -3,7 +3,6 @@ Feature: Including a simple C header works
   I want to include a C++ header in my program
   So I can call legacy code
 
-  @wip
   Scenario: A C header with a struct and a function
 
     Given a file named "foo.hpp" with:
