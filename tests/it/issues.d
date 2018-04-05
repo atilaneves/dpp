@@ -30,6 +30,7 @@ import it;
 
 @("14")
 @safe unittest {
+    import include.runtime.options: Options;
     with(immutable IncludeSandbox()) {
 
         writeFile("foo.h",
@@ -38,6 +39,6 @@ import it;
                   });
 
         run("foo.h").shouldThrowWithMessage(
-            "Cannot directly translate C headers. Please run `include` on a D file.");
+            "No .dpp input file specified\n" ~ Options.usage);
     }
 }

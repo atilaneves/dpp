@@ -12,14 +12,20 @@ void run(in from!"include.runtime.options".Options options) @safe {
     import std.stdio: File;
     import std.exception: enforce;
     import std.path: extension;
-
-    enforce(options.inputFileName.extension != ".h",
-            "Cannot directly translate C headers. Please run `include` on a D file.");
+    import std.process: execute;
+    import std.array: join;
+    import std.file: remove;
 
     enforce(options.outputFileName.extension == ".d" || options.outputFileName.extension == ".di",
             "Output should be a D file (the extension should be .d or .di)");
 
     preprocess!File(options);
+    if(options.preprocessOnly) return;
+
+    const args = options.dlangCompiler ~ options.dlangCompilerArgs;
+    const res = execute(args);
+    enforce(res.status == 0, "Could not execute `" ~ args.join(" ") ~ "`:\n" ~ res.output);
+    if(!options.keepDlangFile) remove(options.outputFileName);
 }
 
 
@@ -44,7 +50,7 @@ void preprocess(File)(in from!"include.runtime.options".Options options) {
     import std.file: remove;
 
     const tmpFileName = options.outputFileName ~ ".tmp";
-    scope(exit) if(!options.keepTempFile) remove(tmpFileName);
+    scope(exit) if(!options.keepPreCppFile) remove(tmpFileName);
 
     {
         auto outputFile = File(tmpFileName, "w");
@@ -76,7 +82,6 @@ void preprocess(File)(in from!"include.runtime.options".Options options) {
                 outputFile.writeln("struct " ~ name ~ ";");
             }
         }
-
     }
 
 
