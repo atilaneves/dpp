@@ -11,6 +11,45 @@ To directly `#include` C and C++ headers in (D)[https://dlang.org] files and hav
 as if the file had been `#included` from C or C++ themselves. Warts and all, meaning that C `enum` declarations
 will pollute the global namespace, just as it does "back home".
 
+Example
+-------
+
+```c
+// c.h
+#ifndef C_H
+#define C_H
+
+#define FOO_ID(x) (x*3)
+
+int twice(int i);
+
+#endif
+```
+
+```c
+// c.c
+int twice(int i) { return i * 2; }
+```
+
+```d
+// foo.dpp
+#include "c.h"
+void main() {
+    import std.stdio;
+    writeln(twice(FOO_ID(5)));
+}
+```
+
+At the shell:
+
+```
+$ gcc -c c.c
+$ d++ foo.dpp c.o
+$ ./foo
+$ 30
+```
+
+
 Limitations
 -----------
 
@@ -56,7 +95,7 @@ has no preprocessor, so the `.dpp` file is "quasi-D", or "D with #include direct
 The only supported C preprocessor directive is `#include`.
 
 The input `.dpp` file may also use C preprocessor macros defined in the file(s) it q`#include`s, just as a C/C++
-program would. It may not, however, define macros of its own.
+program would (see the example above). It may not, however, define macros of its own.
 
 `d++` goes through the input file line-by-line, and upon encountering an `#include` directive, parses
 the file to be included with libclang, loops over the definitions of data structures and functions
@@ -90,43 +129,6 @@ any used macros are expanded, and the result is a D file that can be compiled.
 In this fashion a user can write not-quite-D code that can "natively"
 call into a C/C++ API by `#include`ing the appropriate header(s).
 
-Example
--------
-
-```c
-// c.h
-#ifndef C_H
-#define C_H
-
-#define FOO_ID(x) (x*3)
-
-int twice(int i);
-
-#endif
-```
-
-```c
-// c.c
-int twice(int i) { return i * 2; }
-```
-
-```d
-// foo.dpp
-#include "c.h"
-void main() {
-    import std.stdio;
-    writeln(twice(FOO_ID(5)));
-}
-```
-
-At the shell:
-
-```
-$ gcc -c c.c
-$ d++ foo.dpp c.o
-$ ./foo
-$ 30
-```
 
 Translation notes
 ----------------
