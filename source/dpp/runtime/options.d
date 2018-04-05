@@ -81,7 +81,7 @@ struct Options {
             getopt(
                 args,
                 config.passThrough,
-                "debug|d", "Print debug information", &debugOutput,
+                "print-cursors", "Print debug information", &debugOutput,
                 "i|clang-include-path", "Include paths", &includePaths,
                 "keep-pre-cpp-file", "Do not delete the temporary pre-preprocessed file", &keepPreCppFile,
                 "keep-d-file", "Do not delete the temporary D file to be compiled", &keepDlangFile,
