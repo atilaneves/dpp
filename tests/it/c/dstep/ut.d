@@ -55,85 +55,70 @@ import it;
 
 @("array with #defined length")
 @safe unittest {
-    with(immutable IncludeSandbox()) {
-        writeFile("dstep.h",
-                  q{
-                      #define FOO 4
-                      char var[FOO];
-                  });
-
-        writeFile("main.dpp",
-                  q{
-                      #include "dstep.h"
-                      void main() {
-                          static assert(var.sizeof == 4);
-                          var[0] = cast(byte)3;
-                      }
-                  });
-
-        preprocess("main.dpp", "main.d");
-        shouldCompile("main.d");
-    }
+    shouldCompile(
+        C(
+          `
+              #define FOO 4
+              char var[FOO];
+          `
+        ),
+        D(
+            q{
+                static assert(var.sizeof == 4);
+                var[0] = cast(byte)3;
+            }
+        ),
+    );
 }
 
 @("struct with array with #defined length")
 @safe unittest {
-    with(immutable IncludeSandbox()) {
-        writeFile("dstep.h",
-                  q{
-                      #define BAR 128
+    shouldCompile(
+        C(
+            `
+                #define BAR 128
 
-                      struct Foo {
-                          char var[BAR];
-                      };
-                  });
-
-        writeFile("main.dpp",
-                  q{
-                      #include "dstep.h"
-                      void main() {
-                          auto f = Foo();
-                          static assert(f.var.sizeof == 128);
-                          f.var[127] = cast(byte)3;
-                      }
-                  });
-
-        preprocess("main.dpp", "main.d");
-        shouldCompile("main.d");
-    }
+                struct Foo {
+                    char var[BAR];
+                };
+            `
+        ),
+        D(
+            q{
+                auto f = Foo();
+                static assert(f.var.sizeof == 128);
+                f.var[127] = cast(byte)3;
+            }
+        ),
+    );
 }
 
 
 @("struct with 3d arrays of #defined length")
 @safe unittest {
-    with(immutable IncludeSandbox()) {
-        writeFile("dstep.h",
-                  q{
-                      #define FOO 2
-                      #define BAR 4
-                      #define BAZ 8
+    shouldCompile(
+        C(
+            `
+                #define FOO 2
+                #define BAR 4
+                #define BAZ 8
 
-                      struct Foo {
-                          char var[FOO][BAR][BAZ];
-                      };
-                  });
-
-        writeFile("main.dpp",
-                  q{
-                      #include "dstep.h"
-                      void main() {
-                          auto f = Foo();
-                          // opposite order than in C
-                          static assert(f.var.length == 2);
-                          static assert(f.var[0].length == 4);
-                          static assert(f.var[0][0].length == 8);
-                          auto v = f.var[0][0][7];
-                      }
-                  });
-
-        preprocess("main.dpp", "main.d");
-        shouldCompile("main.d");
-    }
+                struct Foo {
+                    char var[FOO][BAR][BAZ];
+                };
+            `
+        ),
+        D(
+            q{
+                auto f = Foo();
+                // opposite order than in C
+                static assert(f.var.length == 2);
+                static assert(f.var[0].length == 4);
+                static assert(f.var[0][0].length == 8);
+                auto v = f.var[0][0][7];
+            }
+        ),
+    );
 }
 
 @("nested anonymous structures")
@@ -172,42 +157,36 @@ import it;
 
 @("interleaved enum-based array size consts and macro based array size counts")
 @safe unittest {
-    with(immutable IncludeSandbox()) {
-        writeFile("dstep.h",
-                  q{
-                      struct qux {
-                          char scale;
-                      };
+    shouldCompile(
+        C(
+            `
+                struct qux {
+                    char scale;
+                };
 
-                      #define FOO 2
-                      #define BAZ 8
+                #define FOO 2
+                #define BAZ 8
 
-                      struct stats_t {
-                          enum
-                          {
-                              BAR = 4,
-                          };
+                struct stats_t {
+                    enum
+                    {
+                        BAR = 4,
+                    };
 
-                          struct qux stat[FOO][BAR][FOO][BAZ];
-                      };
-
-                  });
-
-        writeFile("main.dpp",
-                  q{
-                      #include "dstep.h"
-                      void main() {
-                          auto s = stats_t();
-                          // opposite order than in C
-                          static assert(stats_t.BAR == 4);
-                          // accessing at the limits of each dimension
-                          auto q = s.stat[1][3][1][7];
-                      }
-                  });
-
-        preprocess("main.dpp", "main.d");
-        shouldCompile("main.d");
-    }
+                    struct qux stat[FOO][BAR][FOO][BAZ];
+                };
+            `
+        ),
+        D(
+            q{
+                auto s = stats_t();
+                // opposite order than in C
+                static assert(stats_t.BAR == 4);
+                // accessing at the limits of each dimension
+                auto q = s.stat[1][3][1][7];
+            }
+        ),
+    );
 }
 
 @("function pointer with unnamed parameter")

@@ -6,9 +6,9 @@ import it;
 @safe unittest {
     shouldCompile(
         C(
-            q{
+            `
                 #define FOO 5
-            }
+            `
         ),
         D(
             q{
@@ -23,12 +23,12 @@ import it;
 @safe unittest {
     shouldCompile(
         C(
-            q{
+            `
                 #define FOO foo
                 #undef FOO
                 #define FOO bar
                 int FOO(int i);
-            }
+            `
         ),
         D(
             q{

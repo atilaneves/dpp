@@ -133,11 +133,11 @@ import it;
 @safe unittest {
     shouldCompile(
         C(
-            q{
+            `
                 #define __FSID_T_TYPE struct { int __val[2]; }
                 typedef  __FSID_T_TYPE __fsid_t;
                 typedef __fsid_t fsid_t;
-            }
+            `
         ),
         D(
             q{
@@ -156,7 +156,7 @@ import it;
     with(immutable IncludeSandbox()) {
 
         writeFile("system.h",
-                  q{
+                  `
                       #define __FD_SETSIZE 1024
                       typedef long int __fd_mask;
                       #define __NFDBITS (8 * (int) sizeof (__fd_mask))
@@ -171,23 +171,23 @@ import it;
                        # define __FDS_BITS(set) ((set)->__fds_bits)
                        #endif
                       } fd_set;
-                  });
+                  `);
 
 
         writeFile("header.h",
-                  q{
+                  `
                       #include "system.h"
-                  });
+                  `);
 
         const dppFileName = "foo.dpp";
         writeFile("foo.dpp",
-                  q{
+                  `
                       #include "header.h"
                       void func() {
                           fd_set foo;
                           foo.__fds_bits[0] = 5;
                       }
-                  });
+                  `);
 
 
         preprocess("foo.dpp", "foo.d");

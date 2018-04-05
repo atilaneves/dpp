@@ -54,10 +54,10 @@ import it;
         C(
             // the original uses regular uint64_t, let's beat any special cases
             // defining our own
-            q{
+            `
                 #define __TIMER_T_TYPE void *
                 typedef __TIMER_T_TYPE __timer_t;
-            }
+            `
         ),
 
         D(
@@ -109,13 +109,13 @@ import it;
         // the original uses regular uint64_t, let's beat any special cases
         // defining our own
         C(
-             q{
+             `
                  #define _SIGSET_NWORDS (1024 / (8 * sizeof (unsigned long int)))
                  typedef struct
                  {
                      unsigned long int __val[_SIGSET_NWORDS];
                  } __sigset_t;
-             }
+             `
         ),
         D(
             q{
@@ -131,11 +131,11 @@ import it;
 @safe unittest {
     shouldCompile(
         C(
-            q{
+            `
                 struct _IO_FILE { int dummy; };
                 extern void _IO_flockfile (struct _IO_FILE *);
                 #define _IO_flockfile(_fp)
-            }
+            `
         ),
         D(
             q{
@@ -429,13 +429,13 @@ import it;
         ),
 
         writeFile("app.dpp",
-                  q{
+                  `
                       #include "hdr1.h"
                       #include "hdr2.h"
                       void main() {
                           time_t var = 42;
                       }
-                  });
+                  `);
 
         preprocess("app.dpp", "app.d");
         shouldCompile("app.d");
@@ -517,14 +517,14 @@ import it;
                       struct Bar;
                   });
         writeFile("app.dpp",
-                  q{
+                  `
                       #include "hdr1.h"
                       #include "hdr2.h"
                       void main() {
                           Foo f;
                           f.bar = null;
                       }
-                  });
+                  `);
         run("app.dpp");
         shouldCompile("app.d");
     }
@@ -560,9 +560,9 @@ import it;
                       EXPORT_VAR FooPtr theFoo;
                   });
         writeFile("app.dpp",
-                  q{
+                  `
                       #include "hdr.h"
-                  });
+                  `);
         try {
             preprocess("app.dpp", "app.d");
             assert(0, "Should not get here");
@@ -578,15 +578,15 @@ import it;
     with(immutable IncludeSandbox()) {
 
         writeFile("includes/libfoo/libfoo.h",
-                  q{
+                  `
                       #include <libfoo/libfoo-common.h>
                       #include <libfoo/libfoo-host.h>
-                  });
+                  `);
 
         writeFile("includes/libfoo/libfoo-common.h",
-                  q{
+                  `
                       #define EXPORT_VAR extern
-                  });
+                  `);
 
         writeFile("includes/libfoo/libfoo-host.h",
                   q{
@@ -595,12 +595,12 @@ import it;
                   });
 
         writeFile("app.dpp",
-                  q{
+                  `
                       #include <libfoo/libfoo.h>
                       void func(FooPtr foo) {
                           assert(foo is null);
                       }
-                  });
+                  `);
 
         run("--preprocess-only",
             "--clang-include-path",
@@ -625,20 +625,20 @@ import it;
                   });
 
         writeFile("hdr1.h",
-                  q{
+                  `
                       #include "enum.h"
-                  });
+                  `);
 
         writeFile("hdr2.h",
-                  q{
+                  `
                       #include "enum.h"
-                  });
+                  `);
 
         writeFile("app.dpp",
-                  q{
+                  `
                       #include "hdr1.h"
                       #include "hdr2.h"
-                  });
+                  `);
 
         run("app.dpp");
         shouldCompile("app.d");
@@ -650,11 +650,11 @@ import it;
 @safe unittest {
     shouldCompile(
         C(
-            q{
+            `
                 typedef long long int greg_t;
                 #define __NGREG 23
                 typedef greg_t gregset_t[__NGREG];
-            }
+            `
         ),
         D(
             q{
@@ -693,12 +693,12 @@ import it;
 @safe unittest {
     shouldCompile(
         C(
-            q{
+            `
                 #include <stdarg.h>
                 typedef struct Struct {
                     int (*func)(int, va_list);
                 };
-            }
+            `
         ),
         D(
             q{
@@ -767,10 +767,10 @@ import it;
 @safe unittest {
     shouldCompile(
         C(
-            q{
+            `
                 #include <stdbool.h>
                 typedef bool handler_t(int, double);
-            }
+            `
         ),
         D(
             q{

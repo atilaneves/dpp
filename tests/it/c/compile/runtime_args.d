@@ -14,12 +14,12 @@ import it;
                       int add(int i, int j);
                   });
         writeFile("main.dpp",
-                  q{
+                  `
                       #include "hdr.h"
                       void main() {
                           int ret = add(2, 3);
                       }
-                  });
+                  `);
         run(
             "--preprocess-only",
             "--clang-include-path",
@@ -41,9 +41,9 @@ import it;
                       typedef int foo;
                   });
         writeFile("foo.dpp",
-                  q{
+                  `
                       #include "foo.h"
-                  });
+                  `);
 
         run("--d-file-name", "foo.c", "foo.dpp").shouldThrowWithMessage(
             "Output should be a D file (the extension should be .d or .di)");
@@ -59,9 +59,9 @@ import it;
                       typedef int foo;
                   });
         writeFile("foo.dpp",
-                  q{
+                  `
                       #include "foo.h"
-                  });
+                  `);
 
         run("--d-file-name", "foo.d", "foo.dpp");
     }
@@ -76,9 +76,9 @@ import it;
                       typedef int foo;
                   });
         writeFile("foo.dpp",
-                  q{
+                  `
                       #include "foo.h"
-                  });
+                  `);
 
         run("--d-file-name", "foo.di", "foo.dpp");
     }

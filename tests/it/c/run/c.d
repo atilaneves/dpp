@@ -15,10 +15,10 @@ import it;
             }
         ),
         C(
-            q{
+            `
                 #include <stdio.h>
                 void debug(const char* msg) { printf("%s\n", msg); }
-            }
+            `
         ),
         D(
             q{

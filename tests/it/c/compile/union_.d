@@ -6,7 +6,7 @@ import it;
 @safe unittest {
     shouldCompile(
         C(
-            q{
+            `
                 #ifdef __x86_64__
                 #  if __WORDSIZE == 64
                 #    define __SIZEOF_PTHREAD_ATTR_T 56
@@ -22,7 +22,7 @@ import it;
                     char __size[__SIZEOF_PTHREAD_ATTR_T];
                     long int __align;
                 };
-            }
+            `
         ),
 
         D(
