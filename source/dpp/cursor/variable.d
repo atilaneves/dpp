@@ -7,12 +7,20 @@ string[] translateVariable(in from!"clang".Cursor cursor,
     @safe
 {
     import dpp.cursor.dlang: maybeRename, maybePragma;
-    import dpp.type: translate;
+    import dpp.cursor.translation: translateCursor = translate;
+    import dpp.type: translateType = translate;
     import clang: Cursor;
     import std.conv: text;
     import std.typecons: No;
+    import std.algorithm: canFind;
 
     assert(cursor.kind == Cursor.Kind.VarDecl);
+    string[] ret;
+
+    const isAnonymous = cursor.type.spelling.canFind("(anonymous");
+    // If the type is anonymous, then we need to define it before we declare
+    // ourselves of that type.
+    if(isAnonymous) ret ~= translateCursor(cursor.type.canonical.declaration, context);
 
     // variables can be declared multiple times in C but only one in D
     if(!cursor.isCanonical) return [];
@@ -30,11 +38,13 @@ string[] translateVariable(in from!"clang".Cursor cursor,
     const spelling = maybeRename(cursor, context);
     context.rememberLinkable(spelling);
 
-    return [
+    ret ~=
         maybePragma(cursor, context) ~
         text("extern __gshared ",
-             translate(cursor.type, context, No.translatingFunction), " ", spelling, ";")
-    ];
+             translateType(cursor.type, context, No.translatingFunction), " ", spelling, ";")
+    ;
+
+    return ret;
 }
 
 

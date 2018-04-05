@@ -97,19 +97,12 @@ private string translateAggregate(in from!"clang".Type type,
 {
     import std.array: replace;
 
-    // find the last one we named, pop it off, and return it
-    string popLastNickName() {
-        auto ret = context.nickNames[$-1];
-        context.nickNames = context.nickNames[0 .. $-1];
-        return ret;
-    }
-
     // if it's anonymous, find the nickname, otherwise return the spelling
     string spelling() {
         import std.algorithm: canFind;
         // clang names anonymous types with a long name indicating where the type
         // was declared
-        return type.spelling.canFind("(anonymous") ? popLastNickName : type.spelling;
+        return type.spelling.canFind("(anonymous") ? context.popLastNickName : type.spelling;
     }
 
     return addModifiers(type, spelling)

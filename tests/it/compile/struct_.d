@@ -217,3 +217,30 @@ import it;
         )
     );
 }
+
+@("anonymous struct var")
+@safe unittest {
+    shouldCompile(
+        C(`struct { int i; } var;`),
+        D(
+            q{
+                var.i = 42;
+            }
+        )
+    );
+}
+
+@("typedef anonymous struct var")
+@safe unittest {
+    shouldCompile(
+        C(`
+              typedef struct { int i; } mystruct;
+              mystruct var;
+          `),
+        D(
+            q{
+                var.i = 42;
+            }
+        )
+    );
+}

@@ -55,6 +55,7 @@ unittest {
             q{
                 Foo f;
                 f.i = 42;
+                static assert(!__traits(compiles, _Anonymous_1(42)));
             }
         )
     );

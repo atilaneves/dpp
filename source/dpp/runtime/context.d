@@ -133,8 +133,18 @@ struct Context {
                 resolveClash(lines[*clashLineNumber], aggregate);
             }
         }
-
     }
+
+    // find the last one we named, pop it off, and return it
+    string popLastNickName() @safe pure {
+
+        if(nickNames.length == 0) throw new Exception("No nickname to pop");
+
+        auto ret = nickNames[$-1];
+        nickNames = nickNames[0 .. $-1];
+        return ret;
+    }
+
 }
 
 private void resolveClash(ref string line, in string spelling) @safe pure {

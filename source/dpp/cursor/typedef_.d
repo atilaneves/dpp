@@ -35,10 +35,20 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     if(isSomeFunction(underlyingType))
         return translateFunctionTypeDef(typedef_, context.indent);
 
-    // FIXME - still not sure I understand this
-    const oneAggregateChild = children.length == 1 && isAggregateC(children[0]);
+    const isOnlyAggregateChild = children.length == 1 && isAggregateC(children[0]);
+    const isTopLevelAnonymous =
+        isOnlyAggregateChild &&
+        children[0].spelling == "" && // anonymous
+        children[0].lexicalParent.kind == Cursor.Kind.TranslationUnit; // top-level
 
-    const underlyingSpelling = oneAggregateChild
+    // if the child is a top-level anonymous struct, it's pointless to alias
+    // it and give the struct a silly name, instead just define a struct with
+    // the typedef name instead. e.g.
+    // typedef struct { int dummy; } Foo -> struct Foo { int dummy; }
+    if(isTopLevelAnonymous) return translateTopLevelAnonymous(children[0], context);
+
+    // FIXME - still not sure I understand this
+    const underlyingSpelling = isOnlyAggregateChild
         ? spellingOrNickname(children[0], context)
         : translate(underlyingType, context, No.translatingFunction);
 
@@ -78,4 +88,21 @@ private bool isSomeFunction(in from!"clang".Type type) @safe @nogc pure nothrow 
     const isFunction = type.kind == Type.Kind.FunctionProto;
 
     return isFunctionPointer || isFunction;
+}
+
+private string[] translateTopLevelAnonymous(in from!"clang".Cursor cursor,
+                                            ref from!"dpp.runtime.context".Context context)
+    @safe
+{
+    import dpp.cursor.translation: translate;
+    import clang: Cursor;
+
+    // the old cursor has no spelling, so construct a new one
+    auto newCursor = Cursor(cursor.cx);
+
+    // the type spelling will be the name of the struct, union, or enum
+    newCursor.spelling = cursor.type.spelling;
+
+    // delegate to whoever knows what they're doing
+    return translate(newCursor, context);
 }

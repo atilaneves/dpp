@@ -19,14 +19,19 @@ string translateTopLevelCursor(in from!"clang".Cursor cursor,
     import std.array: join;
     import std.algorithm: map;
 
-    return cursor.skip
+    return cursor.skipTopLevel
         ? ""
         : translate(cursor, context, file, line).map!(a => "    " ~ a).join("\n");
 }
 
-private bool skip(in from!"clang".Cursor cursor) @safe pure {
+private bool skipTopLevel(in from!"clang".Cursor cursor) @safe pure {
+    import dpp.cursor.aggregate: isAggregateC;
     import clang: Cursor;
     import std.algorithm: startsWith, canFind;
+
+    // don't bother translating top-level anonymous aggregates
+    if(isAggregateC(cursor) && cursor.spelling == "")
+        return true;
 
     static immutable forbiddenSpellings =
         [
