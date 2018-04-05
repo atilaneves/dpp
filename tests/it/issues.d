@@ -22,7 +22,7 @@ import it;
         ),
         D(
             q{
-                silly_name(enum_silly_name.FOO);
+                silly_name(silly_name.FOO);
             }
         ),
     );

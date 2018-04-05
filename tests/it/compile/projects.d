@@ -95,7 +95,7 @@ import it;
         D(
             q{
                 CURLM handle;
-                struct_curl_waitfd[] extra_fds;
+                curl_waitfd[] extra_fds;
                 int ret;
                 CURLMcode code = curl_multi_wait(&handle, extra_fds.ptr, 42u, 33, &ret);
             }
@@ -139,7 +139,7 @@ import it;
         ),
         D(
             q{
-                struct__IO_FILE file;
+                _IO_FILE file;
                 _IO_flockfile(&file);
             }
         ),
@@ -164,7 +164,7 @@ import it;
 
         D(
             q{
-                struct_Struct s;
+                Struct s;
                 s.data.ptr = null;
                 s.data.i = 42;
             }
@@ -208,7 +208,7 @@ import it;
 
         D(
             q{
-                struct_Struct* s = make_struct();
+                Struct* s = make_struct();
                 fun(s);
             }
         ),
@@ -280,10 +280,10 @@ import it;
         ),
         D(
             q{
-                struct_curl_httppost p;
+                curl_httppost p;
                 p.contentheader.data = null;
                 p.contentheader.next = null;
-                struct_curl_slist l;
+                curl_slist l;
                 l.data = null;
                 l.next = null;
             }
@@ -303,7 +303,7 @@ import it;
         ),
         D(
             q{
-                auto u = union_foo(44);
+                auto u = foo(44);
                 foo = 42;
             }
         ),
@@ -321,7 +321,7 @@ import it;
         ),
         D(
             q{
-                auto e = enum_foo.three;
+                auto e = foo.three;
                 foo = 42;
             }
         ),
@@ -674,9 +674,9 @@ import it;
     shouldCompile(
         C(
             q{
-                struct Struct_st;
-                typedef struct Struct_st Struct;
-                extern const Struct gVar;
+                struct Foo_st;
+                typedef struct Foo_st Foo;
+                extern const Foo gVar;
             }
         ),
         D(

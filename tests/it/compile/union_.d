@@ -27,7 +27,7 @@ import it;
 
         D(
             q{
-                union_pthread_attr_t attr;
+                pthread_attr_t attr;
                 attr.__size[0] = 42;
             }
         )

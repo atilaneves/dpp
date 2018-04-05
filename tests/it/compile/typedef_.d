@@ -75,7 +75,7 @@ unittest {
             q{
                 Foo f1;
                 f1.i = 42;
-                struct_Foo f2;
+                Foo f2;
                 f2.i = 33;
             }
         )
@@ -97,7 +97,7 @@ unittest {
             q{
                 Foo f1;
                 f1.i = 42;
-                union_Foo f2;
+                Foo f2;
                 f2.i = 33;
             }
         )
@@ -117,7 +117,7 @@ unittest {
         ),
         D(
             q{
-                enum_Foo f = Foo.i;
+                Foo f = Foo.i;
             }
         )
     );

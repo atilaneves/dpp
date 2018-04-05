@@ -92,7 +92,7 @@ import it;
                   q{
                       #include "dstep.h"
                       void main() {
-                          auto f = struct_Foo();
+                          auto f = Foo();
                           static assert(f.var.sizeof == 128);
                           f.var[127] = cast(byte)3;
                       }
@@ -122,7 +122,7 @@ import it;
                   q{
                       #include "dstep.h"
                       void main() {
-                          auto f = struct_Foo();
+                          auto f = Foo();
                           // opposite order than in C
                           static assert(f.var.length == 2);
                           static assert(f.var[0].length == 4);
@@ -158,7 +158,7 @@ import it;
                   q{
                       import dstep;
                       void main() {
-                          auto c = struct_C();
+                          auto c = C();
                           c.point.x = 42;
                           c.point.y = 77;
                           c.point.nested.z = 2;
@@ -197,9 +197,9 @@ import it;
                   q{
                       #include "dstep.h"
                       void main() {
-                          auto s = struct_stats_t();
+                          auto s = stats_t();
                           // opposite order than in C
-                          static assert(struct_stats_t.BAR == 4);
+                          static assert(stats_t.BAR == 4);
                           // accessing at the limits of each dimension
                           auto q = s.stat[1][3][1][7];
                       }
@@ -270,9 +270,9 @@ import it;
                   q{
                       import dstep;
                       void main() {
-                          auto f = struct_Foo();
+                          auto f = Foo();
                           static assert(f.bar.length == 64);
-                          f.bar[63] = struct_Foo.struct_Bar();
+                          f.bar[63] = Foo.Bar();
                       }
                   });
 
@@ -424,9 +424,9 @@ import it;
                   q{
                       import dstep;
                       void main() {
-                          auto f = struct_foo_t(42);
+                          auto f = foo_t(42);
                           bar(&f);
-                          const cf = const struct_foo_t(33);
+                          const cf = const foo_t(33);
                           bar(&cf);
                       }
                   });

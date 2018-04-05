@@ -44,7 +44,7 @@ import it;
         ),
         D(
             q{
-                auto s = struct_foo(33);
+                auto s = foo(33);
                 foo = 42;
             }
         ),

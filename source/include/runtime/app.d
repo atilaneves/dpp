@@ -97,7 +97,7 @@ private string preamble() @safe pure {
 
         import core.stdc.config;
         import core.stdc.stdarg: va_list;
-        struct struct___locale_data { int dummy; }  // FIXME
+        struct __locale_data { int dummy; }  // FIXME
         #define __gnuc_va_list va_list
         alias _Bool = bool;
 

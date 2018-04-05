@@ -13,7 +13,7 @@ unittest {
 
         D(
             q{
-                auto f = struct_Foo();
+                auto f = Foo();
                 static assert(f.sizeof == 16, "Wrong sizeof for Foo");
             }
         ),
@@ -34,7 +34,7 @@ unittest {
 
         D(
             q{
-                auto s = struct_Slice();
+                auto s = Slice();
                 static assert(s.sizeof == 4, "Wrong sizeof for Slice");
             }
         ),

@@ -18,8 +18,8 @@ import it;
             q{
                 static assert(foo == 0);
                 static assert(bar == 1);
-                static assert(enum_Foo.foo == 0);
-                static assert(enum_Foo.bar == 1);
+                static assert(Foo.foo == 0);
+                static assert(Foo.bar == 1);
             }
         ),
 
@@ -41,8 +41,8 @@ import it;
             q{
                 static assert(quux == 0);
                 static assert(toto == 1);
-                static assert(enum_Enum.quux == 0);
-                static assert(enum_Enum.toto == 1);
+                static assert(Enum.quux == 0);
+                static assert(Enum.toto == 1);
             }
         ),
 
@@ -66,9 +66,9 @@ import it;
                 static assert(foo == 2);
                 static assert(bar == 5);
                 static assert(baz == 7);
-                static assert(enum_FooBarBaz.foo == 2);
-                static assert(enum_FooBarBaz.bar == 5);
-                static assert(enum_FooBarBaz.baz == 7);
+                static assert(FooBarBaz.foo == 2);
+                static assert(FooBarBaz.bar == 5);
+                static assert(FooBarBaz.baz == 7);
             }
         ),
 
@@ -114,7 +114,7 @@ import it;
 
         D(
             q{
-                static assert(enum_FooBarBaz_.foo == 2);
+                static assert(FooBarBaz_.foo == 2);
                 static assert(bar == 5);
                 static assert(FooBarBaz.baz == 7);
             }
@@ -137,9 +137,9 @@ import it;
 
         D(
             q{
-                numbers = cast(enum_Numbers)one;
-                numbers = cast(enum_Numbers)two;
-                numbers = enum_Numbers.one;
+                numbers = cast(Numbers)one;
+                numbers = cast(Numbers)two;
+                numbers = Numbers.one;
             }
         ),
 
@@ -185,7 +185,7 @@ import it;
 
         D(
             q{
-                static assert(struct_Struct.two == 2);
+                static assert(Struct.two == 2);
             }
         ),
 
@@ -208,8 +208,8 @@ import it;
 
         D(
             q{
-                auto s = struct_Struct();
-                s.numbers = cast(typeof(s.numbers)) struct_Struct.one;
+                auto s = Struct();
+                s.numbers = cast(typeof(s.numbers)) Struct.one;
             }
         ),
 
@@ -234,7 +234,7 @@ import it;
 
         D(
             q{
-                static assert(struct_Struct.enum_Numbers.two == 2);
+                static assert(Struct.Numbers.two == 2);
             }
         ),
 
@@ -258,8 +258,8 @@ import it;
 
         D(
             q{
-                auto s = struct_Struct();
-                s.numbers = struct_Struct.enum_Numbers.one;
+                auto s = Struct();
+                s.numbers = Struct.Numbers.one;
             }
         ),
     );

@@ -12,7 +12,7 @@ import it;
         ),
         D(
             q{
-                auto f = struct_Foo(5);
+                auto f = Foo(5);
                 static assert(f.sizeof == 4, "Wrong sizeof for Foo");
             }
         )
@@ -30,7 +30,7 @@ import it;
 
         D(
             q{
-                auto b = struct_Bar(33.3);
+                auto b = Bar(33.3);
                 static assert(b.sizeof == 8, "Wrong sizeof for Bar");
             }
         )
@@ -52,7 +52,7 @@ import it;
         ),
         D(
             q{
-                auto o = struct_Outer(struct_Outer.struct_Inner(42));
+                auto o = Outer(Outer.Inner(42));
                 static assert(o.sizeof == 4, "Wrong sizeof for Outer");
             }
         )
@@ -73,7 +73,7 @@ import it;
         D(
             q{
                 {
-                    auto t = struct_TypeDefd_(42, 33.3);
+                    auto t = TypeDefd_(42, 33.3);
                     static assert(t.sizeof == 16, "Wrong sizeof for TypeDefd_");
                 }
                 {
@@ -122,7 +122,7 @@ import it;
         ),
         D(
             q{
-                auto a = struct_A(42);
+                auto a = A(42);
                 auto b = B(77);
             }
         )
@@ -208,11 +208,11 @@ import it;
         ),
         D(
             q{
-                struct_Struct s;
+                Struct s;
                 s.x = 42;
                 s.y = 33;
                 s.z = 77;
-                static assert(!__traits(compiles, struct_OtherStruct()));
+                static assert(!__traits(compiles, OtherStruct()));
             }
         )
     );
