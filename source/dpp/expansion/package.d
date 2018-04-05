@@ -80,7 +80,7 @@ private string toFileName(in string[] includePaths, in string headerName) @safe 
         .map!(a => buildPath(a, headerName).absolutePath)
         .filter!exists;
 
-    enforce(!filePaths.empty, text("Cannot find file path for header '", headerName, "'"));
+    enforce(!filePaths.empty, text("d++ cannot find file path for header '", headerName, "'"));
 
     return filePaths.front;
 }
