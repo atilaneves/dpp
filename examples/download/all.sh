@@ -10,6 +10,14 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 REPOS_DIR="$SCRIPT_DIR"/repos
 BIN_DIR="$SCRIPT_DIR"/../../bin
 
+if [[ -e "$BIN_DIR"/build.ninja ]]; then
+    ninja -C "$BIN_DIR" d++ > /dev/null
+else
+    pushd "$SCRIPT_DIR/.."
+    dub build
+    popd
+fi
+
 
 git_clone() {
     git clone --recursive "$1" --depth=1 --branch master

@@ -5,6 +5,14 @@ set -euo pipefail
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 BIN_DIR="$SCRIPT_DIR"/../bin
 
+if [[ -e "$BIN_DIR"/build.ninja ]]; then
+    ninja -C "$BIN_DIR" d++ > /dev/null
+else
+    pushd "$SCRIPT_DIR/.."
+    dub build
+    popd
+fi
+
 # Files that should compile with no dependencies
 for x in "$SCRIPT_DIR"/compile/*.dpp
 do
