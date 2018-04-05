@@ -54,7 +54,7 @@ alias utl = dubLink!(
 
 mixin build!(
     exe,
-    ut,  // investigate UT failures
+    optional!ut,  // investigate UT failures
     optional!utl,  // fast development
     optional!utlPerPackage,  // for benchmarking
 );
