@@ -70,6 +70,9 @@ struct Options {
         enforce(fromInput.length != 0, "No .dpp input file specified\n" ~ usage);
         dppFileName = fromInput[0];
 
+        enforce(args.filter!(a => a.extension == ".dpp").array.length == 1,
+                "Only one .dpp file at a time is supported currently.");
+
         // By default, use the same name as the .dpp file with a .d extension.
         // If running as a compiler wrapper however, we don't want to see the resulting
         // .d file unless explicitly setting it via the command-line, so we hide it
