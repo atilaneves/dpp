@@ -381,7 +381,9 @@ import it;
                   q{
                       import dstep;
                       void main() {
-                          foo();
+                          foo f;
+                          f.i = 42;
+                          foo_();
                       }
                   });
 
@@ -402,8 +404,9 @@ import it;
                   q{
                       import dstep;
                       void main() {
-                          foo();
-                          auto x = FOO;
+                          foo_();
+                          auto f1 = FOO;
+                          foo f2 = foo.FOO;
                       }
                   });
 

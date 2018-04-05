@@ -22,7 +22,7 @@ import it;
         ),
         D(
             q{
-                silly_name(silly_name.FOO);
+                silly_name_(silly_name.FOO);
             }
         ),
     );

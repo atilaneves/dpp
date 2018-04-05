@@ -85,6 +85,7 @@ string[] translateField(in from!"clang".Cursor field,
     @safe
 {
 
+    import include.cursor.dlang: maybeRename;
     import include.type: translate;
     import clang: Cursor, Type;
     import std.conv: text;
@@ -108,13 +109,9 @@ string[] translateField(in from!"clang".Cursor field,
     }
 
     const type = translate(field.type, context, No.translatingFunction);
-    return [text(type, " ", field.spelling.translateIdentifier, ";")];
+    return [text(type, " ", maybeRename(field, context), ";")];
 }
 
-private string translateIdentifier(in string spelling) @safe pure nothrow {
-    import include.cursor.dlang: isKeyword;
-    return spelling.isKeyword ? spelling ~ "_" : spelling;
-}
 
 // if the cursor is an aggregate in C, i.e. struct, union or enum
 package bool isAggregateC(in from!"clang".Cursor cursor) @safe @nogc pure nothrow {

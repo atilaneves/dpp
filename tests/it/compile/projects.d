@@ -304,7 +304,7 @@ import it;
         D(
             q{
                 auto u = foo(44);
-                foo = 42;
+                foo_ = 42;
             }
         ),
     );
@@ -322,7 +322,7 @@ import it;
         D(
             q{
                 auto e = foo.three;
-                foo = 42;
+                foo_ = 42;
             }
         ),
     );

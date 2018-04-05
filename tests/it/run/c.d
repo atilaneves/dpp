@@ -45,7 +45,7 @@ import it;
         D(
             q{
                 auto s = foo(33);
-                foo = 42;
+                foo_ = 42;
             }
         ),
     );
