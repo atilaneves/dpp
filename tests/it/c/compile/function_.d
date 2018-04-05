@@ -1,4 +1,4 @@
-module it.compile.function_;
+module it.c.compile.function_;
 
 import it;
 

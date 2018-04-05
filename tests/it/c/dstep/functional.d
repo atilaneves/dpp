@@ -1,7 +1,7 @@
 /**
    Tests "inspired" by the ones in dstep's functional directory
  */
-module it.dstep.functional;
+module it.c.dstep.functional;
 
 import it;
 

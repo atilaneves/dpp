@@ -1,4 +1,4 @@
-module it.compile.union_;
+module it.c.compile.union_;
 
 import it;
 

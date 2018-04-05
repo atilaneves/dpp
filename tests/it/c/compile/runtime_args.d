@@ -1,7 +1,7 @@
 /**
    Tests for runtime arguments.
  */
-module it.compile.runtime_args;
+module it.c.compile.runtime_args;
 
 
 import it;

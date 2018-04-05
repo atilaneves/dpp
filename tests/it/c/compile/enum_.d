@@ -1,4 +1,4 @@
-module it.compile.enum_;
+module it.c.compile.enum_;
 
 import it;
 

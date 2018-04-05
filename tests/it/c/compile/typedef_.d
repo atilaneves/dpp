@@ -1,4 +1,4 @@
-module it.compile.typedef_;
+module it.c.compile.typedef_;
 
 import it;
 

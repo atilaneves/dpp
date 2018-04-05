@@ -1,4 +1,4 @@
-module it.compile.array;
+module it.c.compile.array;
 
 import it;
 

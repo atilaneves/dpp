@@ -1,4 +1,4 @@
-module it.compile.preprocessor;
+module it.c.compile.preprocessor;
 
 import it;
 

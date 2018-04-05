@@ -1,7 +1,7 @@
 /**
    C++ tests that must run
  */
-module it.run.cpp;
+module it.cpp.run;
 
 import it;
 

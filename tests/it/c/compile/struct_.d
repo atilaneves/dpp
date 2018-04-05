@@ -1,4 +1,4 @@
-module it.compile.struct_;
+module it.c.compile.struct_;
 
 import it;
 

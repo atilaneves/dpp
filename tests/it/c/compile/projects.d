@@ -1,7 +1,7 @@
 /**
    Integration tests that stem from failues in real-life C projects
  */
-module it.compile.projects;
+module it.c.compile.projects;
 
 import it;
 

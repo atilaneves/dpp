@@ -1,7 +1,7 @@
 /**
    C tests that must run
  */
-module it.run.c;
+module it.c.run.c;
 
 import it;
 
