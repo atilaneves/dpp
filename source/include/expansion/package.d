@@ -20,7 +20,7 @@ void maybeExpand(in string line, ref from!"include.runtime.context".Context cont
     const headerName = getHeaderName(line);
 
     if(headerName == "")
-        context.lines ~= line.dup;
+        context.writeln(line);
     else
         expand(toFileName(context.options.includePaths, headerName),  context);
 }
@@ -32,12 +32,12 @@ void maybeExpand(in string line, ref from!"include.runtime.context".Context cont
     {
         Context context;
         maybeExpand("foo", context);
-        context.lines.shouldEqual(["foo"]);
+        context.translation.shouldEqual("foo");
     }
     {
         Context context;
         maybeExpand("bar", context);
-        context.lines.shouldEqual(["bar"]);
+        context.translation.shouldEqual("bar");
     }
 }
 
@@ -142,8 +142,8 @@ void expand(in string headerFileName,
         ;
     }();
 
-    context.lines ~= isCppHeader(headerFileName) ? "extern(C++)" : "extern(C)";
-    context.lines ~= "{";
+    const extern_ = isCppHeader(headerFileName) ? "extern(C++)" : "extern(C)";
+    context.writeln([extern_, "{"]);
 
     foreach(cursor; cursors) {
 
@@ -152,12 +152,11 @@ void expand(in string headerFileName,
 
         const indentation = context.indentation;
         const lines = translateTopLevelCursor(cursor, context, file, line);
-        if(lines.length) context.lines ~= lines;
+        if(lines.length) context.writeln(lines);
         context.setIndentation(indentation);
     }
 
-    context.lines ~= "}";
-    context.lines ~= "";
+    context.writeln(["}", ""]);
 }
 
 private bool isCppHeader(in string headerFileName) @safe pure {

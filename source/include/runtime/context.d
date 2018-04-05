@@ -21,7 +21,7 @@ struct Context {
        any name collisions between functions or variables with aggregates
        such as structs, unions and enums.
      */
-    string[] lines;
+    private string[] lines;
 
     /**
        Structs can be anonymous in C, and it's even common
@@ -101,6 +101,15 @@ struct Context {
         import std.array: join;
         return lines.join("\n");
     }
+
+    void writeln(in string line) @safe pure nothrow {
+        lines ~= line.dup;
+    }
+
+    void writeln(in string[] lines) @safe pure nothrow {
+        this.lines ~= lines;
+    }
+
 }
 
 
