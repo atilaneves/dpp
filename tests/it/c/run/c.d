@@ -5,6 +5,7 @@ module it.c.run.c;
 
 import it;
 
+@Tags("run")
 @("function named debug")
 @safe unittest {
     shouldCompileAndRun(
@@ -28,6 +29,7 @@ import it;
 }
 
 
+@Tags("run")
 @("struct var collision")
 @safe unittest {
     shouldCompileAndRun(
@@ -51,6 +53,7 @@ import it;
     );
 }
 
+@Tags("run")
 @("struct function collision")
 @safe unittest {
     shouldCompileAndRun(

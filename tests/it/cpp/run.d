@@ -5,6 +5,7 @@ module it.cpp.run;
 
 import it;
 
+@Tags("run")
 @("function")
 @safe unittest {
     shouldCompileAndRun(

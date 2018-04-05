@@ -2,6 +2,7 @@ module it.c.run.struct_;
 
 import it;
 
+@Tags("run")
 @("structs")
 @safe unittest {
     with(const IncludeSandbox()) {
