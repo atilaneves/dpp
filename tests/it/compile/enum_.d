@@ -16,6 +16,8 @@ import it;
 
         D(
             q{
+                static assert(is(typeof(foo) == Foo));
+                static assert(is(typeof(bar) == Foo));
                 static assert(foo == 0);
                 static assert(bar == 1);
                 static assert(Foo.foo == 0);
@@ -39,6 +41,8 @@ import it;
 
         D(
             q{
+                static assert(is(typeof(quux) == Enum));
+                static assert(is(typeof(toto) == Enum));
                 static assert(quux == 0);
                 static assert(toto == 1);
                 static assert(Enum.quux == 0);
@@ -63,6 +67,9 @@ import it;
 
         D(
             q{
+                static assert(is(typeof(foo) == FooBarBaz));
+                static assert(is(typeof(bar) == FooBarBaz));
+                static assert(is(typeof(baz) == FooBarBaz));
                 static assert(foo == 2);
                 static assert(bar == 5);
                 static assert(baz == 7);
@@ -91,6 +98,7 @@ import it;
 
         D(
             q{
+                static assert(is(typeof(bar) == FooBarBaz));
                 static assert(bar == 5);
                 static assert(FooBarBaz.baz == 7);
             }
@@ -114,6 +122,8 @@ import it;
 
         D(
             q{
+
+                static assert(is(typeof(bar) == FooBarBaz_));
                 static assert(FooBarBaz_.foo == 2);
                 static assert(bar == 5);
                 static assert(FooBarBaz.baz == 7);
@@ -137,8 +147,11 @@ import it;
 
         D(
             q{
-                numbers = cast(Numbers)one;
-                numbers = cast(Numbers)two;
+
+                static assert(is(typeof(one) == Numbers));
+                static assert(is(typeof(two) == Numbers));
+                numbers = one;
+                numbers = two;
                 numbers = Numbers.one;
             }
         ),
@@ -160,8 +173,10 @@ import it;
 
         D(
             q{
-                numbers = cast(typeof(numbers))one;
-                numbers = cast(typeof(numbers))two;
+                static assert(is(typeof(one) == typeof(numbers)));
+                static assert(is(typeof(two) == typeof(numbers)));
+                numbers = one;
+                numbers = two;
             }
         ),
 
@@ -185,6 +200,8 @@ import it;
 
         D(
             q{
+
+                static assert(is(typeof(Struct.one) == enum));
                 static assert(Struct.two == 2);
             }
         ),
@@ -209,7 +226,8 @@ import it;
         D(
             q{
                 auto s = Struct();
-                s.numbers = cast(typeof(s.numbers)) Struct.one;
+                static assert(is(typeof(s.one) == typeof(s.numbers)));
+                s.numbers = Struct.one;
             }
         ),
 
@@ -234,6 +252,7 @@ import it;
 
         D(
             q{
+                static assert(is(typeof(Struct.one) == Struct.Numbers));
                 static assert(Struct.Numbers.two == 2);
             }
         ),
@@ -258,9 +277,31 @@ import it;
 
         D(
             q{
+                static assert(is(typeof(Struct.one) == Struct.Numbers));
+                static assert(is(typeof(Struct.numbers) == Struct.Numbers));
                 auto s = Struct();
                 s.numbers = Struct.Numbers.one;
             }
         ),
+    );
+}
+
+@("call and return enums")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                enum Enum { one, two, three };
+                enum Enum fun(int, int);
+                void gun(enum Enum);
+            }
+         ),
+
+        D(
+            q{
+                Enum e = fun(42, 33);
+                gun(two);
+            }
+         ),
     );
 }
