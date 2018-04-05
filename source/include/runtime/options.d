@@ -29,23 +29,25 @@ struct Options {
                    "i|clang-include-path", "Include paths", &includePaths,
                    "keep-tmp-file", "Do not delete the temporary pre-preprocessed file", &keepTempFile,
                    "preprocess-only", "Only transform the .dpp file into a .d file, don't compile", &preprocessOnly,
+                   "output", "Output file name (defaults to the input with a .d extension)", &outputFileName,
         );
 
-        const usage = "Usage: include <inFile> [outFile]";
+        const usage = "Usage: d++ [d++ options] [D compiler options] <filename>";
 
         if(helpInfo.helpWanted) {
             () @trusted {
                 defaultGetoptPrinter(usage, helpInfo.options);
             }();
             earlyExit = true;
+            return;
         }
 
         enforce(preprocessOnly, "d++ functionality is not developed yet");
-
-        enforce(args.length == 2 || args.length == 3, usage);
+        enforce(preprocessOnly && args.length == 2 || !preprocessOnly && args.length >= 2,
+                usage);
 
         inputFileName = args[1];
-        outputFileName = args.length == 3 ? args[2] : args[1].stripExtension ~ ".d";
+        if(outputFileName == "") outputFileName = inputFileName.stripExtension ~ ".d";
 
         includePaths = systemPaths ~ includePaths;
     }

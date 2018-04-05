@@ -104,7 +104,6 @@ struct IncludeSandbox {
                 "--clang-include-path",
                 sandboxPath,
                 inSandboxPath(inputFileName),
-                inSandboxPath(outputFileName)
             ]
         );
 

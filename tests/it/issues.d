@@ -37,7 +37,7 @@ import it;
                       typedef int foo;
                   });
 
-        run("foo.h", "foo.d").shouldThrowWithMessage(
+        run("foo.h").shouldThrowWithMessage(
             "Cannot directly translate C headers. Please run `include` on a D file.");
     }
 }
