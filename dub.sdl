@@ -1,10 +1,11 @@
-name "d++"
+name "dpp"
 description "Include C/C++ headers directly in D files"
 authors "Atila Neves"
 copyright "Copyright © 2017-2018, Atila Neves"
 license "boost"
 targetType "executable"
 targetPath "bin"
+targetName "d++"
 dflags "-dip25" // "-dip1000" // oops
 dependency "libclang" version="~master"
 
