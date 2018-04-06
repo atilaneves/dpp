@@ -32,5 +32,6 @@ int main(string[] args) {
 
         // C++ tests
         "it.cpp.run",
+        "it.cpp.function_",
     );
 }

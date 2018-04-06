@@ -64,6 +64,7 @@ Translators translators() @safe pure {
             ConstantArray: &translateConstantArray,
             IncompleteArray: &translateIncompleteArray,
             Typedef: &translateTypedef,
+            LValueReference: &translateLvalueRef,
         ];
     }
 }
@@ -235,4 +236,12 @@ private string addModifiers(in from!"clang".Type type, in string translation) @s
     return type.isConstQualified
         ? `const(` ~  realTranslation ~ `)`
         : realTranslation;
+}
+
+private string translateLvalueRef(in from!"clang".Type type,
+                                  ref from!"dpp.runtime.context".Context context,
+                                  in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
+    @safe pure
+{
+    return "ref " ~ translate(*type.canonical.pointee, context, translatingFunction);
 }

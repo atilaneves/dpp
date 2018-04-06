@@ -189,6 +189,27 @@ void shouldCompile(string file = __FILE__, size_t line = __LINE__)
     }
 }
 
+/**
+   Convenience function in the typical case that a test has a C
+   header and a D main file.
+*/
+void shouldCompile(string file = __FILE__, size_t line = __LINE__)
+                  (in Cpp header, in D app)
+{
+    with(const IncludeSandbox()) {
+        writeFile("hdr.hpp", header.code);
+        // take care of including the header and putting the D
+        // code in a function
+        const dCode = `#include "` ~ inSandboxPath("hdr.hpp") ~ `"` ~ "\n" ~
+            `void main() {` ~ "\n" ~ app.code ~ "\n}\n";
+
+        writeFile("app.dpp", dCode);
+        preprocess("app.dpp", "app.d");
+        shouldCompile!(file, line)("app.d");
+    }
+}
+
+
 void shouldNotCompile(string file = __FILE__, size_t line = __LINE__)
                   (in C header, in D app)
 {
