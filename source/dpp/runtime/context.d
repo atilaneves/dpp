@@ -3,6 +3,14 @@
  */
 module dpp.runtime.context;
 
+// A function or global variable
+struct Linkable {
+    alias LineNumber = size_t;
+
+    LineNumber lineNumber;
+    string mangling;
+}
+
 
 /**
    Context for the current translation, to avoid global variables
@@ -14,7 +22,6 @@ struct Context {
 
     alias CursorHash = uint;
     alias SeenCursors = bool[CursorId];
-    alias LineNumber = size_t;
 
     /**
        The lines of output so far. This is needed in order to fix
@@ -52,7 +59,7 @@ struct Context {
        with an aggregate we can come back and fix the declarations after
        the fact with  pragma(mangle).
      */
-    LineNumber[string] linkableDeclarations;
+    Linkable[string] linkableDeclarations;
 
     /**
        All previously seen cursors
@@ -119,18 +126,21 @@ struct Context {
     }
 
     // remember a function or variable declaration
-    void rememberLinkable(in string spelling) @safe pure nothrow {
+    string rememberLinkable(in Cursor cursor) @safe pure nothrow {
+        import dpp.cursor.dlang: maybeRename;
+        const spelling = maybeRename(cursor, this);
         // since linkables produce one-line translations, the next
         // will be the linkable
-        linkableDeclarations[spelling] = lines.length;
+        linkableDeclarations[spelling] = Linkable(lines.length, cursor.mangling);
+        return spelling;
     }
 
     void fixLinkables() @safe pure {
         foreach(aggregate, _; aggregateDeclarations) {
             // if there's a name clash, fix it
-            auto clashLineNumber = aggregate in linkableDeclarations;
-            if(clashLineNumber) {
-                resolveClash(lines[*clashLineNumber], aggregate);
+            auto clashingLinkable = aggregate in linkableDeclarations;
+            if(clashingLinkable) {
+                resolveClash(lines[clashingLinkable.lineNumber], aggregate, clashingLinkable.mangling);
             }
         }
     }
@@ -161,10 +171,10 @@ struct Context {
 
 }
 
-private void resolveClash(ref string line, in string spelling) @safe pure {
+private void resolveClash(ref string line, in string spelling, in string mangling) @safe pure {
     import dpp.cursor.dlang: pragmaMangle, rename;
     import std.string: replace;
-    line = pragmaMangle(spelling) ~ line.replace(spelling, rename(spelling));
+    line = pragmaMangle(mangling) ~ line.replace(spelling, rename(spelling));
 }
 
 

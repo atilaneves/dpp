@@ -5,7 +5,7 @@ module dpp.cursor.function_;
 
 import dpp.from;
 
-string[] translateFunction(in from!"clang".Cursor function_,
+string[] translateFunction(in from!"clang".Cursor cursor,
                            ref from!"dpp.runtime.context".Context context)
     @safe
 {
@@ -19,11 +19,11 @@ string[] translateFunction(in from!"clang".Cursor function_,
     import std.array: array;
     import std.range: chain, only;
 
-    assert(function_.kind == Cursor.Kind.FunctionDecl);
+    assert(cursor.kind == Cursor.Kind.FunctionDecl);
 
     const indentation = context.indentation;
-    context.log("Function return type (raw):        ", function_.returnType);
-    const returnType = translate(function_.returnType, context, Yes.translatingFunction);
+    context.log("Function return type (raw):        ", cursor.returnType);
+    const returnType = translate(cursor.returnType, context, Yes.translatingFunction);
     context.setIndentation(indentation);
     context.log("Function return type (translated): ", returnType);
 
@@ -33,20 +33,19 @@ string[] translateFunction(in from!"clang".Cursor function_,
     // exists that doesn't bother with (void), so instead of producing something that
     // doesn't compile, we compromise and assume the user meant (void)
 
-    const isVariadic = function_.type.spelling.endsWith("...)");
+    const isVariadic = cursor.type.spelling.endsWith("...)");
     const variadicParams = isVariadic ? "..." : "";
-    const allParams = paramTypes(function_, context).array ~ variadicParams;
+    const allParams = paramTypes(cursor, context).array ~ variadicParams;
 
-    const spelling = maybeRename(function_, context);
-    context.rememberLinkable(spelling);
+    const spelling = context.rememberLinkable(cursor);
 
     return [
-        maybePragma(function_, context) ~
+        maybePragma(cursor, context) ~
         text(returnType, " ", spelling, "(", allParams.join(", "), ");")
     ];
 }
 
-auto paramTypes(in from!"clang".Cursor function_,
+auto paramTypes(in from!"clang".Cursor cursor,
                 ref from!"dpp.runtime.context".Context context)
     @safe
 {
@@ -56,7 +55,7 @@ auto paramTypes(in from!"clang".Cursor function_,
     import std.range: tee;
     import std.typecons: Yes;
 
-    return function_
+    return cursor
         .children
         .tee!((a){ context.log("Function Child: ", a); })
         .filter!(a => a.kind == Cursor.Kind.ParmDecl)

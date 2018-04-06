@@ -35,8 +35,7 @@ string[] translateVariable(in from!"clang".Cursor cursor,
     // extern Foo gFoo;
     if(isRecordWithoutDefinition(cursor, context)) return [];
 
-    const spelling = maybeRename(cursor, context);
-    context.rememberLinkable(spelling);
+    const spelling = context.rememberLinkable(cursor);
 
     ret ~=
         maybePragma(cursor, context) ~

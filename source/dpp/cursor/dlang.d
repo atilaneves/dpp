@@ -8,29 +8,29 @@ import dpp.from;
 
 string maybeRename(in from!"clang".Cursor cursor,
                    in from!"dpp.runtime.context".Context context)
-    @safe pure
+    @safe pure nothrow
 {
     return nameClashes(cursor, context) ? rename(cursor.spelling) : cursor.spelling;
 }
 
 string maybePragma(in from!"clang".Cursor cursor,
                      in from!"dpp.runtime.context".Context context)
-    @safe pure
+    @safe pure nothrow
 {
-    return nameClashes(cursor, context) ? pragmaMangle(cursor.spelling) : "";
+    return nameClashes(cursor, context) ? pragmaMangle(cursor.mangling) : "";
 }
 
 string rename(in string spelling) @safe pure nothrow {
     return spelling ~ "_";
 }
 
-string pragmaMangle(in string spelling) @safe pure nothrow {
-    return `pragma(mangle, "` ~ spelling ~ `") `;
+string pragmaMangle(in string mangling) @safe pure nothrow {
+    return `pragma(mangle, "` ~ mangling ~ `") `;
 }
 
 private bool nameClashes(in from!"clang".Cursor cursor,
                  in from!"dpp.runtime.context".Context context)
-    @safe pure
+    @safe pure nothrow
 {
     return
         cursor.spelling.isKeyword ||

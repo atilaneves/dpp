@@ -33,8 +33,7 @@ import it;
     );
 }
 
-@ShouldFail("Doesn't link because of the bad mangling")
-@Tags("run")
+@Tags("run", "collision")
 @("collisions")
 @safe unittest {
     shouldRun(
