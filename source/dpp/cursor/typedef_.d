@@ -52,6 +52,8 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
         ? spellingOrNickname(children[0], context)
         : translate(underlyingType, context, No.translatingFunction);
 
+    // If the two spellings are the same, it's a `typedef struct foo { } foo`
+    // situration, and there's no reason to alias to anything, so we return nothing.
     return typedef_.spelling == underlyingSpelling
         ? []
         : [`alias ` ~ typedef_.spelling ~ ` = ` ~ underlyingSpelling  ~ `;`];
