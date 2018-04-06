@@ -91,3 +91,25 @@ unittest {
         ),
    );
 }
+
+
+@ShouldFail("Should throw on CXXMethod but instead the member gets ignored")
+@("struct method")
+unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct Adder {
+                    int add(int i, int j);
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(is(Adder == struct), "Adder should be a struct");
+                auto adder = Adder();
+                int i = adder.add(2, 3);
+            }
+        ),
+   );
+}
