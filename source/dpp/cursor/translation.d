@@ -130,6 +130,7 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
 
     with(Cursor.Kind) {
         return [
+            ClassDecl:          &translateClass,
             StructDecl:         &translateStruct,
             UnionDecl:          &translateUnion,
             EnumDecl:           &translateEnum,

@@ -15,6 +15,15 @@ string[] translateStruct(in from!"clang".Cursor cursor,
     return translateAggregate(context, cursor, "struct");
 }
 
+string[] translateClass(in from!"clang".Cursor cursor,
+                        ref from!"dpp.runtime.context".Context context)
+    @safe
+{
+    import clang: Cursor;
+    assert(cursor.kind == Cursor.Kind.ClassDecl);
+    return translateAggregate(context, cursor, "struct");
+}
+
 string[] translateUnion(in from!"clang".Cursor cursor,
                         ref from!"dpp.runtime.context".Context context)
     @safe

@@ -34,5 +34,6 @@ int main(string[] args) {
         // C++ tests
         "it.cpp.run",
         "it.cpp.function_",
+        "it.cpp.class_",
     );
 }
