@@ -10,6 +10,7 @@ BIN_DIR="$SCRIPT_DIR"/../bin
 # shellcheck source=../bash/funcs.bash
 source "$SCRIPT_DIR/../bash/funcs.bash"
 
+clear
 build_dpp
 echo
 
