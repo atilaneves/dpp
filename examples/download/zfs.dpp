@@ -1,1 +1,7 @@
 #include "libzfs.h"
+
+void code() {
+    // issue #11
+     nvlist_prtctl_t foo;
+     foo = null;
+}
