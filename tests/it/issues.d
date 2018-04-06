@@ -117,6 +117,25 @@ import it;
 }
 
 @Tags("issue")
+@("11")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                struct Foo;
+                typedef struct Foo* FooPtr;
+            }
+        ),
+        D(
+            q{
+                FooPtr f = null;
+                static assert(!__traits(compiles, Foo()));
+            }
+        ),
+    );
+}
+
+@Tags("issue")
 @("14")
 @safe unittest {
     import dpp.runtime.options: Options;
