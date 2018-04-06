@@ -10,6 +10,7 @@ dflags "-dip25" // "-dip1000" // oops
 dependency "libclang" version="~master"
 
 configuration "executable" {
+    dflags "-dip1000"
     mainSourceFile "source/main.d"
 }
 
