@@ -24,6 +24,37 @@ import it;
 }
 
 @Tags("issue")
+@("5")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                typedef enum zfs_error {
+                    EZFS_SUCCESS = 0,
+                    EZFS_NOMEM = 2000,
+                };
+
+                typedef struct zfs_perm_node {
+                    char z_pname[4096];
+                } zfs_perm_node_t;
+
+                typedef struct libzfs_handle libzfs_handle_t;
+            }
+        ),
+        D(
+            q{
+                zfs_error e1 = EZFS_SUCCESS;
+                zfs_error e2 = zfs_error.EZFS_SUCCESS;
+                zfs_perm_node_t node;
+                static assert(node.z_pname.sizeof == 4096);
+                static assert(is(typeof(node.z_pname[0]) == char), (typeof(node.z_pname[0]).stringof));
+                libzfs_handle_t* ptr;
+            }
+        ),
+    );
+}
+
+@Tags("issue")
 @("6")
 @safe unittest {
     with(immutable IncludeSandbox()) {
