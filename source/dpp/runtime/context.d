@@ -145,6 +145,20 @@ struct Context {
         return ret;
     }
 
+    /** If unknown structs show up in functions or fields (as a pointer),
+        define them now so the D file can compile
+        See `it.c.compile.delayed`.
+    */
+    void declareUnknownStructs() @safe pure {
+        foreach(name, _; fieldStructPointerSpellings) {
+            if(name !in aggregateDeclarations) {
+                log("Could not find '", name, "' in aggregate declarations, defining it");
+                writeln("struct " ~ name ~ ";");
+                aggregateDeclarations[name] = true;
+            }
+        }
+    }
+
 }
 
 private void resolveClash(ref string line, in string spelling) @safe pure {

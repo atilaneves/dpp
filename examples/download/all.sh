@@ -54,7 +54,7 @@ dpp() {
 }
 
 # echo Testing download etpan
-# dpp--keep-pre-cpp-file --clang-include-path "$REPOS_DIR"/libetpan/include "$SCRIPT_DIR"/etpan.dpp -c
+# dpp --keep-pre-cpp-file --clang-include-path "$REPOS_DIR"/libetpan/include "$SCRIPT_DIR"/etpan.dpp -c
 
 echo Testing download nanomsg
 dpp --clang-include-path "$REPOS_DIR" "$SCRIPT_DIR"/nanomsg.dpp -c

@@ -177,10 +177,18 @@ struct IncludeSandbox {
         import std.algorithm: map;
         import std.array: join;
         import std.file: readText;
+        import std.string: splitLines;
+        import std.range: enumerate;
+        import std.format: format;
 
         throw new UnitTestException(
             "\n\n" ~ e.msg ~ "\n\n" ~ srcFiles
-            .map!(a => a ~ ":\n----------\n" ~ readText(sandbox.inSandboxPath(a)))
+            .map!(a => a ~ ":\n----------\n" ~ readText(sandbox.inSandboxPath(a))
+                  .splitLines
+                  .enumerate(1)
+                  .map!(b => format!"%5d:   %s"(b[0], b[1]))
+                  .join("\n")
+                )
             .join("\n\n"), e.file, e.line);
 
     }

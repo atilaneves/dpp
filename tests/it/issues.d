@@ -150,3 +150,24 @@ import it;
             "No .dpp input file specified\n" ~ Options.usage);
     }
 }
+
+
+@ShouldFail
+@Tags("issue", "delayed")
+@("24")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                struct Bar {
+                    void (*Foo)(void); // this should get renamed as Foo_
+                    struct Foo* (*whatever)(void);
+                };
+            }
+        ),
+        D(
+            q{
+            }
+        ),
+    );
+}

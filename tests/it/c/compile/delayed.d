@@ -6,6 +6,7 @@ module it.c.compile.delayed;
 
 import it;
 
+@Tags("delayed")
 @("field of unknown struct pointer")
 @safe unittest {
     shouldCompile(
@@ -25,7 +26,7 @@ import it;
     );
 }
 
-
+@Tags("delayed")
 @("unknown struct pointer return")
 @safe unittest {
     shouldCompile(
@@ -44,6 +45,7 @@ import it;
 }
 
 @ShouldFail
+@Tags("delayed")
 @("unknown struct pointer param")
 @safe unittest {
     shouldCompile(
@@ -61,15 +63,34 @@ import it;
     );
 }
 
-@ShouldFail("issue24")
-@Tags("issue")
-@("unknown struct pointer field and function")
+
+@Tags("delayed", "issue", "issue24")
+@("Old issue 24")
 @safe unittest {
     shouldCompile(
         C(
             q{
-                struct Foo { struct cancel* the_cancel; };
-                void cancel(int);
+                typedef struct _mailstream_low mailstream_low;
+                struct mailstream_cancel* mailstream_low_get_cancel(void);
+                struct _mailstream {
+                    struct mailstream_cancel* idle;
+                };
+
+                struct mailstream_low_driver {
+                    void (*mailstream_cancel)(int);
+                    struct mailstream_cancel* (*mailstream_get_cancel)(mailstream_low*);
+                };
+
+                int mailstream_low_wait_idle(struct mailstream_cancel*);
+
+                struct _mailstream_low {
+                    void* data;
+                    struct mailstream_low_driver* driver;
+                    int privacy;
+                    char* identifier;
+                    unsigned long timeout;
+                    void* logger_context;
+                };
             }
         ),
         D(
