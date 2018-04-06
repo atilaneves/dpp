@@ -57,6 +57,7 @@ Limitations
 * Using it on a C++ header will "work" if it's basically technically C, with `extern(C++)` instead of `extern(C)`
 * Packed structs are not supported yet.
 * C99 bitfields are not supported yet.
+* Only known to work on Linux with libclang.so.6.0.
 
 This is alpha sofware. It has however produced programs that compile that #included several "real-life" C headers:
 
