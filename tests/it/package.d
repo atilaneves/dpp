@@ -80,7 +80,24 @@ struct IncludeSandbox {
         import dpp.runtime.app: realRun = run;
 
         const baseLineArgs = [
-            "./include",
+            "d++",
+            "--preprocess-only",
+            "--clang-include-path",
+            sandboxPath
+        ];
+        auto options = Options(baseLineArgs ~ args);
+        options.dppFileName = inSandboxPath(options.dppFileName);
+        options.dFileName = inSandboxPath(options.dFileName);
+
+        realRun(options);
+    }
+
+    void runPreprocessOnly(string[] args...) @safe const {
+        import dpp.runtime.options: Options;
+        import dpp.runtime.app: realRun = run;
+
+        const baseLineArgs = [
+            "d++",
             "--preprocess-only",
             "--clang-include-path",
             sandboxPath
@@ -184,7 +201,7 @@ void shouldCompile(string file = __FILE__, size_t line = __LINE__)
             `void main() {` ~ "\n" ~ app.code ~ "\n}\n";
 
         writeFile("app.dpp", dCode);
-        preprocess("app.dpp", "app.d");
+        runPreprocessOnly("app.dpp");
         shouldCompile!(file, line)("app.d");
     }
 }
@@ -204,7 +221,7 @@ void shouldCompile(string file = __FILE__, size_t line = __LINE__)
             `void main() {` ~ "\n" ~ app.code ~ "\n}\n";
 
         writeFile("app.dpp", dCode);
-        preprocess("app.dpp", "app.d");
+        runPreprocessOnly("app.dpp");
         shouldCompile!(file, line)("app.d");
     }
 }
@@ -221,7 +238,7 @@ void shouldNotCompile(string file = __FILE__, size_t line = __LINE__)
             `void main() {` ~ "\n" ~ app.code ~ "\n}\n";
 
         writeFile("app.dpp", dCode);
-        preprocess("app.dpp", "app.d");
+        runPreprocessOnly("app.dpp");
         shouldNotCompile!(file, line)("app.d");
     }
 }
@@ -253,7 +270,7 @@ void shouldCompileAndRun(string file = __FILE__, size_t line = __LINE__)
             `void main() {` ~ "\n" ~ app.code ~ "\n}\n";
 
         writeFile("app.dpp", dCode);
-        preprocess("app.dpp", "app.d");
+        runPreprocessOnly("app.dpp");
 
         try
             shouldSucceed!(file, line)(["dmd", "app.d", "c.o"]);
@@ -291,7 +308,7 @@ void shouldCompileAndRun(string file = __FILE__, size_t line = __LINE__)
             `void main() {` ~ "\n" ~ app.code ~ "\n}\n";
 
         writeFile("app.dpp", dCode);
-        preprocess("app.dpp", "app.d");
+        runPreprocessOnly("app.dpp");
 
         try
             shouldSucceed!(file, line)(["dmd", "app.d", "cpp.o"]);
