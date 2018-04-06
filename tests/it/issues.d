@@ -5,6 +5,27 @@ module it.issues;
 
 import it;
 
+@Tags("issue")
+@("3")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                #include <signal.h>
+            `
+        ),
+        D(
+            q{
+                siginfo_t si;
+                si._sifields._timer.si_tid = 2;
+                static assert(is(typeof(si.si_signo) == int));
+                static assert(is(typeof(si._sifields._timer.si_tid) == int),
+                              typeof(si._sifields._timer.si_tid).stringof);
+            }
+        ),
+    );
+}
+
 
 @Tags("issue")
 @("4")
