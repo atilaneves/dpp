@@ -10,18 +10,36 @@ import it;
 @("4")
 @safe unittest {
     with(immutable IncludeSandbox()) {
-        writeFile("foo.h",
+        writeFile("issue4.h",
                   q{
                       extern char *arr[9];
                   });
-        writeFile("foo.dpp",
+        writeFile("issue4.dpp",
                   `
-                   #include "foo.h"
+                   #include "issue4.h"
                   `);
-        run("--preprocess-only", "foo.dpp");
-        fileShouldContain("foo.d", q{extern __gshared char*[9] arr;});
+        runPreprocessOnly("issue4.dpp");
+        fileShouldContain("issue4.d", q{extern __gshared char*[9] arr;});
     }
 }
+
+@Tags("issue")
+@("6")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        writeFile("issue6.h",
+                  q{
+                      char *getMessage();
+                  });
+        writeFile("issue6.dpp",
+                  `
+                   #include "issue6.h"
+                  `);
+        runPreprocessOnly("issue6.dpp");
+        fileShouldContain("issue6.d", q{char* getMessage();});
+    }
+}
+
 
 @Tags("issue")
 @("10")
