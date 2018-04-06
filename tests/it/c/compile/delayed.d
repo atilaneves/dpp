@@ -99,3 +99,28 @@ import it;
         ),
     );
 }
+
+@ShouldFail("Renaming must not clash")
+@Tags("delayed")
+@("foo and foo_ cause function foo to renamed as foo__")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                void foo(void);
+                // Struct causes the function to be named foo_
+                struct Struct { struct foo* field; };
+                struct foo_ { int dummy; };
+            }
+        ),
+        D(
+            q{
+                Struct s;
+                static assert(is(typeof(s.field) == foo*));
+                foo_ f;
+                f.dummy = 42;
+                foo__();
+            }
+        ),
+    );
+}
