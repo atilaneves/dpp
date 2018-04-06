@@ -2,11 +2,11 @@
    Tests for declarations that must be done at the end when they
    haven't appeared yet (due to pointers to undeclared structs)
  */
-module it.c.compile.delayed;
+module it.c.compile.collision;
 
 import it;
 
-@Tags("delayed")
+@Tags("collision")
 @("field of unknown struct pointer")
 @safe unittest {
     shouldCompile(
@@ -26,7 +26,7 @@ import it;
     );
 }
 
-@Tags("delayed")
+@Tags("collision")
 @("unknown struct pointer return")
 @safe unittest {
     shouldCompile(
@@ -45,7 +45,7 @@ import it;
 }
 
 @ShouldFail
-@Tags("delayed")
+@Tags("collision")
 @("unknown struct pointer param")
 @safe unittest {
     shouldCompile(
@@ -64,7 +64,7 @@ import it;
 }
 
 
-@Tags("delayed", "issue", "issue24")
+@Tags("collision", "issue", "issue24")
 @("Old issue 24")
 @safe unittest {
     shouldCompile(
@@ -101,7 +101,7 @@ import it;
 }
 
 @ShouldFail("Renaming must not clash")
-@Tags("delayed")
+@Tags("collision")
 @("foo and foo_ cause function foo to renamed as foo__")
 @safe unittest {
     shouldCompile(

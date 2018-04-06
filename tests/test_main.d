@@ -23,7 +23,7 @@ int main(string[] args) {
         "it.c.compile.function_",
         "it.c.compile.projects",
         "it.c.compile.runtime_args",
-        "it.c.compile.delayed",
+        "it.c.compile.collision",
         "it.c.run.struct_",
         "it.c.run.c",
 

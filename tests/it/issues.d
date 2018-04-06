@@ -153,7 +153,7 @@ import it;
 
 
 @ShouldFail
-@Tags("issue", "delayed")
+@Tags("issue", "collision")
 @("24")
 @safe unittest {
     shouldCompile(
