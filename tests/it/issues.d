@@ -7,6 +7,23 @@ import it;
 
 
 @Tags("issue")
+@("4")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        writeFile("foo.h",
+                  q{
+                      extern char *arr[9];
+                  });
+        writeFile("foo.dpp",
+                  `
+                   #include "foo.h"
+                  `);
+        run("--preprocess-only", "foo.dpp");
+        fileShouldContain("foo.d", q{extern __gshared char*[9] arr;});
+    }
+}
+
+@Tags("issue")
 @("10")
 @safe unittest {
     shouldCompile(
