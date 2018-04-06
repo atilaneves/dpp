@@ -484,24 +484,6 @@ import it;
     );
 }
 
-@("struct pointer to unknown struct")
-@safe unittest {
-    shouldCompile(
-        C(
-            q{
-                typedef struct Foo {
-                    struct Bar* bar;
-                } Foo;
-            }
-        ),
-        D(
-            q{
-                Foo f;
-                f.bar = null;
-            }
-        ),
-    );
-}
 
 @("struct pointer to unknown struct that is defined by a later header")
 @safe unittest {

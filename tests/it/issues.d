@@ -6,6 +6,7 @@ module it.issues;
 import it;
 
 
+@Tags("issue")
 @("10")
 @safe unittest {
     shouldCompile(
@@ -28,6 +29,7 @@ import it;
     );
 }
 
+@Tags("issue")
 @("14")
 @safe unittest {
     import dpp.runtime.options: Options;
