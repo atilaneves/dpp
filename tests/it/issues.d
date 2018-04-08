@@ -146,7 +146,7 @@ import it;
                       typedef int foo;
                   });
 
-        run("foo.h").shouldThrowWithMessage(
+        runPreprocessOnly("foo.h").shouldThrowWithMessage(
             "No .dpp input file specified\n" ~ Options.usage);
     }
 }

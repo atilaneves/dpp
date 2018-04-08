@@ -15,13 +15,13 @@ struct Options {
 
     enum usage = "Usage: d++ [options] [D compiler options] <filename.dpp> [D compiler args]";
 
-    string dppFileName;
-    string dFileName;
+    string[] dppFileNames;
+    string outputPath;
     string indentation;
     bool debugOutput;
     string[] includePaths;
     bool keepPreCppFile;
-    bool keepDlangFile;
+    bool keepDlangFiles;
     bool preprocessOnly;
     string dlangCompiler = "dmd";
     string[] dlangCompilerArgs;
@@ -33,7 +33,7 @@ struct Options {
         import std.exception: enforce;
         import std.path: stripExtension, extension, buildPath, absolutePath;
         import std.file: tempDir;
-        import std.algorithm: find, filter, canFind, startsWith;
+        import std.algorithm: map, filter, canFind, startsWith;
         import std.array: array;
         import std.conv: text;
 
@@ -47,32 +47,38 @@ struct Options {
         else
             enforce(args.length >= 2, "Not enough arguments\n" ~ usage);
 
-        auto fromInput = args.find!(a => a.extension == ".dpp");
-        enforce(fromInput.length != 0, "No .dpp input file specified\n" ~ usage);
-        dppFileName = fromInput[0];
+        dppFileNames = args.filter!(a => a.extension == ".dpp").array;
+        enforce(dppFileNames.length != 0, "No .dpp input file specified\n" ~ usage);
 
-        enforce(args.filter!(a => a.extension == ".dpp").array.length == 1,
-                "Only one .dpp file at a time is supported currently.");
-
-        // By default, use the same name as the .dpp file with a .d extension.
-        // If running as a compiler wrapper however, we don't want to see the resulting
-        // .d file unless explicitly setting it via the command-line, so we hide it
-        // away in a temporary directory
-        if(dFileName == "") {
-            dFileName = dppFileName.stripExtension ~ ".d";
-            if(!preprocessOnly) dFileName = buildPath(tempDir, dFileName.absolutePath);
-        } else
-            keepDlangFile = true;
+        if(outputPath == "") outputPath = tempDir;
 
         // Remove the name of this binary and the name of the .dpp input file from args
         // so that a D compiler can use the remaining entries.
-        dlangCompilerArgs = args[1..$].filter!(a => a != dppFileName).array ~ dFileName;
+        dlangCompilerArgs =
+            args[1..$].filter!(a => a.extension != ".dpp").array ~
+            dFileNames;
 
         // if no -of option is given, default to the name of the .dpp file
         if(!dlangCompilerArgs.canFind!(a => a.startsWith("-of")))
-            dlangCompilerArgs ~= "-of" ~ dppFileName.stripExtension ~ exeExtension;
+            dlangCompilerArgs ~= "-of" ~
+                args.
+                filter!(a => a.extension == ".dpp" || a.extension == ".d")
+                .front
+                .stripExtension
+                ~ exeExtension;
 
         includePaths = systemPaths ~ includePaths;
+    }
+
+    string[] dFileNames() @safe pure const {
+        import std.algorithm: map;
+        import std.array: array;
+        return dppFileNames.map!toDFileName.array;
+    }
+
+    static string toDFileName(in string dppFileName) @safe pure nothrow {
+        import std.path: stripExtension;
+        return dppFileName.stripExtension ~ ".d";
     }
 
     private void parseArgs(ref string[] args) {
@@ -84,9 +90,9 @@ struct Options {
                 "print-cursors", "Print debug information", &debugOutput,
                 "include-path", "Include paths", &includePaths,
                 "keep-pre-cpp-file", "Do not delete the temporary pre-preprocessed file", &keepPreCppFile,
-                "keep-d-file", "Do not delete the temporary D file to be compiled", &keepDlangFile,
+                "keep-d-files", "Do not delete the temporary D file to be compiled", &keepDlangFiles,
                 "preprocess-only", "Only transform the .dpp file into a .d file, don't compile", &preprocessOnly,
-                "d-file-name", "D output file name (defaults to replacing .dpp with .d)", &dFileName,
+                "d-files-path", "The path where the D output files go (defaults to the same path as the corresponding .dpp file)", &outputPath,
                 "compiler", "D compiler to use", &dlangCompiler,
             );
 
@@ -98,20 +104,18 @@ struct Options {
         }
     }
 
-    this(in string dppFileName,
-         in string dFileName,
+    this(in string[] dppFileNames,
          in string indentation = "",
          in bool debugOutput = false)
     pure nothrow
     {
-        this.dppFileName = dppFileName;
-        this.dFileName = dFileName;
+        this.dppFileNames = dppFileNames.dup;
         this.indentation = indentation;
         this.debugOutput = debugOutput;
     }
 
     Options indent() pure nothrow const {
-        auto ret = Options(dppFileName, dFileName, indentation ~ "    ", debugOutput);
+        auto ret = Options(dppFileNames, indentation ~ "    ", debugOutput);
         ret.includePaths = includePaths.dup;
         return ret;
     }

@@ -48,16 +48,16 @@ struct IncludeSandbox {
     void run(string[] args...) @safe const {
         import dpp.runtime.options: Options;
         import dpp.runtime.app: realRun = run;
+        import std.algorithm: map;
+        import std.array: array;
 
         const baseLineArgs = [
             "d++",
-            "--preprocess-only",
             "--include-path",
             sandboxPath
         ];
         auto options = Options(baseLineArgs ~ args);
-        options.dppFileName = inSandboxPath(options.dppFileName);
-        options.dFileName = inSandboxPath(options.dFileName);
+        options.dppFileNames[] = options.dppFileNames.map!(a => sandbox.inSandboxPath(a)).array;
 
         realRun(options);
     }
@@ -65,6 +65,8 @@ struct IncludeSandbox {
     void runPreprocessOnly(string[] args...) @safe const {
         import dpp.runtime.options: Options;
         import dpp.runtime.app: realRun = run;
+        import std.algorithm: map;
+        import std.array: array;
 
         const baseLineArgs = [
             "d++",
@@ -73,8 +75,7 @@ struct IncludeSandbox {
             sandboxPath
         ];
         auto options = Options(baseLineArgs ~ args);
-        options.dppFileName = inSandboxPath(options.dppFileName);
-        options.dFileName = inSandboxPath(options.dFileName);
+        options.dppFileNames[] = options.dppFileNames.map!(a => sandbox.inSandboxPath(a)).array;
 
         realRun(options);
     }

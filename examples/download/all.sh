@@ -50,7 +50,7 @@ fi
 popd
 
 dpp() {
-"$BIN_DIR"/d++ --keep-d-file "$@"
+"$BIN_DIR"/d++ --keep-d-files "$@"
 }
 
 # echo Testing download etpan
