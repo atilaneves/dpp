@@ -387,26 +387,27 @@ import it;
 @("pthread struct")
 @safe unittest {
     with(immutable IncludeSandbox()) {
-        expand(Out("hdr.d"), In("hdr.h"),
+        writeFile("hdr.h",
                q{
                    typedef struct {
                        void (*routine)(void*);
                    } Struct;
                }
         );
-        writeFile("app.d",
-                  q{
-                      import hdr;
+        writeFile("app.dpp",
+                  `
+                      #include "hdr.h"
                       extern(C) void foo(void*) {}
 
                       void main() {
                           Struct s;
                           s.routine = &foo;
                       }
-                  }
+                  `
         );
 
-        shouldCompile("app.d", "hdr.d");
+        runPreprocessOnly("app.dpp");
+        shouldCompile("app.d");
     }
 }
 

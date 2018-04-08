@@ -5,40 +5,36 @@ import it;
 @Tags("run")
 @("structs")
 @safe unittest {
-    with(const IncludeSandbox()) {
+    shouldRun(
+        C(
+            q{
+                struct Foo { int i; };
 
-        expand(Out("foo.d"), In("foo.h"),
-               q{
-                   struct Foo { int i; };
+                struct Bar { double d; };
 
-                   struct Bar { double d; };
+                struct Outer {
+                    struct Inner {
+                        int x;
+                    } inner;
+                };
 
-                   struct Outer {
-                       struct Inner {
-                           int x;
-                       } inner;
-                   };
-
-                   typedef struct TypeDefd_ {
-                       int i;
-                       double d;
+                typedef struct TypeDefd_ {
+                    int i;
+                    double d;
                    } TypeDefd;
 
-                   typedef struct {
-                       int x, y;
-                   } Nameless1;
+                typedef struct {
+                    int x, y;
+                } Nameless1;
 
-                   typedef struct {
-                       double d;
-                   } Nameless2;
-               }
-        );
-
-        writeFile("main.d", q{
-            import foo;
-
-            void main() {
-
+                typedef struct {
+                    double d;
+                } Nameless2;
+            }
+        ),
+        C(q{}),
+        D(
+            q{
                 auto f = Foo(5);
                 assert(f.sizeof == 4, "Wrong sizeof for Foo");
                 assert(f.i == 5, "f.i should be 5");
@@ -73,8 +69,6 @@ import it;
                 assert(n2.sizeof == 8, "Wrong sizeof for Nameless2");
                 assert(n2.d == 33.3, "n2.d should be 33.3");
             }
-        });
-
-        shouldCompileAndRun("main.d", "foo.d");
-    }
+        ),
+    );
 }

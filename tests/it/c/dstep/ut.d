@@ -1,63 +1,58 @@
-/**
+/**xpand
    Tests "inspired" by the ones in dstep's UnitTests.d module
  */
 module it.c.dstep.ut;
 
 import it;
 
+
 @("2 functions and a global variable")
 @safe unittest {
-    with(immutable IncludeSandbox()) {
-        expand(Out("dstep.d"), In("dstep.h"),
-               q{
-                   float foo(int x);
-                   float bar(int x);
-                   int a;
-               });
+    shouldCompile(
+        C(q{
+                float foo(int x);
+                float bar(int x);
+                int a;
+            }
+        ),
+        D(
 
-        writeFile("main.d",
-                  q{
-                      import dstep;
-                      void main() {
-                          float f = foo(42);
-                          float b = bar(77);
-                          a = 33;
-                      }
-                  });
+            q{
+                float f = foo(42);
+                float b = bar(77);
+                a = 33;
+            }
+        ),
+    );
 
-        shouldCompile("main.d", "dstep.d");
-    }
 }
 
 @("extern int declared several times")
 @safe unittest {
-    with(immutable IncludeSandbox()) {
-        expand(Out("dstep.d"), In("dstep.h"),
-               q{
-                   extern int foo;
-                   extern int bar;
-                   extern int foo;
-                   extern int foo;
-               });
+    shouldCompile(
+        C(
+            q{
+                extern int foo;
+                extern int bar;
+                extern int foo;
+                extern int foo;
+            }
+        ),
+        D(
 
-        writeFile("main.d",
-                  q{
-                      import dstep;
-                      void main() {
-                          foo = 5;
-                          bar = 3;
-                      }
-                  });
-
-        shouldCompileButNotLink("main.d", "dstep.d");
-    }
+            q{
+                foo = 5;
+                bar = 3;
+            }
+        ),
+    );
 }
 
 @("array with #defined length")
 @safe unittest {
     shouldCompile(
         C(
-          `
+            `
               #define FOO 4
               char var[FOO];
           `
@@ -123,36 +118,34 @@ import it;
 
 @("nested anonymous structures")
 @safe unittest {
-    with(immutable IncludeSandbox()) {
-        expand(Out("dstep.d"), In("dstep.h"),
-               q{
-                   struct C {
-                       struct {
-                           int x;
-                           int y;
+    shouldCompile(
+        C(
+            q{
+                struct C {
+                    struct {
+                        int x;
+                        int y;
 
-                           struct {
-                               int z;
-                               int w;
-                           } nested;
-                       } point;
-                   };
-               });
+                        struct {
+                            int z;
+                            int w;
+                        } nested;
+                    } point;
+                };
+            }
+        ),
+        D(
 
-        writeFile("main.d",
-                  q{
-                      import dstep;
-                      void main() {
-                          auto c = C();
-                          c.point.x = 42;
-                          c.point.y = 77;
-                          c.point.nested.z = 2;
-                          c.point.nested.w = 3;
-                      }
-                  });
+            q{
+                auto c = C();
+                c.point.x = 42;
+                c.point.y = 77;
+                c.point.nested.z = 2;
+                c.point.nested.w = 3;
+            }
+        ),
+    );
 
-        shouldCompile("main.d", "dstep.d");
-    }
 }
 
 @("interleaved enum-based array size consts and macro based array size counts")
@@ -191,72 +184,66 @@ import it;
 
 @("function pointer with unnamed parameter")
 @safe unittest {
-    with(immutable IncludeSandbox()) {
-        expand(Out("dstep.d"), In("dstep.h"),
-               q{
-                   typedef int (*read_char)(void *);
-               });
+    shouldCompile(
+        C(
+            q{
+                typedef int (*read_char)(void *);
+            }
+        ),
+        D(
 
-        writeFile("main.d",
-                  q{
-                      import dstep;
-                      void main() {
-                          read_char func;
-                          int val;
-                          int ret = func(&val);
-                      }
-                  });
+            q{
+                read_char func;
+                int val;
+                int ret = func(&val);
+            }
+        ),
+    );
 
-        shouldCompile("main.d", "dstep.d");
-    }
 }
 
 @("array typedef")
 @safe unittest {
-    with(immutable IncludeSandbox()) {
-        expand(Out("dstep.d"), In("dstep.h"),
-               q{
-                   typedef double foo[2];
-               });
+    shouldCompile(
+        C(
+            q{
+                typedef double foo[2];
+            }
+        ),
+        D(
 
-        writeFile("main.d",
-                  q{
-                      import dstep;
-                      void main() {
-                          foo doubles;
-                          static assert(doubles.length == 2);
-                          doubles[0] = 33.3;
-                          doubles[1] = 77.7;
-                      }
-                  });
+            q{
+                foo doubles;
+                static assert(doubles.length == 2);
+                doubles[0] = 33.3;
+                doubles[1] = 77.7;
+            }
+        ),
+    );
 
-        shouldCompile("main.d", "dstep.d");
-    }
 }
 
 @("array of structs declared immediately")
 @safe unittest {
-    with(immutable IncludeSandbox()) {
-        expand(Out("dstep.d"), In("dstep.h"),
-               q{
-                   struct Foo {
-                       struct Bar {
-                       } bar[64];
-                   };
-               });
+    shouldCompile(
+        C(
+            q{
+                struct Foo {
+                    struct Bar {
+                    } bar[64];
+                };
+            }
+        ),
+        D(
 
-        writeFile("main.d",
-                  q{
-                      import dstep;
-                      void main() {
-                          auto f = Foo();
-                          static assert(f.bar.length == 64);
-                          f.bar[63] = Foo.Bar();
-                      }
-                  });
+            q{
+                auto f = Foo();
+                static assert(f.bar.length == 64);
+                f.bar[63] = Foo.Bar();
+            }
+        ),
+    );
 
-        shouldCompile("main.d", "dstep.d");
-    }
 }
 
 @("variadic function without ...")
@@ -284,135 +271,124 @@ import it;
 
 @("function pointers")
 @safe unittest {
-    with(immutable IncludeSandbox()) {
-        expand(Out("dstep.d"), In("dstep.h"),
-               q{
-                   typedef void* ClientData;
-                   typedef struct { int dummy; } EntityInfo;
-                   void (*fun)(ClientData client_data, const EntityInfo*, unsigned last);
-               });
+    shouldCompile(
+        C(
+            q{
+                typedef void* ClientData;
+                typedef struct { int dummy; } EntityInfo;
+                void (*fun)(ClientData client_data, const EntityInfo*, unsigned last);
+            }
+        ),
+        D(
 
-        writeFile("main.d",
-                  q{
-                      import dstep;
-                      void main() {
-                          auto eInfo = EntityInfo(77);
-                          struct Data { int value; }
-                          auto data = Data(42);
-                          uint last = 33;
-                          fun(&data, &eInfo, last);
-                      }
-                  });
+            q{
+                auto eInfo = EntityInfo(77);
+                struct Data { int value; }
+                auto data = Data(42);
+                uint last = 33;
+                fun(&data, &eInfo, last);
+            }
+        ),
+    );
 
-        shouldCompile("main.d", "dstep.d");
-    }
 }
 
 
 @("array function parameters")
 @safe unittest {
-    with(immutable IncludeSandbox()) {
-        expand(Out("dstep.d"), In("dstep.h"),
-               q{
-                   int foo (int data[]);             // int*
-                   int bar (const int data[]);       // const int*
-                   int baz (const int data[32]);     // const int*
-                   int qux (const int data[32][64]); // const int(*)[64]
-               });
+    shouldCompile(
+        C(
+            q{
+                int foo (int data[]);             // int*
+                int bar (const int data[]);       // const int*
+                int baz (const int data[32]);     // const int*
+                int qux (const int data[32][64]); // const int(*)[64]
+            }
+        ),
+        D(
 
-        writeFile("main.d",
-                  q{
-                      import dstep;
-                      void main() {
+            q{
+                int* data;
+                foo(data);
+                bar(data);
+                baz(data);
 
-                          int* data;
-                          foo(data);
-                          bar(data);
-                          baz(data);
+                const(int)* cdata;
+                static assert(!__traits(compiles, foo(cdata)));
+                bar(cdata);
+                baz(cdata);
 
-                          const(int)* cdata;
-                          static assert(!__traits(compiles, foo(cdata)));
-                          bar(cdata);
-                          baz(cdata);
+                static assert(!__traits(compiles, qux(data)));
+                static assert(!__traits(compiles, qux(cdata)));
+                const(int)[64] arr;
+                qux(&arr);
+            }
+        ),
+    );
 
-                          static assert(!__traits(compiles, qux(data)));
-                          static assert(!__traits(compiles, qux(cdata)));
-                          const(int)[64] arr;
-                          qux(&arr);
-                      }
-                  });
-
-        shouldCompile("main.d", "dstep.d");
-    }
 }
 
 @("name collision between struct and function")
 @safe unittest {
-    with(immutable IncludeSandbox()) {
-        expand(Out("dstep.d"), In("dstep.h"),
-               q{
-                   struct foo;
-                   struct foo { int i; };
-                   void foo(void);
-               });
+    shouldCompile(
+        C(
+            q{
+                struct foo;
+                struct foo { int i; };
+                void foo(void);
+            }
+        ),
+        D(
 
-        writeFile("main.d",
-                  q{
-                      import dstep;
-                      void main() {
-                          foo f;
-                          f.i = 42;
-                          foo_();
-                      }
-                  });
+            q{
+                foo f;
+                f.i = 42;
+                foo_();
+            }
+        ),
+    );
 
-        shouldCompile("main.d", "dstep.d");
-    }
 }
 
 @("name collision between struct and enum")
 @safe unittest {
-    with(immutable IncludeSandbox()) {
-        expand(Out("dstep.d"), In("dstep.h"),
-               q{
-                   enum foo { FOO };
-                   void foo(void);
-               });
+    shouldCompile(
+        C(
+            q{
+                enum foo { FOO };
+                void foo(void);
+            }
+        ),
+        D(
 
-        writeFile("main.d",
-                  q{
-                      import dstep;
-                      void main() {
-                          foo_();
-                          auto f1 = FOO;
-                          foo f2 = foo.FOO;
-                      }
-                  });
+            q{
+                foo_();
+                auto f1 = FOO;
+                foo f2 = foo.FOO;
+            }
+        ),
+    );
 
-        shouldCompile("main.d", "dstep.d");
-    }
 }
 
 @("function parameter of elaborate type")
 @safe unittest {
-    with(immutable IncludeSandbox()) {
-        expand(Out("dstep.d"), In("dstep.h"),
-               q{
-                   struct foo_t { int i; };
-                   void bar(const struct foo_t *foo);
-               });
+    shouldCompile(
+        C(
+            q{
+                struct foo_t { int i; };
+                void bar(const struct foo_t *foo);
+            }
+        ),
+        D(
 
-        writeFile("main.d",
-                  q{
-                      import dstep;
-                      void main() {
-                          auto f = foo_t(42);
-                          bar(&f);
-                          const cf = const foo_t(33);
-                          bar(&cf);
-                      }
-                  });
+            q{
+                auto f = foo_t(42);
+                bar(&f);
+                const cf = const foo_t(33);
+                bar(&cf);
+            }
+        ),
+    );
 
-        shouldCompile("main.d", "dstep.d");
-    }
 }

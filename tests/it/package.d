@@ -45,36 +45,6 @@ struct IncludeSandbox {
         return ret;
     }
 
-    void expand(in Out out_,
-                in In in_,
-                in string[] inLines,
-                in string file = __FILE__,
-                in size_t line = __LINE__)
-        @safe const
-    {
-        import std.array: join;
-        expand(out_, in_, inLines.join("\n"), file, line);
-    }
-
-    void expand(in Out out_,
-                in In in_,
-                in string inText,
-                in string file = __FILE__,
-                in size_t line = __LINE__)
-        @safe const
-    {
-        import dpp.runtime.context: Context;
-        import dpp.expansion: realExpand = expand;
-
-        const outFileName = inSandboxPath(out_.value);
-        const inFileName = inSandboxPath(in_.value);
-        writeFile(inFileName, inText);
-        Context context;
-        context.options.includePaths = [sandboxPath];
-        realExpand(inFileName, context, file, line);
-        writeFile(outFileName, context.translation);
-    }
-
     void run(string[] args...) @safe const {
         import dpp.runtime.options: Options;
         import dpp.runtime.app: realRun = run;
