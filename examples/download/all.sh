@@ -54,23 +54,23 @@ dpp() {
 }
 
 # echo Testing download etpan
-# dpp --keep-pre-cpp-file --clang-include-path "$REPOS_DIR"/libetpan/include "$SCRIPT_DIR"/etpan.dpp -c
+# dpp --keep-pre-cpp-file --include-path "$REPOS_DIR"/libetpan/include "$SCRIPT_DIR"/etpan.dpp -c
 
 echo Testing download nanomsg
-dpp --clang-include-path "$REPOS_DIR" "$SCRIPT_DIR"/nanomsg.dpp -c
+dpp --include-path "$REPOS_DIR" "$SCRIPT_DIR"/nanomsg.dpp -c
 
 echo Testing download libxlsxwriter
-dpp --clang-include-path "$REPOS_DIR"/libxlsxwriter/include "$SCRIPT_DIR"/anatomy.dpp -c
+dpp --include-path "$REPOS_DIR"/libxlsxwriter/include "$SCRIPT_DIR"/anatomy.dpp -c
 
 echo Testing download zfs
-dpp --clang-include-path "$REPOS_DIR"/zfs/include --clang-include-path "$REPOS_DIR"/zfs/lib/libspl/include "$SCRIPT_DIR"/zfs.dpp -c
+dpp --include-path "$REPOS_DIR"/zfs/include --include-path "$REPOS_DIR"/zfs/lib/libspl/include "$SCRIPT_DIR"/zfs.dpp -c
 
 echo Testing download libvirt
-dpp --clang-include-path "$REPOS_DIR"/libvirt --clang-include-path "$REPOS_DIR"/libvirt/include "$SCRIPT_DIR"/virt.dpp -c
+dpp --include-path "$REPOS_DIR"/libvirt --include-path "$REPOS_DIR"/libvirt/include "$SCRIPT_DIR"/virt.dpp -c
 
 if [ ! -z "${TRAVIS-}" ]; then
     echo "    Skipping imapfilter for Travis CI"
 else
     echo Testing download imapfilter
-    dpp --clang-include-path "$REPOS_DIR"/imapfilter/src "$SCRIPT_DIR"/imap.dpp -c
+    dpp --include-path "$REPOS_DIR"/imapfilter/src "$SCRIPT_DIR"/imap.dpp -c
 fi

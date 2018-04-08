@@ -82,7 +82,7 @@ struct Options {
                 args,
                 config.passThrough,
                 "print-cursors", "Print debug information", &debugOutput,
-                "i|clang-include-path", "Include paths", &includePaths,
+                "include-path", "Include paths", &includePaths,
                 "keep-pre-cpp-file", "Do not delete the temporary pre-preprocessed file", &keepPreCppFile,
                 "keep-d-file", "Do not delete the temporary D file to be compiled", &keepDlangFile,
                 "preprocess-only", "Only transform the .dpp file into a .d file, don't compile", &preprocessOnly,

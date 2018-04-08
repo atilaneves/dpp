@@ -585,7 +585,7 @@ import it;
                   `);
 
         run("--preprocess-only",
-            "--clang-include-path",
+            "--include-path",
             inSandboxPath("includes"),
             "app.dpp");
 

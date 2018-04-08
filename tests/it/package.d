@@ -82,7 +82,7 @@ struct IncludeSandbox {
         const baseLineArgs = [
             "d++",
             "--preprocess-only",
-            "--clang-include-path",
+            "--include-path",
             sandboxPath
         ];
         auto options = Options(baseLineArgs ~ args);
@@ -99,7 +99,7 @@ struct IncludeSandbox {
         const baseLineArgs = [
             "d++",
             "--preprocess-only",
-            "--clang-include-path",
+            "--include-path",
             sandboxPath
         ];
         auto options = Options(baseLineArgs ~ args);
@@ -118,7 +118,7 @@ struct IncludeSandbox {
             [
                 "./include",
                 "--preprocess-only",
-                "--clang-include-path",
+                "--include-path",
                 sandboxPath,
                 inSandboxPath(dppFileName),
             ]
