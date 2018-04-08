@@ -190,7 +190,7 @@ import it;
                   `);
 
 
-        preprocess("foo.dpp", "foo.d");
+        runPreprocessOnly("foo.dpp");
         shouldCompile("foo.d");
     }
 }

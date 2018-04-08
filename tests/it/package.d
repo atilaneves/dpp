@@ -109,24 +109,6 @@ struct IncludeSandbox {
         realRun(options);
     }
 
-    void preprocess(in string dppFileName, in string dFileName) @safe const {
-        import dpp.runtime.options: Options;
-        import dpp.runtime.app: realPreProcess = preprocess;
-        import std.stdio: File;
-
-        auto options = Options(
-            [
-                "./include",
-                "--preprocess-only",
-                "--include-path",
-                sandboxPath,
-                inSandboxPath(dppFileName),
-            ]
-        );
-
-        realPreProcess!File(options);
-    }
-
     void shouldCompile(string file = __FILE__, size_t line = __LINE__)
                       (in string[] srcFiles...)
         @safe const

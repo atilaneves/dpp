@@ -437,7 +437,7 @@ import it;
                       }
                   `);
 
-        preprocess("app.dpp", "app.d");
+        runPreprocessOnly("app.dpp");
         shouldCompile("app.d");
     }
 }
@@ -546,7 +546,7 @@ import it;
                       #include "hdr.h"
                   `);
         try {
-            preprocess("app.dpp", "app.d");
+            runPreprocessOnly("app.dpp");
             assert(0, "Should not get here");
         } catch(Exception e) {
             "unknown type name 'EXPORT_VAR'".shouldBeIn(e.msg);
