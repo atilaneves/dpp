@@ -16,7 +16,6 @@ struct Options {
     enum usage = "Usage: d++ [options] [D compiler options] <filename.dpp> [D compiler args]";
 
     string[] dppFileNames;
-    string outputPath;
     string indentation;
     bool debugOutput;
     string[] includePaths;
@@ -49,8 +48,6 @@ struct Options {
 
         dppFileNames = args.filter!(a => a.extension == ".dpp").array;
         enforce(dppFileNames.length != 0, "No .dpp input file specified\n" ~ usage);
-
-        if(outputPath == "") outputPath = tempDir;
 
         // Remove the name of this binary and the name of the .dpp input file from args
         // so that a D compiler can use the remaining entries.
@@ -92,7 +89,6 @@ struct Options {
                 "keep-pre-cpp-file", "Do not delete the temporary pre-preprocessed file", &keepPreCppFile,
                 "keep-d-files", "Do not delete the temporary D file to be compiled", &keepDlangFiles,
                 "preprocess-only", "Only transform the .dpp file into a .d file, don't compile", &preprocessOnly,
-                "d-files-path", "The path where the D output files go (defaults to the same path as the corresponding .dpp file)", &outputPath,
                 "compiler", "D compiler to use", &dlangCompiler,
             );
 
