@@ -58,3 +58,13 @@ Feature: Preprocessing a .dpp file that includes a simple C++ header
       """
       Foo(3) + Foo(4) = Foo(7)
       """
+
+  Scenario: Preprocess only
+    When I successfully run `g++ -o foo.o -c foo.cpp`
+    And I successfully run `d++ --preprocess-only main.dpp`
+    And I successfully run `dmd -ofapp main.d foo.o`
+    When I successfully run `./app 3 4`
+    Then the output should contain:
+      """
+      Foo(3) + Foo(4) = Foo(7)
+      """

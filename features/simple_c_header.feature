@@ -65,3 +65,14 @@ Feature: Compiling a .dpp file that includes a simple C header
       Foo(3) + Foo(4) = Foo(7)
       """
     And a file named "main.d" should not exist
+
+
+  Scenario: Only preprocess the file
+    When I successfully run `gcc -o foo.o -c foo.c`
+    And I successfully run `d++ --preprocess-only main.dpp`
+    And I successfully run `dmd -ofapp main.d foo.o`
+    When I successfully run `./app 3 4`
+    Then the output should contain:
+      """
+      Foo(3) + Foo(4) = Foo(7)
+      """
