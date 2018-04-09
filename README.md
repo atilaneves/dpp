@@ -98,7 +98,7 @@ It takes a `.dpp` file and outputs a valid D file that can be compiled. The orig
 has no preprocessor, so the `.dpp` file is "quasi-D", or "D with #include directives".
 The only supported C preprocessor directive is `#include`.
 
-The input `.dpp` file may also use C preprocessor macros defined in the file(s) it q`#include`s, just as a C/C++
+The input `.dpp` file may also use C preprocessor macros defined in the file(s) it `#include`s, just as a C/C++
 program would (see the example above). It may not, however, define macros of its own.
 
 `d++` goes through the input file line-by-line, and upon encountering an `#include` directive, parses
@@ -112,7 +112,7 @@ uint16_t foo(uin32_t a);
 The output file will contain:
 
 ```d
-ushort foo(ushort a);
+ushort foo(uint a);
 ```
 
 d++ will also enclose each one of these original `#include` directives with either
