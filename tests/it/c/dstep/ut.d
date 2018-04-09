@@ -392,3 +392,23 @@ import it;
     );
 
 }
+
+@("packed struct")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                struct Foo {
+                    char x;
+                    short y;
+                    int z;
+                } __attribute__((__packed__));
+            }
+        ),
+        D(
+            q{
+                static assert(Foo.sizeof == 7, "Foo should be 7 bytes");
+            }
+        ),
+    );
+}

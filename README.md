@@ -57,7 +57,6 @@ Limitations
 
 * It currently only supports C features, but C++ is planned, templates and all.
 * Using it on a C++ header will "work" if it's basically technically C, with `extern(C++)` instead of `extern(C)`
-* Packed structs are not supported yet.
 * C99 bitfields are not supported yet.
 * Only known to work on Linux with libclang.so.6.0. It might work in different conditions.
 * When used on multiple files, there might be problems with duplicate definitions depending on imports. This will be fixed.

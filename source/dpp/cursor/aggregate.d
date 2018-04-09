@@ -90,6 +90,10 @@ string[] translateAggregate(
     lines ~= `{`;
 
     foreach(member; cursor) {
+        if(member.kind == Cursor.Kind.PackedAttr) {
+            lines ~= "align(1):";
+            continue;
+        }
         if(!member.isDefinition) continue;
         lines ~= translate(member, context).map!(a => "    " ~ a).array;
     }
