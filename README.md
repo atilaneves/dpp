@@ -11,6 +11,8 @@ To directly `#include` C and C++ headers in [D](https://dlang.org) files and hav
 as if the file had been `#included` from C or C++ themselves. Warts and all, meaning that C `enum` declarations
 will pollute the global namespace, just as it does "back home".
 
+This work was supported by [Symmetry Investments](http://symmetryinvestments.com/).
+
 Example
 -------
 
