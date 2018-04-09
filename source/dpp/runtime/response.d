@@ -3,6 +3,8 @@ import core.stdc.stdio;
 import core.stdc.stdlib;
 import core.stdc.string;
 
+/// wrapper to make response_expand usable
+/// with strings. Yes, it allocates a lot.
 string[] response_expand(string[] args) @trusted
 {
     import std.algorithm : map;
@@ -34,6 +36,9 @@ const(char)* toConstStringz(string s) @safe
     return &r[0];
 }
 
+// ported from dmd's function of the same name.
+// only modifications are to use builtin arrays
+// and phobos in place of dmd's bespoke types
 bool response_expand(ref const(char)*[] args)
 {
     import std.algorithm : remove;
