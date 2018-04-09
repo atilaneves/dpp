@@ -62,8 +62,12 @@ string[] translate(in from!"clang".Cursor cursor,
                             file,
                             line);
 
+    const indentation = context.indentation;
+    scope(exit) context.setIndentation(indentation);
+    context.indent;
+
     try
-        return translators[cursor.kind](cursor, context.indent);
+        return translators[cursor.kind](cursor, context);
     catch(Exception e) {
         import std.stdio: stderr;
         debug {
