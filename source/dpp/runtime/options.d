@@ -35,6 +35,7 @@ struct Options {
         import std.algorithm: map, filter, canFind, startsWith;
         import std.array: array;
         import std.conv: text;
+        import dpp.runtime.response : response_expand;
 
         parseArgs(args);
         if(earlyExit) return;
@@ -45,6 +46,8 @@ struct Options {
                          " for preprocessing only.\n", usage));
         else
             enforce(args.length >= 2, "Not enough arguments\n" ~ usage);
+
+        args = response_expand(args);
 
         dppFileNames = args.filter!(a => a.extension == ".dpp").array;
         enforce(dppFileNames.length != 0, "No .dpp input file specified\n" ~ usage);
