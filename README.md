@@ -36,7 +36,7 @@ int twice(int i) { return i * 2; }
 #include "c.h"
 void main() {
     import std.stdio;
-    writeln(twice(FOO_ID(5)));
+    writeln(twice(FOO_ID(5)));  // yes, it's using a C macro here!
 }
 ```
 
@@ -57,7 +57,8 @@ Limitations
 * Using it on a C++ header will "work" if it's basically technically C, with `extern(C++)` instead of `extern(C)`
 * Packed structs are not supported yet.
 * C99 bitfields are not supported yet.
-* Only known to work on Linux with libclang.so.6.0.
+* Only known to work on Linux with libclang.so.6.0. It might work in different conditions.
+* When used on multiple files, there might be problems with duplicate definitions depending on imports. This will be fixed.
 
 This is alpha sofware. It has however produced programs that compile that #included several "real-life" C headers:
 
@@ -127,7 +128,7 @@ preprocessor (currently the cpp binary installed on the system) on the
 intermediary result of expanding all the `#include` directives so that
 any used macros are expanded, and the result is a D file that can be compiled.
 
-In this fashion a user can write not-quite-D code that can "natively"
+In this fashion a user can write code that's not-quite-D-but-nearly that can "natively"
 call into a C/C++ API by `#include`ing the appropriate header(s).
 
 
