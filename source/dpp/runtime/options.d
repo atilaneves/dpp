@@ -50,7 +50,6 @@ struct Options {
         args = response_expand(args);
 
         dppFileNames = args.filter!(a => a.extension == ".dpp").array;
-        enforce(dppFileNames.length != 0, "No .dpp input file specified\n" ~ usage);
 
         // Remove the name of this binary and the name of the .dpp input file from args
         // so that a D compiler can use the remaining entries.
