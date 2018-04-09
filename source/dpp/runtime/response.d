@@ -10,11 +10,12 @@ string[] response_expand(string[] args) @trusted
     import std.algorithm : map;
     import std.array : array;
     import std.string : fromStringz;
+    import std.exception : enforce;
 
     auto cargs = args
             .map!toConstStringz
             .array;
-    response_expand(cargs);
+    enforce(!response_expand(cargs), "expanding args failed");
     return cargs
         .map!(s => s.fromStringz.idup)
         .array;
