@@ -74,8 +74,9 @@ string[] translateAggregate(
 {
     import dpp.cursor.translation: translate;
     import clang: Cursor;
-    import std.algorithm: map;
+    import std.algorithm: map, any;
     import std.array: array;
+    import std.conv: text;
 
     // remember all aggregate declarations
     context.aggregateDeclarations[spellingOrNickname(cursor, context)] = true;
@@ -89,18 +90,57 @@ string[] translateAggregate(
     lines ~= firstLine;
     lines ~= `{`;
 
-    foreach(member; cursor) {
+    if(cursor.children.any!(a => a.isBitField)) {
+        // The align(4) is to mimic C. There, `struct Foo { int f1: 2; int f2: 3}`
+        // would have sizeof 4, where as the corresponding bit fields in D would have
+        // size 1. So we correct here. See issue #7.
+        lines ~= [`    import std.bitmanip: bitfields;`, ``, `    align(4):`];
+    }
+
+    // if the last seen member was a bitfield
+    bool lastMemberWasBitField = false;
+    // the combined (summed) bitwidths of the bitfields members seen so far
+    int totalBitWidth = 0;
+
+    void finishBitFields() {
+        lines ~= text(`        uint, "", `, padding(totalBitWidth));
+        lines ~= `    ));`;
+        totalBitWidth = 0;
+    }
+
+    foreach(member; cursor.children) {
+
         if(member.kind == Cursor.Kind.PackedAttr) {
             lines ~= "align(1):";
             continue;
         }
+
+        if(member.isBitField && !lastMemberWasBitField)
+            lines ~= `    mixin(bitfields!(`;
+
+        if(!member.isBitField && lastMemberWasBitField) finishBitFields;
+
         if(!member.isDefinition) continue;
         lines ~= translate(member, context).map!(a => "    " ~ a).array;
+
+        lastMemberWasBitField = member.isBitField;
+        if(member.isBitField) totalBitWidth += member.bitWidth;
     }
+
+    context.log("last member was? ", lastMemberWasBitField);
+    if(lastMemberWasBitField) finishBitFields;
 
     lines ~= `}`;
 
     return lines;
+}
+
+private int padding(in int totalBitWidth) @safe @nogc pure nothrow {
+    for(int powerOfTwo = 8; powerOfTwo < 64; powerOfTwo *= 2) {
+        if(powerOfTwo > totalBitWidth) return powerOfTwo - totalBitWidth;
+    }
+
+    assert(0);
 }
 
 
@@ -133,7 +173,9 @@ string[] translateField(in from!"clang".Cursor field,
     }
 
     const type = translate(field.type, context, No.translatingFunction);
-    return [text(type, " ", maybeRename(field, context), ";")];
+    return field.isBitField
+        ? [text("    ", type, `, "`, maybeRename(field, context), `", `, field.bitWidth, `,`)]
+        : [text(type, " ", maybeRename(field, context), ";")];
 }
 
 

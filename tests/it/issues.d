@@ -94,6 +94,36 @@ import it;
 
 
 @Tags("issue")
+@("7")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                struct splitflags {
+                    int dryrun : 1;
+                    int import : 2;
+                    int name_flags;
+                    int foo: 3;
+                    int bar: 4;
+                    int suffix;
+                };
+
+                struct other {
+                    int quux: 2;
+                    int toto: 3;
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(splitflags.sizeof == 16);
+                static assert(other.sizeof == 4);
+            }
+        ),
+    );
+}
+
+@Tags("issue")
 @("10")
 @safe unittest {
     shouldCompile(
