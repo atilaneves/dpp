@@ -11,9 +11,10 @@ import dpp.from;
 void run(in from!"dpp.runtime.options".Options options) @safe {
     import std.stdio: File;
     import std.exception: enforce;
-    import std.process: execute;
+    import std.process: spawnProcess, wait;
     import std.array: join;
     import std.file: remove;
+    import std.conv : text;
 
     foreach(dppFileName; options.dppFileNames)
         preprocess!File(options, dppFileName, options.toDFileName(dppFileName));
@@ -21,12 +22,12 @@ void run(in from!"dpp.runtime.options".Options options) @safe {
     if(options.preprocessOnly) return;
 
     const args = options.dlangCompiler ~ options.dlangCompilerArgs;
-    const res = execute(args);
-    enforce(res.status == 0, "Could not execute `" ~ args.join(" ") ~ "`:\n" ~ res.output);
+    const status = spawnProcess(args).wait();
     if(!options.keepDlangFiles) {
         foreach(fileName; options.dFileNames)
             remove(fileName);
     }
+    enforce(status == 0, "Executing `" ~ args.join(" ") ~ "` failed with exit code\n" ~ status.text);
 }
 
 
