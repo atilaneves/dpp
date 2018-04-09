@@ -7,7 +7,7 @@ d++ - #include C and C++ headers in D files
 Goal
 ----
 
-To directly `#include` C and C++ headers in (D)[https://dlang.org] files and have the same semantics and ease-of-use
+To directly `#include` C and C++ headers in [D](https://dlang.org) files and have the same semantics and ease-of-use
 as if the file had been `#included` from C or C++ themselves. Warts and all, meaning that C `enum` declarations
 will pollute the global namespace, just as it does "back home".
 
