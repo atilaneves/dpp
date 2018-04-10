@@ -79,7 +79,7 @@ string[] translateAggregate(
     import std.conv: text;
 
     // remember all aggregate declarations
-    context.aggregateDeclarations[context.spellingOrNickname(cursor)] = true;
+    context.rememberAggregate(cursor);
 
     const name = spelling.isNull ? context.spellingOrNickname(cursor) : spelling.get;
     const firstLine = keyword ~ ` ` ~ name;

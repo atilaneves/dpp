@@ -51,7 +51,7 @@ struct Context {
     /**
        All the aggregates that have been declared
      */
-    bool[string] aggregateDeclarations;
+    private bool[string] _aggregateDeclarations;
 
     /**
        A linkable is a function or a global variable.
@@ -138,7 +138,7 @@ struct Context {
     }
 
     void fixLinkables() @safe pure {
-        foreach(aggregate, _; aggregateDeclarations) {
+        foreach(aggregate, _; _aggregateDeclarations) {
             // if there's a name clash, fix it
             auto clashingLinkable = aggregate in linkableDeclarations;
             if(clashingLinkable) {
@@ -154,6 +154,10 @@ struct Context {
      */
     void rememberFieldStruct(in string typeSpelling) @safe pure {
         fieldStructSpellings[typeSpelling] = true;
+    }
+
+    void rememberAggregate(in Cursor cursor) @safe pure {
+        _aggregateDeclarations[spellingOrNickname(cursor)] = true;
     }
 
     // find the last one we named, pop it off, and return it
@@ -172,12 +176,16 @@ struct Context {
     */
     void declareUnknownStructs() @safe pure {
         foreach(name, _; fieldStructSpellings) {
-            if(name !in aggregateDeclarations) {
+            if(name !in _aggregateDeclarations) {
                 log("Could not find '", name, "' in aggregate declarations, defining it");
                 writeln("struct " ~ name ~ ";");
-                aggregateDeclarations[name] = true;
+                _aggregateDeclarations[name] = true;
             }
         }
+    }
+
+    const(typeof(_aggregateDeclarations)) aggregateDeclarations() @safe pure nothrow const {
+        return _aggregateDeclarations;
     }
 
     /// return the spelling if it exists, or our made-up nickname for it if not

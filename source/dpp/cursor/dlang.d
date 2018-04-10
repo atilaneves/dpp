@@ -29,7 +29,7 @@ string pragmaMangle(in string mangling) @safe pure nothrow {
 }
 
 private bool nameClashes(in from!"clang".Cursor cursor,
-                 in from!"dpp.runtime.context".Context context)
+                         in from!"dpp.runtime.context".Context context)
     @safe pure nothrow
 {
     return
