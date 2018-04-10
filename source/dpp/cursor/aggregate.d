@@ -4,6 +4,7 @@
 module dpp.cursor.aggregate;
 
 import dpp.from;
+import std.range: isInputRange;
 
 
 string[] translateStruct(in from!"clang".Cursor cursor,
@@ -160,7 +161,7 @@ string[] translateField(in from!"clang".Cursor field,
     // The field could be a pointer to an undeclared struct or a function pointer with parameter
     // or return types that are a pointer to an undeclared struct. We have to remember these
     // so as to be able to declare the structs for D consumption after the fact.
-    if(field.type.kind == Type.Kind.Pointer) maybeRememberStructs(field.type, context);
+    if(field.type.kind == Type.Kind.Pointer) maybeRememberStructsFromType(field.type, context);
 
     // Remember the field name in case it ends up clashing with a type.
     context.rememberField(field.spelling);
@@ -173,14 +174,35 @@ string[] translateField(in from!"clang".Cursor field,
 }
 
 
-private void maybeRememberStructs(in from!"clang".Type type,
-                                  ref from!"dpp.runtime.context".Context context)
+private void maybeRememberStructsFromType(in from!"clang".Type type,
+                                          ref from!"dpp.runtime.context".Context context)
     @safe pure
+{
+    import clang: Type;
+    import std.range: only, chain;
+
+    const pointeeType = type.pointee.canonical;
+    const isFunction =
+        pointeeType.kind == Type.Kind.FunctionProto ||
+        pointeeType.kind == Type.Kind.FunctionNoProto;
+
+    if(pointeeType.kind == Type.Kind.Record)
+        maybeRememberStructs([type], context);
+    else if(isFunction)
+        maybeRememberStructs(chain(only(pointeeType.returnType), pointeeType.paramTypes),
+                             context);
+}
+
+void maybeRememberStructs(R)(R types, ref from!"dpp.runtime.context".Context context)
+    @safe pure if(isInputRange!R)
 {
     import dpp.type: translate;
     import clang: Type;
     import std.algorithm: map, filter;
-    import std.range: only, chain;
+
+    auto structTypes = types
+        .filter!(a => a.kind == Type.Kind.Pointer && a.pointee.canonical.kind == Type.Kind.Record)
+        .map!(a => a.pointee.canonical);
 
     void rememberStruct(in Type pointeeCanonicalType) {
         const translatedType = translate(pointeeCanonicalType, context);
@@ -195,23 +217,9 @@ private void maybeRememberStructs(in from!"clang".Type type,
             context.rememberFieldStruct(cleanedType);
     }
 
-    const pointeeType = type.pointee.canonical;
-    const isFunction =
-        pointeeType.kind == Type.Kind.FunctionProto ||
-        pointeeType.kind == Type.Kind.FunctionNoProto;
-
-    if(pointeeType.kind == Type.Kind.Record)
-        rememberStruct(pointeeType);
-    else if(isFunction) {
-        auto structTypes = chain(only(pointeeType.returnType), pointeeType.paramTypes)
-            .filter!(a => a.kind == Type.Kind.Pointer && a.pointee.canonical.kind == Type.Kind.Record)
-            .map!(a => a.pointee.canonical);
-
-        foreach(structType; structTypes)
-            rememberStruct(structType);
-    }
+    foreach(structType; structTypes)
+        rememberStruct(structType);
 }
-
 
 // if the cursor is an aggregate in C, i.e. struct, union or enum
 package bool isAggregateC(in from!"clang".Cursor cursor) @safe @nogc pure nothrow {
@@ -220,5 +228,4 @@ package bool isAggregateC(in from!"clang".Cursor cursor) @safe @nogc pure nothro
         cursor.kind == Cursor.Kind.StructDecl ||
         cursor.kind == Cursor.Kind.UnionDecl ||
         cursor.kind == Cursor.Kind.EnumDecl;
-
 }

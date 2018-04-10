@@ -10,6 +10,7 @@ string[] translateFunction(in from!"clang".Cursor cursor,
     @safe
 {
     import dpp.cursor.dlang: maybeRename, maybePragma;
+    import dpp.cursor.aggregate: maybeRememberStructs;
     import dpp.type: translate;
     import clang: Cursor, Language;
     import std.array: join, array;
@@ -25,7 +26,7 @@ string[] translateFunction(in from!"clang".Cursor cursor,
     context.setIndentation(indentation);
     context.log("Function return type (translated): ", returnType);
 
-    () @trusted { maybeRememberStructs(paramTypes(cursor).array, context); }();
+    maybeRememberStructs(paramTypes(cursor), context);
 
     // Here we used to check that if there were no parameters and the language is C,
     // then the correct translation in D would be (...);
@@ -61,7 +62,7 @@ auto translateParamTypes(in from!"clang".Cursor cursor,
         ;
 }
 
-auto paramTypes(in from!"clang".Cursor cursor)
+private auto paramTypes(in from!"clang".Cursor cursor)
     @safe
 {
     import clang: Cursor;
@@ -72,35 +73,4 @@ auto paramTypes(in from!"clang".Cursor cursor)
         .filter!(a => a.kind == Cursor.Kind.ParmDecl)
         .map!(a => a.type)
         ;
-}
-
-
-
-private void maybeRememberStructs(in from!"clang".Type[] types,
-                                  ref from!"dpp.runtime.context".Context context)
-    @safe pure
-{
-    import dpp.type: translate;
-    import clang: Type;
-    import std.algorithm: map, filter;
-
-    auto structTypes = types
-        .filter!(a => a.kind == Type.Kind.Pointer && a.pointee.canonical.kind == Type.Kind.Record)
-        .map!(a => a.pointee.canonical);
-
-    void rememberStruct(in Type pointeeCanonicalType) {
-        const translatedType = translate(pointeeCanonicalType, context);
-        // const becomes a problem if we have to define a struct at the end of all translations.
-        // See it.compile.projects.nv_alloc_ops
-        enum constPrefix = "const(";
-        const cleanedType = pointeeCanonicalType.isConstQualified
-            ? translatedType[constPrefix.length .. $-1] // unpack from const(T)
-            : translatedType;
-
-        if(cleanedType != "va_list")
-            context.rememberFieldStruct(cleanedType);
-    }
-
-    foreach(structType; structTypes)
-        rememberStruct(structType);
 }
