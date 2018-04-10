@@ -35,7 +35,7 @@ string[] translateMacro(in from!"clang".Cursor cursor,
 
     auto file = File(range.path);
     file.seek(startPos);
-    const chars = file.rawRead(new char[endPos - startPos]);
+    const chars = () @trusted { return file.rawRead(new char[endPos - startPos]); }();
 
     // the only sane way for us to be able to see a macro definition
     // for a macro that has already been defined is if an #undef happened
