@@ -92,7 +92,6 @@ unittest {
 }
 
 
-@ShouldFail("Should throw on CXXMethod but instead the member gets ignored")
 @("struct method")
 unittest {
     shouldCompile(

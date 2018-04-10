@@ -162,6 +162,7 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
             VarDecl:            &translateVariable,
             UnexposedDecl:      &translateUnexposed,
             CXXAccessSpecifier: &translateAccess,
+            CXXMethod:          &translateFunction,
         ];
     }
 }

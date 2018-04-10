@@ -18,10 +18,10 @@ string[] translateFunction(in from!"clang".Cursor cursor,
     import std.algorithm: endsWith;
     import std.typecons: Yes;
 
-    assert(cursor.kind == Cursor.Kind.FunctionDecl);
+    assert(cursor.kind == Cursor.Kind.FunctionDecl || cursor.kind == Cursor.Kind.CXXMethod);
 
     const indentation = context.indentation;
-    context.log("Function return type (raw):        ", cursor.returnType);
+    context.log("Function return type (raw):        ", cursor.type.returnType);
     const returnType = translate(cursor.returnType, context, Yes.translatingFunction);
     context.setIndentation(indentation);
     context.log("Function return type (translated): ", returnType);

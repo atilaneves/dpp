@@ -136,7 +136,7 @@ string[] translateAggregate(
 
         if(!member.isBitField && lastMemberWasBitField) finishBitFields;
 
-        if(!member.isDefinition) continue;
+        if(!member.isDefinition && member.kind != Cursor.Kind.CXXMethod) continue;
         lines ~= translate(member, context).map!(a => "    " ~ a).array;
 
         lastMemberWasBitField = member.isBitField;
