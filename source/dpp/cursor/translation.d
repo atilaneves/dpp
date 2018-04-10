@@ -164,6 +164,7 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
             CXXAccessSpecifier: &translateAccess,
             CXXMethod:          &translateFunction,
             Constructor:        &translateFunction,
+            Destructor:         &translateFunction,
         ];
     }
 }

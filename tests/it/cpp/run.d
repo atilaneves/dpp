@@ -5,6 +5,49 @@ module it.cpp.run;
 
 import it;
 
+@Tags("run")
+@("dtor")
+@safe unittest {
+    shouldCompileAndRun(
+        Cpp(
+            q{
+                struct Struct {
+                    Struct(int i);
+                    ~Struct();
+                };
+                extern int numStructs;
+            }
+        ),
+        Cpp(
+            q{
+                int numStructs;
+                // the i parameter is to force D to call a constructor,
+                // since Struct() just blasts it with Struct.init
+                Struct::Struct(int i)  { numStructs += i; }
+                Struct::~Struct()      { --numStructs; }
+            }
+        ),
+        D(
+            q{
+                import std.conv: text;
+                assert(numStructs == 0, numStructs.text);
+                {
+                    auto s1 = Struct(3);
+                    assert(numStructs == 3, numStructs.text);
+
+                    {
+                        auto s2 = Struct(2);
+                        assert(numStructs == 5, numStructs.text);
+                    }
+
+                    assert(numStructs == 4, numStructs.text);
+                }
+
+                assert(numStructs == 3, numStructs.text);
+            }
+         ),
+    );
+}
 
 
 @Tags("run")

@@ -17,6 +17,8 @@ string maybePragma(in from!"clang".Cursor cursor,
                    in from!"dpp.runtime.context".Context context)
     @safe pure nothrow
 {
+    import clang: Language;
+    if(cursor.language == Language.CPlusPlus) return pragmaMangle(cursor.mangling);
     return nameClashes(cursor, context) ? pragmaMangle(cursor.mangling) : "";
 }
 

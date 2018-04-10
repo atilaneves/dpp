@@ -128,7 +128,8 @@ string[] translateAggregate(
         return
             !member.isDefinition &&
             member.kind != Cursor.Kind.CXXMethod &&
-            member.kind != Cursor.Kind.Constructor;
+            member.kind != Cursor.Kind.Constructor &&
+            member.kind != Cursor.Kind.Destructor;
     }
 
     foreach(member; cursor.children) {
