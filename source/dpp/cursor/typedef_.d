@@ -10,7 +10,7 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     @safe
 {
     import dpp.type: translate;
-    import dpp.cursor.aggregate: spellingOrNickname, isAggregateC;
+    import dpp.cursor.aggregate: isAggregateC;
     import clang: Cursor, Type;
     import std.conv: text;
     import std.typecons: No;
@@ -49,7 +49,7 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
 
     // FIXME - still not sure I understand this
     const underlyingSpelling = isOnlyAggregateChild
-        ? spellingOrNickname(children[0], context)
+        ? context.spellingOrNickname(children[0])
         : translate(underlyingType, context, No.translatingFunction);
 
     // If the two spellings are the same, it's a `typedef struct foo { } foo`

@@ -49,7 +49,7 @@ string[] translateEnum(in from!"clang".Cursor cursor,
     // `enum Foo { foo, bar }` _and_
     // `enum foo = Foo.foo; enum bar = Foo.bar;` in D.
 
-    auto enumName = spellingOrNickname(cursor, context);
+    auto enumName = context.spellingOrNickname(cursor);
 
     string[] lines;
     foreach(member; cursor) {
@@ -79,9 +79,9 @@ string[] translateAggregate(
     import std.conv: text;
 
     // remember all aggregate declarations
-    context.aggregateDeclarations[spellingOrNickname(cursor, context)] = true;
+    context.aggregateDeclarations[context.spellingOrNickname(cursor)] = true;
 
-    const name = spelling.isNull ? spellingOrNickname(cursor, context) : spelling.get;
+    const name = spelling.isNull ? context.spellingOrNickname(cursor) : spelling.get;
     const firstLine = keyword ~ ` ` ~ name;
 
     if(!cursor.isDefinition) return [firstLine ~ `;`];
@@ -218,14 +218,4 @@ package bool isAggregateC(in from!"clang".Cursor cursor) @safe @nogc pure nothro
         cursor.kind == Cursor.Kind.UnionDecl ||
         cursor.kind == Cursor.Kind.EnumDecl;
 
-}
-
-// return the spelling if it exists, or our made-up nickname for it if not
-package string spellingOrNickname(in from!"clang".Cursor cursor,
-                                  ref from!"dpp.runtime.context".Context context)
-    @safe
-{
-    return cursor.spelling == ""
-        ? context.nickName(cursor)
-        : cursor.spelling;
 }

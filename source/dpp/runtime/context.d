@@ -180,7 +180,14 @@ struct Context {
         }
     }
 
-    string nickName(in Cursor cursor) @safe {
+    /// return the spelling if it exists, or our made-up nickname for it if not
+    string spellingOrNickname(in Cursor cursor) @safe pure {
+        return cursor.spelling == ""
+            ? nickName(cursor)
+            : cursor.spelling;
+    }
+
+    private string nickName(in Cursor cursor) @safe pure {
         if(cursor.hash !in cursorNickNames) {
             auto nick = newAnonymousName;
             nickNames ~= nick;
@@ -190,7 +197,7 @@ struct Context {
         return cursorNickNames[cursor.hash];
     }
 
-    private string newAnonymousName() @safe {
+    private string newAnonymousName() @safe pure {
         import std.conv: text;
         import core.atomic: atomicOp;
         return text("_Anonymous_", anonymousIndex++);
