@@ -44,7 +44,6 @@ import it;
     );
 }
 
-//@ShouldFail
 @Tags("collision")
 @("unknown struct pointer param")
 @safe unittest {
