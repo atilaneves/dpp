@@ -10,17 +10,20 @@ string maybeRename(in from!"clang".Cursor cursor,
                    in from!"dpp.runtime.context".Context context)
     @safe pure nothrow
 {
-    return nameClashes(cursor, context) ? rename(cursor.spelling) : cursor.spelling;
+    return nameClashes(cursor, context) ? rename(cursor.spelling, context) : cursor.spelling;
 }
 
 string maybePragma(in from!"clang".Cursor cursor,
-                     in from!"dpp.runtime.context".Context context)
+                   in from!"dpp.runtime.context".Context context)
     @safe pure nothrow
 {
     return nameClashes(cursor, context) ? pragmaMangle(cursor.mangling) : "";
 }
 
-string rename(in string spelling) @safe pure nothrow {
+string rename(in string spelling,
+              in from!"dpp.runtime.context".Context context)
+    @safe pure nothrow
+{
     return spelling ~ "_";
 }
 

@@ -167,7 +167,7 @@ struct Context {
         foreach(spelling, lineNumber; fieldDeclarations) {
             if(spelling in _aggregateDeclarations) {
                 lines[lineNumber] = lines[lineNumber]
-                    .replace(spelling ~ `;`, rename(spelling) ~ `;`);
+                    .replace(spelling ~ `;`, rename(spelling, this) ~ `;`);
             }
         }
     }
@@ -206,7 +206,8 @@ struct Context {
         return ret;
     }
 
-    /** If unknown structs show up in functions or fields (as a pointer),
+    /**
+       If unknown structs show up in functions or fields (as a pointer),
         define them now so the D file can compile
         See `it.c.compile.delayed`.
     */
@@ -246,13 +247,21 @@ struct Context {
         import core.atomic: atomicOp;
         return text("_Anonymous_", anonymousIndex++);
     }
-}
 
+    private void resolveClash(ref string line, in string spelling, in string mangling) @safe pure const {
+        import dpp.cursor.dlang: pragmaMangle;
+        line = `    ` ~ pragmaMangle(mangling) ~ replaceSpelling(line, spelling);
+    }
 
-private void resolveClash(ref string line, in string spelling, in string mangling) @safe pure {
-    import dpp.cursor.dlang: pragmaMangle, rename;
-    import std.string: replace;
-    line = `    ` ~ pragmaMangle(mangling) ~ line.replace(spelling, rename(spelling));
+    private string replaceSpelling(in string line, in string spelling) @safe pure const {
+        import dpp.cursor.dlang: rename;
+        import std.array: replace;
+        return line
+            .replace(spelling ~ `;`, rename(spelling, this) ~ `;`)
+            .replace(spelling ~ `(`, rename(spelling, this) ~ `(`)
+            ;
+    }
+
 }
 
 

@@ -53,8 +53,8 @@ dpp() {
 "$BIN_DIR"/d++ --keep-d-files "$@"
 }
 
-# echo Testing download etpan
-# dpp --keep-pre-cpp-file --include-path "$REPOS_DIR"/libetpan/include "$SCRIPT_DIR"/etpan.dpp -c
+echo Testing download etpan
+dpp --include-path "$REPOS_DIR"/libetpan/include "$SCRIPT_DIR"/etpan.dpp -c
 
 echo Testing download nanomsg
 dpp --include-path "$REPOS_DIR" "$SCRIPT_DIR"/nanomsg.dpp -c
