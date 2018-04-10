@@ -69,6 +69,8 @@ struct Context {
     /// Command-line options
     Options options;
 
+    /// to generate unique names
+    private int anonymousIndex;
 
     this(Options options) @safe pure {
         this.options = options;
@@ -188,14 +190,11 @@ struct Context {
         return cursorNickNames[cursor.hash];
     }
 
-}
-
-
-private string newAnonymousName() @safe {
-    import std.conv: text;
-    import core.atomic: atomicOp;
-    shared static int index;
-    return text("_Anonymous_", index.atomicOp!"+="(1));
+    private string newAnonymousName() @safe {
+        import std.conv: text;
+        import core.atomic: atomicOp;
+        return text("_Anonymous_", anonymousIndex++);
+    }
 }
 
 
