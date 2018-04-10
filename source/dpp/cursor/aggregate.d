@@ -225,29 +225,7 @@ package string spellingOrNickname(in from!"clang".Cursor cursor,
                                   ref from!"dpp.runtime.context".Context context)
     @safe
 {
-
-    import std.conv: text;
-
-    static int index;
-
-    // If not anonymous, just return the spelling
-    if(cursor.spelling != "") return cursor.spelling;
-
-    // otherwise find what nickname we gave it
-
-    if(cursor.hash !in context.cursorNickNames) {
-        auto nick = newAnonymousName;
-        context.nickNames ~= nick;
-        context.cursorNickNames[cursor.hash] = nick;
-    }
-
-    return context.cursorNickNames[cursor.hash];
-}
-
-
-private string newAnonymousName() @safe {
-    import std.conv: text;
-    import core.atomic: atomicOp;
-    shared static int index;
-    return text("_Anonymous_", index.atomicOp!"+="(1));
+    return cursor.spelling == ""
+        ? context.nickName(cursor)
+        : cursor.spelling;
 }

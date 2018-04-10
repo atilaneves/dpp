@@ -36,7 +36,7 @@ struct Context {
        that we track here so as to be able to properly transate
        those typedefs.
     */
-    string[CursorHash] cursorNickNames;
+    private string[CursorHash] cursorNickNames;
 
     // FIXME - there must be a better way
     /// Used to find the last nickname we coined (e.g. "_Anonymous_1")
@@ -178,7 +178,26 @@ struct Context {
         }
     }
 
+    string nickName(in Cursor cursor) @safe {
+        if(cursor.hash !in cursorNickNames) {
+            auto nick = newAnonymousName;
+            nickNames ~= nick;
+            cursorNickNames[cursor.hash] = nick;
+        }
+
+        return cursorNickNames[cursor.hash];
+    }
+
 }
+
+
+private string newAnonymousName() @safe {
+    import std.conv: text;
+    import core.atomic: atomicOp;
+    shared static int index;
+    return text("_Anonymous_", index.atomicOp!"+="(1));
+}
+
 
 private void resolveClash(ref string line, in string spelling, in string mangling) @safe pure {
     import dpp.cursor.dlang: pragmaMangle, rename;
