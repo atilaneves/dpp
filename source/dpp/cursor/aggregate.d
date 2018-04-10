@@ -130,8 +130,11 @@ string[] translateAggregate(
             member.kind != Cursor.Kind.CXXMethod &&
             member.kind != Cursor.Kind.Constructor &&
             member.kind != Cursor.Kind.Destructor &&
-            member.kind != Cursor.Kind.VarDecl;
+            member.kind != Cursor.Kind.VarDecl &&
+            member.kind != Cursor.Kind.CXXBaseSpecifier;
     }
+
+    context.log("Children: ", cursor.children);
 
     foreach(member; cursor.children) {
 
