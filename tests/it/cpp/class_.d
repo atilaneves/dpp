@@ -21,8 +21,7 @@ unittest {
    );
 }
 
-@ShouldFail
-@("POD struct explicit privacy tags")
+@("POD struct private then public")
 unittest {
     shouldCompile(
         Cpp(
@@ -39,15 +38,15 @@ unittest {
             q{
                 auto f = Foo(42, 33.3);
                 static assert(is(Foo == struct), "Foo should be a struct");
-                static assert(!__traits(compiles, f.i = 7), "f.i should be private");
-                f.d = 3.14;
+                static assert(__traits(getProtection, f.i) == "private");
+                static assert(__traits(getProtection, f.d) == "public");
+                f.d = 22.2;
             }
         ),
    );
 }
 
 
-@ShouldFail("doesn't deal with public/private/etc")
 @("POD class")
 unittest {
     shouldCompile(
@@ -60,15 +59,14 @@ unittest {
             q{
                 auto f = Foo(42, 33.3);
                 static assert(is(Foo == struct), "Foo should be a struct");
-                static assert(!__traits(compiles, f.i = 7), "f.i should be private");
-                static assert(!__traits(compiles, f.d = 3.14), "f.d should be private");
+                static assert(__traits(getProtection, f.i) == "private");
+                static assert(__traits(getProtection, f.d) == "private");
             }
         ),
    );
 }
 
-@ShouldFail
-@("POD class explicit privacy tags")
+@("POD class public then private")
 unittest {
     shouldCompile(
         Cpp(
@@ -85,8 +83,9 @@ unittest {
             q{
                 auto f = Foo(42, 33.3);
                 static assert(is(Foo == struct), "Foo should be a struct");
+                static assert(__traits(getProtection, f.i) == "public");
+                static assert(__traits(getProtection, f.d) == "private");
                 f.i = 7; // public, ok
-                static assert(!__traits(compiles, f.d = 3.14), "f.d should be private");
             }
         ),
    );

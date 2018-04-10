@@ -22,7 +22,7 @@ string[] translateClass(in from!"clang".Cursor cursor,
 {
     import clang: Cursor;
     assert(cursor.kind == Cursor.Kind.ClassDecl);
-    return translateAggregate(context, cursor, "struct");
+    return translateAggregate(context, cursor, "class", "struct");
 }
 
 string[] translateUnion(in from!"clang".Cursor cursor,
@@ -73,6 +73,19 @@ string[] translateAggregate(
 )
     @safe
 {
+    return translateAggregate(context, cursor, keyword, keyword, spelling);
+}
+
+// not pure due to Cursor.opApply not being pure
+string[] translateAggregate(
+    ref from!"dpp.runtime.context".Context context,
+    in from!"clang".Cursor cursor,
+    in string cKeyword,
+    in string dKeyword,
+    in from!"std.typecons".Nullable!string spelling = from!"std.typecons".Nullable!string()
+)
+    @safe
+{
     import dpp.cursor.translation: translate;
     import clang: Cursor;
     import std.algorithm: map, any;
@@ -83,13 +96,15 @@ string[] translateAggregate(
     context.rememberAggregate(cursor);
 
     const name = spelling.isNull ? context.spellingOrNickname(cursor) : spelling.get;
-    const firstLine = keyword ~ ` ` ~ name;
+    const firstLine = dKeyword ~ ` ` ~ name;
 
     if(!cursor.isDefinition) return [firstLine ~ `;`];
 
     string[] lines;
     lines ~= firstLine;
     lines ~= `{`;
+
+    if(cKeyword == "class") lines ~= "private:";
 
     if(cursor.children.any!(a => a.isBitField)) {
         // The align(4) is to mimic C. There, `struct Foo { int f1: 2; int f2: 3}`

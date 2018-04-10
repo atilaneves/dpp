@@ -131,6 +131,21 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
         assert(0);
     }
 
+    static string[] translateAccess(
+        in Cursor cursor,
+        ref from!"dpp.runtime.context".Context context)
+    {
+        import clang: AccessSpecifier;
+
+        final switch(cursor.accessSpecifier) with(AccessSpecifier) {
+            case InvalidAccessSpecifier: assert(0);
+            case Public: return ["public:"];
+            case Protected: return ["protected:"];
+            case Private: return ["private:"];
+        }
+
+        assert(0);
+    }
 
     with(Cursor.Kind) {
         return [
@@ -146,6 +161,7 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
             EnumConstantDecl:   &translateEnumConstant,
             VarDecl:            &translateVariable,
             UnexposedDecl:      &translateUnexposed,
+            CXXAccessSpecifier: &translateAccess,
         ];
     }
 }
