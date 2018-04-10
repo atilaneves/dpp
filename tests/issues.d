@@ -181,6 +181,90 @@ import it;
     }
 }
 
+@Tags("issue", "preprocessor")
+@("22.1")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                typedef struct {
+                    #ifdef __USE_XOPEN
+                        int fds_bits[42];
+                        #define __FDS_BITS(set) ((set)->fds_bits)
+                    #else
+                        int __fds_bits[42];
+                        #define __FDS_BITS(set) ((set)->__fds_bits)
+                    #endif
+                } fd_set;
+            `
+        ),
+        D(
+            q{
+                fd_set set;
+                __FDS_BITS(set)[0] = 42;
+            }
+        ),
+    );
+}
+
+@Tags("issue", "preprocessor")
+@("22.2")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                #define SIZEOF(x) (sizeof(x))
+            `
+        ),
+        D(
+            q{
+                int i;
+                static assert(SIZEOF(i) == 4);
+            }
+        ),
+    );
+}
+
+@Tags("issue", "preprocessor")
+@("22.3")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                typedef long int __fd_mask;
+                #define __NFDBITS (8 * (int) sizeof (__fd_mask))
+            `
+        ),
+        D(
+            q{
+                import std.conv;
+                static assert(__NFDBITS == 8 * c_long.sizeof,
+                              text("expected ", 8 * c_long.sizeof, ", got: ", __NFDBITS));
+            }
+        ),
+    );
+}
+
+@Tags("issue", "preprocessor")
+@("22.4")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                typedef struct clist { struct list* next; };
+                #define clist_next(iter) (iter ? (iter)->next : NULL)
+            `
+        ),
+        D(
+            q{
+                clist l;
+                auto next = clist_next(&l);
+            }
+        ),
+    );
+}
+
+
 
 @Tags("issue", "collision", "issue24")
 @("24.1")

@@ -46,12 +46,13 @@ void preprocess(File)(in from!"dpp.runtime.options".Options options,
 
     import dpp.runtime.context: Context;
     import dpp.expansion: maybeExpand;
-    import std.algorithm: map, startsWith;
+    import std.algorithm: map, startsWith, filter;
     import std.process: execute;
     import std.exception: enforce;
     import std.conv: text;
     import std.string: splitLines;
     import std.file: remove;
+    import std.array: replace;
 
     const tmpFileName = outputFileName ~ ".tmp";
     scope(exit) if(!options.keepPreCppFile) remove(tmpFileName);
@@ -84,13 +85,18 @@ void preprocess(File)(in from!"dpp.runtime.options".Options options,
 
     {
         auto outputFile = File(outputFileName, "w");
+        auto lines = ret.
+            output
+            .splitLines
+            .filter!(a => !a.startsWith("#"))
+            ;
 
-        foreach(line; ret.output.splitLines) {
-            if(!line.startsWith("#"))
-                outputFile.writeln(line);
+        foreach(line; lines) {
+            outputFile.writeln(line);
         }
     }
 }
+
 
 private string preamble() @safe pure {
     import std.array: replace, join;

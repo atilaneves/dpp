@@ -47,5 +47,33 @@ string[] translateMacro(in from!"clang".Cursor cursor,
 
     alreadyDefined[cursor.spelling] = true;
 
-    return [maybeUndef ~ "#define " ~ text(chars) ~ "\n"];
+    return [maybeUndef ~ "#define " ~ chars.text.translateToD ~ "\n"];
+}
+
+
+// Some macros define snippets of C code that aren't valid D
+private string translateToD(in string line) @safe {
+    import std.array: replace, join;
+    import std.regex: regex, replaceAll;
+    import std.format: format;
+
+    auto sizeofRegex = regex(`sizeof *?\(([^)]+)\)`);
+
+    const cTypes = ["char", "unsigned char", "signed char", "short", "unsigned short", "int", "unsigned", "unsigned int",
+                    "long", "unsigned long", "long long", "unsigned long long", "float", "double"];
+    auto castRegex = regex(`\((%s)\)`.format(cTypes.join("|")));
+
+    return line
+        .replace("->", ".")
+        .replaceNull
+        .replaceAll(sizeofRegex, "$1.sizeof")
+        .replaceAll(castRegex, "cast($1)")
+        ;
+}
+
+private string replaceNull(in string str) @safe pure nothrow {
+    import std.array: replace;
+    import std.algorithm: startsWith;
+    // we don't want to translate the definition of NULL itself
+    return str.startsWith("NULL") ? str : str.replace("NULL", "null");
 }
