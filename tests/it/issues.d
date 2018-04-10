@@ -224,3 +224,23 @@ import it;
         ),
     );
 }
+
+
+@Tags("issue")
+@("33")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                void (*f)();
+            }
+        ),
+        D(
+            q{
+                static extern(C) void printHello() { }
+                f = &printHello;
+                f();
+            }
+        ),
+    );
+}
