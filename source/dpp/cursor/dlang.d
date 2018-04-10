@@ -20,11 +20,15 @@ string maybePragma(in from!"clang".Cursor cursor,
     return nameClashes(cursor, context) ? pragmaMangle(cursor.mangling) : "";
 }
 
-string rename(in string spelling,
+string rename(string spelling,
               in from!"dpp.runtime.context".Context context)
     @safe pure nothrow
 {
-    return spelling ~ "_";
+    do
+        spelling ~= "_";
+    while(spelling in context.aggregateDeclarations);
+
+    return spelling;
 }
 
 string pragmaMangle(in string mangling) @safe pure nothrow {

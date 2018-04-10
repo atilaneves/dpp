@@ -145,7 +145,6 @@ import it;
 }
 
 
-@ShouldFail("Renaming must not clash")
 @Tags("collision")
 @("foo and foo_ cause function foo to renamed as foo__")
 @safe unittest {
