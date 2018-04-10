@@ -269,3 +269,23 @@ import it;
     );
 
 }
+
+@ShouldFail
+@("function pointer with no parameter types")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                struct Struct {
+                    int (*func)();
+                }
+            }
+        ),
+        D(
+            q{
+
+            }
+         ),
+    );
+
+}

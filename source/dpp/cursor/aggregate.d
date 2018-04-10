@@ -154,7 +154,9 @@ string[] translateField(in from!"clang".Cursor field,
     import clang: Cursor, Type;
     import std.conv: text;
     import std.typecons: No;
-    import std.array: replace;
+    import std.algorithm: map, filter;
+    import std.array: replace, array;
+    import std.range: chain, only;
 
     assert(field.kind == Cursor.Kind.FieldDecl, text("Field of wrong kind: ", field));
 
@@ -169,7 +171,30 @@ string[] translateField(in from!"clang".Cursor field,
         const cleanedType = type.isConstQualified
             ? translatedType[constPrefix.length .. $-1] // unpack from const(T)
             : translatedType;
-        context.fieldStructPointerSpellings[cleanedType] = true;
+        context.rememberFieldStruct(cleanedType);
+    }
+
+    // function pointer fields can have return or parameter types that are struct pointers
+    // to undeclared structs. We need to remember they exist so that we may later declare the struct.
+    if(field.type.kind == Type.Kind.Pointer && field.type.pointee.canonical.kind == Type.Kind.FunctionProto) {
+        const type = field.type.pointee.canonical;
+        const structTypes = chain(only(type.returnType), type.paramTypes)
+            .filter!(a => a.kind == Type.Kind.Pointer && a.pointee.canonical.kind == Type.Kind.Record)
+            .map!(a => a.pointee.canonical)
+            .array;
+
+        foreach(structType; structTypes) {
+            const translatedType = translate(structTypes[0], context);
+            // const becomes a problem if we have to define a struct at the end of all translations.
+            // See it.compile.projects.nv_alloc_ops
+            enum constPrefix = "const(";
+            const cleanedType = type.isConstQualified
+                ? translatedType[constPrefix.length .. $-1] // unpack from const(T)
+                : translatedType;
+
+            if(cleanedType != "va_list")
+                context.rememberFieldStruct(cleanedType);
+        }
     }
 
     const type = translate(field.type, context, No.translatingFunction);

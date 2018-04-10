@@ -64,7 +64,7 @@ private string[] translateFunctionTypeDef(in from!"clang".Cursor typedef_,
     @safe
 {
     import dpp.type: translate;
-    import dpp.cursor.function_: paramTypes;
+    import dpp.cursor.function_: translateParamTypes;
     import clang: Cursor, Type;
     import std.algorithm: map, filter;
     import std.array: join;
@@ -76,7 +76,7 @@ private string[] translateFunctionTypeDef(in from!"clang".Cursor typedef_,
     context.log("Function typedef return type: ", returnType);
     const returnTypeTransl = translate(returnType, context);
 
-    const params = paramTypes(typedef_, context.indent).join(", ");
+    const params = translateParamTypes(typedef_, context.indent).join(", ");
     return [`alias ` ~ typedef_.spelling ~ ` = ` ~ returnTypeTransl ~ ` function(` ~ params ~ `);`];
 
 }

@@ -46,7 +46,7 @@ struct Context {
        Remembers the seen struct pointers so that if any are undeclared in C,
        we do so in D at the end.
      */
-    bool[string] fieldStructPointerSpellings;
+    private bool[string] fieldStructSpellings;
 
     /**
        All the aggregates that have been declared
@@ -145,6 +145,15 @@ struct Context {
         }
     }
 
+    /**
+       Tells the context to remember a struct type encountered in an aggregate field.
+       Typically this will be a pointer to a structure but it could also be the return
+       type or parameter types of a function pointer field.
+     */
+    void rememberFieldStruct(in string typeSpelling) @safe pure {
+        fieldStructSpellings[typeSpelling] = true;
+    }
+
     // find the last one we named, pop it off, and return it
     string popLastNickName() @safe pure {
 
@@ -160,7 +169,7 @@ struct Context {
         See `it.c.compile.delayed`.
     */
     void declareUnknownStructs() @safe pure {
-        foreach(name, _; fieldStructPointerSpellings) {
+        foreach(name, _; fieldStructSpellings) {
             if(name !in aggregateDeclarations) {
                 log("Could not find '", name, "' in aggregate declarations, defining it");
                 writeln("struct " ~ name ~ ";");

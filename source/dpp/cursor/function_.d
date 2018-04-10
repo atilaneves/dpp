@@ -35,7 +35,7 @@ string[] translateFunction(in from!"clang".Cursor cursor,
 
     const isVariadic = cursor.type.spelling.endsWith("...)");
     const variadicParams = isVariadic ? "..." : "";
-    const allParams = paramTypes(cursor, context).array ~ variadicParams;
+    const allParams = translateParamTypes(cursor, context).array ~ variadicParams;
 
     const spelling = context.rememberLinkable(cursor);
 
@@ -45,8 +45,8 @@ string[] translateFunction(in from!"clang".Cursor cursor,
     ];
 }
 
-auto paramTypes(in from!"clang".Cursor cursor,
-                ref from!"dpp.runtime.context".Context context)
+auto translateParamTypes(in from!"clang".Cursor cursor,
+                         ref from!"dpp.runtime.context".Context context)
     @safe
 {
     import dpp.type: translate;

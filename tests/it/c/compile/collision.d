@@ -95,10 +95,54 @@ import it;
         ),
         D(
             q{
+                // should just compile
             }
         ),
     );
 }
+
+@Tags("collision")
+@("Undeclared struct pointer in function pointer field return type")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                struct Struct {
+                    struct Foo* (*func)(void);
+                };
+            }
+        ),
+        D(
+            q{
+                Struct s;
+                Foo* foo = s.func();
+            }
+        ),
+    );
+}
+
+@Tags("collision")
+@("Undeclared struct pointer in function pointer field param type")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                struct Struct {
+                    void (*func)(struct Foo*);
+                };
+            }
+        ),
+        D(
+            q{
+                Foo* foo;
+                Struct s;
+                s.func(foo);
+            }
+        ),
+    );
+
+}
+
 
 @ShouldFail("Renaming must not clash")
 @Tags("collision")
