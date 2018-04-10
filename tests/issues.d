@@ -227,7 +227,7 @@ import it;
 
 
 @Tags("issue")
-@("33")
+@("33.1")
 @safe unittest {
     shouldCompile(
         C(
@@ -240,6 +240,25 @@ import it;
                 static extern(C) void printHello() { }
                 f = &printHello;
                 f();
+            }
+        ),
+    );
+}
+
+@Tags("issue")
+@("33.2")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                int (*f)();
+            }
+        ),
+        D(
+            q{
+                static extern(C) int func() { return 42; }
+                f = &func;
+                int i = f();
             }
         ),
     );
