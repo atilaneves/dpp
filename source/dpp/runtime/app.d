@@ -75,8 +75,7 @@ void preprocess(File)(in from!"dpp.runtime.options".Options options,
             }
         }();
 
-        context.declareUnknownStructs;
-        context.fixLinkables;
+        context.fixNames;
         outputFile.writeln(context.translation);
     }
 

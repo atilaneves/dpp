@@ -3,10 +3,10 @@
  */
 module dpp.runtime.context;
 
+alias LineNumber = size_t;
+
 // A function or global variable
 struct Linkable {
-    alias LineNumber = size_t;
-
     LineNumber lineNumber;
     string mangling;
 }
@@ -47,6 +47,12 @@ struct Context {
        we do so in D at the end.
      */
     private bool[string] fieldStructSpellings;
+
+    /**
+       Remembers the field spellings in aggregates in case we need to change any
+       of them.
+     */
+    private LineNumber[string] fieldDeclarations;
 
     /**
        All the aggregates that have been declared
@@ -137,12 +143,31 @@ struct Context {
         return spelling;
     }
 
+    void fixNames() @safe pure {
+        declareUnknownStructs;
+        fixLinkables;
+        fixFields;
+    }
+
     void fixLinkables() @safe pure {
         foreach(aggregate, _; _aggregateDeclarations) {
             // if there's a name clash, fix it
             auto clashingLinkable = aggregate in linkableDeclarations;
             if(clashingLinkable) {
                 resolveClash(lines[clashingLinkable.lineNumber], aggregate, clashingLinkable.mangling);
+            }
+        }
+    }
+
+    void fixFields() @safe pure {
+
+        import dpp.cursor.dlang: pragmaMangle, rename;
+        import std.string: replace;
+
+        foreach(spelling, lineNumber; fieldDeclarations) {
+            if(spelling in _aggregateDeclarations) {
+                lines[lineNumber] = lines[lineNumber]
+                    .replace(spelling ~ `;`, rename(spelling) ~ `;`);
             }
         }
     }
@@ -156,6 +181,17 @@ struct Context {
         fieldStructSpellings[typeSpelling] = true;
     }
 
+    /**
+       In C it's possible for a struct field name to have the same name as a struct
+       because of elaborated names. We remember them here in case we need to fix them.
+     */
+    void rememberField(in string spelling) @safe pure {
+        fieldDeclarations[spelling] = lines.length;
+    }
+
+    /**
+       Remember this aggregate cursor
+     */
     void rememberAggregate(in Cursor cursor) @safe pure {
         _aggregateDeclarations[spellingOrNickname(cursor)] = true;
     }

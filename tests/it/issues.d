@@ -182,7 +182,6 @@ import it;
 }
 
 
-@ShouldFail
 @Tags("issue", "collision")
 @("24")
 @safe unittest {

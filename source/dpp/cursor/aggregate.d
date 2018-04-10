@@ -162,6 +162,9 @@ string[] translateField(in from!"clang".Cursor field,
     // so as to be able to declare the structs for D consumption after the fact.
     if(field.type.kind == Type.Kind.Pointer) maybeRememberStructs(field.type, context);
 
+    // Remember the field name in case it ends up clashing with a type.
+    context.rememberField(field.spelling);
+
     const type = translate(field.type, context, No.translatingFunction);
 
     return field.isBitField
