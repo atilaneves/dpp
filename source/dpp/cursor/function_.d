@@ -43,7 +43,7 @@ string[] translateFunction(in from!"clang".Cursor cursor,
 
     return [
         maybePragma(cursor, context) ~
-        text(returnType, " ", spelling, "(", allParams.join(", "), ");")
+        text(returnType, " ", spelling, "(", allParams.join(", "), ") @nogc nothrow;")
     ];
 }
 

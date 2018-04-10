@@ -88,7 +88,7 @@ import it;
                    #include "issue6.h"
                   `);
         runPreprocessOnly("issue6.dpp");
-        fileShouldContain("issue6.d", q{char* getMessage();});
+        fileShouldContain("issue6.d", q{char* getMessage() @nogc nothrow;});
     }
 }
 

@@ -309,3 +309,23 @@ import it;
          ),
     );
 }
+
+
+
+@("@nogc nothrow")
+unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                void fun(void);
+            }
+        ),
+        D(
+            q{
+                static void wrapper() @nogc nothrow {
+                    fun();
+                }
+            }
+        ),
+   );
+}
