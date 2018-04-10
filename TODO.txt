@@ -1,0 +1,28 @@
+volatile (methods and variables, including C)
+
+Classes
+  * Static methods
+  * Use clang_CXXMethod_isConst instead of the current hack
+  * Use clang_getTemplateCursorKind to pick between `class` or `struct`
+
+Namespaces
+
+Operator overloading
+  * Ignore global operator overloading
+
+Cast operator (ConversionFunction)
+
+LinkageSpec - does nested extern(C) work in extern(C++)?
+
+Inheritance
+  * Translate CXXBaseSpecifier
+  * Use heuristic to pick `struct`, `class`, or `interface`
+  * What to do with multiple Inheritance?
+
+Templates
+  * Default template parameters
+  * Methods of template classes (no mangling since not instantiated)
+  * Template template parameters
+  * Function templates
+  * Template specialisation
+  * Class template partial specialisation
