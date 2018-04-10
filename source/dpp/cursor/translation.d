@@ -165,6 +165,7 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
             CXXMethod:          &translateFunction,
             Constructor:        &translateFunction,
             Destructor:         &translateFunction,
+            TypeAliasDecl:      &translateTypedef,
         ];
     }
 }
