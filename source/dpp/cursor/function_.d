@@ -18,11 +18,18 @@ string[] translateFunction(in from!"clang".Cursor cursor,
     import std.algorithm: endsWith;
     import std.typecons: Yes;
 
-    assert(cursor.kind == Cursor.Kind.FunctionDecl || cursor.kind == Cursor.Kind.CXXMethod);
+    assert(cursor.kind == Cursor.Kind.FunctionDecl ||
+           cursor.kind == Cursor.Kind.CXXMethod ||
+           cursor.kind == Cursor.Kind.Constructor
+   );
 
     const indentation = context.indentation;
     context.log("Function return type (raw):        ", cursor.type.returnType);
-    const returnType = translate(cursor.returnType, context, Yes.translatingFunction);
+
+    const returnType = cursor.kind == Cursor.Kind.Constructor
+        ? ""
+        : translate(cursor.returnType, context, Yes.translatingFunction);
+
     context.setIndentation(indentation);
     context.log("Function return type (translated): ", returnType);
 
@@ -39,7 +46,9 @@ string[] translateFunction(in from!"clang".Cursor cursor,
     const variadicParams = isVariadic ? "..." : "";
     const allParams = paramTypes ~ variadicParams;
 
-    const spelling = context.rememberLinkable(cursor);
+    const spelling = cursor.kind == Cursor.Kind.Constructor
+        ? "this"
+        : context.rememberLinkable(cursor);
 
     return [
         maybePragma(cursor, context) ~

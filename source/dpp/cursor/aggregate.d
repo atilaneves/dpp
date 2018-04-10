@@ -124,6 +124,13 @@ string[] translateAggregate(
         totalBitWidth = 0;
     }
 
+    bool skipMember(in Cursor member) {
+        return
+            !member.isDefinition &&
+            member.kind != Cursor.Kind.CXXMethod &&
+            member.kind != Cursor.Kind.Constructor;
+    }
+
     foreach(member; cursor.children) {
 
         if(member.kind == Cursor.Kind.PackedAttr) {
@@ -136,7 +143,7 @@ string[] translateAggregate(
 
         if(!member.isBitField && lastMemberWasBitField) finishBitFields;
 
-        if(!member.isDefinition && member.kind != Cursor.Kind.CXXMethod) continue;
+        if(skipMember(member)) continue;
         lines ~= translate(member, context).map!(a => "    " ~ a).array;
 
         lastMemberWasBitField = member.isBitField;

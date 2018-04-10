@@ -72,9 +72,9 @@ string[] translate(in from!"clang".Cursor cursor,
         import std.stdio: stderr;
         debug {
             () @trusted {
-                stderr.writeln("Could not translate cursor ", cursor,
+                stderr.writeln("\nCould not translate cursor ", cursor,
                                " sourceRange: ", cursor.sourceRange,
-                               " children: ", cursor.children);
+                               " children: ", cursor.children, "\n");
             }();
         }
         throw e;
@@ -163,6 +163,7 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
             UnexposedDecl:      &translateUnexposed,
             CXXAccessSpecifier: &translateAccess,
             CXXMethod:          &translateFunction,
+            Constructor:        &translateFunction,
         ];
     }
 }

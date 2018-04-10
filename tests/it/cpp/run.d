@@ -5,6 +5,8 @@ module it.cpp.run;
 
 import it;
 
+
+
 @Tags("run")
 @("function")
 @safe unittest {
@@ -12,17 +14,24 @@ import it;
         Cpp(
             q{
                 int add(int i, int j);
-                struct Adder { int add(int i, int j); };
+
+                struct Adder {
+                    int i;
+                    Adder(int i);
+                    int add(int j);
+                };
             }
         ),
         Cpp(
             q{
                 int add(int i, int j) { return i + j; }
-                int Adder::add(int i, int j) { return i + j; }
+                Adder::Adder(int i):i(i + 10) {}
+                int Adder::add(int j) { return i + j; }
             }
         ),
         D(
             q{
+                import std.conv: text;
                 import std.exception: assertThrown;
                 import core.exception: AssertError;
 
@@ -33,8 +42,8 @@ import it;
                 }
                 assertThrown!AssertError(func(), "add(2, 3) should not be 7");
 
-                Adder adder;
-                assert(adder.add(3, 4) == 7, "Adder.add(2, 3) should be 7");
+                auto adder = Adder(3);
+                assert(adder.add(4) == 17, "Adder(3).add(4) should be 17 not " ~ text(adder.add(4)));
             }
          ),
     );

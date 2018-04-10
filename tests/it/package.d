@@ -238,7 +238,10 @@ void shouldCompileAndRun(string file = __FILE__, size_t line = __LINE__)
         catch(Exception e)
             adjustMessage(e, ["app.d"]);
 
-        shouldSucceed!(file, line)(["./app"] ~ args.args);
+        try
+            shouldSucceed!(file, line)(["./app"] ~ args.args);
+        catch(Exception e)
+            adjustMessage(e, ["app.d"]);
     }
 }
 
@@ -276,6 +279,9 @@ void shouldCompileAndRun(string file = __FILE__, size_t line = __LINE__)
         catch(Exception e)
             adjustMessage(e, ["app.d"]);
 
-        shouldSucceed!(file, line)(["./app"] ~ args.args);
+        try
+            shouldSucceed!(file, line)(["./app"] ~ args.args);
+        catch(Exception e)
+            adjustMessage(e, ["app.d"]);
     }
 }

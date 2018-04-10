@@ -3,7 +3,7 @@ module it.cpp.class_;
 import it;
 
 @("POD struct")
-unittest {
+@safe unittest {
     shouldCompile(
         Cpp(
             q{
@@ -22,7 +22,7 @@ unittest {
 }
 
 @("POD struct private then public")
-unittest {
+@safe unittest {
     shouldCompile(
         Cpp(
             q{
@@ -48,7 +48,7 @@ unittest {
 
 
 @("POD class")
-unittest {
+@safe unittest {
     shouldCompile(
         Cpp(
             q{
@@ -67,7 +67,7 @@ unittest {
 }
 
 @("POD class public then private")
-unittest {
+@safe unittest {
     shouldCompile(
         Cpp(
             q{
@@ -93,7 +93,7 @@ unittest {
 
 
 @("struct method")
-unittest {
+@safe unittest {
     shouldCompile(
         Cpp(
             q{
@@ -107,6 +107,28 @@ unittest {
                 static assert(is(Adder == struct), "Adder should be a struct");
                 auto adder = Adder();
                 int i = adder.add(2, 3);
+            }
+        ),
+   );
+}
+
+@("ctor")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct Adder {
+                    int i;
+                    Adder(int i, int j);
+                    int add(int j);
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(is(Adder == struct), "Adder should be a struct");
+                auto adder = Adder(1, 2);
+                int i = adder.add(4);
             }
         ),
    );
