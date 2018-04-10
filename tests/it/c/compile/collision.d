@@ -128,15 +128,16 @@ import it;
         C(
             q{
                 struct Struct {
-                    void (*func)(struct Foo*);
+                    void (*func)(struct Foo*, struct Bar*);
                 };
             }
         ),
         D(
             q{
                 Foo* foo;
+                Bar* bar;
                 Struct s;
-                s.func(foo);
+                s.func(foo, bar);
             }
         ),
     );

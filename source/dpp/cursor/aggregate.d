@@ -153,59 +153,60 @@ string[] translateField(in from!"clang".Cursor field,
     import clang: Cursor, Type;
     import std.conv: text;
     import std.typecons: No;
-    import std.algorithm: map, filter;
-    import std.array: replace, array;
-    import std.range: chain, only;
+    import std.array: replace;
 
     assert(field.kind == Cursor.Kind.FieldDecl, text("Field of wrong kind: ", field));
 
-    // It's possible one of the fields is a pointer to a structure that isn't declared anywhere,
-    // so we try and remember it here to fix it later
-    if(field.type.kind == Type.Kind.Pointer && field.type.pointee.canonical.kind == Type.Kind.Record) {
-        const type = field.type.pointee.canonical;
-        const translatedType = translate(type, context);
-        // const becomes a problem if we have to define a struct at the end of all translations.
-        // See it.compile.projects.nv_alloc_ops
-        enum constPrefix = "const(";
-        const cleanedType = type.isConstQualified
-            ? translatedType[constPrefix.length .. $-1] // unpack from const(T)
-            : translatedType;
-        context.rememberFieldStruct(cleanedType);
-    }
-
-    bool isFunction(in Type type) {
-        return
-            type.kind == Type.Kind.FunctionProto ||
-            type.kind == Type.Kind.FunctionNoProto;
-    }
-
-    // function pointer fields can have return or parameter types that are struct pointers
-    // to undeclared structs. We need to remember they exist so that we may later declare the struct.
-    if(field.type.kind == Type.Kind.Pointer && isFunction(field.type.pointee.canonical)) {
-        const type = field.type.pointee.canonical;
-        const structTypes = chain(only(type.returnType), type.paramTypes)
-            .filter!(a => a.kind == Type.Kind.Pointer && a.pointee.canonical.kind == Type.Kind.Record)
-            .map!(a => a.pointee.canonical)
-            .array;
-
-        foreach(structType; structTypes) {
-            const translatedType = translate(structTypes[0], context);
-            // const becomes a problem if we have to define a struct at the end of all translations.
-            // See it.compile.projects.nv_alloc_ops
-            enum constPrefix = "const(";
-            const cleanedType = type.isConstQualified
-                ? translatedType[constPrefix.length .. $-1] // unpack from const(T)
-                : translatedType;
-
-            if(cleanedType != "va_list")
-                context.rememberFieldStruct(cleanedType);
-        }
-    }
+    // The field could be a pointer to an undeclared struct or a function pointer with parameter
+    // or return types that are a pointer to an undeclared struct. We have to remember these
+    // so as to be able to declare the structs for D consumption after the fact.
+    if(field.type.kind == Type.Kind.Pointer) maybeRememberStructs(field.type, context);
 
     const type = translate(field.type, context, No.translatingFunction);
+
     return field.isBitField
         ? [text("    ", type, `, "`, maybeRename(field, context), `", `, field.bitWidth, `,`)]
         : [text(type, " ", maybeRename(field, context), ";")];
+}
+
+
+private void maybeRememberStructs(in from!"clang".Type type,
+                                  ref from!"dpp.runtime.context".Context context)
+    @safe pure
+{
+    import dpp.type: translate;
+    import clang: Type;
+    import std.algorithm: map, filter;
+    import std.range: only, chain;
+
+    void rememberStruct(in Type pointeeCanonicalType) {
+        const translatedType = translate(pointeeCanonicalType, context);
+        // const becomes a problem if we have to define a struct at the end of all translations.
+        // See it.compile.projects.nv_alloc_ops
+        enum constPrefix = "const(";
+        const cleanedType = pointeeCanonicalType.isConstQualified
+            ? translatedType[constPrefix.length .. $-1] // unpack from const(T)
+            : translatedType;
+
+        if(cleanedType != "va_list")
+            context.rememberFieldStruct(cleanedType);
+    }
+
+    const pointeeType = type.pointee.canonical;
+    const isFunction =
+        pointeeType.kind == Type.Kind.FunctionProto ||
+        pointeeType.kind == Type.Kind.FunctionNoProto;
+
+    if(pointeeType.kind == Type.Kind.Record)
+        rememberStruct(pointeeType);
+    else if(isFunction) {
+        auto structTypes = chain(only(pointeeType.returnType), pointeeType.paramTypes)
+            .filter!(a => a.kind == Type.Kind.Pointer && a.pointee.canonical.kind == Type.Kind.Record)
+            .map!(a => a.pointee.canonical);
+
+        foreach(structType; structTypes)
+            rememberStruct(structType);
+    }
 }
 
 
