@@ -25,9 +25,7 @@ string[] translateFunction(in from!"clang".Cursor cursor,
         cursor.kind == Cursor.Kind.Destructor
     );
 
-    /**
-       Ignore move constructors for now
-     */
+    // FIXME: Ignore move constructors for now
     if(cursor.kind == Cursor.Kind.Constructor) {
         auto paramTypes = paramTypes(cursor);
         if(paramTypes.any!(a => a.kind == Type.Kind.RValueReference))
@@ -63,9 +61,12 @@ string[] translateFunction(in from!"clang".Cursor cursor,
         return context.rememberLinkable(cursor);
     }();
 
+    // const C++ method?
+    const const_ = cursor.type.spelling.endsWith(") const") ? " const" : "";
+
     return [
         maybePragma(cursor, context) ~
-        text(returnType, " ", spelling, "(", allParams.join(", "), ") @nogc nothrow;")
+        text(returnType, " ", spelling, "(", allParams.join(", "), ") @nogc nothrow", const_, ";")
     ];
 }
 

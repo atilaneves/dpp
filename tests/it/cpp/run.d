@@ -18,7 +18,7 @@ import it;
                     Struct(const Struct&);
                     Struct(Struct&&);
 
-                    int number();
+                    int number() const;
                 };
             }
         ),
@@ -39,7 +39,7 @@ import it;
                     printf("as int: %d\n", *((int*)other.data));
                     data = new int(*reinterpret_cast<int*>(other.data));
                 }
-                int Struct::number() { return *reinterpret_cast<int*>(data); }
+                int Struct::number() const { return *reinterpret_cast<int*>(data); }
             `
         ),
         D(
@@ -47,7 +47,7 @@ import it;
                 import std.stdio;
 
                 writeln("D: Testing int ctor");
-                auto s1 = Struct(42);
+                auto s1 = const Struct(42);
                 assert(s1.number() == 42);
                 assert(*(cast(int*)s1.data) == 42);
 
@@ -59,6 +59,9 @@ import it;
                 // can't test the move ctor since translating it
                 // as taking by value would cause `Struct(s1)` above
                 // to actually move!
+                // writeln("D: Testing move ctor");
+                // auto s3 = Struct(Struct(33));
+                // assert(s3.number() == 33);
             }
          ),
     );

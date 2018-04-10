@@ -133,3 +133,25 @@ import it;
         ),
    );
 }
+
+@("const method")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct Adder {
+                    int i;
+                    Adder(int i, int j);
+                    int add(int j) const;
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(is(Adder == struct), "Adder should be a struct");
+                auto adder = const Adder(1, 2);
+                int i = adder.add(4);
+            }
+        ),
+   );
+}
