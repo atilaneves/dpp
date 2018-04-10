@@ -11,7 +11,7 @@ int main(string[] args) {
         // unit tests
         "ut.type",
 
-        "it.issues",
+        "issues",
 
         // C tests
         "it.c.compile.preprocessor",
