@@ -67,6 +67,8 @@ Translators translators() @safe pure {
             LValueReference: &translateLvalueRef,
             RValueReference: &translateRvalueRef,
             Complex: &translateComplex,
+            Unexposed: &translateUnexposed,
+            DependentSizedArray: &translateDependentSizedArray,
         ];
     }
 }
@@ -127,8 +129,25 @@ private string translateConstantArray(in from!"clang".Type type,
     return translatingFunction
         ? translate(type.elementType, context) ~ `*`
         : translate(type.elementType, context) ~ `[` ~ type.numElements.text ~ `]`;
-
 }
+
+
+private string translateDependentSizedArray(
+    in from!"clang".Type type,
+    ref from!"dpp.runtime.context".Context context,
+    in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
+@safe pure
+{
+    import std.conv: text;
+    import std.algorithm: find, countUntil;
+
+    // FIXME: hacky, only works for the only test in it.cpp.class_.template (array)
+    auto start = type.spelling.find("["); start = start[1 .. $];
+    auto endIndex = start.countUntil("]");
+
+    return translate(type.elementType, context) ~ `[` ~ start[0 .. endIndex] ~ `]`;
+}
+
 
 private string translateIncompleteArray(in from!"clang".Type type,
                                         ref from!"dpp.runtime.context".Context context,
@@ -247,6 +266,15 @@ private string translateComplex(in from!"clang".Type type,
 {
     return "c" ~ translate(type.elementType, context, translatingFunction);
 }
+
+private string translateUnexposed(in from!"clang".Type type,
+                                  ref from!"dpp.runtime.context".Context context,
+                                  in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
+    @safe pure
+{
+    return type.spelling;
+}
+
 
 private string addModifiers(in from!"clang".Type type, in string translation) @safe pure {
     import std.array: replace;

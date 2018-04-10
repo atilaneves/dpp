@@ -21,8 +21,31 @@ string[] translateClass(in from!"clang".Cursor cursor,
     @safe
 {
     import clang: Cursor;
-    assert(cursor.kind == Cursor.Kind.ClassDecl);
-    return translateAggregate(context, cursor, "class", "struct");
+    import std.typecons: Nullable, nullable;
+    import std.algorithm: map, filter;
+    import std.array: join;
+
+    assert(cursor.kind == Cursor.Kind.ClassDecl || cursor.kind == Cursor.Kind.ClassTemplate);
+
+    string translateTemplateParam(in Cursor cursor) {
+        import dpp.type: translate;
+        const maybeType = cursor.kind == Cursor.Kind.TemplateTypeParameter
+            ? ""
+            : translate(cursor.type, context) ~ " ";
+        return maybeType ~ cursor.spelling;
+    }
+
+    auto templateParams = cursor
+        .children
+        .filter!(a => a.kind == Cursor.Kind.TemplateTypeParameter || a.kind == Cursor.Kind.NonTypeTemplateParameter)
+        .map!translateTemplateParam
+        ;
+
+    const spelling = cursor.kind == Cursor.Kind.ClassTemplate
+        ? nullable(cursor.spelling ~ `(` ~ templateParams.join(", ") ~ `)`)
+        : Nullable!string();
+
+    return translateAggregate(context, cursor, "class", "struct", spelling);
 }
 
 string[] translateUnion(in from!"clang".Cursor cursor,
