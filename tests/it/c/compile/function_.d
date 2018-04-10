@@ -270,22 +270,42 @@ import it;
 
 }
 
-@ShouldFail
-@("function pointer with no parameter types")
+@Tags("FunctionNoProto")
+@("function pointer with no parameter types return type unknown struct")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                struct Struct {
+                    struct Foo* (*func)();
+                };
+            }
+        ),
+        D(
+            q{
+                Struct s;
+                Foo* foo = s.func();
+            }
+         ),
+    );
+}
+
+@Tags("FunctionNoProto")
+@("function pointer with no parameter types return type int")
 @safe unittest {
     shouldCompile(
         C(
             q{
                 struct Struct {
                     int (*func)();
-                }
+                };
             }
         ),
         D(
             q{
-
+                Struct s;
+                int i = s.func();
             }
          ),
     );
-
 }

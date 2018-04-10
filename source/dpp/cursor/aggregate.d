@@ -127,7 +127,6 @@ string[] translateAggregate(
         if(member.isBitField) totalBitWidth += member.bitWidth;
     }
 
-    context.log("last member was? ", lastMemberWasBitField);
     if(lastMemberWasBitField) finishBitFields;
 
     lines ~= `}`;
@@ -174,9 +173,15 @@ string[] translateField(in from!"clang".Cursor field,
         context.rememberFieldStruct(cleanedType);
     }
 
+    bool isFunction(in Type type) {
+        return
+            type.kind == Type.Kind.FunctionProto ||
+            type.kind == Type.Kind.FunctionNoProto;
+    }
+
     // function pointer fields can have return or parameter types that are struct pointers
     // to undeclared structs. We need to remember they exist so that we may later declare the struct.
-    if(field.type.kind == Type.Kind.Pointer && field.type.pointee.canonical.kind == Type.Kind.FunctionProto) {
+    if(field.type.kind == Type.Kind.Pointer && isFunction(field.type.pointee.canonical)) {
         const type = field.type.pointee.canonical;
         const structTypes = chain(only(type.returnType), type.paramTypes)
             .filter!(a => a.kind == Type.Kind.Pointer && a.pointee.canonical.kind == Type.Kind.Record)

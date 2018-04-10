@@ -59,7 +59,7 @@ Translators translators() @safe pure {
             Pointer: &translatePointer,
             FunctionProto: &translateFunctionProto,
             Record: &translateRecord,
-            FunctionNoProto: &translateFunctionNoProto,
+            FunctionNoProto: &translateFunctionProto,
             Elaborated: &translateAggregate,
             ConstantArray: &translateConstantArray,
             IncompleteArray: &translateIncompleteArray,
@@ -113,20 +113,6 @@ private string translateAggregate(in from!"clang".Type type,
 }
 
 
-private string translateFunctionNoProto(in from!"clang".Type type,
-                                        ref from!"dpp.runtime.context".Context context,
-                                        in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
-@safe pure
-{
-    import std.conv: text;
-    // FIXME - No idea what this means
-    if(type.spelling != "int ()")
-        throw new Exception(text("Don't know how to translate type ", type));
-    return "int";
-
-}
-
-
 private string translateConstantArray(in from!"clang".Type type,
                                       ref from!"dpp.runtime.context".Context context,
                                       in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
@@ -176,11 +162,13 @@ private string translatePointer(in from!"clang".Type type,
     if(type.pointee is null) throw new Exception("null pointee for " ~ type.toString);
     assert(type.pointee !is null, "Pointee is null for " ~ type.toString);
 
-    const isFunctionProto = type.pointee.kind == Type.Kind.Unexposed &&
-        type.pointee.canonical.kind == Type.Kind.FunctionProto;
+    const isFunction =
+        type.pointee.kind == Type.Kind.Unexposed &&
+        (type.pointee.canonical.kind == Type.Kind.FunctionProto ||
+         type.pointee.canonical.kind == Type.Kind.FunctionNoProto);
 
     // usually "*" but sometimes not needed if already a reference type
-    const pointer = isFunctionProto ? "" : "*";
+    const maybeStar = isFunction ? "" : "*";
     context.log("Pointee:           ", *type.pointee);
     context.log("Pointee canonical: ", type.pointee.canonical);
 
@@ -208,8 +196,8 @@ private string translatePointer(in from!"clang".Type type,
     }
 
     const ptrType = addConst
-        ? `const(` ~ rawType ~ pointer ~ `)`
-        : rawType ~ pointer;
+        ? `const(` ~ rawType ~ maybeStar ~ `)`
+        : rawType ~ maybeStar;
 
     return ptrType;
 }
@@ -226,18 +214,10 @@ private string translateFunctionProto(in from!"clang".Type type,
     import std.array: join, array;
 
     const params = type.paramTypes.map!(a => translate(a, context)).array;
-    const variadicParams = type.isVariadicFunction ? ["..."] : [];
+    const isVariadic = params.length > 0 && type.isVariadicFunction;
+    const variadicParams = isVariadic ? ["..."] : [];
     const allParams = params ~ variadicParams;
     return text(translate(type.returnType, context), " function(", allParams.join(", "), ")");
-}
-
-
-private string addModifiers(in from!"clang".Type type, in string translation) @safe pure {
-    import std.array: replace;
-    const realTranslation = translation.replace("const ", "");
-    return type.isConstQualified
-        ? `const(` ~  realTranslation ~ `)`
-        : realTranslation;
 }
 
 private string translateLvalueRef(in from!"clang".Type type,
@@ -246,4 +226,12 @@ private string translateLvalueRef(in from!"clang".Type type,
     @safe pure
 {
     return "ref " ~ translate(*type.canonical.pointee, context, translatingFunction);
+}
+
+private string addModifiers(in from!"clang".Type type, in string translation) @safe pure {
+    import std.array: replace;
+    const realTranslation = translation.replace("const ", "");
+    return type.isConstQualified
+        ? `const(` ~  realTranslation ~ `)`
+        : realTranslation;
 }
