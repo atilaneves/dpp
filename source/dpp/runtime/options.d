@@ -53,9 +53,9 @@ struct Options {
 
         // Remove the name of this binary and the name of the .dpp input file from args
         // so that a D compiler can use the remaining entries.
-        dlangCompilerArgs =
-            args[1..$].filter!(a => a.extension != ".dpp").array ~
-            dFileNames;
+        dlangCompilerArgs = args[1..$]
+		    .map!(a => a.extension == ".dpp" ? toDFileName(a) : a)
+		    .array;
 
         includePaths = systemPaths ~ includePaths;
     }
