@@ -40,7 +40,7 @@ struct Context {
 
     // FIXME - there must be a better way
     /// Used to find the last nickname we coined (e.g. "_Anonymous_1")
-    string[] nickNames;
+    private string[] nickNames;
 
     /**
        Remembers the seen struct pointers so that if any are undeclared in C,
@@ -59,12 +59,12 @@ struct Context {
        with an aggregate we can come back and fix the declarations after
        the fact with  pragma(mangle).
      */
-    Linkable[string] linkableDeclarations;
+    private Linkable[string] linkableDeclarations;
 
     /**
        All previously seen cursors
      */
-    SeenCursors seenCursors;
+    private SeenCursors seenCursors;
 
     /// Command-line options
     Options options;
