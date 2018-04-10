@@ -65,6 +65,7 @@ Translators translators() @safe pure {
             IncompleteArray: &translateIncompleteArray,
             Typedef: &translateTypedef,
             LValueReference: &translateLvalueRef,
+            RValueReference: &translateRvalueRef,
             Complex: &translateComplex,
         ];
     }
@@ -228,6 +229,16 @@ private string translateLvalueRef(in from!"clang".Type type,
 {
     return "ref " ~ translate(*type.canonical.pointee, context, translatingFunction);
 }
+
+// we cheat and pretend it's a value
+private string translateRvalueRef(in from!"clang".Type type,
+                                  ref from!"dpp.runtime.context".Context context,
+                                  in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
+    @safe pure
+{
+    return translate(*type.canonical.pointee, context, translatingFunction);
+}
+
 
 private string translateComplex(in from!"clang".Type type,
                                 ref from!"dpp.runtime.context".Context context,

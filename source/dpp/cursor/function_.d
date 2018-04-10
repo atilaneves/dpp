@@ -12,10 +12,10 @@ string[] translateFunction(in from!"clang".Cursor cursor,
     import dpp.cursor.dlang: maybeRename, maybePragma;
     import dpp.cursor.aggregate: maybeRememberStructs;
     import dpp.type: translate;
-    import clang: Cursor, Language;
+    import clang: Cursor, Type, Language;
     import std.array: join, array;
     import std.conv: text;
-    import std.algorithm: endsWith;
+    import std.algorithm: any, endsWith;
     import std.typecons: Yes;
 
     assert(
@@ -24,6 +24,15 @@ string[] translateFunction(in from!"clang".Cursor cursor,
         cursor.kind == Cursor.Kind.Constructor ||
         cursor.kind == Cursor.Kind.Destructor
     );
+
+    /**
+       Ignore move constructors for now
+     */
+    if(cursor.kind == Cursor.Kind.Constructor) {
+        auto paramTypes = paramTypes(cursor);
+        if(paramTypes.any!(a => a.kind == Type.Kind.RValueReference))
+            return [];
+    }
 
     const indentation = context.indentation;
     context.log("Function return type (raw):        ", cursor.type.returnType);

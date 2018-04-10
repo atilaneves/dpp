@@ -6,6 +6,66 @@ module it.cpp.run;
 import it;
 
 @Tags("run")
+@("ctor")
+@safe unittest {
+    shouldCompileAndRun(
+        Cpp(
+            q{
+                struct Struct {
+                    void *data;
+
+                    Struct(int i);
+                    Struct(const Struct&);
+                    Struct(Struct&&);
+
+                    int number();
+                };
+            }
+        ),
+        Cpp(
+            `
+                #include <stdio.h>
+                Struct::Struct(int i) {
+                    printf("C++: int ctor\n");
+                    data = reinterpret_cast<int*>(new int(i));
+                }
+                Struct::Struct(const Struct& other) {
+                    printf("C++: copy ctor\n");
+                    data = new int(*reinterpret_cast<int*>(other.data));
+                }
+                Struct::Struct(Struct&& other) {
+                    printf("C++: move ctor\n");
+                    printf("other data: %p\n", other.data);
+                    printf("as int: %d\n", *((int*)other.data));
+                    data = new int(*reinterpret_cast<int*>(other.data));
+                }
+                int Struct::number() { return *reinterpret_cast<int*>(data); }
+            `
+        ),
+        D(
+            q{
+                import std.stdio;
+
+                writeln("D: Testing int ctor");
+                auto s1 = Struct(42);
+                assert(s1.number() == 42);
+                assert(*(cast(int*)s1.data) == 42);
+
+                writeln("D: Testing copy ctor");
+                auto s2 = Struct(s1);
+                assert(s2.number() == 42);
+                assert(s1.data !is s2.data);
+
+                // can't test the move ctor since translating it
+                // as taking by value would cause `Struct(s1)` above
+                // to actually move!
+            }
+         ),
+    );
+}
+
+
+@Tags("run")
 @("dtor")
 @safe unittest {
     shouldCompileAndRun(

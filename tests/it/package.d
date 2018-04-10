@@ -223,7 +223,7 @@ void shouldCompileAndRun(string file = __FILE__, size_t line = __LINE__)
 
         const compiler = "gcc";
 
-        shouldSucceed(compiler, "-c", "c.c");
+        shouldSucceed(compiler, "-g", "-c", "c.c");
 
         // take care of including the header and putting the D
         // code in a function
@@ -264,7 +264,7 @@ void shouldCompileAndRun(string file = __FILE__, size_t line = __LINE__)
             ? "g++"
             : "g++-7";
 
-        shouldSucceed(compiler, "-std=c++17", "-c", "cpp.cpp");
+        shouldSucceed(compiler, "-g", "-std=c++17", "-c", "cpp.cpp");
 
         // take care of including the header and putting the D
         // code in a function
@@ -275,7 +275,7 @@ void shouldCompileAndRun(string file = __FILE__, size_t line = __LINE__)
         runPreprocessOnly("app.dpp");
 
         try
-            shouldSucceed!(file, line)(["dmd", "app.d", "cpp.o"]);
+            shouldSucceed!(file, line)(["dmd", "app.d", "cpp.o", "-L-lstdc++"]);
         catch(Exception e)
             adjustMessage(e, ["app.d"]);
 
