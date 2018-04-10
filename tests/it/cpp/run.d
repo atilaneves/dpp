@@ -72,15 +72,15 @@ import it;
         Cpp(
             q{
                 struct Struct {
+                    static int numStructs;
                     Struct(int i);
                     ~Struct();
                 };
-                extern int numStructs;
             }
         ),
         Cpp(
             q{
-                int numStructs;
+                int Struct::numStructs;
                 // the i parameter is to force D to call a constructor,
                 // since Struct() just blasts it with Struct.init
                 Struct::Struct(int i)  { numStructs += i; }
@@ -90,20 +90,20 @@ import it;
         D(
             q{
                 import std.conv: text;
-                assert(numStructs == 0, numStructs.text);
+                assert(Struct.numStructs == 0, Struct.numStructs.text);
                 {
                     auto s1 = Struct(3);
-                    assert(numStructs == 3, numStructs.text);
+                    assert(Struct.numStructs == 3, Struct.numStructs.text);
 
                     {
                         auto s2 = Struct(2);
-                        assert(numStructs == 5, numStructs.text);
+                        assert(Struct.numStructs == 5, Struct.numStructs.text);
                     }
 
-                    assert(numStructs == 4, numStructs.text);
+                    assert(Struct.numStructs == 4, Struct.numStructs.text);
                 }
 
-                assert(numStructs == 3, numStructs.text);
+                assert(Struct.numStructs == 3, Struct.numStructs.text);
             }
          ),
     );

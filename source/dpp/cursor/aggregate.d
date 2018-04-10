@@ -129,7 +129,8 @@ string[] translateAggregate(
             !member.isDefinition &&
             member.kind != Cursor.Kind.CXXMethod &&
             member.kind != Cursor.Kind.Constructor &&
-            member.kind != Cursor.Kind.Destructor;
+            member.kind != Cursor.Kind.Destructor &&
+            member.kind != Cursor.Kind.VarDecl;
     }
 
     foreach(member; cursor.children) {
@@ -145,6 +146,7 @@ string[] translateAggregate(
         if(!member.isBitField && lastMemberWasBitField) finishBitFields;
 
         if(skipMember(member)) continue;
+
         lines ~= translate(member, context).map!(a => "    " ~ a).array;
 
         lastMemberWasBitField = member.isBitField;

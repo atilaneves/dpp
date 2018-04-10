@@ -9,12 +9,13 @@ string[] translateVariable(in from!"clang".Cursor cursor,
     import dpp.cursor.dlang: maybeRename, maybePragma;
     import dpp.cursor.translation: translateCursor = translate;
     import dpp.type: translateType = translate;
-    import clang: Cursor;
+    import clang: Cursor, Type;
     import std.conv: text;
     import std.typecons: No;
     import std.algorithm: canFind;
 
     assert(cursor.kind == Cursor.Kind.VarDecl);
+
     string[] ret;
 
     const isAnonymous = cursor.type.spelling.canFind("(anonymous");
@@ -37,9 +38,14 @@ string[] translateVariable(in from!"clang".Cursor cursor,
 
     const spelling = context.rememberLinkable(cursor);
 
+    // global variable or static member of a struct/class?
+    const static_ = cursor.semanticParent.type.canonical.kind == Type.Kind.Record
+        ? "static  "
+        : "";
+
     ret ~=
         maybePragma(cursor, context) ~
-        text("extern __gshared ",
+        text("extern __gshared ", static_,
              translateType(cursor.type, context, No.translatingFunction), " ", spelling, ";")
     ;
 
