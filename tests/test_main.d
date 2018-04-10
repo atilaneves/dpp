@@ -30,6 +30,7 @@ int main(string[] args) {
         // tests copied from dstep
         "it.c.dstep.ut",
         "it.c.dstep.functional",
+        "it.c.dstep.issues",
 
         // C++ tests
         "it.cpp.run",
