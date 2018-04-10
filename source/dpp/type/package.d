@@ -187,9 +187,11 @@ private string translatePointer(in from!"clang".Type type,
     const translateCanonical = type.pointee.kind == Type.Kind.Unexposed;
     context.log("Translate canonical? ", translateCanonical);
 
+    const indentation = context.indentation;
     const rawType = translateCanonical
-        ? translate(type.pointee.canonical, context)
-        : translate(*type.pointee, context);
+        ? translate(type.pointee.canonical, context.indent)
+        : translate(*type.pointee, context.indent);
+    context.setIndentation(indentation);
 
     context.log("Raw type: ", rawType);
 
