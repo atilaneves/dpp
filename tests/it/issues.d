@@ -182,8 +182,8 @@ import it;
 }
 
 
-@Tags("issue", "collision")
-@("24")
+@Tags("issue", "collision", "issue24")
+@("24.1")
 @safe unittest {
     shouldCompile(
         C(
@@ -196,6 +196,31 @@ import it;
         ),
         D(
             q{
+            }
+        ),
+    );
+}
+
+@ShouldFail
+@Tags("issue", "collision", "issue24")
+@("24.2")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                int foo(int, struct foo_data**);
+                struct foo { int dummy; };
+                struct foo_data { int dummy; };
+            }
+        ),
+        D(
+            q{
+                foo_data** data;
+                int ret = foo_(42, data);
+                foo s;
+                s.dummy = 33;
+                foo_data fd;
+                fd.dummy = 77;
             }
         ),
     );

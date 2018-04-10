@@ -252,7 +252,7 @@ struct Context {
 private void resolveClash(ref string line, in string spelling, in string mangling) @safe pure {
     import dpp.cursor.dlang: pragmaMangle, rename;
     import std.string: replace;
-    line = pragmaMangle(mangling) ~ line.replace(spelling, rename(spelling));
+    line = `    ` ~ pragmaMangle(mangling) ~ line.replace(spelling, rename(spelling));
 }
 
 
