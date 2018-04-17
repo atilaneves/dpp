@@ -331,7 +331,7 @@ import it;
         D(
             q{
                 vec3d_t v;
-                //static assert(v.sizeof == 24);
+                static assert(v.sizeof == 24);
                 v.raw[1] = 3.0;
                 v.y = 4.0;
             }

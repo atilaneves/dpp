@@ -110,8 +110,8 @@ string[] translateAggregate(
     @safe
 {
     import dpp.cursor.translation: translate;
-    import clang: Cursor;
-    import std.algorithm: map, any;
+    import clang: Cursor, Type;
+    import std.algorithm: map;
     import std.array: array;
     import std.conv: text;
 
@@ -119,7 +119,10 @@ string[] translateAggregate(
     context.rememberAggregate(cursor);
 
     const name = spelling.isNull ? context.spellingOrNickname(cursor) : spelling.get;
-    const firstLine = dKeyword ~ ` ` ~ name;
+    const realDlangKeyword = cursor.semanticParent.type.canonical.kind == Type.Kind.Record
+        ? "static " ~ dKeyword
+        : dKeyword;
+    const firstLine = realDlangKeyword ~ ` ` ~ name;
 
     if(!cursor.isDefinition) return [firstLine ~ `;`];
 
