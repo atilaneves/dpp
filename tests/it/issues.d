@@ -1,7 +1,7 @@
 /**
    Github issues.
  */
-module issues;
+module it.issues;
 
 import it;
 
