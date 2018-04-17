@@ -277,16 +277,25 @@ string[] translateField(in from!"clang".Cursor field,
     const type = translate(field.type, context, No.translatingFunction);
 
     return field.isBitField
-        ? [text("    ", type, `, "`, maybeRename(field, context), `", `, field.bitWidth, `,`)]
+        ? translateBitField(field, context, type)
         : [text(type, " ", maybeRename(field, context), ";")];
 }
 
-// string[] translateBitField(in from!"clang".Cursor cursor,
-//                            ref from!"dpp.runtime.context".Context context)
-//     @safe
-// {
-//     import std.conv: text;
-// }
+string[] translateBitField(in from!"clang".Cursor cursor,
+                           ref from!"dpp.runtime.context".Context context,
+                           in string type)
+    @safe
+{
+    import dpp.cursor.dlang: maybeRename;
+    import std.conv: text;
+
+    auto spelling = maybeRename(cursor, context);
+    // std.bitmanip.bitfield can't handle successive mixins with
+    // no name. See issue #35.
+    if(spelling == "") spelling = context.newAnonymousMemberName;
+
+    return [text("    ", type, `, "`, spelling, `", `, cursor.bitWidth, `,`)];
+}
 
 private void maybeRememberStructsFromType(in from!"clang".Type type,
                                           ref from!"dpp.runtime.context".Context context)

@@ -472,14 +472,15 @@ import it;
                     int bar;
                     int :32;
                     int :31;
-                    int :2;
+                    int :3;
+                    int :27;
                 };
             }
         ),
         D(
             q{
                 Struct s;
-                static assert(s.sizeof == 5 * int.sizeof);
+                static assert(s.sizeof == 20);
             }
         ),
     );
