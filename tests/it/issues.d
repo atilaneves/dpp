@@ -93,7 +93,7 @@ import it;
 }
 
 
-@Tags("issue")
+@Tags("issue", "bitfield")
 @("7")
 @safe unittest {
     shouldCompile(
@@ -455,6 +455,32 @@ import it;
                 static extern(C) int func() { return 42; }
                 f = &func;
                 int i = f();
+            }
+        ),
+    );
+}
+
+
+@Tags("issue", "bitfield")
+@("35")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                struct Struct {
+                    int foo;
+                    int bar;
+                    int :32;
+                    int :31;
+                    int :3;
+                    int :27;
+                };
+            }
+        ),
+        D(
+            q{
+                Struct s;
+                static assert(s.sizeof == 20);
             }
         ),
     );

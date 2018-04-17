@@ -7,6 +7,8 @@ import dpp.from;
 import std.range: isInputRange;
 
 
+enum MAX_BITFIELD_WIDTH = 64;
+
 string[] translateStruct(in from!"clang".Cursor cursor,
                          ref from!"dpp.runtime.context".Context context)
     @safe
@@ -99,6 +101,80 @@ string[] translateAggregate(
     return translateAggregate(context, cursor, keyword, keyword, spelling);
 }
 
+private struct BitFieldInfo {
+
+    import clang: Cursor;
+
+    /// if the last seen member was a bitfield
+    bool lastMemberWasBitField;
+    /// the combined (summed) bitwidths of the bitfields members seen so far
+    int totalBitWidth;
+
+    string[] header(in Cursor cursor) @safe nothrow {
+        import std.algorithm: any;
+
+        if(cursor.children.any!(a => a.isBitField)) {
+            // The align(4) is to mimic C. There, `struct Foo { int f1: 2; int f2: 3}`
+            // would have sizeof 4, where as the corresponding bit fields in D would have
+            // size 1. So we correct here. See issue #7.
+            return [`    import std.bitmanip: bitfields;`, ``, `    align(4):`];
+        } else
+            return [];
+
+    }
+
+    string[] handle(in Cursor member) @safe pure nothrow {
+
+        string[] lines;
+
+        if(member.isBitField && !lastMemberWasBitField)
+            lines ~= `    mixin(bitfields!(`;
+
+        if(!member.isBitField && lastMemberWasBitField) lines ~= finishBitFields;
+
+        if(member.isBitField && totalBitWidth + member.bitWidth > MAX_BITFIELD_WIDTH) {
+            lines ~= finishBitFields;
+            lines ~= `    mixin(bitfields!(`;
+        }
+
+        return lines;
+    }
+
+    void update(in Cursor member) @safe pure nothrow {
+        lastMemberWasBitField = member.isBitField;
+        if(member.isBitField) totalBitWidth += member.bitWidth;
+    }
+
+    string[] finish() @safe pure nothrow {
+        return lastMemberWasBitField ? finishBitFields : [];
+    }
+
+    private string[] finishBitFields() @safe pure nothrow {
+        import std.conv: text;
+
+
+        int padding(in int totalBitWidth) {
+
+            for(int powerOfTwo = 8; powerOfTwo <= MAX_BITFIELD_WIDTH; powerOfTwo *= 2) {
+                if(powerOfTwo >= totalBitWidth) return powerOfTwo - totalBitWidth;
+            }
+
+            assert(0, text("Could not find powerOfTwo for width ", totalBitWidth));
+        }
+
+        const paddingBits = padding(totalBitWidth);
+
+        string[] lines;
+        if(paddingBits) lines ~= text(`        uint, "", `, padding(totalBitWidth));
+        lines ~= `    ));`;
+
+        totalBitWidth = 0;
+
+        return lines;
+    }
+
+}
+
 // not pure due to Cursor.opApply not being pure
 string[] translateAggregate(
     ref from!"dpp.runtime.context".Context context,
@@ -113,7 +189,6 @@ string[] translateAggregate(
     import clang: Cursor, Type;
     import std.algorithm: map;
     import std.array: array;
-    import std.conv: text;
 
     // remember all aggregate declarations
     context.rememberAggregate(cursor);
@@ -132,12 +207,9 @@ string[] translateAggregate(
 
     if(cKeyword == "class") lines ~= "private:";
 
-    lines ~= maybeBitFieldHeader(cursor);
+    BitFieldInfo bitFieldInfo;
 
-    // if the last seen member was a bitfield
-    bool lastMemberWasBitField = false;
-    // the combined (summed) bitwidths of the bitfields members seen so far
-    int totalBitWidth = 0;
+    lines ~= bitFieldInfo.header(cursor);
 
     context.log("Children: ", cursor.children);
 
@@ -148,39 +220,25 @@ string[] translateAggregate(
             continue;
         }
 
-        if(member.isBitField && !lastMemberWasBitField)
-            lines ~= `    mixin(bitfields!(`;
-
-        if(!member.isBitField && lastMemberWasBitField) lines ~= finishBitFields(totalBitWidth);
+        lines ~= bitFieldInfo.handle(member);
 
         if(skipMember(member)) continue;
 
         lines ~= translate(member, context).map!(a => "    " ~ a).array;
-        // Deal with C11 anonymous structs/unions. See issue #29.
-        lines ~= handleC11AnonymousRecords(cursor, member, context);
 
-        lastMemberWasBitField = member.isBitField;
-        if(member.isBitField) totalBitWidth += member.bitWidth;
+        // Possibly deal with C11 anonymous structs/unions. See issue #29.
+        lines ~= maybeC11AnonymousRecords(cursor, member, context);
+
+        bitFieldInfo.update(member);
     }
 
-    if(lastMemberWasBitField) lines ~= finishBitFields(totalBitWidth);
+    lines ~= bitFieldInfo.finish;
 
     lines ~= `}`;
 
     return lines;
 }
 
-private string[] maybeBitFieldHeader(in from!"clang".Cursor cursor) @safe nothrow {
-    import std.algorithm: any;
-
-    if(cursor.children.any!(a => a.isBitField)) {
-        // The align(4) is to mimic C. There, `struct Foo { int f1: 2; int f2: 3}`
-        // would have sizeof 4, where as the corresponding bit fields in D would have
-        // size 1. So we correct here. See issue #7.
-        return [`    import std.bitmanip: bitfields;`, ``, `    align(4):`];
-    } else
-        return [];
-}
 
 private bool skipMember(in from!"clang".Cursor member) @safe @nogc pure nothrow {
     import clang: Cursor;
@@ -191,24 +249,6 @@ private bool skipMember(in from!"clang".Cursor member) @safe @nogc pure nothrow 
         member.kind != Cursor.Kind.Destructor &&
         member.kind != Cursor.Kind.VarDecl &&
         member.kind != Cursor.Kind.CXXBaseSpecifier;
-}
-
-private string[] finishBitFields(scope ref int totalBitWidth) @safe pure nothrow {
-    import std.conv: text;
-    string[] lines;
-    lines ~= text(`        uint, "", `, padding(totalBitWidth));
-    lines ~= `    ));`;
-    totalBitWidth = 0;
-    return lines;
-}
-
-
-private int padding(in int totalBitWidth) @safe @nogc pure nothrow {
-    for(int powerOfTwo = 8; powerOfTwo < 64; powerOfTwo *= 2) {
-        if(powerOfTwo > totalBitWidth) return powerOfTwo - totalBitWidth;
-    }
-
-    assert(0);
 }
 
 
@@ -237,10 +277,25 @@ string[] translateField(in from!"clang".Cursor field,
     const type = translate(field.type, context, No.translatingFunction);
 
     return field.isBitField
-        ? [text("    ", type, `, "`, maybeRename(field, context), `", `, field.bitWidth, `,`)]
+        ? translateBitField(field, context, type)
         : [text(type, " ", maybeRename(field, context), ";")];
 }
 
+string[] translateBitField(in from!"clang".Cursor cursor,
+                           ref from!"dpp.runtime.context".Context context,
+                           in string type)
+    @safe
+{
+    import dpp.cursor.dlang: maybeRename;
+    import std.conv: text;
+
+    auto spelling = maybeRename(cursor, context);
+    // std.bitmanip.bitfield can't handle successive mixins with
+    // no name. See issue #35.
+    if(spelling == "") spelling = context.newAnonymousMemberName;
+
+    return [text("    ", type, `, "`, spelling, `", `, cursor.bitWidth, `,`)];
+}
 
 private void maybeRememberStructsFromType(in from!"clang".Type type,
                                           ref from!"dpp.runtime.context".Context context)
@@ -299,9 +354,9 @@ package bool isAggregateC(in from!"clang".Cursor cursor) @safe @nogc pure nothro
 }
 
 
-private string[] handleC11AnonymousRecords(in from!"clang".Cursor cursor,
-                                           in from!"clang".Cursor member,
-                                           ref from!"dpp.runtime.context".Context context)
+private string[] maybeC11AnonymousRecords(in from!"clang".Cursor cursor,
+                                          in from!"clang".Cursor member,
+                                          ref from!"dpp.runtime.context".Context context)
     @safe
 
 {
