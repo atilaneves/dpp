@@ -7,6 +7,8 @@ import dpp.from;
 import std.range: isInputRange;
 
 
+enum MAX_BITFIELD_WIDTH = 64;
+
 string[] translateStruct(in from!"clang".Cursor cursor,
                          ref from!"dpp.runtime.context".Context context)
     @safe
@@ -161,6 +163,12 @@ string[] translateAggregate(
 
         lastMemberWasBitField = member.isBitField;
         if(member.isBitField) totalBitWidth += member.bitWidth;
+
+        // std.bitmanip.bitfields can only handle up to 64 bits
+        if(totalBitWidth >= MAX_BITFIELD_WIDTH) {
+            lines ~= finishBitFields(totalBitWidth);
+            lastMemberWasBitField = false;
+        }
     }
 
     if(lastMemberWasBitField) lines ~= finishBitFields(totalBitWidth);
@@ -195,20 +203,28 @@ private bool skipMember(in from!"clang".Cursor member) @safe @nogc pure nothrow 
 
 private string[] finishBitFields(scope ref int totalBitWidth) @safe pure nothrow {
     import std.conv: text;
-    string[] lines;
-    lines ~= text(`        uint, "", `, padding(totalBitWidth));
-    lines ~= `    ));`;
-    totalBitWidth = 0;
-    return lines;
-}
 
 
-private int padding(in int totalBitWidth) @safe @nogc pure nothrow {
-    for(int powerOfTwo = 8; powerOfTwo < 64; powerOfTwo *= 2) {
-        if(powerOfTwo > totalBitWidth) return powerOfTwo - totalBitWidth;
+    int padding(in int totalBitWidth) {
+
+        if(totalBitWidth == MAX_BITFIELD_WIDTH) return 0;
+
+        for(int powerOfTwo = 8; powerOfTwo < MAX_BITFIELD_WIDTH; powerOfTwo *= 2) {
+            if(powerOfTwo >= totalBitWidth) return powerOfTwo - totalBitWidth;
+        }
+
+        assert(0, text("Could not find powerOfTwo for width ", totalBitWidth));
     }
 
-    assert(0);
+    const paddingBits = padding(totalBitWidth);
+
+    string[] lines;
+    if(paddingBits) lines ~= text(`        uint, "", `, padding(totalBitWidth));
+    lines ~= `    ));`;
+
+    totalBitWidth = 0;
+
+    return lines;
 }
 
 
@@ -241,6 +257,12 @@ string[] translateField(in from!"clang".Cursor field,
         : [text(type, " ", maybeRename(field, context), ";")];
 }
 
+// string[] translateBitField(in from!"clang".Cursor cursor,
+//                            ref from!"dpp.runtime.context".Context context)
+//     @safe
+// {
+//     import std.conv: text;
+// }
 
 private void maybeRememberStructsFromType(in from!"clang".Type type,
                                           ref from!"dpp.runtime.context".Context context)
