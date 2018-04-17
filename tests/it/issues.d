@@ -182,7 +182,7 @@ import it;
 }
 
 @Tags("issue", "preprocessor")
-@("22.1")
+@("22.0")
 @safe unittest {
     shouldCompile(
         C(
@@ -208,7 +208,7 @@ import it;
 }
 
 @Tags("issue", "preprocessor")
-@("22.2")
+@("22.1")
 @safe unittest {
     shouldCompile(
         C(
@@ -267,7 +267,7 @@ import it;
 
 
 @Tags("issue", "collision", "issue24")
-@("24.1")
+@("24.0")
 @safe unittest {
     shouldCompile(
         C(
@@ -286,7 +286,7 @@ import it;
 }
 
 @Tags("issue", "collision", "issue24")
-@("24.2")
+@("24.1")
 @safe unittest {
     shouldCompile(
         C(
@@ -311,7 +311,119 @@ import it;
 
 
 @Tags("issue")
-@("33.1")
+@("29.0")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                typedef struct {
+                    union {
+                        struct {
+                            double x;
+                            double y;
+                            double z;
+                        };
+                        double raw[3];
+                    };
+                } vec3d_t;
+            }
+        ),
+        D(
+            q{
+                vec3d_t v;
+                //static assert(v.sizeof == 24);
+                v.raw[1] = 3.0;
+                v.y = 4.0;
+            }
+        ),
+    );
+}
+
+@Tags("issue")
+@("29.1")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                typedef struct {
+                    struct {
+                        int x;
+                        int y;
+                    };
+
+                    struct {
+                        int z;
+                    };
+                } Struct;
+            }
+        ),
+        D(
+            q{
+                Struct s;
+                s.x = 2;
+                s.y = 3;
+                s.z = 4;
+            }
+        ),
+    );
+}
+
+@Tags("issue")
+@("29.2")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                struct Struct {
+                    union {
+                        unsigned long long int foo;
+                        struct {
+                            unsigned int low;
+                            unsigned int high;
+                        } foo32;
+                    };
+                };
+            }
+        ),
+        D(
+            q{
+                Struct s;
+                s.foo = 42;
+                s.foo32.low = 33;
+                s.foo32.high = 77;
+            }
+        ),
+    );
+}
+
+
+@Tags("issue")
+@("29.3")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                struct Struct {
+                    union {
+                        unsigned long long int foo;
+                        void *bar;
+                    };
+                };
+            }
+        ),
+        D(
+            q{
+                Struct s;
+                s.foo = 42;
+                s.bar = null;
+            }
+        ),
+    );
+}
+
+
+@Tags("issue")
+@("33.0")
 @safe unittest {
     shouldCompile(
         C(
@@ -330,7 +442,7 @@ import it;
 }
 
 @Tags("issue")
-@("33.2")
+@("33.1")
 @safe unittest {
     shouldCompile(
         C(

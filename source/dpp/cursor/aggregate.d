@@ -129,33 +129,12 @@ string[] translateAggregate(
 
     if(cKeyword == "class") lines ~= "private:";
 
-    if(cursor.children.any!(a => a.isBitField)) {
-        // The align(4) is to mimic C. There, `struct Foo { int f1: 2; int f2: 3}`
-        // would have sizeof 4, where as the corresponding bit fields in D would have
-        // size 1. So we correct here. See issue #7.
-        lines ~= [`    import std.bitmanip: bitfields;`, ``, `    align(4):`];
-    }
+    lines ~= maybeBitFieldHeader(cursor);
 
     // if the last seen member was a bitfield
     bool lastMemberWasBitField = false;
     // the combined (summed) bitwidths of the bitfields members seen so far
     int totalBitWidth = 0;
-
-    void finishBitFields() {
-        lines ~= text(`        uint, "", `, padding(totalBitWidth));
-        lines ~= `    ));`;
-        totalBitWidth = 0;
-    }
-
-    bool skipMember(in Cursor member) {
-        return
-            !member.isDefinition &&
-            member.kind != Cursor.Kind.CXXMethod &&
-            member.kind != Cursor.Kind.Constructor &&
-            member.kind != Cursor.Kind.Destructor &&
-            member.kind != Cursor.Kind.VarDecl &&
-            member.kind != Cursor.Kind.CXXBaseSpecifier;
-    }
 
     context.log("Children: ", cursor.children);
 
@@ -169,22 +148,57 @@ string[] translateAggregate(
         if(member.isBitField && !lastMemberWasBitField)
             lines ~= `    mixin(bitfields!(`;
 
-        if(!member.isBitField && lastMemberWasBitField) finishBitFields;
+        if(!member.isBitField && lastMemberWasBitField) lines ~= finishBitFields(totalBitWidth);
 
         if(skipMember(member)) continue;
 
         lines ~= translate(member, context).map!(a => "    " ~ a).array;
+        // Deal with C11 anonymous structs/unions. See issue #29.
+        lines ~= handleC11AnonymousRecords(cursor, member, context);
 
         lastMemberWasBitField = member.isBitField;
         if(member.isBitField) totalBitWidth += member.bitWidth;
     }
 
-    if(lastMemberWasBitField) finishBitFields;
+    if(lastMemberWasBitField) lines ~= finishBitFields(totalBitWidth);
 
     lines ~= `}`;
 
     return lines;
 }
+
+private string[] maybeBitFieldHeader(in from!"clang".Cursor cursor) @safe nothrow {
+    import std.algorithm: any;
+
+    if(cursor.children.any!(a => a.isBitField)) {
+        // The align(4) is to mimic C. There, `struct Foo { int f1: 2; int f2: 3}`
+        // would have sizeof 4, where as the corresponding bit fields in D would have
+        // size 1. So we correct here. See issue #7.
+        return [`    import std.bitmanip: bitfields;`, ``, `    align(4):`];
+    } else
+        return [];
+}
+
+private bool skipMember(in from!"clang".Cursor member) @safe @nogc pure nothrow {
+    import clang: Cursor;
+    return
+        !member.isDefinition &&
+        member.kind != Cursor.Kind.CXXMethod &&
+        member.kind != Cursor.Kind.Constructor &&
+        member.kind != Cursor.Kind.Destructor &&
+        member.kind != Cursor.Kind.VarDecl &&
+        member.kind != Cursor.Kind.CXXBaseSpecifier;
+}
+
+private string[] finishBitFields(scope ref int totalBitWidth) @safe pure nothrow {
+    import std.conv: text;
+    string[] lines;
+    lines ~= text(`        uint, "", `, padding(totalBitWidth));
+    lines ~= `    ));`;
+    totalBitWidth = 0;
+    return lines;
+}
+
 
 private int padding(in int totalBitWidth) @safe @nogc pure nothrow {
     for(int powerOfTwo = 8; powerOfTwo < 64; powerOfTwo *= 2) {
@@ -279,4 +293,75 @@ package bool isAggregateC(in from!"clang".Cursor cursor) @safe @nogc pure nothro
         cursor.kind == Cursor.Kind.StructDecl ||
         cursor.kind == Cursor.Kind.UnionDecl ||
         cursor.kind == Cursor.Kind.EnumDecl;
+}
+
+
+private string[] handleC11AnonymousRecords(in from!"clang".Cursor cursor,
+                                           in from!"clang".Cursor member,
+                                           ref from!"dpp.runtime.context".Context context)
+    @safe
+
+{
+    import dpp.type: translate, hasAnonymousSpelling;
+    import clang: Cursor, Type;
+    import std.algorithm: any, filter;
+
+    if(member.type.kind != Type.Kind.Record || member.spelling != "") return [];
+
+    // Either a field or an array of the type we expect
+    bool isFieldOfRightType(in Cursor member, in Cursor child) {
+        const isField =
+            child.kind == Cursor.Kind.FieldDecl &&
+            child.type.canonical == member.type.canonical;
+
+        const isArrayOf = child.type.elementType.canonical == member.type.canonical;
+        return isField || isArrayOf;
+    }
+
+    // Check if the parent cursor has any fields have this type.
+    // If so, we don't need to declare a dummy variable.
+    const anyFields = cursor.children.any!(a => isFieldOfRightType(member, a));
+    if(anyFields) return [];
+
+    string[] lines;
+    const varName = context.newAnonymousMemberName;
+
+    //lines ~= "    " ~ translate(member.type, context) ~ " " ~  varName ~ ";";
+    const dtype = translate(member.type, context);
+    lines ~= "    " ~ dtype ~ " " ~  varName ~ ";";
+
+    foreach(subMember; member.children) {
+        if(subMember.kind == Cursor.Kind.FieldDecl)
+            lines ~= innerFieldAccessors(varName, subMember);
+        else if(subMember.type.canonical.kind == Type.Kind.Record &&
+                hasAnonymousSpelling(subMember.type.canonical) &&
+                !member.children.any!(a => isFieldOfRightType(subMember, a))) {
+            foreach(subSubMember; subMember) {
+                lines ~= "        " ~ innerFieldAccessors(varName, subSubMember);
+            }
+        }
+    }
+
+    return lines;
+}
+
+
+// functions to emulate C11 anonymous structs/unions
+private string[] innerFieldAccessors(in string varName, in from !"clang".Cursor subMember) @safe {
+    import std.format: format;
+    import std.algorithm: map;
+    import std.array: array;
+
+    string[] lines;
+
+    const fieldAccess = varName ~ "." ~ subMember.spelling;
+    const funcName = subMember.spelling;
+
+    lines ~= q{auto %s() @property @nogc pure nothrow { return %s; }}
+        .format(funcName, fieldAccess);
+
+    lines ~= q{void %s(_T_)(auto ref _T_ val) @property @nogc pure nothrow { %s = val; }}
+        .format(funcName, fieldAccess);
+
+    return lines.map!(a => "    " ~ a).array;
 }

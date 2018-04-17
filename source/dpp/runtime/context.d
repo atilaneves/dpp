@@ -234,7 +234,7 @@ struct Context {
 
     private string nickName(in Cursor cursor) @safe pure {
         if(cursor.hash !in cursorNickNames) {
-            auto nick = newAnonymousName;
+            auto nick = newAnonymousTypeName;
             nickNames ~= nick;
             cursorNickNames[cursor.hash] = nick;
         }
@@ -242,10 +242,15 @@ struct Context {
         return cursorNickNames[cursor.hash];
     }
 
-    private string newAnonymousName() @safe pure {
+    private string newAnonymousTypeName() @safe pure {
         import std.conv: text;
         import core.atomic: atomicOp;
         return text("_Anonymous_", anonymousIndex++);
+    }
+
+    string newAnonymousMemberName() @safe pure {
+        import std.string: replace;
+        return newAnonymousTypeName.replace("_A", "_a");
     }
 
     private void resolveClash(ref string line, in string spelling, in string mangling) @safe pure const {

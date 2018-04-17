@@ -104,10 +104,9 @@ private string translateAggregate(in from!"clang".Type type,
 
     // if it's anonymous, find the nickname, otherwise return the spelling
     string spelling() {
-        import std.algorithm: canFind;
         // clang names anonymous types with a long name indicating where the type
         // was declared
-        return type.spelling.canFind("(anonymous") ? context.popLastNickName : type.spelling;
+        return hasAnonymousSpelling(type) ? context.popLastNickName : type.spelling;
     }
 
     return addModifiers(type, spelling)
@@ -282,4 +281,9 @@ private string addModifiers(in from!"clang".Type type, in string translation) @s
     return type.isConstQualified
         ? `const(` ~  realTranslation ~ `)`
         : realTranslation;
+}
+
+bool hasAnonymousSpelling(in from!"clang".Type type) @safe pure nothrow {
+    import std.algorithm: canFind;
+    return type.spelling.canFind("(anonymous");
 }
