@@ -470,9 +470,9 @@ import it;
                 struct Struct {
                     int foo;
                     int bar;
-                    int pad0:32;
-                    int pad1:31;
-                    int pad2:2;
+                    int :32;
+                    int :31;
+                    int :2;
                 };
             }
         ),
