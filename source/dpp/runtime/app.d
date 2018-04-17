@@ -111,5 +111,17 @@ private string preamble() @safe pure {
         #define __gnuc_va_list va_list
         alias _Bool = bool;
 
+        struct dpp {
+
+            static struct Move(T) {
+                T value;
+            }
+
+            // FIXME - crashes if T is passed by value (which we want)
+            static auto move(T)(ref T value) {
+                return Move!T(value);
+            }
+        }
+
     }.replace("        ", "").splitLines.filter!(a => a != "").join("\n");
 }

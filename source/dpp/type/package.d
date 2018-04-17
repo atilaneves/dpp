@@ -254,7 +254,8 @@ private string translateRvalueRef(in from!"clang".Type type,
                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
     @safe pure
 {
-    return translate(*type.canonical.pointee, context, translatingFunction);
+    const dtype = translate(*type.canonical.pointee, context, translatingFunction);
+    return `dpp.Move!(` ~ dtype ~ `)`;
 }
 
 

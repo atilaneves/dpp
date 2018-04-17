@@ -25,11 +25,19 @@ string[] translateFunction(in from!"clang".Cursor cursor,
         cursor.kind == Cursor.Kind.Destructor
     );
 
-    // FIXME: Ignore move constructors for now
+
+    // special case for the move constructor
     if(cursor.kind == Cursor.Kind.Constructor) {
-        auto paramTypes = paramTypes(cursor);
-        if(paramTypes.any!(a => a.kind == Type.Kind.RValueReference))
-            return [];
+        auto paramTypes = () @trusted {  return paramTypes(cursor).array; }();
+        if(paramTypes.length == 1 && paramTypes[0].kind == Type.Kind.RValueReference) {
+            context.log("*** type: ", paramTypes[0]);
+            return [
+                maybePragma(cursor, context) ~ " this(" ~ translate(*paramTypes[0].pointee, context) ~ "*);",
+                "this(" ~ translate(paramTypes[0], context) ~ " wrapper) {",
+                "    this(&wrapper.value);",
+                "}",
+            ];
+        }
     }
 
     const indentation = context.indentation;

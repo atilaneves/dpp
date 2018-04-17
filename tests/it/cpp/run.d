@@ -26,18 +26,30 @@ import it;
             `
                 #include <stdio.h>
                 Struct::Struct(int i) {
+                    printf("----------------------------------------\n");
                     printf("C++: int ctor\n");
+                    printf("this: %p\n", this);
                     data = reinterpret_cast<int*>(new int(i));
+                    printf("data: %p\n", data);
+                    printf("----------------------------------------\n");
                 }
                 Struct::Struct(const Struct& other) {
+                    printf("----------------------------------------\n");
                     printf("C++: copy ctor\n");
+                    printf("this: %p\n", this);
                     data = new int(*reinterpret_cast<int*>(other.data));
+                    printf("data: %p\n", data);
+                    printf("----------------------------------------\n");
                 }
                 Struct::Struct(Struct&& other) {
+                    printf("----------------------------------------\n");
                     printf("C++: move ctor\n");
+                    printf("other ptr: %p\n", &other);
                     printf("other data: %p\n", other.data);
                     printf("as int: %d\n", *((int*)other.data));
                     data = new int(*reinterpret_cast<int*>(other.data));
+                    printf("data: %p\n", data);
+                    printf("----------------------------------------\n");
                 }
                 int Struct::number() const { return *reinterpret_cast<int*>(data); }
             `
@@ -56,12 +68,11 @@ import it;
                 assert(s2.number() == 42);
                 assert(s1.data !is s2.data);
 
-                // can't test the move ctor since translating it
-                // as taking by value would cause `Struct(s1)` above
-                // to actually move!
-                // writeln("D: Testing move ctor");
-                // auto s3 = Struct(Struct(33));
-                // assert(s3.number() == 33);
+                writeln("D: Testing move ctor");
+                // FIXME - shouldn't need tmp but crashes without it
+                auto tmp = Struct(33);
+                auto s3 = Struct(dpp.move(tmp));
+                assert(s3.number() == 33);
             }
          ),
     );
