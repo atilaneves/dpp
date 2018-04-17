@@ -93,7 +93,7 @@ import it;
 }
 
 
-@Tags("issue")
+@Tags("issue", "bitfield")
 @("7")
 @safe unittest {
     shouldCompile(
@@ -461,47 +461,25 @@ import it;
 }
 
 
-@Tags("issue")
+@Tags("issue", "bitfield")
 @("35")
 @safe unittest {
     shouldCompile(
         C(
             q{
-                struct timeval { long long int tv_sec; long long int tv_usec; };
-                struct timex {
-                    int i;
-                    unsigned int modes;	/* mode selector */
-                    long int offset;	/* time offset (usec) */
-                    long int freq;	/* frequency offset (scaled ppm) */
-                    long int maxerror;	/* maximum error (usec) */
-                    long int esterror;	/* estimated error (usec) */
-                    int status;		/* clock command/status */
-                    long int constant;	/* pll time constant */
-                    long int precision;	/* clock precision (usec) (read only) */
-                    long int tolerance;	/* clock frequency tolerance (ppm) (read only) */
-                    struct timeval time;	/* (read only) */
-                    long int tick;	/* (modified) usecs between clock ticks */
-
-                    long int ppsfreq;	/* pps frequency (scaled ppm) (ro) */
-                    long int jitter;	/* pps jitter (us) (ro) */
-                    int shift;		/* interval duration (s) (shift) (ro) */
-                    long int stabil;	/* pps stability (scaled ppm) (ro) */
-                    long int jitcnt;	/* jitter limit exceeded (ro) */
-                    long int calcnt;	/* calibration intervals (ro) */
-                    long int errcnt;	/* calibration errors (ro) */
-                    long int stbcnt;	/* stability limit exceeded (ro) */
-
-                    int tai;		/* TAI offset (ro) */
-
-                    /* ??? */
-                    int  foo0:32; int  foo1:32; int  foo2:32; int  foo3:32;
-                    int  foo4:32; int  foo5:32; int  foo6:32; int  foo7:32;
-                    int  foo8:32; int  foo9:32; int  foo10:32;
+                struct Struct {
+                    int foo;
+                    int bar;
+                    int pad0:32;
+                    int pad1:31;
+                    int pad2:2;
                 };
             }
         ),
         D(
             q{
+                Struct s;
+                static assert(s.sizeof == 5 * int.sizeof);
             }
         ),
     );

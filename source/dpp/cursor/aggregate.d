@@ -155,20 +155,20 @@ string[] translateAggregate(
 
         if(!member.isBitField && lastMemberWasBitField) lines ~= finishBitFields(totalBitWidth);
 
+        if(member.isBitField && totalBitWidth + member.bitWidth > MAX_BITFIELD_WIDTH) {
+            lines ~= finishBitFields(totalBitWidth);
+            lines ~= `    mixin(bitfields!(`;
+        }
+
         if(skipMember(member)) continue;
 
         lines ~= translate(member, context).map!(a => "    " ~ a).array;
-        // Deal with C11 anonymous structs/unions. See issue #29.
+
+        // Possibly deal with C11 anonymous structs/unions. See issue #29.
         lines ~= handleC11AnonymousRecords(cursor, member, context);
 
         lastMemberWasBitField = member.isBitField;
         if(member.isBitField) totalBitWidth += member.bitWidth;
-
-        // std.bitmanip.bitfields can only handle up to 64 bits
-        if(totalBitWidth >= MAX_BITFIELD_WIDTH) {
-            lines ~= finishBitFields(totalBitWidth);
-            lastMemberWasBitField = false;
-        }
     }
 
     if(lastMemberWasBitField) lines ~= finishBitFields(totalBitWidth);
@@ -207,9 +207,7 @@ private string[] finishBitFields(scope ref int totalBitWidth) @safe pure nothrow
 
     int padding(in int totalBitWidth) {
 
-        if(totalBitWidth == MAX_BITFIELD_WIDTH) return 0;
-
-        for(int powerOfTwo = 8; powerOfTwo < MAX_BITFIELD_WIDTH; powerOfTwo *= 2) {
+        for(int powerOfTwo = 8; powerOfTwo <= MAX_BITFIELD_WIDTH; powerOfTwo *= 2) {
             if(powerOfTwo >= totalBitWidth) return powerOfTwo - totalBitWidth;
         }
 
