@@ -1,6 +1,10 @@
 language: d
 sudo: false
 
+matrix:
+    include:
+        - d: dmd-2.079.1
+
 
 addons:
   apt:
