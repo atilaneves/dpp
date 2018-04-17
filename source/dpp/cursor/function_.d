@@ -25,20 +25,8 @@ string[] translateFunction(in from!"clang".Cursor cursor,
         cursor.kind == Cursor.Kind.Destructor
     );
 
-
-    // special case for the move constructor
-    if(cursor.kind == Cursor.Kind.Constructor) {
-        auto paramTypes = () @trusted {  return paramTypes(cursor).array; }();
-        if(paramTypes.length == 1 && paramTypes[0].kind == Type.Kind.RValueReference) {
-            context.log("*** type: ", paramTypes[0]);
-            return [
-                maybePragma(cursor, context) ~ " this(" ~ translate(paramTypes[0].pointee, context) ~ "*);",
-                "this(" ~ translate(paramTypes[0], context) ~ " wrapper) {",
-                "    this(&wrapper.value);",
-                "}",
-            ];
-        }
-    }
+    auto moveCtorLines = maybeMoveCtor(cursor, context);
+    if(moveCtorLines) return moveCtorLines;
 
     const indentation = context.indentation;
     context.log("Function return type (raw):        ", cursor.type.returnType);
@@ -62,13 +50,7 @@ string[] translateFunction(in from!"clang".Cursor cursor,
     const isVariadic = cursor.type.spelling.endsWith("...)");
     const variadicParams = isVariadic ? "..." : "";
     const allParams = paramTypes ~ variadicParams;
-
-    const spelling = () {
-        if(cursor.kind == Cursor.Kind.Constructor) return "this";
-        if(cursor.kind == Cursor.Kind.Destructor) return "~this";
-        return context.rememberLinkable(cursor);
-    }();
-
+    const spelling = functionSpelling(cursor, context);
     // const C++ method?
     const const_ = cursor.type.spelling.endsWith(") const") ? " const" : "";
 
@@ -76,6 +58,43 @@ string[] translateFunction(in from!"clang".Cursor cursor,
         maybePragma(cursor, context) ~
         text(returnType, " ", spelling, "(", allParams.join(", "), ") @nogc nothrow", const_, ";")
     ];
+}
+
+private string functionSpelling(in from!"clang".Cursor cursor,
+                                ref from!"dpp.runtime.context".Context context)
+    @safe
+{
+    import clang: Cursor;
+    if(cursor.kind == Cursor.Kind.Constructor) return "this";
+    if(cursor.kind == Cursor.Kind.Destructor) return "~this";
+    return context.rememberLinkable(cursor);
+}
+
+
+private string[] maybeMoveCtor(in from!"clang".Cursor cursor,
+                               ref from!"dpp.runtime.context".Context context)
+    @safe
+{
+
+    import dpp.cursor.dlang: maybeRename, maybePragma;
+    import dpp.type: translate;
+    import clang: Cursor, Type;
+    import std.array: array;
+
+    if(cursor.kind == Cursor.Kind.Constructor) {
+        auto paramTypes = () @trusted {  return paramTypes(cursor).array; }();
+        if(paramTypes.length == 1 && paramTypes[0].kind == Type.Kind.RValueReference) {
+            context.log("*** type: ", paramTypes[0]);
+            return [
+                maybePragma(cursor, context) ~ " this(" ~ translate(paramTypes[0].pointee, context) ~ "*);",
+                "this(" ~ translate(paramTypes[0], context) ~ " wrapper) {",
+                "    this(&wrapper.value);",
+                "}",
+            ];
+        }
+    }
+
+    return [];
 }
 
 auto translateParamTypes(in from!"clang".Cursor cursor,

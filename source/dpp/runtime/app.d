@@ -114,12 +114,12 @@ private string preamble() @safe pure {
         struct dpp {
 
             static struct Move(T) {
-                T value;
+                        T value;
             }
 
             // FIXME - crashes if T is passed by value (which we want)
             static auto move(T)(ref T value) {
-                return Move!T(value);
+                        return Move!T(value);
             }
         }
 
