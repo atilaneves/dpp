@@ -103,12 +103,15 @@ string[] translateAggregate(
 
 private struct BitFieldInfo {
 
+    import dpp.runtime.context: Context;
     import clang: Cursor;
 
     /// if the last seen member was a bitfield
-    bool lastMemberWasBitField;
+    private bool lastMemberWasBitField;
     /// the combined (summed) bitwidths of the bitfields members seen so far
-    int totalBitWidth;
+    private int totalBitWidth;
+    /// to generate new names
+    private int paddingNameIndex;
 
     string[] header(in Cursor cursor) @safe nothrow {
         import std.algorithm: any;
@@ -165,12 +168,20 @@ private struct BitFieldInfo {
         const paddingBits = padding(totalBitWidth);
 
         string[] lines;
-        if(paddingBits) lines ~= text(`        uint, "", `, padding(totalBitWidth));
+
+        if(paddingBits)
+            lines ~= text(`        uint, "`, newPaddingName, `", `, padding(totalBitWidth));
+
         lines ~= `    ));`;
 
         totalBitWidth = 0;
 
         return lines;
+    }
+
+    private string newPaddingName() @safe pure nothrow {
+        import std.conv: text;
+        return text("_padding_", paddingNameIndex++);
     }
 
 }
