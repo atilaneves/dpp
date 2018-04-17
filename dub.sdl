@@ -6,7 +6,7 @@ license "boost"
 targetType "executable"
 targetPath "bin"
 targetName "d++"
-dflags "-dip25" // "-dip1000" // oops
+dflags "-dip25"
 dependency "libclang" version="~master"
 
 configuration "executable" {
