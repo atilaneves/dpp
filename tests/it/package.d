@@ -234,7 +234,7 @@ void shouldCompileAndRun(string file = __FILE__, size_t line = __LINE__)
         runPreprocessOnly("app.dpp");
 
         try
-            shouldSucceed!(file, line)(["dmd", "app.d", "c.o"]);
+            shouldSucceed!(file, line)(["dmd", "-g", "app.d", "c.o"]);
         catch(Exception e)
             adjustMessage(e, ["app.d"]);
 
@@ -275,7 +275,7 @@ void shouldCompileAndRun(string file = __FILE__, size_t line = __LINE__)
         runPreprocessOnly("app.dpp");
 
         try
-            shouldSucceed!(file, line)(["dmd", "app.d", "cpp.o", "-L-lstdc++"]);
+            shouldSucceed!(file, line)(["dmd", "-g", "app.d", "cpp.o", "-L-lstdc++"]);
         catch(Exception e)
             adjustMessage(e, ["app.d"]);
 
