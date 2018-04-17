@@ -32,7 +32,7 @@ string[] translateFunction(in from!"clang".Cursor cursor,
         if(paramTypes.length == 1 && paramTypes[0].kind == Type.Kind.RValueReference) {
             context.log("*** type: ", paramTypes[0]);
             return [
-                maybePragma(cursor, context) ~ " this(" ~ translate(*paramTypes[0].pointee, context) ~ "*);",
+                maybePragma(cursor, context) ~ " this(" ~ translate(paramTypes[0].pointee, context) ~ "*);",
                 "this(" ~ translate(paramTypes[0], context) ~ " wrapper) {",
                 "    this(&wrapper.value);",
                 "}",

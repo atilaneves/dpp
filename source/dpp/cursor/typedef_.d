@@ -81,7 +81,7 @@ private string[] translateFunctionTypeDef(in from!"clang".Cursor typedef_,
 
 }
 
-private bool isSomeFunction(in from!"clang".Type type) @safe @nogc pure nothrow {
+private bool isSomeFunction(in from!"clang".Type type) @safe pure nothrow {
     import clang: Type;
 
     const isFunctionPointer =

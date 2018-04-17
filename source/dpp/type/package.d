@@ -179,8 +179,7 @@ private string translatePointer(in from!"clang".Type type,
     import std.conv: text;
 
     assert(type.kind == Type.Kind.Pointer, "type kind not Pointer");
-    if(type.pointee is null) throw new Exception("null pointee for " ~ type.toString);
-    assert(type.pointee !is null, "Pointee is null for " ~ type.toString);
+    assert(!type.pointee.isInvalid, "pointee is invalid");
 
     const isFunction =
         type.pointee.kind == Type.Kind.Unexposed &&
@@ -189,7 +188,7 @@ private string translatePointer(in from!"clang".Type type,
 
     // usually "*" but sometimes not needed if already a reference type
     const maybeStar = isFunction ? "" : "*";
-    context.log("Pointee:           ", *type.pointee);
+    context.log("Pointee:           ", type.pointee);
     context.log("Pointee canonical: ", type.pointee.canonical);
 
     const translateCanonical = type.pointee.kind == Type.Kind.Unexposed;
@@ -198,14 +197,14 @@ private string translatePointer(in from!"clang".Type type,
     const indentation = context.indentation;
     const rawType = translateCanonical
         ? translate(type.pointee.canonical, context.indent)
-        : translate(*type.pointee, context.indent);
+        : translate(type.pointee, context.indent);
     context.setIndentation(indentation);
 
     context.log("Raw type: ", rawType);
 
     // Only add top-level const if it's const all the way down
     bool addConst() @trusted {
-        auto ptr = &type;
+        auto ptr = Type(type);
         while(ptr.kind == Type.Kind.Pointer) {
             if(!ptr.isConstQualified || !ptr.pointee.isConstQualified)
                 return false;
@@ -245,7 +244,7 @@ private string translateLvalueRef(in from!"clang".Type type,
                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
     @safe pure
 {
-    return "ref " ~ translate(*type.canonical.pointee, context, translatingFunction);
+    return "ref " ~ translate(type.canonical.pointee, context, translatingFunction);
 }
 
 // we cheat and pretend it's a value
@@ -254,7 +253,7 @@ private string translateRvalueRef(in from!"clang".Type type,
                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
     @safe pure
 {
-    const dtype = translate(*type.canonical.pointee, context, translatingFunction);
+    const dtype = translate(type.canonical.pointee, context, translatingFunction);
     return `dpp.Move!(` ~ dtype ~ `)`;
 }
 
