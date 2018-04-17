@@ -1,5 +1,8 @@
 volatile (methods and variables, including C)
 
+Structs
+  * @disable this();
+
 Classes
   * Static methods
   * Use clang_CXXMethod_isConst instead of the current hack
