@@ -305,3 +305,25 @@ import it;
          ),
     );
 }
+
+
+@("rename")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                enum FancyWidget { Widget_foo,  Widget_bar };
+            }
+         ),
+
+        D(
+            q{
+                mixin dpp.EnumD!("Widget", FancyWidget, "Widget_");
+                static assert(Widget.foo == Widget_foo);
+                static assert(Widget.foo == FancyWidget.Widget_foo);
+                static assert(Widget.bar == Widget_bar);
+                static assert(Widget.bar == FancyWidget.Widget_bar);
+            }
+         ),
+    );
+}

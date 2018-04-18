@@ -121,6 +121,35 @@ private string preamble() @safe pure {
             static auto move(T)(ref T value) {
                         return Move!T(value);
             }
+
+
+            mixin template EnumD(string name, T, string prefix) if(is(T == enum)) {
+
+                        private static string _memberMixinStr(string member) {
+                            import std.conv: text;
+                            import std.array: replace;
+                            return text(`    `, member.replace(prefix, ""), ` = `, T.stringof, `.`, member, `,`);
+                        }
+
+                        private static string _enumMixinStr() {
+                            import std.array: join;
+
+                            string[] ret;
+
+                            ret ~= "enum " ~ name ~ "{";
+
+                            static foreach(member; __traits(allMembers, T)) {
+                                ret ~= _memberMixinStr(member);
+                            }
+
+                            ret ~= "}";
+
+                            return ret.join("\n");
+                        }
+
+                        mixin(_enumMixinStr());
+            }
+
         }
 
     }.replace("        ", "").splitLines.filter!(a => a != "").join("\n");

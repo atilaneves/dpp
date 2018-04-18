@@ -157,6 +157,30 @@ This is to mimic C semantics with regards to the global namespace whilst also al
 one to, say, reflect on the enum type.
 
 
+### Renaming enums
+
+There is the ability to rename C enums. With the following C definition:
+
+```c
+enum FancyWidget { Widget_foo,  Widget_bar }
+```
+
+Then adding this to your .dpp file after the `#include` directive:
+
+```d
+mixin dpp.EnumD!("Widget",      // the name of the new D enum
+                 FancyWidget,   // the name of the original C enum
+                 "Widget_");    // the prefix to cut out
+```
+
+will yield this translation:
+
+```d
+enum Widget { foo, bar }
+```
+
+
+
 ### Names of structs, enums and unions
 
 C has a different namespace for the aforementioned user-defined types. As such, this is legal C:
