@@ -114,40 +114,40 @@ private string preamble() @safe pure {
         struct dpp {
 
             static struct Move(T) {
-                        T value;
+                T value;
             }
 
             // FIXME - crashes if T is passed by value (which we want)
             static auto move(T)(ref T value) {
-                        return Move!T(value);
+                return Move!T(value);
             }
 
 
             mixin template EnumD(string name, T, string prefix) if(is(T == enum)) {
 
-                        private static string _memberMixinStr(string member) {
-                            import std.conv: text;
-                            import std.array: replace;
-                            return text(`    `, member.replace(prefix, ""), ` = `, T.stringof, `.`, member, `,`);
-                        }
+                private static string _memberMixinStr(string member) {
+                    import std.conv: text;
+                    import std.array: replace;
+                    return text(`    `, member.replace(prefix, ""), ` = `, T.stringof, `.`, member, `,`);
+                }
 
-                        private static string _enumMixinStr() {
-                            import std.array: join;
+                private static string _enumMixinStr() {
+                    import std.array: join;
 
-                            string[] ret;
+                    string[] ret;
 
-                            ret ~= "enum " ~ name ~ "{";
+                    ret ~= "enum " ~ name ~ "{";
 
-                            static foreach(member; __traits(allMembers, T)) {
-                                ret ~= _memberMixinStr(member);
-                            }
+                    static foreach(member; __traits(allMembers, T)) {
+                        ret ~= _memberMixinStr(member);
+                    }
 
-                            ret ~= "}";
+                    ret ~= "}";
 
-                            return ret.join("\n");
-                        }
+                    return ret.join("\n");
+                }
 
-                        mixin(_enumMixinStr());
+                mixin(_enumMixinStr());
             }
 
         }
