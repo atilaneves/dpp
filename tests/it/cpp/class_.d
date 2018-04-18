@@ -165,6 +165,7 @@ import it;
                 struct vector {
                 public:
                     T value;
+                    void push_back();
                 };
 
                 template<typename U, int length>

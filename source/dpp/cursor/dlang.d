@@ -34,7 +34,7 @@ string rename(string spelling,
 }
 
 string pragmaMangle(in string mangling) @safe pure nothrow {
-    return `pragma(mangle, "` ~ mangling ~ `") `;
+    return mangling == "" ? "" : `pragma(mangle, "` ~ mangling ~ `") `;
 }
 
 private bool nameClashes(in from!"clang".Cursor cursor,

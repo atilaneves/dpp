@@ -250,5 +250,58 @@ import it;
             }
          ),
     );
+}
 
+@ShouldFail("mangling problems")
+@Tags("run")
+@("templates")
+@safe unittest {
+    shouldRun(
+        Cpp(
+            q{
+                template<typename T>
+                class vector {
+                    T _values[10];
+                    int _numValues = 0;
+
+                public:
+                    void push_back(T value) {
+                        _values[_numValues++] = value;
+                    }
+
+                    int numValues() { return _numValues; }
+                    T value(int i) { return _values[i]; }
+                };
+            }
+        ),
+        Cpp(
+            `
+                #if __clang__
+                    [[clang::optnone]]
+                #elif __GNUC__
+                    __attribute__((optimize("O0")))
+                #endif
+                    __attribute((used, noinline))
+                static void instantiate() {
+                    vector<int> v;
+                    v.push_back(42);
+                    const auto _ = v.value(0);
+                }
+            `
+        ),
+        D(
+            q{
+                vector!int v;
+                assert(v.numValues == 0);
+
+                v.push_back(4);
+                assert(v.numValues == 1);
+                assert(v.value(0) == 4);
+
+                v.push_back(2);
+                assert(v.numValues == 2);
+                assert(v.value(0) == 2);
+            }
+         ),
+    );
 }
