@@ -5,6 +5,8 @@ module dpp.cursor.function_;
 
 import dpp.from;
 
+private enum OPERATOR_PREFIX = "operator";
+
 string[] translateFunction(in from!"clang".Cursor cursor,
                            ref from!"dpp.runtime.context".Context context)
     @safe
@@ -65,9 +67,29 @@ private string functionSpelling(in from!"clang".Cursor cursor,
     @safe
 {
     import clang: Cursor;
+    import std.algorithm: startsWith;
+
+
     if(cursor.kind == Cursor.Kind.Constructor) return "this";
     if(cursor.kind == Cursor.Kind.Destructor) return "~this";
+
+    if(cursor.spelling.startsWith(OPERATOR_PREFIX)) return operatorSpelling(cursor);
+
+    // if no special case
     return context.rememberLinkable(cursor);
+}
+
+private string operatorSpelling(in from!"clang".Cursor cursor)
+    @safe
+{
+    const operator = cursor.spelling[OPERATOR_PREFIX.length .. $];
+
+    switch(operator) {
+        default: throw new Exception("Unkown operator " ~ operator);
+        case "+": return `opBinary(string op: "` ~ operator ~ `")`;
+    }
+
+    assert(0);
 }
 
 

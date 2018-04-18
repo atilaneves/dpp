@@ -220,3 +220,35 @@ import it;
          ),
     );
 }
+
+
+@ShouldFail("dmd can't mangle operators even with pragma(mangle)")
+@Tags("run")
+@("operators")
+@safe unittest {
+    shouldRun(
+        Cpp(
+            q{
+                struct Struct {
+                    int i;
+                    Struct(int i);
+                    Struct operator+(const Struct& other);
+                };
+            }
+        ),
+        Cpp(
+            q{
+                Struct::Struct(int i):i{i} {}
+                Struct Struct::operator+(const Struct& other) { return { i + other.i }; }
+            }
+        ),
+        D(
+            q{
+                auto s2 = Struct(2);
+                auto s3 = Struct(3);
+                assert(s2 + s3 == Struct(5));
+            }
+         ),
+    );
+
+}
