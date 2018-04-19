@@ -222,7 +222,6 @@ import it;
 }
 
 
-@ShouldFail("dmd can't mangle operators even with pragma(mangle)")
 @Tags("run")
 @("operators")
 @safe unittest {
