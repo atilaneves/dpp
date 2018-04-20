@@ -27,8 +27,11 @@ string[] translateFunction(in from!"clang".Cursor cursor,
         cursor.kind == Cursor.Kind.Destructor
     );
 
+    // FIXME - stop special casing
     auto moveCtorLines = maybeMoveCtor(cursor, context);
     if(moveCtorLines) return moveCtorLines;
+
+    if(isOperator(cursor) && !isSupportedOperator(cursor)) return [];
 
     string[] lines;
 
@@ -90,24 +93,44 @@ private string[] maybeOperator(in from!"clang".Cursor cursor,
                                ref from!"dpp.runtime.context".Context context)
     @safe
 {
-    import std.algorithm: startsWith, map;
+    import std.algorithm: map;
     import std.array: join;
     import std.typecons: Yes;
     import std.range: iota;
     import std.conv: text;
 
-    if(!cursor.spelling.startsWith(OPERATOR_PREFIX)) return [];
+    if(!isSupportedOperator(cursor)) return [];
 
     const params = translateAllParamTypes(cursor, context);
 
     return [
         // remove semicolon from the end with [0..$-1]
-        `extern(D)` ~ functionDecl(cursor, context, operatorSpellingD(cursor), Yes.names)[0..$-1],
+        `extern(D) ` ~ functionDecl(cursor, context, operatorSpellingD(cursor), Yes.names)[0..$-1],
         `{`,
         `    return ` ~ operatorSpellingCpp(cursor) ~ `(` ~ params.length.iota.map!(a => text("arg", a)).join(", ") ~ `);`,
         `}`,
     ];
 }
+
+private bool isSupportedOperator(in from!"clang".Cursor cursor) @safe nothrow {
+    import std.algorithm: map, canFind;
+
+    if(!isOperator(cursor)) return false;
+
+    const cppOperator = cursor.spelling[OPERATOR_PREFIX.length .. $];
+    const unsupportedSpellings = [`->`, `!`];
+    if(unsupportedSpellings.canFind(cppOperator)) return false;
+
+    if(isUnaryOperator(cursor) && cppOperator == "&") return false;
+
+     return true;
+}
+
+private bool isOperator(in from!"clang".Cursor cursor) @safe pure nothrow {
+    import std.algorithm: startsWith;
+    return cursor.spelling.startsWith(OPERATOR_PREFIX);
+}
+
 
 private string functionSpelling(in from!"clang".Cursor cursor,
                                 ref from!"dpp.runtime.context".Context context)
@@ -129,22 +152,42 @@ private string functionSpelling(in from!"clang".Cursor cursor,
 private string operatorSpellingD(in from!"clang".Cursor cursor)
     @safe
 {
+    import std.range: walkLength;
     const operator = cursor.spelling[OPERATOR_PREFIX.length .. $];
+
+    assert(isUnaryOperator(cursor) || isBinaryOperator(cursor));
+    const dOperatorSpelling = isBinaryOperator(cursor) ? "opBinary" : "opUnary";
 
     switch(operator) {
 
         default:
-            throw new Exception("Unkown operator " ~ operator);
+            throw new Exception("Unkown D spelling for operator " ~ operator);
 
         case "+":
         case "-":
         case "*":
         case "/":
-            return `opBinary(string op: "` ~ operator ~ `")`;
+        case "&":
+        case "~":
+        case "++":
+        case "--":
+
+            return dOperatorSpelling ~ `(string op: "` ~ operator ~ `")`;
     }
 
     assert(0);
 }
+
+private bool isUnaryOperator(in from!"clang".Cursor cursor) @safe nothrow {
+    import std.range: walkLength;
+    return isOperator(cursor) && paramTypes(cursor).walkLength == 0;
+}
+
+private bool isBinaryOperator(in from!"clang".Cursor cursor) @safe nothrow {
+    import std.range: walkLength;
+    return isOperator(cursor) && paramTypes(cursor).walkLength == 1;
+}
+
 
 private string operatorSpellingCpp(in from!"clang".Cursor cursor)
     @safe
@@ -152,11 +195,15 @@ private string operatorSpellingCpp(in from!"clang".Cursor cursor)
     const operator = cursor.spelling[OPERATOR_PREFIX.length .. $];
 
     switch(operator) {
-        default: throw new Exception("Unkown operator " ~ operator);
-        case "+": return `opCppPlus`;
-        case "-": return `opCppMinus`;
-        case "*": return `opCppMul`;
-        case "/": return `opCppDiv`;
+        default: throw new Exception("Unkown C++ spelling for operator " ~ operator);
+        case "+": return  `opCppPlus`;
+        case "-": return  `opCppMinus`;
+        case "++": return `opCppIncrement`;
+        case "--": return `opCppDecrement`;
+        case "*": return  `opCppMul`;
+        case "/": return  `opCppDiv`;
+        case "&": return  `opCppAmpersand`;
+        case "~": return  `opCppTilde`;
     }
 
     assert(0);

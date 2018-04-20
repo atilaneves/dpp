@@ -231,26 +231,58 @@ import it;
                 struct Struct {
                     int i;
                     Struct(int i);
-                    Struct operator+(const Struct& other);
-                    Struct operator-(const Struct& other);
-                    Struct operator*(const Struct& other);
-                    Struct operator/(const Struct& other);
+
+                    // Unary operators
+                    Struct operator+()     const;
+                    Struct operator-()     const;
+                    Struct operator*()     const;
+                    Struct operator&()     const;
+                    Struct operator->()    const;
+                    Struct operator~()     const;
+                    Struct operator!()     const;
+                    Struct operator++()    const;
+                    Struct operator--()    const;
+                    Struct operator++(int) const;
+                    Struct operator--(int) const;
+
+                    // Binary operators
+                    Struct operator+(const Struct& other) const;
+                    Struct operator-(const Struct& other) const;
+                    Struct operator*(const Struct& other) const;
+                    Struct operator/(const Struct& other) const;
                 };
             }
         ),
         Cpp(
             q{
                 Struct::Struct(int i):i{i} {}
-                Struct Struct::operator+(const Struct& other) { return { i + other.i }; }
-                Struct Struct::operator-(const Struct& other) { return { i - other.i }; }
-                Struct Struct::operator*(const Struct& other) { return { i * other.i }; }
-                Struct Struct::operator/(const Struct& other) { return { i / other.i }; }
+                Struct Struct::operator+()  const { return { +i };    }
+                Struct Struct::operator-()  const { return { -i };    }
+                Struct Struct::operator*()  const { return { i * 3 }; }
+                Struct Struct::operator&()  const { return { i / 4 }; }
+                Struct Struct::operator~()  const { return { i + 9 }; }
+                Struct Struct::operator++() const { return { i + 1 }; }
+                Struct Struct::operator--() const { return { i - 1 }; }
+                Struct Struct::operator+(const Struct& other) const { return { i + other.i }; }
+                Struct Struct::operator-(const Struct& other) const { return { i - other.i }; }
+                Struct Struct::operator*(const Struct& other) const { return { i * other.i }; }
+                Struct Struct::operator/(const Struct& other) const { return { i / other.i }; }
             }
         ),
         D(
             q{
-                auto s2 = Struct(2);
-                auto s3 = Struct(3);
+                assert(+Struct(-4) == Struct(-4));
+                assert(-Struct(4)  == Struct(-4));
+                assert(-Struct(-5) == Struct(5));
+                assert(*Struct(2) == Struct(6));
+                assert(~Struct(7) == Struct(16));
+                static assert(!__traits(compiles, &Struct(8)));
+
+                assert(++Struct(2) == Struct(3));
+                assert(--Struct(5) == Struct(4));
+
+                auto s2 = const Struct(2);
+                auto s3 = const Struct(3);
 
                 assert(s2 + s3 == Struct(5));
                 assert(s3 - s2 == Struct(1));
