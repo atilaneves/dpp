@@ -132,8 +132,15 @@ private string operatorSpellingD(in from!"clang".Cursor cursor)
     const operator = cursor.spelling[OPERATOR_PREFIX.length .. $];
 
     switch(operator) {
-        default: throw new Exception("Unkown operator " ~ operator);
-        case "+": return `opBinary(string op: "` ~ operator ~ `")`;
+
+        default:
+            throw new Exception("Unkown operator " ~ operator);
+
+        case "+":
+        case "-":
+        case "*":
+        case "/":
+            return `opBinary(string op: "` ~ operator ~ `")`;
     }
 
     assert(0);
@@ -147,6 +154,9 @@ private string operatorSpellingCpp(in from!"clang".Cursor cursor)
     switch(operator) {
         default: throw new Exception("Unkown operator " ~ operator);
         case "+": return `opCppPlus`;
+        case "-": return `opCppMinus`;
+        case "*": return `opCppMul`;
+        case "/": return `opCppDiv`;
     }
 
     assert(0);

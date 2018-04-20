@@ -232,6 +232,9 @@ import it;
                     int i;
                     Struct(int i);
                     Struct operator+(const Struct& other);
+                    Struct operator-(const Struct& other);
+                    Struct operator*(const Struct& other);
+                    Struct operator/(const Struct& other);
                 };
             }
         ),
@@ -239,13 +242,21 @@ import it;
             q{
                 Struct::Struct(int i):i{i} {}
                 Struct Struct::operator+(const Struct& other) { return { i + other.i }; }
+                Struct Struct::operator-(const Struct& other) { return { i - other.i }; }
+                Struct Struct::operator*(const Struct& other) { return { i * other.i }; }
+                Struct Struct::operator/(const Struct& other) { return { i / other.i }; }
             }
         ),
         D(
             q{
                 auto s2 = Struct(2);
                 auto s3 = Struct(3);
+
                 assert(s2 + s3 == Struct(5));
+                assert(s3 - s2 == Struct(1));
+                assert(Struct(5) - s2 == Struct(3));
+                assert(s2 * s3 == Struct(6));
+                assert(Struct(11) / s3 == Struct(3));
             }
          ),
     );
