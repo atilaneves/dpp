@@ -100,7 +100,7 @@ void preprocess(File)(in from!"dpp.runtime.options".Options options,
 
 private string preamble() @safe pure {
     import std.array: replace, join;
-    import std.algorithm: filter;
+    import std.algorithm: map, filter;
     import std.string: splitLines;
 
     return q{
@@ -149,8 +149,10 @@ private string preamble() @safe pure {
 
                 mixin(_enumMixinStr());
             }
-
         }
-
-    }.replace("        ", "").splitLines.filter!(a => a != "").join("\n");
+    }
+    .splitLines
+    .filter!(a => a != "")
+    .map!(a => a.length >= 8 ? a[8 .. $] : a) // get rid of leading spaces
+    .join("\n");
 }
