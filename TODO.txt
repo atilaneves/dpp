@@ -1,26 +1,26 @@
 volatile (methods and variables, including C)
 
 Structs
-  * @disable this();
+  * @disable this() if there's a no-arg ctor
+  * Finish move constructor
 
 Classes
   * Static methods
   * Use clang_CXXMethod_isConst instead of the current hack
   * Use clang_getTemplateCursorKind to pick between `class` or `struct`
 
+Operators
+  * Conversion operators (opCast, clang's ConversionFunction)
+  * Free function operator overloading
+
 Namespaces
-
-Operator overloading
-  * Ignore global operator overloading
-
-Cast operator (ConversionFunction)
-
-LinkageSpec - does nested extern(C) work in extern(C++)?
+  * Collate all namespaces in order to declare things correctly (nested namespaces)
+  * extern "C" (LinkageSpec in clang - extern(C) inside extern(C++)?)
 
 Inheritance
   * Translate CXXBaseSpecifier
   * Use heuristic to pick `struct`, `class`, or `interface`
-  * What to do with multiple Inheritance?
+  * What to do with multiple inheritance?
 
 Templates
   * Default template parameters
