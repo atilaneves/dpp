@@ -136,17 +136,7 @@ struct IncludeSandbox {
 void shouldCompile(string file = __FILE__, size_t line = __LINE__)
                   (in C header, in D app)
 {
-    with(const IncludeSandbox()) {
-        writeFile("hdr.h", header.code);
-        // take care of including the header and putting the D
-        // code in a function
-        const dCode = `#include "` ~ inSandboxPath("hdr.h") ~ `"` ~ "\n" ~
-            `void main() {` ~ "\n" ~ app.code ~ "\n}\n";
-
-        writeFile("app.dpp", dCode);
-        runPreprocessOnly("app.dpp");
-        shouldCompile!(file, line)("app.d");
-    }
+    shouldCompile!(file, line)("hdr.h", header.code, app);
 }
 
 /**
@@ -156,11 +146,18 @@ void shouldCompile(string file = __FILE__, size_t line = __LINE__)
 void shouldCompile(string file = __FILE__, size_t line = __LINE__)
                   (in Cpp header, in D app)
 {
+    shouldCompile!(file, line)("hdr.hpp", header.code, app);
+}
+
+
+private void shouldCompile(string file = __FILE__, size_t line = __LINE__)
+                          (in string headerFileName, in string headerText, in D app)
+{
     with(const IncludeSandbox()) {
-        writeFile("hdr.hpp", header.code);
+        writeFile(headerFileName, headerText );
         // take care of including the header and putting the D
         // code in a function
-        const dCode = `#include "` ~ inSandboxPath("hdr.hpp") ~ `"` ~ "\n" ~
+        const dCode = `#include "` ~ inSandboxPath(headerFileName) ~ `"` ~ "\n" ~
             `void main() {` ~ "\n" ~ app.code ~ "\n}\n";
 
         writeFile("app.dpp", dCode);
@@ -168,7 +165,6 @@ void shouldCompile(string file = __FILE__, size_t line = __LINE__)
         shouldCompile!(file, line)("app.d");
     }
 }
-
 
 void shouldNotCompile(string file = __FILE__, size_t line = __LINE__)
                   (in C header, in D app)
