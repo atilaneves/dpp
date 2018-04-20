@@ -72,9 +72,8 @@ struct IncludeSandbox {
     {
         try
             sandbox.shouldSucceed!(file, line)(["dmd", "-o-", "-c"] ~ srcFiles);
-        catch(Exception e) {
+        catch(Exception e)
             adjustMessage(e, srcFiles);
-        }
     }
 
     void shouldNotCompile(string file = __FILE__, size_t line = __LINE__)
@@ -83,9 +82,8 @@ struct IncludeSandbox {
     {
         try
             sandbox.shouldFail!(file, line)(["dmd", "-o-", "-c"] ~ srcFiles);
-        catch(Exception e) {
+        catch(Exception e)
             adjustMessage(e, srcFiles);
-        }
     }
 
     void shouldCompileAndRun(string file = __FILE__, size_t line = __LINE__)
@@ -94,9 +92,8 @@ struct IncludeSandbox {
     {
         try
             sandbox.shouldSucceed!(file, line)(["dmd", "-run"] ~ srcFiles);
-        catch(Exception e) {
+        catch(Exception e)
             adjustMessage(e, srcFiles);
-        }
     }
 
     void shouldCompileButNotLink(string file = __FILE__, size_t line = __LINE__)
@@ -105,9 +102,8 @@ struct IncludeSandbox {
     {
         try
             sandbox.shouldSucceed!(file, line)(["dmd", "-c", "-ofblob.o"] ~ srcFiles);
-        catch(Exception e) {
+        catch(Exception e)
             adjustMessage(e, srcFiles);
-        }
 
         shouldFail("dmd", "-ofblob", "blob.o");
     }
