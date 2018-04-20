@@ -63,21 +63,7 @@ struct IncludeSandbox {
     }
 
     void runPreprocessOnly(string[] args...) @safe const {
-        import dpp.runtime.options: Options;
-        import dpp.runtime.app: realRun = run;
-        import std.algorithm: map;
-        import std.array: array;
-
-        const baseLineArgs = [
-            "d++",
-            "--preprocess-only",
-            "--include-path",
-            sandboxPath
-        ];
-        auto options = Options(baseLineArgs ~ args);
-        options.dppFileNames[] = options.dppFileNames.map!(a => sandbox.inSandboxPath(a)).array;
-
-        realRun(options);
+        run("--preprocess-only" ~ args);
     }
 
     void shouldCompile(string file = __FILE__, size_t line = __LINE__)
