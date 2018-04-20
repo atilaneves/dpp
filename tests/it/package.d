@@ -189,38 +189,9 @@ alias shouldRun = shouldCompileAndRun;
    header and a D main file.
 */
 void shouldCompileAndRun(string file = __FILE__, size_t line = __LINE__)
-                        (in C header, in C source, in D app, in RuntimeArgs args = RuntimeArgs())
+                        (in C header, in C cSource, in D app, in RuntimeArgs args = RuntimeArgs())
 {
-    import std.process: environment;
-
-    with(const IncludeSandbox()) {
-        writeFile("hdr.h", header.code);
-        const includeLine = `#include "` ~ inSandboxPath("hdr.h") ~ `"` ~ "\n";
-        const cSource = includeLine ~ source.code;
-        writeFile("c.c", cSource);
-
-        const compiler = "gcc";
-
-        shouldSucceed(compiler, "-g", "-c", "c.c");
-
-        // take care of including the header and putting the D
-        // code in a function
-        const dCode = includeLine ~
-            `void main() {` ~ "\n" ~ app.code ~ "\n}\n";
-
-        writeFile("app.dpp", dCode);
-        runPreprocessOnly("app.dpp");
-
-        try
-            shouldSucceed!(file, line)(["dmd", "-g", "app.d", "c.o"]);
-        catch(Exception e)
-            adjustMessage(e, ["app.d"]);
-
-        try
-            shouldSucceed!(file, line)(["./app"] ~ args.args);
-        catch(Exception e)
-            adjustMessage(e, ["app.d"]);
-    }
+    shouldCompileAndRun!(file, line)("hdr.h", header.code, "c.c", cSource.code, app, args);
 }
 
 /**
@@ -228,21 +199,37 @@ void shouldCompileAndRun(string file = __FILE__, size_t line = __LINE__)
    header and a D main file.
 */
 void shouldCompileAndRun(string file = __FILE__, size_t line = __LINE__)
-                        (in Cpp header, in Cpp source, in D app, in RuntimeArgs args = RuntimeArgs())
+                        (in Cpp header, in Cpp cppSource, in D app, in RuntimeArgs args = RuntimeArgs())
+{
+    shouldCompileAndRun!(file, line)("hdr.hpp", header.code, "cpp.cpp", cppSource.code, app, args);
+}
+
+
+private void shouldCompileAndRun
+    (string file = __FILE__, size_t line = __LINE__)
+    (
+        in string headerFileName,
+        in string headerText,
+        in string cSourceFileName,
+        in string cText, in D app,
+        in RuntimeArgs args = RuntimeArgs(),
+    )
 {
     import std.process: environment;
 
     with(const IncludeSandbox()) {
-        writeFile("hdr.hpp", header.code);
-        const includeLine = `#include "` ~ inSandboxPath("hdr.hpp") ~ `"` ~ "\n";
-        const cppSource = includeLine ~ source.code;
-        writeFile("cpp.cpp", cppSource);
+        writeFile(headerFileName, headerText);
+        const includeLine = `#include "` ~ inSandboxPath(headerFileName) ~ `"` ~ "\n";
+        const cSource = includeLine ~ cText;
+        writeFile(cSourceFileName, cSource);
 
-        const compiler = environment.get("TRAVIS", "") == ""
-            ? "g++"
-            : "g++-7";
+        const isCpp = headerFileName == "hdr.hpp";
+        const compilerName = isCpp ? "g++" : "gcc";
+        const compilerVersion = environment.get("TRAVIS", "") == "" ? "" : "-7";
+        const compiler = compilerName ~ compilerVersion;
 
-        shouldSucceed(compiler, "-g", "-std=c++17", "-c", "cpp.cpp");
+        const languageStandard =  isCpp ? "-std=c++17" : "-std=c11";
+        shouldSucceed(compiler, "-o", "c.o", "-g", languageStandard, "-c", cSourceFileName);
 
         // take care of including the header and putting the D
         // code in a function
@@ -252,8 +239,10 @@ void shouldCompileAndRun(string file = __FILE__, size_t line = __LINE__)
         writeFile("app.dpp", dCode);
         runPreprocessOnly("app.dpp");
 
+        const linkStdLib = isCpp ? ["-L-lstdc++"] : [];
+
         try
-            shouldSucceed!(file, line)(["dmd", "-g", "app.d", "cpp.o", "-L-lstdc++"]);
+            shouldSucceed!(file, line)(["dmd", "-g", "app.d", "c.o"] ~ linkStdLib);
         catch(Exception e)
             adjustMessage(e, ["app.d"]);
 
