@@ -246,22 +246,32 @@ import it;
                     Struct operator--(int) const; // not defined on purpose
 
                     // Binary operators
-                    Struct operator+(const Struct& other) const;
-                    Struct operator-(const Struct& other) const;
-                    Struct operator*(const Struct& other) const;
-                    Struct operator/(const Struct& other) const;
-                    Struct operator%(const Struct& other) const;
-                    Struct operator^(const Struct& other) const;
-                    Struct operator&(const Struct& other) const;
-                    Struct operator|(const Struct& other) const;
-                    Struct operator>>(const Struct& other) const;
-                    Struct operator<<(const Struct& other) const;
-                    Struct operator&&(const Struct& other) const;
-                    Struct operator||(const Struct& other) const;
+                    Struct operator+(const Struct& other)   const;
+                    Struct operator-(const Struct& other)   const;
+                    Struct operator*(const Struct& other)   const;
+                    Struct operator/(const Struct& other)   const;
+                    Struct operator%(const Struct& other)   const;
+                    Struct operator^(const Struct& other)   const;
+                    Struct operator&(const Struct& other)   const;
+                    Struct operator|(const Struct& other)   const;
+                    Struct operator>>(const Struct& other)  const;
+                    Struct operator<<(const Struct& other)  const;
+                    Struct operator&&(const Struct& other)  const;
+                    Struct operator||(const Struct& other)  const;
                     Struct operator->*(const Struct& other) const;
 
                     // assignment
-                    void operator=(const Struct& other);
+                    void operator=  (const Struct& other);
+                    void operator+= (int j);
+                    void operator-= (int j);
+                    void operator*= (int j);
+                    void operator/= (int j);
+                    void operator%= (int j);
+                    void operator^= (int j);
+                    void operator&= (int j);
+                    void operator|= (int j);
+                    void operator>>=(int j);
+                    void operator<<=(int j);
                 };
             }
         ),
@@ -292,13 +302,24 @@ import it;
                 Struct Struct::operator||(const Struct& other)  const { return { i || other.i }; }
                 Struct Struct::operator->*(const Struct& other) const { return { i - other.i }; }
 
-                void Struct::operator=(const Struct& other) { i = other.i + 10; };
+                void Struct::operator= (const Struct& other)  { i = other.i + 10; };
+                void Struct::operator+=(int j)                { i += j;           };
+                void Struct::operator-=(int j)                { i -= j;           };
+                void Struct::operator*=(int j)                { i *= j;           };
+                void Struct::operator/=(int j)                { i /= j;           };
+                void Struct::operator%=(int j)                { i %= j;           };
+                void Struct::operator^=(int j)                { i ^= j;           };
+                void Struct::operator&=(int j)                { i &= j;           };
+                void Struct::operator|=(int j)                { i |= j;           };
+                void Struct::operator>>=(int j)               { i >>= j;          };
+                void Struct::operator<<=(int j)               { i <<= j;          };
             }
         ),
         D(
             q{
                 import std.conv: text;
 
+                // unary
                 assert(+Struct(-4) == Struct(-4));
                 assert(-Struct(4)  == Struct(-4));
                 assert(-Struct(-5) == Struct(5));
@@ -311,6 +332,7 @@ import it;
                 assert(++Struct(2) == Struct(3));
                 assert(--Struct(5) == Struct(4));
 
+                // binary
                 auto s0 = const Struct(0);
                 auto s2 = const Struct(2);
                 auto s3 = const Struct(3);
@@ -333,10 +355,26 @@ import it;
 
                 assert(Struct(5).opCppArrowStar(s2) == Struct(3));
 
+                // assignment
                 {
                     auto s = Struct(5);
-                    s = s2;
-                    assert(s == Struct(12));
+                    s = s2; assert(s == Struct(12));
+                }
+
+                {
+                    auto s = Struct(2);
+                    s += 3; assert(s == Struct(5));
+                    s -= 2; assert(s == Struct(3));
+                    s *= 2; assert(s == Struct(6));
+                    s /= 3; assert(s == Struct(2));
+                    s = s3;
+                    s %= 2; assert(s == Struct(1));
+                    s ^= 1; assert(s == Struct(0));
+                    s &= 1; assert(s == Struct(0));
+                    s |= 1; assert(s == Struct(1));
+                    s.i = 8;
+                    s >>= 2; assert(s == Struct(2));
+                    s <<= 1; assert(s == Struct(4));
                 }
             }
          ),

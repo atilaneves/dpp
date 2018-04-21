@@ -153,6 +153,9 @@ private string operatorSpellingD(in from!"clang".Cursor cursor)
     import std.range: walkLength;
     const cppOperator = cursor.spelling[OPERATOR_PREFIX.length .. $];
 
+    if(cppOperator.length > 1 && cppOperator[$-1] == '=')
+        return `opOpAssign(string op: "` ~ cppOperator[0 .. $-1] ~ `")`;
+
     assert(isUnaryOperator(cursor) || isBinaryOperator(cursor));
     const dFunction = isBinaryOperator(cursor) ? "opBinary" : "opUnary";
 
@@ -199,6 +202,16 @@ private string operatorSpellingCpp(in from!"clang".Cursor cursor)
         case  "&&": return `opCppAnd`;
         case  "||": return `opCppOr`;
         case "->*": return `opCppArrowStar`;
+        case  "+=": return `opCppPlusAssign`;
+        case  "-=": return `opCppMinusAssign`;
+        case  "*=": return `opCppMulAssign`;
+        case  "/=": return `opCppDivAssign`;
+        case  "%=": return `opCppModAssign`;
+        case  "^=": return `opCppCaretAssign`;
+        case  "&=": return `opCppAmpersandAssign`;
+        case  "|=": return `opCppPipeAssign`;
+        case ">>=": return `opCppRShiftAssign`;
+        case "<<=": return `opCppLShiftAssign`;
     }
 
     assert(0);
