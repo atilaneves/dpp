@@ -288,6 +288,9 @@ import it;
 
                     // conversion
                     operator int() const;
+
+                    // allocation
+                    void* operator new(unsigned long);
                 };
             }
         ),
@@ -339,6 +342,10 @@ import it;
                 bool Struct::operator>(const Struct& other) const { return i > other.i; }
 
                 Struct::operator int() const { return i + 1; }
+
+                void* Struct::operator new(unsigned long count) {
+                    return new int{static_cast<int>(count)};
+                }
             }
         ),
         D(
@@ -420,6 +427,9 @@ import it;
                 assert(cast(int) Struct(7) == 8);
                 assert( cast(bool) Struct(7));
                 assert(!cast(bool) Struct(3));
+
+                // allocation
+                assert(* (cast(int*) Struct.opCppNew(5)) == 5);
             }
          ),
     );
