@@ -239,7 +239,7 @@ import it;
                     Struct operator& ()    const;
                     Struct operator->()    const;
                     Struct operator~ ()    const;
-                    Struct operator! ()    const;
+                    bool   operator! ()    const;
                     Struct operator++()    const;
                     Struct operator--()    const;
                     Struct operator++(int) const; // not defined on purpose
@@ -300,7 +300,7 @@ import it;
                 Struct Struct::operator& () const { return { i / 4 }; }
                 Struct Struct::operator->() const { return { i / 3 }; }
                 Struct Struct::operator~ () const { return { i + 9 }; }
-                Struct Struct::operator! () const { return { i - 8 }; }
+                bool   Struct::operator! () const { return i != 7;    }
                 Struct Struct::operator++() const { return { i + 1 }; }
                 Struct Struct::operator--() const { return { i - 1 }; }
 
@@ -353,7 +353,7 @@ import it;
                 assert(Struct(8).opCppAmpersand == 2);
                 assert(Struct(9).opCppArrow == 3);
                 assert(~Struct(7) == 16);
-                assert(Struct(9).opCppBang == 1);
+                assert(Struct(9).opCppBang);
 
                 assert(++Struct(2) == 3);
                 assert(--Struct(5) == 4);
@@ -418,6 +418,8 @@ import it;
 
                 // conversion
                 assert(cast(int) Struct(7) == 8);
+                assert( cast(bool) Struct(7));
+                assert(!cast(bool) Struct(3));
             }
          ),
     );

@@ -244,7 +244,7 @@ string[] translateAggregate(
     }
 
     lines ~= bitFieldInfo.finish;
-    lines ~= maybeOpCmp(cursor, name);
+    lines ~= maybeOperators(cursor, name);
 
     lines ~= `}`;
 
@@ -439,19 +439,21 @@ private string[] innerFieldAccessors(in string varName, in from !"clang".Cursor 
 }
 
 // emit a D opCmp if the cursor has operator<, operator> and operator==
-private string[] maybeOpCmp(in from!"clang".Cursor cursor, in string name)
+private string[] maybeOperators(in from!"clang".Cursor cursor, in string name)
     @safe
 {
     import dpp.cursor.function_: OPERATOR_PREFIX;
     import std.algorithm: map, any;
     import std.array: array;
 
+    string[] lines;
+
     bool hasOperator(in string op) {
         return cursor.children.any!(a => a.spelling == OPERATOR_PREFIX ~ op);
     }
 
     if(hasOperator(">") && hasOperator("<") && hasOperator("==")) {
-        return [
+        lines ~=  [
             `int opCmp(` ~ name ~ ` other) const`,
             `{`,
             `    if(this.opCppLess(other)) return -1;`,
@@ -461,5 +463,14 @@ private string[] maybeOpCmp(in from!"clang".Cursor cursor, in string name)
         ].map!(a => `    ` ~ a).array;
     }
 
-    return [];
+    if(hasOperator("!")) {
+        lines ~= [
+            `bool opCast(T: bool)() const`,
+            `{`,
+            `    return !this.opCppBang();`,
+            `}`,
+        ].map!(a => `    ` ~ a).array;
+    }
+
+    return lines;
 }
