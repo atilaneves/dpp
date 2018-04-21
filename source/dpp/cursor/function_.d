@@ -201,6 +201,7 @@ private string operatorSpellingCpp(in from!"clang".Cursor cursor)
         case   "!": return `opCppBang`;
         case  "&&": return `opCppAnd`;
         case  "||": return `opCppOr`;
+        case   ",": return `opCppComma`;
         case "->*": return `opCppArrowStar`;
         case  "+=": return `opCppPlusAssign`;
         case  "-=": return `opCppMinusAssign`;

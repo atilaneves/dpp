@@ -233,32 +233,33 @@ import it;
                     Struct(int i);
 
                     // Unary operators
-                    Struct operator+()     const;
-                    Struct operator-()     const;
-                    Struct operator*()     const;
-                    Struct operator&()     const;
+                    Struct operator+ ()    const;
+                    Struct operator- ()    const;
+                    Struct operator* ()    const;
+                    Struct operator& ()    const;
                     Struct operator->()    const;
-                    Struct operator~()     const;
-                    Struct operator!()     const;
+                    Struct operator~ ()    const;
+                    Struct operator! ()    const;
                     Struct operator++()    const;
                     Struct operator--()    const;
                     Struct operator++(int) const; // not defined on purpose
                     Struct operator--(int) const; // not defined on purpose
 
                     // Binary operators
-                    Struct operator+(const Struct& other)   const;
-                    Struct operator-(const Struct& other)   const;
-                    Struct operator*(const Struct& other)   const;
-                    Struct operator/(const Struct& other)   const;
-                    Struct operator%(const Struct& other)   const;
-                    Struct operator^(const Struct& other)   const;
-                    Struct operator&(const Struct& other)   const;
-                    Struct operator|(const Struct& other)   const;
-                    Struct operator>>(const Struct& other)  const;
-                    Struct operator<<(const Struct& other)  const;
-                    Struct operator&&(const Struct& other)  const;
-                    Struct operator||(const Struct& other)  const;
+                    Struct operator+  (const Struct& other) const;
+                    Struct operator-  (const Struct& other) const;
+                    Struct operator*  (const Struct& other) const;
+                    Struct operator/  (const Struct& other) const;
+                    Struct operator%  (const Struct& other) const;
+                    Struct operator^  (const Struct& other) const;
+                    Struct operator&  (const Struct& other) const;
+                    Struct operator|  (const Struct& other) const;
+                    Struct operator>> (const Struct& other) const;
+                    Struct operator<< (const Struct& other) const;
+                    Struct operator&& (const Struct& other) const;
+                    Struct operator|| (const Struct& other) const;
                     Struct operator->*(const Struct& other) const;
+                    Struct operator,  (const Struct& other) const;
 
                     // assignment
                     void operator=  (const Struct& other);
@@ -278,29 +279,30 @@ import it;
         Cpp(
             q{
                 Struct::Struct(int i):i{i} {}
-                Struct Struct::operator+()  const { return { +i };    }
-                Struct Struct::operator-()  const { return { -i };    }
-                Struct Struct::operator*()  const { return { i * 3 }; }
-                Struct Struct::operator&()  const { return { i / 4 }; }
+                Struct Struct::operator+ () const { return { +i };    }
+                Struct Struct::operator- () const { return { -i };    }
+                Struct Struct::operator* () const { return { i * 3 }; }
+                Struct Struct::operator& () const { return { i / 4 }; }
                 Struct Struct::operator->() const { return { i / 3 }; }
-                Struct Struct::operator~()  const { return { i + 9 }; }
-                Struct Struct::operator!()  const { return { i - 8 }; }
+                Struct Struct::operator~ () const { return { i + 9 }; }
+                Struct Struct::operator! () const { return { i - 8 }; }
                 Struct Struct::operator++() const { return { i + 1 }; }
                 Struct Struct::operator--() const { return { i - 1 }; }
 
-                Struct Struct::operator+(const Struct& other)   const { return { i + other.i }; }
-                Struct Struct::operator-(const Struct& other)   const { return { i - other.i }; }
-                Struct Struct::operator*(const Struct& other)   const { return { i * other.i }; }
-                Struct Struct::operator/(const Struct& other)   const { return { i / other.i }; }
-                Struct Struct::operator%(const Struct& other)   const { return { i % other.i }; }
-                Struct Struct::operator^(const Struct& other)   const { return { i + other.i + 2 }; }
-                Struct Struct::operator&(const Struct& other)   const { return { i * other.i + 1 }; }
-                Struct Struct::operator|(const Struct& other)   const { return { i + other.i + 1 }; }
-                Struct Struct::operator<<(const Struct& other)  const { return { i + other.i }; }
-                Struct Struct::operator>>(const Struct& other)  const { return { i - other.i }; }
-                Struct Struct::operator&&(const Struct& other)  const { return { i && other.i }; }
-                Struct Struct::operator||(const Struct& other)  const { return { i || other.i }; }
+                Struct Struct::operator+  (const Struct& other) const { return { i + other.i }; }
+                Struct Struct::operator-  (const Struct& other) const { return { i - other.i }; }
+                Struct Struct::operator*  (const Struct& other) const { return { i * other.i }; }
+                Struct Struct::operator/  (const Struct& other) const { return { i / other.i }; }
+                Struct Struct::operator%  (const Struct& other) const { return { i % other.i }; }
+                Struct Struct::operator^  (const Struct& other) const { return { i + other.i + 2 }; }
+                Struct Struct::operator&  (const Struct& other) const { return { i * other.i + 1 }; }
+                Struct Struct::operator|  (const Struct& other) const { return { i + other.i + 1 }; }
+                Struct Struct::operator<< (const Struct& other) const { return { i + other.i }; }
+                Struct Struct::operator>> (const Struct& other) const { return { i - other.i }; }
+                Struct Struct::operator&& (const Struct& other) const { return { i && other.i }; }
+                Struct Struct::operator|| (const Struct& other) const { return { i || other.i }; }
                 Struct Struct::operator->*(const Struct& other) const { return { i - other.i }; }
+                Struct Struct::operator,  (const Struct& other) const { return { i - other.i - 1 }; }
 
                 void Struct::operator= (const Struct& other)  { i = other.i + 10; };
                 void Struct::operator+=(int j)                { i += j;           };
@@ -354,6 +356,7 @@ import it;
                 assert(Struct(3) << s3 == Struct(6));
 
                 assert(Struct(5).opCppArrowStar(s2) == Struct(3));
+                assert(Struct(5).opCppComma(s2) == Struct(2));
 
                 // assignment
                 {
