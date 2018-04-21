@@ -70,13 +70,15 @@ import it;
                 writeln("D: Testing move ctor");
                 auto tmp = Struct(33);
                 const oldTmpData = tmp.data;
-                auto s3 = Struct(dpp.move(tmp));
-                assert(s3.number() == 34);
-                assert(s3.data is oldTmpData);
+                auto mv1 = Struct(dpp.move(tmp));
+                assert(mv1.number() == 34);
+                assert(mv1.data is oldTmpData);
                 assert(tmp.data is null);
 
-                if(dCompiler != "dmd")
-                    assert(Struct(Struct(77)).number() == 78);
+                if(dCompiler != "dmd") {
+                    auto mv2 = Struct(Struct(77));
+                    assert(mv2.number() == 78);
+                }
             }
          ),
     );
