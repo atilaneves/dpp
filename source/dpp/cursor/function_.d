@@ -151,9 +151,13 @@ private string operatorSpellingD(in from!"clang".Cursor cursor)
     @safe
 {
     import std.range: walkLength;
+    import std.algorithm: canFind;
+
     const cppOperator = cursor.spelling[OPERATOR_PREFIX.length .. $];
 
-    if(cppOperator.length > 1 && cppOperator[$-1] == '=')
+    if(cppOperator.length > 1 &&
+       cppOperator[$-1] == '=' &&
+       (cppOperator.length != 2 || !['=', '!', '<', '>'].canFind(cppOperator[0])))
         return `opOpAssign(string op: "` ~ cppOperator[0 .. $-1] ~ `")`;
 
     assert(isUnaryOperator(cursor) || isBinaryOperator(cursor));
@@ -164,6 +168,7 @@ private string operatorSpellingD(in from!"clang".Cursor cursor)
         case "=": return `opAssign`;
         case "()": return `opCall`;
         case "[]": return `opIndex`;
+        case "==": return `opEquals`;
     }
 }
 
@@ -217,6 +222,12 @@ private string operatorSpellingCpp(in from!"clang".Cursor cursor)
         case "<<=": return `opCppLShiftAssign`;
         case "()":  return `opCppCall`;
         case "[]":  return `opCppIndex`;
+        case "==":  return `opCppEquals`;
+        case "!=":  return `opCppNotEquals`;
+        case "<=":  return `opCppLessEquals`;
+        case ">=":  return `opCppMoreEquals`;
+        case  "<":  return `opCppLess`;
+        case  ">":  return `opCppMore`;
     }
 
     assert(0);

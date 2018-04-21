@@ -277,6 +277,14 @@ import it;
                     // special
                     int operator()(int j) const;
                     int operator[](int j) const;
+
+                    // comparison
+                    bool operator==(int j) const;
+                    bool operator!=(const Struct& other) const; // not defined on purpose
+                    bool operator>=(const Struct& other) const; // not defined on purpose
+                    bool operator<=(const Struct& other) const; // not defined on purpose
+                    bool operator> (const Struct& other) const;
+                    bool operator< (const Struct& other) const;
                 };
             }
         ),
@@ -322,6 +330,8 @@ import it;
 
                 int Struct::operator()(int j) const { return i * j; }
                 int Struct::operator[](int j) const { return i / j; }
+
+                bool Struct::operator==(int j) const { return i == j; }
             }
         ),
         D(
@@ -329,67 +339,70 @@ import it;
                 import std.conv: text;
 
                 // unary
-                assert(+Struct(-4) == Struct(-4));
-                assert(-Struct(4)  == Struct(-4));
-                assert(-Struct(-5) == Struct(5));
-                assert(*Struct(2) == Struct(6));
-                assert(Struct(8).opCppAmpersand == Struct(2));
-                assert(Struct(9).opCppArrow == Struct(3));
-                assert(~Struct(7) == Struct(16));
-                assert(Struct(9).opCppBang == Struct(1));
+                assert(+Struct(-4) == -4);
+                assert(-Struct(4)  == -4);
+                assert(-Struct(-5) == 5);
+                assert(*Struct(2) == 6);
+                assert(Struct(8).opCppAmpersand == 2);
+                assert(Struct(9).opCppArrow == 3);
+                assert(~Struct(7) == 16);
+                assert(Struct(9).opCppBang == 1);
 
-                assert(++Struct(2) == Struct(3));
-                assert(--Struct(5) == Struct(4));
+                assert(++Struct(2) == 3);
+                assert(--Struct(5) == 4);
 
                 // binary
                 auto s0 = const Struct(0);
                 auto s2 = const Struct(2);
                 auto s3 = const Struct(3);
 
-                assert(s2 + s3 == Struct(5));
-                assert(s3 - s2 == Struct(1));
-                assert(Struct(5) - s2 == Struct(3));
-                assert(s2 * s3 == Struct(6));
-                assert(Struct(11) / s3 == Struct(3)) ;
+                assert(s2 + s3 == 5);
+                assert(s3 - s2 == 1);
+                assert(Struct(5) - s2 == 3);
+                assert(s2 * s3 == 6);
+                assert(Struct(11) / s3 == 3) ;
 
-                assert(Struct(5) % s2 == Struct(1));
-                assert(Struct(6) % s2 == Struct(0));
+                assert(Struct(5) % s2 == 1);
+                assert(Struct(6) % s2 == 0);
 
-                assert((Struct(4) ^ s2) == Struct(8));
-                assert((Struct(4) & s2) == Struct(9));
-                assert((Struct(4) | s2) == Struct(7));
+                assert((Struct(4) ^ s2) == 8);
+                assert((Struct(4) & s2) == 9);
+                assert((Struct(4) | s2) == 7);
 
-                assert(Struct(7) >> s2 == Struct(5));
-                assert(Struct(3) << s3 == Struct(6));
+                assert(Struct(7) >> s2 == 5);
+                assert(Struct(3) << s3 == 6);
 
-                assert(Struct(5).opCppArrowStar(s2) == Struct(3));
-                assert(Struct(5).opCppComma(s2) == Struct(2));
+                assert(Struct(5).opCppArrowStar(s2) == 3);
+                assert(Struct(5).opCppComma(s2) == 2);
 
                 // assignment
                 {
                     auto s = Struct(5);
-                    s = s2; assert(s == Struct(12));
+                    s = s2; assert(s == 12);
                 }
 
                 {
                     auto s = Struct(2);
-                    s += 3; assert(s == Struct(5));
-                    s -= 2; assert(s == Struct(3));
-                    s *= 2; assert(s == Struct(6));
-                    s /= 3; assert(s == Struct(2));
+                    s += 3; assert(s == 5);
+                    s -= 2; assert(s == 3);
+                    s *= 2; assert(s == 6);
+                    s /= 3; assert(s == 2);
                     s = s3;
-                    s %= 2; assert(s == Struct(1));
-                    s ^= 1; assert(s == Struct(0));
-                    s &= 1; assert(s == Struct(0));
-                    s |= 1; assert(s == Struct(1));
+                    s %= 2; assert(s == 1);
+                    s ^= 1; assert(s == 0);
+                    s &= 1; assert(s == 0);
+                    s |= 1; assert(s == 1);
                     s.i = 8;
-                    s >>= 2; assert(s == Struct(2));
-                    s <<= 1; assert(s == Struct(4));
+                    s >>= 2; assert(s == 2);
+                    s <<= 1; assert(s == 4);
                 }
 
                 // special
                 assert(Struct(2)(3) == 6);
                 assert(Struct(7)[2] == 3);
+
+                // comparison
+
             }
          ),
     );
