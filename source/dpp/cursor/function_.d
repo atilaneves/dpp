@@ -264,22 +264,17 @@ private string[] maybeMoveCtor(in from!"clang".Cursor cursor,
     import dpp.cursor.dlang: maybeRename, maybePragma;
     import dpp.type: translate;
     import clang: Cursor, Type;
-    import std.array: array;
 
-    if(cursor.kind == Cursor.Kind.Constructor) {
-        auto paramTypes = () @trusted {  return paramTypes(cursor).array; }();
-        if(paramTypes.length == 1 && paramTypes[0].kind == Type.Kind.RValueReference) {
-            context.log("*** type: ", paramTypes[0]);
-            return [
-                maybePragma(cursor, context) ~ " this(" ~ translate(paramTypes[0].pointee, context) ~ "*);",
-                "this(" ~ translate(paramTypes[0], context) ~ " wrapper) {",
-                "    this(&wrapper.value);",
-                "}",
-            ];
-        }
-    }
+    if(!cursor.isMoveConstructor) return [];
 
-    return [];
+    const paramType = () @trusted {  return paramTypes(cursor).front; }();
+
+    return [
+        maybePragma(cursor, context) ~ " this(" ~ translate(paramType.pointee, context) ~ "*);",
+        "this(" ~ translate(paramType, context) ~ " wrapper) {",
+        "    this(&wrapper.value);",
+        "}",
+    ];
 }
 
 // includes variadic params
