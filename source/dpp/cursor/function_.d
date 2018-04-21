@@ -27,11 +27,9 @@ string[] translateFunction(in from!"clang".Cursor cursor,
         cursor.kind == Cursor.Kind.Destructor
     );
 
-    // FIXME - stop special casing
+    // FIXME - stop special casing the move ctor
     auto moveCtorLines = maybeMoveCtor(cursor, context);
     if(moveCtorLines) return moveCtorLines;
-
-    if(isOperator(cursor) && !isSupportedOperator(cursor)) return [];
 
     string[] lines;
 
@@ -181,21 +179,26 @@ private string operatorSpellingCpp(in from!"clang".Cursor cursor)
     const operator = cursor.spelling[OPERATOR_PREFIX.length .. $];
 
     switch(operator) {
-        default: throw new Exception("Unkown C++ spelling for operator " ~ operator);
-        case "+":  return `opCppPlus`;
-        case "-":  return `opCppMinus`;
-        case "++": return `opCppIncrement`;
-        case "--": return `opCppDecrement`;
-        case "*":  return `opCppMul`;
-        case "/":  return `opCppDiv`;
-        case "&":  return `opCppAmpersand`;
-        case "~":  return `opCppTilde`;
-        case "%":  return `opCppMod`;
-        case "^":  return `opCppCaret`;
-        case "|":  return `opCppPipe`;
-        case "=":  return `opCppAssign`;
-        case ">>": return `opCppLShift`;
-        case "<<": return `opCppRShift`;
+        default: throw new Exception("Unknown C++ spelling for operator " ~ operator);
+        case   "+": return `opCppPlus`;
+        case   "-": return `opCppMinus`;
+        case  "++": return `opCppIncrement`;
+        case  "--": return `opCppDecrement`;
+        case   "*": return `opCppMul`;
+        case   "/": return `opCppDiv`;
+        case   "&": return `opCppAmpersand`;
+        case   "~": return `opCppTilde`;
+        case   "%": return `opCppMod`;
+        case   "^": return `opCppCaret`;
+        case   "|": return `opCppPipe`;
+        case   "=": return `opCppAssign`;
+        case  ">>": return `opCppLShift`;
+        case  "<<": return `opCppRShift`;
+        case  "->": return `opCppArrow`;
+        case   "!": return `opCppBang`;
+        case  "&&": return `opCppAnd`;
+        case  "||": return `opCppOr`;
+        case "->*": return `opCppArrowStar`;
     }
 
     assert(0);

@@ -242,8 +242,8 @@ import it;
                     Struct operator!()     const;
                     Struct operator++()    const;
                     Struct operator--()    const;
-                    Struct operator++(int) const;
-                    Struct operator--(int) const;
+                    Struct operator++(int) const; // not defined on purpose
+                    Struct operator--(int) const; // not defined on purpose
 
                     // Binary operators
                     Struct operator+(const Struct& other) const;
@@ -258,6 +258,7 @@ import it;
                     Struct operator<<(const Struct& other) const;
                     Struct operator&&(const Struct& other) const;
                     Struct operator||(const Struct& other) const;
+                    Struct operator->*(const Struct& other) const;
 
                     // assignment
                     void operator=(const Struct& other);
@@ -271,22 +272,25 @@ import it;
                 Struct Struct::operator-()  const { return { -i };    }
                 Struct Struct::operator*()  const { return { i * 3 }; }
                 Struct Struct::operator&()  const { return { i / 4 }; }
+                Struct Struct::operator->() const { return { i / 3 }; }
                 Struct Struct::operator~()  const { return { i + 9 }; }
+                Struct Struct::operator!()  const { return { i - 8 }; }
                 Struct Struct::operator++() const { return { i + 1 }; }
                 Struct Struct::operator--() const { return { i - 1 }; }
 
-                Struct Struct::operator+(const Struct& other)  const { return { i + other.i }; }
-                Struct Struct::operator-(const Struct& other)  const { return { i - other.i }; }
-                Struct Struct::operator*(const Struct& other)  const { return { i * other.i }; }
-                Struct Struct::operator/(const Struct& other)  const { return { i / other.i }; }
-                Struct Struct::operator%(const Struct& other)  const { return { i % other.i }; }
-                Struct Struct::operator^(const Struct& other)  const { return { i + other.i + 2 }; }
-                Struct Struct::operator&(const Struct& other)  const { return { i * other.i + 1 }; }
-                Struct Struct::operator|(const Struct& other)  const { return { i + other.i + 1 }; }
-                Struct Struct::operator<<(const Struct& other) const { return { i + other.i }; }
-                Struct Struct::operator>>(const Struct& other) const { return { i - other.i }; }
+                Struct Struct::operator+(const Struct& other)   const { return { i + other.i }; }
+                Struct Struct::operator-(const Struct& other)   const { return { i - other.i }; }
+                Struct Struct::operator*(const Struct& other)   const { return { i * other.i }; }
+                Struct Struct::operator/(const Struct& other)   const { return { i / other.i }; }
+                Struct Struct::operator%(const Struct& other)   const { return { i % other.i }; }
+                Struct Struct::operator^(const Struct& other)   const { return { i + other.i + 2 }; }
+                Struct Struct::operator&(const Struct& other)   const { return { i * other.i + 1 }; }
+                Struct Struct::operator|(const Struct& other)   const { return { i + other.i + 1 }; }
+                Struct Struct::operator<<(const Struct& other)  const { return { i + other.i }; }
+                Struct Struct::operator>>(const Struct& other)  const { return { i - other.i }; }
                 Struct Struct::operator&&(const Struct& other)  const { return { i && other.i }; }
                 Struct Struct::operator||(const Struct& other)  const { return { i || other.i }; }
+                Struct Struct::operator->*(const Struct& other) const { return { i - other.i }; }
 
                 void Struct::operator=(const Struct& other) { i = other.i + 10; };
             }
@@ -294,12 +298,15 @@ import it;
         D(
             q{
                 import std.conv: text;
+
                 assert(+Struct(-4) == Struct(-4));
                 assert(-Struct(4)  == Struct(-4));
                 assert(-Struct(-5) == Struct(5));
                 assert(*Struct(2) == Struct(6));
+                assert(Struct(8).opCppAmpersand == Struct(2));
+                assert(Struct(9).opCppArrow == Struct(3));
                 assert(~Struct(7) == Struct(16));
-                static assert(!__traits(compiles, &Struct(8)));
+                assert(Struct(9).opCppBang == Struct(1));
 
                 assert(++Struct(2) == Struct(3));
                 assert(--Struct(5) == Struct(4));
@@ -323,6 +330,8 @@ import it;
 
                 assert(Struct(7) >> s2 == Struct(5));
                 assert(Struct(3) << s3 == Struct(6));
+
+                assert(Struct(5).opCppArrowStar(s2) == Struct(3));
 
                 {
                     auto s = Struct(5);
