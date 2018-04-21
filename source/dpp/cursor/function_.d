@@ -64,7 +64,7 @@ private string functionDecl(
     const returnType = returnType(cursor, context);
     const params = translateAllParamTypes(cursor, context, names);
     // const C++ method?
-    const const_ = cursor.type.spelling.endsWith(") const") ? " const" : "";
+    const const_ = cursor.isConstCppMethod ? " const" : "";
 
     return text(returnType, " ", spelling, "(", params.join(", "), ") @nogc nothrow", const_, ";");
 }

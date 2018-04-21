@@ -5,7 +5,6 @@ Structs
   * Finish move constructor
 
 Classes
-  * Use clang_CXXMethod_isConst instead of the current hack
   * Use clang_getTemplateCursorKind to pick between `class` or `struct`
 
 Operators
