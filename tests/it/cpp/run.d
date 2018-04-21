@@ -332,6 +332,8 @@ import it;
                 int Struct::operator[](int j) const { return i / j; }
 
                 bool Struct::operator==(int j) const { return i == j; }
+                bool Struct::operator<(const Struct& other) const { return i < other.i; }
+                bool Struct::operator>(const Struct& other) const { return i > other.i; }
             }
         ),
         D(
@@ -401,8 +403,13 @@ import it;
                 assert(Struct(2)(3) == 6);
                 assert(Struct(7)[2] == 3);
 
-                // comparison
-
+                // comparison (== already done everywhere above)
+                assert(Struct(3) <  Struct(5));
+                assert(Struct(5) >  Struct(3));
+                assert(Struct(3) <= Struct(5));
+                assert(Struct(3) <= Struct(3));
+                assert(Struct(5) >  Struct(3));
+                assert(Struct(5) >= Struct(5));
             }
          ),
     );

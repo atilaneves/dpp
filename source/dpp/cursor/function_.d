@@ -5,7 +5,9 @@ module dpp.cursor.function_;
 
 import dpp.from;
 
-private enum OPERATOR_PREFIX = "operator";
+
+enum OPERATOR_PREFIX = "operator";
+
 
 string[] translateFunction(in from!"clang".Cursor cursor,
                            ref from!"dpp.runtime.context".Context context)
