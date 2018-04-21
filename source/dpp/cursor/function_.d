@@ -76,7 +76,6 @@ private string returnType(in from!"clang".Cursor cursor,
     import dpp.type: translate;
     import clang: Cursor;
     import std.typecons: Yes;
-    import std.algorithm: canFind;
 
     const indentation = context.indentation;
     context.log("Function return type (raw):        ", cursor.type.returnType);
@@ -88,7 +87,7 @@ private string returnType(in from!"clang".Cursor cursor,
     context.setIndentation(indentation);
     context.log("Function return type (translated): ", dType);
 
-    const static_ = cursor.spelling.canFind("operator new") ? "static " : "";
+    const static_ = cursor.storageClass == Cursor.StorageClass.Static ? "static " : "";
 
     return static_ ~ dType;
 }
@@ -249,6 +248,8 @@ private string operatorSpellingCpp(in from!"clang".Cursor cursor)
         case  ">":   return `opCppMore`;
         case " new": return `opCppNew`;
         case " new[]": return `opCppNewArray`;
+        case " delete": return `opCppDelete`;
+        case " delete[]": return `opCppDeleteArray`;
     }
 
     assert(0);

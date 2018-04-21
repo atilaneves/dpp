@@ -290,8 +290,10 @@ import it;
                     operator int() const;
 
                     // allocation
-                    void* operator new(unsigned long);
-                    void* operator new[](unsigned long);
+                    static void* operator new(unsigned long);
+                    static void* operator new[](unsigned long);
+                    static void operator delete(void*);
+                    static void operator delete[](void*);
                 };
             }
         ),
@@ -346,6 +348,8 @@ import it;
 
                 void* Struct::operator new(unsigned long count) { return new int{static_cast<int>(count)}; }
                 void* Struct::operator new[](unsigned long count) { return new int{static_cast<int>(count + 1)}; }
+                void Struct::operator delete(void*) {}
+                void Struct::operator delete[](void*) {}
             }
         ),
         D(
@@ -431,6 +435,8 @@ import it;
                 // allocation
                 assert(*(cast(int*) Struct.opCppNew(5)) == 5);
                 assert(*(cast(int*) Struct.opCppNewArray(5)) == 6);
+                Struct.opCppDelete(null);
+                Struct.opCppDeleteArray(null);
             }
          ),
     );
