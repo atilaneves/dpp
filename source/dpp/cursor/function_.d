@@ -162,6 +162,7 @@ private string operatorSpellingD(in from!"clang".Cursor cursor)
     switch(cppOperator) {
         default: return dFunction ~ `(string op: "` ~ cppOperator ~ `")`;
         case "=": return `opAssign`;
+        case "()": return `opCall`;
     }
 }
 
@@ -213,6 +214,7 @@ private string operatorSpellingCpp(in from!"clang".Cursor cursor)
         case  "|=": return `opCppPipeAssign`;
         case ">>=": return `opCppRShiftAssign`;
         case "<<=": return `opCppLShiftAssign`;
+        case "()":  return `opCppCall`;
     }
 
     assert(0);

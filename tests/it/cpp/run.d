@@ -273,6 +273,9 @@ import it;
                     void operator|= (int j);
                     void operator>>=(int j);
                     void operator<<=(int j);
+
+                    // special
+                    int operator()(int j) const;
                 };
             }
         ),
@@ -315,6 +318,8 @@ import it;
                 void Struct::operator|=(int j)                { i |= j;           };
                 void Struct::operator>>=(int j)               { i >>= j;          };
                 void Struct::operator<<=(int j)               { i <<= j;          };
+
+                int Struct::operator()(int j) const { return i * j; }
             }
         ),
         D(
@@ -379,6 +384,9 @@ import it;
                     s >>= 2; assert(s == Struct(2));
                     s <<= 1; assert(s == Struct(4));
                 }
+
+                // special
+                assert(Struct(2)(3) == 6);
             }
          ),
     );
