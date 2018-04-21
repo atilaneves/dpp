@@ -248,6 +248,7 @@ private string operatorSpellingCpp(in from!"clang".Cursor cursor)
         case  "<":   return `opCppLess`;
         case  ">":   return `opCppMore`;
         case " new": return `opCppNew`;
+        case " new[]": return `opCppNewArray`;
     }
 
     assert(0);

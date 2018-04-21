@@ -291,6 +291,7 @@ import it;
 
                     // allocation
                     void* operator new(unsigned long);
+                    void* operator new[](unsigned long);
                 };
             }
         ),
@@ -343,9 +344,8 @@ import it;
 
                 Struct::operator int() const { return i + 1; }
 
-                void* Struct::operator new(unsigned long count) {
-                    return new int{static_cast<int>(count)};
-                }
+                void* Struct::operator new(unsigned long count) { return new int{static_cast<int>(count)}; }
+                void* Struct::operator new[](unsigned long count) { return new int{static_cast<int>(count + 1)}; }
             }
         ),
         D(
@@ -429,7 +429,8 @@ import it;
                 assert(!cast(bool) Struct(3));
 
                 // allocation
-                assert(* (cast(int*) Struct.opCppNew(5)) == 5);
+                assert(*(cast(int*) Struct.opCppNew(5)) == 5);
+                assert(*(cast(int*) Struct.opCppNewArray(5)) == 6);
             }
          ),
     );
