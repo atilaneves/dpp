@@ -5,7 +5,9 @@ module dpp.cursor.function_;
 
 import dpp.from;
 
-private enum OPERATOR_PREFIX = "operator";
+
+enum OPERATOR_PREFIX = "operator";
+
 
 string[] translateFunction(in from!"clang".Cursor cursor,
                            ref from!"dpp.runtime.context".Context context)
@@ -24,14 +26,13 @@ string[] translateFunction(in from!"clang".Cursor cursor,
         cursor.kind == Cursor.Kind.FunctionDecl ||
         cursor.kind == Cursor.Kind.CXXMethod ||
         cursor.kind == Cursor.Kind.Constructor ||
-        cursor.kind == Cursor.Kind.Destructor
+        cursor.kind == Cursor.Kind.Destructor ||
+        cursor.kind == Cursor.Kind.ConversionFunction
     );
 
-    // FIXME - stop special casing
+    // FIXME - stop special casing the move ctor
     auto moveCtorLines = maybeMoveCtor(cursor, context);
     if(moveCtorLines) return moveCtorLines;
-
-    if(isOperator(cursor) && !isSupportedOperator(cursor)) return [];
 
     string[] lines;
 
@@ -79,14 +80,16 @@ private string returnType(in from!"clang".Cursor cursor,
     const indentation = context.indentation;
     context.log("Function return type (raw):        ", cursor.type.returnType);
 
-    auto ret = cursor.kind == Cursor.Kind.Constructor || cursor.kind == Cursor.Kind.Destructor
+    const dType = cursor.kind == Cursor.Kind.Constructor || cursor.kind == Cursor.Kind.Destructor
         ? ""
         : translate(cursor.returnType, context, Yes.translatingFunction);
 
     context.setIndentation(indentation);
-    context.log("Function return type (translated): ", ret);
+    context.log("Function return type (translated): ", dType);
 
-    return ret;
+    const static_ = cursor.storageClass == Cursor.StorageClass.Static ? "static " : "";
+
+    return static_ ~ dType;
 }
 
 private string[] maybeOperator(in from!"clang".Cursor cursor,
@@ -105,7 +108,7 @@ private string[] maybeOperator(in from!"clang".Cursor cursor,
 
     return [
         // remove semicolon from the end with [0..$-1]
-        `extern(D) ` ~ functionDecl(cursor, context, operatorSpellingD(cursor), Yes.names)[0..$-1],
+        `extern(D) ` ~ functionDecl(cursor, context, operatorSpellingD(cursor, context), Yes.names)[0..$-1],
         `{`,
         `    return ` ~ operatorSpellingCpp(cursor) ~ `(` ~ params.length.iota.map!(a => text("arg", a)).join(", ") ~ `);`,
         `}`,
@@ -149,11 +152,24 @@ private string functionSpelling(in from!"clang".Cursor cursor,
     return context.rememberLinkable(cursor);
 }
 
-private string operatorSpellingD(in from!"clang".Cursor cursor)
+private string operatorSpellingD(in from!"clang".Cursor cursor,
+                                 ref from!"dpp.runtime.context".Context context)
     @safe
 {
+    import clang: Cursor;
     import std.range: walkLength;
+    import std.algorithm: canFind;
+
     const cppOperator = cursor.spelling[OPERATOR_PREFIX.length .. $];
+
+    if(cursor.kind == Cursor.Kind.ConversionFunction) {
+        return `opCast(T: ` ~ returnType(cursor, context) ~ `)`;
+    }
+
+    if(cppOperator.length > 1 &&
+       cppOperator[$-1] == '=' &&
+       (cppOperator.length != 2 || !['=', '!', '<', '>'].canFind(cppOperator[0])))
+        return `opOpAssign(string op: "` ~ cppOperator[0 .. $-1] ~ `")`;
 
     assert(isUnaryOperator(cursor) || isBinaryOperator(cursor));
     const dFunction = isBinaryOperator(cursor) ? "opBinary" : "opUnary";
@@ -161,6 +177,9 @@ private string operatorSpellingD(in from!"clang".Cursor cursor)
     switch(cppOperator) {
         default: return dFunction ~ `(string op: "` ~ cppOperator ~ `")`;
         case "=": return `opAssign`;
+        case "()": return `opCall`;
+        case "[]": return `opIndex`;
+        case "==": return `opEquals`;
     }
 }
 
@@ -178,24 +197,59 @@ private bool isBinaryOperator(in from!"clang".Cursor cursor) @safe nothrow {
 private string operatorSpellingCpp(in from!"clang".Cursor cursor)
     @safe
 {
+    import clang: Cursor;
+
     const operator = cursor.spelling[OPERATOR_PREFIX.length .. $];
 
+    if(cursor.kind == Cursor.Kind.ConversionFunction) {
+        // the first character will be a space
+        return "oppCppCast_" ~ operator[1..$];
+    }
+
     switch(operator) {
-        default: throw new Exception("Unkown C++ spelling for operator " ~ operator);
-        case "+":  return `opCppPlus`;
-        case "-":  return `opCppMinus`;
-        case "++": return `opCppIncrement`;
-        case "--": return `opCppDecrement`;
-        case "*":  return `opCppMul`;
-        case "/":  return `opCppDiv`;
-        case "&":  return `opCppAmpersand`;
-        case "~":  return `opCppTilde`;
-        case "%":  return `opCppMod`;
-        case "^":  return `opCppCaret`;
-        case "|":  return `opCppPipe`;
-        case "=":  return `opCppAssign`;
-        case ">>": return `opCppLShift`;
-        case "<<": return `opCppRShift`;
+        default: throw new Exception("Unknown C++ spelling for operator '" ~ operator ~ "'");
+        case   "+":  return `opCppPlus`;
+        case   "-":  return `opCppMinus`;
+        case  "++":  return `opCppIncrement`;
+        case  "--":  return `opCppDecrement`;
+        case   "*":  return `opCppMul`;
+        case   "/":  return `opCppDiv`;
+        case   "&":  return `opCppAmpersand`;
+        case   "~":  return `opCppTilde`;
+        case   "%":  return `opCppMod`;
+        case   "^":  return `opCppCaret`;
+        case   "|":  return `opCppPipe`;
+        case   "=":  return `opCppAssign`;
+        case  ">>":  return `opCppLShift`;
+        case  "<<":  return `opCppRShift`;
+        case  "->":  return `opCppArrow`;
+        case   "!":  return `opCppBang`;
+        case  "&&":  return `opCppAnd`;
+        case  "||":  return `opCppOr`;
+        case   ",":  return `opCppComma`;
+        case "->*":  return `opCppArrowStar`;
+        case  "+=":  return `opCppPlusAssign`;
+        case  "-=":  return `opCppMinusAssign`;
+        case  "*=":  return `opCppMulAssign`;
+        case  "/=":  return `opCppDivAssign`;
+        case  "%=":  return `opCppModAssign`;
+        case  "^=":  return `opCppCaretAssign`;
+        case  "&=":  return `opCppAmpersandAssign`;
+        case  "|=":  return `opCppPipeAssign`;
+        case ">>=":  return `opCppRShiftAssign`;
+        case "<<=":  return `opCppLShiftAssign`;
+        case "()":   return `opCppCall`;
+        case "[]":   return `opCppIndex`;
+        case "==":   return `opCppEquals`;
+        case "!=":   return `opCppNotEquals`;
+        case "<=":   return `opCppLessEquals`;
+        case ">=":   return `opCppMoreEquals`;
+        case  "<":   return `opCppLess`;
+        case  ">":   return `opCppMore`;
+        case " new": return `opCppNew`;
+        case " new[]": return `opCppNewArray`;
+        case " delete": return `opCppDelete`;
+        case " delete[]": return `opCppDeleteArray`;
     }
 
     assert(0);

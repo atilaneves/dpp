@@ -5,13 +5,12 @@ Structs
   * Finish move constructor
 
 Classes
-  * Static methods
   * Use clang_CXXMethod_isConst instead of the current hack
   * Use clang_getTemplateCursorKind to pick between `class` or `struct`
 
 Operators
-  * Conversion operators (opCast, clang's ConversionFunction)
   * Free function operator overloading
+  * User-defined literals
 
 Namespaces
   * Collate all namespaces in order to declare things correctly (nested namespaces)
