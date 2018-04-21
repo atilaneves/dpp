@@ -462,7 +462,6 @@ import it;
     );
 }
 
-@ShouldFail("mangling problems")
 @Tags("run")
 @("templates")
 @safe unittest {
@@ -495,7 +494,8 @@ import it;
                 static void instantiate() {
                     vector<int> v;
                     v.push_back(42);
-                    const auto _ = v.value(0);
+                    v.value(0);
+                    v.numValues();
                 }
             `
         ),
@@ -510,7 +510,11 @@ import it;
 
                 v.push_back(2);
                 assert(v.numValues == 2);
-                assert(v.value(0) == 2);
+                assert(v.value(0) == 4);
+                assert(v.value(1) == 2);
+
+                foreach(i; 2 .. v.numValues)
+                    assert(v.value(i) == 0);
             }
          ),
     );
