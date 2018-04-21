@@ -285,6 +285,9 @@ import it;
                     bool operator<=(const Struct& other) const; // not defined on purpose
                     bool operator> (const Struct& other) const;
                     bool operator< (const Struct& other) const;
+
+                    // conversion
+                    operator int() const;
                 };
             }
         ),
@@ -334,6 +337,8 @@ import it;
                 bool Struct::operator==(int j) const { return i == j; }
                 bool Struct::operator<(const Struct& other) const { return i < other.i; }
                 bool Struct::operator>(const Struct& other) const { return i > other.i; }
+
+                Struct::operator int() const { return i + 1; }
             }
         ),
         D(
@@ -410,6 +415,9 @@ import it;
                 assert(Struct(3) <= Struct(3));
                 assert(Struct(5) >  Struct(3));
                 assert(Struct(5) >= Struct(5));
+
+                // conversion
+                assert(cast(int) Struct(7) == 8);
             }
          ),
     );

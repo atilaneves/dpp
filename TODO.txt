@@ -10,7 +10,6 @@ Classes
   * Use clang_getTemplateCursorKind to pick between `class` or `struct`
 
 Operators
-  * Conversion operators (opCast, clang's ConversionFunction)
   * Free function operator overloading
 
 Namespaces

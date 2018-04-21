@@ -26,7 +26,8 @@ string[] translateFunction(in from!"clang".Cursor cursor,
         cursor.kind == Cursor.Kind.FunctionDecl ||
         cursor.kind == Cursor.Kind.CXXMethod ||
         cursor.kind == Cursor.Kind.Constructor ||
-        cursor.kind == Cursor.Kind.Destructor
+        cursor.kind == Cursor.Kind.Destructor ||
+        cursor.kind == Cursor.Kind.ConversionFunction
     );
 
     // FIXME - stop special casing the move ctor
@@ -105,7 +106,7 @@ private string[] maybeOperator(in from!"clang".Cursor cursor,
 
     return [
         // remove semicolon from the end with [0..$-1]
-        `extern(D) ` ~ functionDecl(cursor, context, operatorSpellingD(cursor), Yes.names)[0..$-1],
+        `extern(D) ` ~ functionDecl(cursor, context, operatorSpellingD(cursor, context), Yes.names)[0..$-1],
         `{`,
         `    return ` ~ operatorSpellingCpp(cursor) ~ `(` ~ params.length.iota.map!(a => text("arg", a)).join(", ") ~ `);`,
         `}`,
@@ -149,13 +150,19 @@ private string functionSpelling(in from!"clang".Cursor cursor,
     return context.rememberLinkable(cursor);
 }
 
-private string operatorSpellingD(in from!"clang".Cursor cursor)
+private string operatorSpellingD(in from!"clang".Cursor cursor,
+                                 ref from!"dpp.runtime.context".Context context)
     @safe
 {
+    import clang: Cursor;
     import std.range: walkLength;
     import std.algorithm: canFind;
 
     const cppOperator = cursor.spelling[OPERATOR_PREFIX.length .. $];
+
+    if(cursor.kind == Cursor.Kind.ConversionFunction) {
+        return `opCast(T: ` ~ returnType(cursor, context) ~ `)`;
+    }
 
     if(cppOperator.length > 1 &&
        cppOperator[$-1] == '=' &&
@@ -188,7 +195,14 @@ private bool isBinaryOperator(in from!"clang".Cursor cursor) @safe nothrow {
 private string operatorSpellingCpp(in from!"clang".Cursor cursor)
     @safe
 {
+    import clang: Cursor;
+
     const operator = cursor.spelling[OPERATOR_PREFIX.length .. $];
+
+    if(cursor.kind == Cursor.Kind.ConversionFunction) {
+        // the first character will be a space
+        return "oppCppCast_" ~ operator[1..$];
+    }
 
     switch(operator) {
         default: throw new Exception("Unknown C++ spelling for operator " ~ operator);

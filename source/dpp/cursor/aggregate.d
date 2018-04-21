@@ -255,12 +255,14 @@ string[] translateAggregate(
 private bool skipMember(in from!"clang".Cursor member) @safe @nogc pure nothrow {
     import clang: Cursor;
     return
-        !member.isDefinition &&
-        member.kind != Cursor.Kind.CXXMethod &&
-        member.kind != Cursor.Kind.Constructor &&
-        member.kind != Cursor.Kind.Destructor &&
-        member.kind != Cursor.Kind.VarDecl &&
-        member.kind != Cursor.Kind.CXXBaseSpecifier;
+        !member.isDefinition
+        && member.kind != Cursor.Kind.CXXMethod
+        && member.kind != Cursor.Kind.Constructor
+        && member.kind != Cursor.Kind.Destructor
+        && member.kind != Cursor.Kind.VarDecl
+        && member.kind != Cursor.Kind.CXXBaseSpecifier
+        && member.kind != Cursor.Kind.ConversionFunction
+    ;
 }
 
 
@@ -441,7 +443,8 @@ private string[] maybeOpCmp(in from!"clang".Cursor cursor, in string name)
     @safe
 {
     import dpp.cursor.function_: OPERATOR_PREFIX;
-    import std.algorithm: any;
+    import std.algorithm: map, any;
+    import std.array: array;
 
     bool hasOperator(in string op) {
         return cursor.children.any!(a => a.spelling == OPERATOR_PREFIX ~ op);
@@ -455,7 +458,7 @@ private string[] maybeOpCmp(in from!"clang".Cursor cursor, in string name)
             `    if(this.opCppMore(other)) return  1;`,
             `    return 0;`,
             `}`,
-        ];
+        ].map!(a => `    ` ~ a).array;
     }
 
     return [];
