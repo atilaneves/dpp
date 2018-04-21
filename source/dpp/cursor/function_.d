@@ -36,6 +36,7 @@ string[] translateFunction(in from!"clang".Cursor cursor,
 
     string[] lines;
 
+    lines ~= maybeCopyCtor(cursor, context);
     lines ~= maybeOperator(cursor, context);
 
     maybeRememberStructs(paramTypes(cursor), context);
@@ -256,6 +257,31 @@ private string operatorSpellingCpp(in from!"clang".Cursor cursor)
 }
 
 
+// Add a non-const ref that forwards to the const ref copy ctor
+// so that lvalues don't match the by-value ctor
+private string[] maybeCopyCtor(in from!"clang".Cursor cursor,
+                               ref from!"dpp.runtime.context".Context context)
+    @safe
+{
+
+    import dpp.cursor.dlang: maybeRename, maybePragma;
+    import dpp.type: translate;
+    import clang: Cursor, Type;
+
+    if(!cursor.isCopyConstructor) return [];
+
+    const paramType = () @trusted {  return paramTypes(cursor).front; }();
+    const pointee = translate(paramType.pointee, context);
+    const dType = pointee["const(".length .. $ - 1]; // remove the constness
+
+    return [
+        `this(ref ` ~ dType ~ ` other)`,
+        `{`,
+        `   this(*cast(const ` ~ dType ~ `*) &other);`,
+        `}`,
+    ];
+}
+
 private string[] maybeMoveCtor(in from!"clang".Cursor cursor,
                                ref from!"dpp.runtime.context".Context context)
     @safe
@@ -268,11 +294,17 @@ private string[] maybeMoveCtor(in from!"clang".Cursor cursor,
     if(!cursor.isMoveConstructor) return [];
 
     const paramType = () @trusted {  return paramTypes(cursor).front; }();
+    const pointee = translate(paramType.pointee, context);
 
     return [
-        maybePragma(cursor, context) ~ " this(" ~ translate(paramType.pointee, context) ~ "*);",
+        maybePragma(cursor, context) ~ " this(" ~ pointee ~ "*);",
         "this(" ~ translate(paramType, context) ~ " wrapper) {",
-        "    this(&wrapper.value);",
+        "    this(wrapper.ptr);",
+        "    *wrapper.ptr = typeof(*wrapper.ptr).init;",
+        "}",
+        "this(" ~ pointee ~ " other)",
+        "{",
+        "    this(&other);",
         "}",
     ];
 }

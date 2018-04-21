@@ -10,7 +10,7 @@ dflags "-dip25"
 dependency "libclang" version="~master"
 
 configuration "executable" {
-    dflags "-dip1000"
+    dflags "-dip1000" platform="dmd"
     mainSourceFile "source/main.d"
 }
 

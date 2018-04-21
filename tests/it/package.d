@@ -71,7 +71,7 @@ struct IncludeSandbox {
         @safe const
     {
         try
-            sandbox.shouldSucceed!(file, line)(["dmd", "-o-", "-c"] ~ srcFiles);
+            sandbox.shouldSucceed!(file, line)([dCompiler, "-o-", "-c"] ~ srcFiles);
         catch(Exception e)
             adjustMessage(e, srcFiles);
     }
@@ -81,7 +81,7 @@ struct IncludeSandbox {
         @safe const
     {
         try
-            sandbox.shouldFail!(file, line)(["dmd", "-o-", "-c"] ~ srcFiles);
+            sandbox.shouldFail!(file, line)([dCompiler, "-o-", "-c"] ~ srcFiles);
         catch(Exception e)
             adjustMessage(e, srcFiles);
     }
@@ -91,11 +91,11 @@ struct IncludeSandbox {
         @safe const
     {
         try
-            sandbox.shouldSucceed!(file, line)(["dmd", "-c", "-ofblob.o"] ~ srcFiles);
+            sandbox.shouldSucceed!(file, line)([dCompiler, "-c", "-ofblob.o"] ~ srcFiles);
         catch(Exception e)
             adjustMessage(e, srcFiles);
 
-        shouldFail("dmd", "-ofblob", "blob.o");
+        shouldFail(dCompiler, "-ofblob", "blob.o");
     }
 
     private void adjustMessage(Exception e, in string[] srcFiles) @safe const {
@@ -226,7 +226,7 @@ private void shouldCompileAndRun
         const linkStdLib = isCpp ? ["-L-lstdc++"] : [];
 
         try
-            shouldSucceed!(file, line)(["dmd", "-g", "app.d", "c.o"] ~ linkStdLib);
+            shouldSucceed!(file, line)([dCompiler, "-g", "app.d", "c.o"] ~ linkStdLib);
         catch(Exception e)
             adjustMessage(e, ["app.d"]);
 
@@ -235,4 +235,10 @@ private void shouldCompileAndRun
         catch(Exception e)
             adjustMessage(e, ["app.d"]);
     }
+}
+
+
+private string dCompiler() @safe {
+    import std.process: environment;
+    return environment.get("DC", "dmd");
 }

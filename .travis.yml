@@ -4,6 +4,7 @@ sudo: false
 matrix:
     include:
         - d: dmd-2.079.1
+        - d: ldc-1.8.0
 
 
 addons:

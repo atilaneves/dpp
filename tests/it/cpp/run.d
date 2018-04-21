@@ -32,11 +32,12 @@ import it;
                 }
                 Struct::Struct(const Struct& other) {
                     cout << "C++: copy ctor" << endl;
-                    data = new int(*reinterpret_cast<int*>(other.data));
+                    data = new int(*reinterpret_cast<int*>(other.data) - 1);
                 }
                 Struct::Struct(Struct&& other) {
                     cout << "C++: move ctor" << endl;
-                    data = new int(*reinterpret_cast<int*>(other.data));
+                    data = other.data;
+                    *reinterpret_cast<int*>(data) = number() + 1;
                 }
                 int Struct::number() const { return *reinterpret_cast<int*>(data); }
             `
@@ -44,21 +45,40 @@ import it;
         D(
             q{
                 import std.stdio;
+                import std.process;
+
+                const dCompiler = environment.get("DC", "dmd");
 
                 writeln("D: Testing int ctor");
-                auto s1 = const Struct(42);
-                assert(s1.number() == 42);
-                assert(*(cast(int*)s1.data) == 42);
+                auto cs = const Struct(42);
+                assert(cs.number() == 42);
+                assert(*(cast(int*)cs.data) == 42);
+                auto ms = Struct(7);
 
                 writeln("D: Testing copy ctor");
-                auto s2 = Struct(s1);
-                assert(s2.number() == 42);
-                assert(s1.data !is s2.data);
+                {
+                    auto s = Struct(cs);
+                    assert(s.number() == 41);
+                    assert(cs.data !is s.data);
+                }
+                {
+                    auto s = Struct(ms);
+                    assert(s.number() == 6);
+                    assert(cs.data !is s.data);
+                }
 
                 writeln("D: Testing move ctor");
                 auto tmp = Struct(33);
-                auto s3 = Struct(dpp.move(tmp));
-                assert(s3.number() == 33);
+                const oldTmpData = tmp.data;
+                auto mv1 = Struct(dpp.move(tmp));
+                assert(mv1.number() == 34);
+                assert(mv1.data is oldTmpData);
+                assert(tmp.data is null);
+
+                if(dCompiler != "dmd") {
+                    auto mv2 = Struct(Struct(77));
+                    assert(mv2.number() == 78);
+                }
             }
          ),
     );
