@@ -1,9 +1,5 @@
 volatile (methods and variables, including C)
 
-Structs
-  * @disable this() if there's a no-arg ctor
-  * Finish move constructor
-
 Classes
   * Use clang_getTemplateCursorKind to pick between `class` or `struct`
 

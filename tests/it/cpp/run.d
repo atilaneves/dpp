@@ -79,6 +79,8 @@ import it;
                     auto mv2 = Struct(Struct(77));
                     assert(mv2.number() == 78);
                 }
+
+                static assert(!__traits(compiles, Struct()));
             }
          ),
     );

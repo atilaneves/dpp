@@ -245,6 +245,7 @@ string[] translateAggregate(
 
     lines ~= bitFieldInfo.finish;
     lines ~= maybeOperators(cursor, name);
+    lines ~= maybeDisableDefaultCtor(cursor, dKeyword);
 
     lines ~= `}`;
 
@@ -473,4 +474,18 @@ private string[] maybeOperators(in from!"clang".Cursor cursor, in string name)
     }
 
     return lines;
+}
+
+private string[] maybeDisableDefaultCtor(in from!"clang".Cursor cursor, in string dKeyword)
+    @safe
+{
+    import clang: Cursor;
+    import std.algorithm: any;
+
+    if(dKeyword == "struct" &&
+       cursor.children.any!(a => a.kind == Cursor.Kind.Constructor)) {
+        return [`    @disable this();`];
+    }
+
+    return [];
 }
