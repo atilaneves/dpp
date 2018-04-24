@@ -75,6 +75,16 @@ struct Context {
     /// Command-line options
     Options options;
 
+    /*
+      Remember all declared types so that C-style casts can be recognised
+     */
+    private string[] _types = [
+        `void ?\*`,
+        `char`, `unsigned char`, `signed char`, `short`, `unsigned short`,
+        `int`, `unsigned`, `unsigned int`, `long`, `unsigned long`, `long long`,
+        `unsigned long long`, `float`, `double`, `long double`,
+    ];
+
     /// to generate unique names
     private int anonymousIndex;
 
@@ -193,7 +203,9 @@ struct Context {
        Remember this aggregate cursor
      */
     void rememberAggregate(in Cursor cursor) @safe pure {
-        _aggregateDeclarations[spellingOrNickname(cursor)] = true;
+        const spelling = spellingOrNickname(cursor);
+        _aggregateDeclarations[spelling] = true;
+        rememberType(spelling);
     }
 
     // find the last one we named, pop it off, and return it
@@ -267,6 +279,31 @@ struct Context {
             ;
     }
 
+    void rememberType(in string type) @safe pure nothrow {
+        _types ~= type;
+    }
+
+    /// Matches a C-type cast
+    auto castRegex() @safe const {
+        import std.array: join, array;
+        import std.regex: regex;
+        import std.algorithm: map;
+        import std.range: chain;
+
+        // const and non const versions of each type
+        const typesConstOpt = _types.map!(a => `(?:const )?` ~ a).array;
+
+        const typeSelectionStr =
+            chain(typesConstOpt,
+                  // pointers thereof
+                  typesConstOpt.map!(a => a ~ ` ?\*`))
+            .join("|");
+
+        // parens and a type inside, where "a type" is any we know about
+        const regexStr = `\(( *?(?:` ~ typeSelectionStr ~ `) *?)\)`;
+
+        return regex(regexStr);
+    }
 }
 
 

@@ -487,6 +487,73 @@ import it;
 }
 
 
+@Tags("issue", "preprocessor")
+@("39.0")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                typedef long value;
+                typedef long intnat;
+                typedef unsigned long uintnat;
+                #define Val_long(x) ((intnat) (((uintnat)(x) << 1)) + 1)
+                #define Long_val(x)     ((x) >> 1)
+                #define Val_int(x) Val_long(x)
+                #define Int_val(x) ((int) Long_val(x))
+                #define Bp_val(v) ((char *) (v))
+                #define String_val(x) ((const char *) Bp_val(x))
+                value caml_callback(value, value);
+                char* strdup(const char* val);
+            `
+        ),
+        D(
+            q{
+                static value* fib_closure = null;
+                int n;
+                auto val = Int_val(caml_callback(*fib_closure, Val_int(n)));
+                char* str = strdup(String_val(caml_callback(*fib_closure, Val_int(n))));
+            }
+        ),
+    );
+}
+
+@Tags("issue", "preprocessor")
+@("39.1")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                #define VOID_PTR(x) ( void* )(x)
+            `
+        ),
+        D(
+            q{
+                auto val = VOID_PTR(42);
+                static assert(is(typeof(val) == void*));
+            }
+        ),
+    );
+}
+
+@Tags("issue", "preprocessor")
+@("39.2")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                typedef int myint;
+                #define CAST(x) ( myint* )(x)
+            `
+        ),
+        D(
+            q{
+                auto val = CAST(42);
+                static assert(is(typeof(val) == int*));
+            }
+        ),
+    );
+}
+
 @Tags("issue")
 @("43")
 @safe unittest {

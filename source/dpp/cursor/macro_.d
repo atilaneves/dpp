@@ -47,27 +47,22 @@ string[] translateMacro(in from!"clang".Cursor cursor,
 
     alreadyDefined[cursor.spelling] = true;
 
-    return [maybeUndef ~ "#define " ~ chars.text.translateToD ~ "\n"];
+    return [maybeUndef ~ "#define " ~ translateToD(chars.text, context) ~ "\n"];
 }
 
 
 // Some macros define snippets of C code that aren't valid D
-private string translateToD(in string line) @safe {
-    import std.array: replace, join;
+private string translateToD(in string line, in from!"dpp.runtime.context".Context context) @safe {
+    import std.array: replace;
     import std.regex: regex, replaceAll;
-    import std.format: format;
 
     auto sizeofRegex = regex(`sizeof *?\(([^)]+)\)`);
-
-    const cTypes = ["char", "unsigned char", "signed char", "short", "unsigned short", "int", "unsigned", "unsigned int",
-                    "long", "unsigned long", "long long", "unsigned long long", "float", "double"];
-    auto castRegex = regex(`\((%s)\)`.format(cTypes.join("|")));
 
     return line
         .replace("->", ".")
         .replaceNull
         .replaceAll(sizeofRegex, "$1.sizeof")
-        .replaceAll(castRegex, "cast($1)")
+        .replaceAll(context.castRegex, "cast($1)")
         ;
 }
 

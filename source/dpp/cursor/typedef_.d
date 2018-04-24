@@ -52,6 +52,8 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
         ? context.spellingOrNickname(children[0])
         : translate(underlyingType, context, No.translatingFunction);
 
+    context.rememberType(typedef_.spelling);
+
     // If the two spellings are the same, it's a `typedef struct foo { } foo`
     // situration, and there's no reason to alias to anything, so we return nothing.
     return typedef_.spelling == underlyingSpelling
