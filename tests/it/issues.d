@@ -485,3 +485,22 @@ import it;
         ),
     );
 }
+
+
+@Tags("issue")
+@("43")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                int binOp(int (f)(int x, int y), int a, int b);
+                int thef(int x, int y);
+            }
+        ),
+        D(
+            q{
+                binOp(&thef, 2, 3);
+            }
+        ),
+    );
+}

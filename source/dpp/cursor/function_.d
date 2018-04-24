@@ -62,12 +62,16 @@ private string functionDecl(
     import std.algorithm: endsWith;
     import std.array: join;
 
+    context.log("Function return type (raw):        ", cursor.type.returnType);
     const returnType = returnType(cursor, context);
-    const params = translateAllParamTypes(cursor, context, names);
+    context.log("Function return type (translated): ", returnType);
+
+    const params = translateAllParamTypes(cursor, context, names).join(", ");
+    context.log("params: ", params);
     // const C++ method?
     const const_ = cursor.isConstCppMethod ? " const" : "";
 
-    return text(returnType, " ", spelling, "(", params.join(", "), ") @nogc nothrow", const_, ";");
+    return text(returnType, " ", spelling, "(", params, ") @nogc nothrow", const_, ";");
 }
 
 private string returnType(in from!"clang".Cursor cursor,
@@ -79,14 +83,12 @@ private string returnType(in from!"clang".Cursor cursor,
     import std.typecons: Yes;
 
     const indentation = context.indentation;
-    context.log("Function return type (raw):        ", cursor.type.returnType);
 
     const dType = cursor.kind == Cursor.Kind.Constructor || cursor.kind == Cursor.Kind.Destructor
         ? ""
         : translate(cursor.returnType, context, Yes.translatingFunction);
 
     context.setIndentation(indentation);
-    context.log("Function return type (translated): ", dType);
 
     const static_ = cursor.storageClass == Cursor.StorageClass.Static ? "static " : "";
 
@@ -342,13 +344,21 @@ auto translateParamTypes(in from!"clang".Cursor cursor,
     @safe
 {
     import dpp.type: translate;
+    import clang: Type, Language;
     import std.algorithm: map;
     import std.range: tee;
     import std.typecons: Yes;
 
+    // See #43
+    const(Type) deunexpose(in Type type) {
+        return type.kind == Type.Kind.Unexposed && cursor.language != Language.CPlusPlus
+            ? type.canonical
+            : type;
+    }
+
     return paramTypes(cursor)
-        .tee!((a){ context.log("Function Child: ", a); })
-        .map!(a => translate(a, context, Yes.translatingFunction))
+        .tee!((a){ context.log("    Function Child: ", a, "  canonical ", a.canonical); })
+        .map!(a => translate(deunexpose(a), context, Yes.translatingFunction))
         ;
 }
 
