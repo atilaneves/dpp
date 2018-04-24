@@ -75,6 +75,8 @@ import it;
                 assert(mv1.data is oldTmpData);
                 assert(tmp.data is null);
 
+                static assert(!__traits(compiles, Struct(dpp.move(cs))));
+
                 if(dCompiler != "dmd") {
                     auto mv2 = Struct(Struct(77));
                     assert(mv2.number() == 78);
