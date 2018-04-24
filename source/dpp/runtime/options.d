@@ -56,7 +56,7 @@ struct Options {
             dFileNames;
 
         // if no -of option is given, default to the name of the .dpp file
-        if(!dlangCompilerArgs.canFind!(a => a.startsWith("-of")))
+        if(!dlangCompilerArgs.canFind!(a => a.startsWith("-of")) && !dlangCompilerArgs.canFind("-c"))
             dlangCompilerArgs ~= "-of" ~
                 args.
                 filter!(a => a.extension == ".dpp" || a.extension == ".d")

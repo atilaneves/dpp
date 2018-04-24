@@ -76,3 +76,7 @@ Feature: Compiling a .dpp file that includes a simple C header
       """
       Foo(3) + Foo(4) = Foo(7)
       """
+
+  Scenario: Compile but don't link
+    When I successfully run `d++ -c main.dpp`
+    Then a file named "main.o" should exist
