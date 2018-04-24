@@ -1,4 +1,6 @@
-volatile (methods and variables, including C)
+Misc
+  * volatile (methods and variables, including C)
+  * Definitions in headers (no code to link to, always inlined)
 
 Classes
   * Use clang_getTemplateCursorKind to pick between `class` or `struct`
