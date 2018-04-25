@@ -7,7 +7,6 @@ Classes
   * Use clang_getTemplateCursorKind to pick between `class` or `struct`
 
 Operators
-  * Free function operator overloading
   * User-defined literals
 
 Namespaces

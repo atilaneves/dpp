@@ -319,6 +319,9 @@ import it;
                     static void operator delete(void*);
                     static void operator delete[](void*);
                 };
+
+                struct Stream {};
+                Stream& operator<<(Stream& stream, const Struct& s);
             }
         ),
         Cpp(
@@ -374,6 +377,8 @@ import it;
                 void* Struct::operator new[](unsigned long count) { return new int{static_cast<int>(count + 1)}; }
                 void Struct::operator delete(void*) {}
                 void Struct::operator delete[](void*) {}
+
+                Stream& operator<<(Stream& stream, const Struct& s) { return stream; }
             }
         ),
         D(
@@ -461,6 +466,10 @@ import it;
                 assert(*(cast(int*) Struct.opCppNewArray(5)) == 6);
                 Struct.opCppDelete(null);
                 Struct.opCppDeleteArray(null);
+
+                // free function
+                Stream stream;
+                stream.opCppLShift(s2);
             }
          ),
     );

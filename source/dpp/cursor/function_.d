@@ -105,7 +105,7 @@ private string[] maybeOperator(in from!"clang".Cursor cursor,
     import std.range: iota;
     import std.conv: text;
 
-    if(!isSupportedOperator(cursor)) return [];
+    if(!isSupportedOperatorInD(cursor)) return [];
 
     const params = translateAllParamTypes(cursor, context);
 
@@ -118,10 +118,13 @@ private string[] maybeOperator(in from!"clang".Cursor cursor,
     ];
 }
 
-private bool isSupportedOperator(in from!"clang".Cursor cursor) @safe nothrow {
+private bool isSupportedOperatorInD(in from!"clang".Cursor cursor) @safe nothrow {
+    import clang: Cursor;
     import std.algorithm: map, canFind;
 
     if(!isOperator(cursor)) return false;
+    // No D support for free function operator overloads
+    if(cursor.semanticParent.kind == Cursor.Kind.TranslationUnit) return false;
 
     const cppOperator = cursor.spelling[OPERATOR_PREFIX.length .. $];
     const unsupportedSpellings = [`!`, `,`, `&&`, `||`, `->`, `->*`];
@@ -223,8 +226,8 @@ private string operatorSpellingCpp(in from!"clang".Cursor cursor)
         case   "^":  return `opCppCaret`;
         case   "|":  return `opCppPipe`;
         case   "=":  return `opCppAssign`;
-        case  ">>":  return `opCppLShift`;
-        case  "<<":  return `opCppRShift`;
+        case  ">>":  return `opCppRShift`;
+        case  "<<":  return `opCppLShift`;
         case  "->":  return `opCppArrow`;
         case   "!":  return `opCppBang`;
         case  "&&":  return `opCppAnd`;
