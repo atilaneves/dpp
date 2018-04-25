@@ -97,8 +97,13 @@ void expand(in string headerFileName,
     import std.array: join, array;
     import std.algorithm: sort, filter, map, chunkBy, any;
 
+    const parseArgs =
+        context.options.includePaths.map!(a => "-I" ~ a).array ~
+        context.options.defines.map!(a => "-D" ~ a).array
+        ;
+
     auto translationUnit = parse(headerFileName,
-                                 context.options.includePaths.map!(a => "-I" ~ a).array,
+                                 parseArgs,
                                  TranslationUnitFlags.DetailedPreprocessingRecord);
 
     // In C there can be several declarations and one definition of a type.

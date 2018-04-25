@@ -13,5 +13,5 @@ build_dpp
 for x in "$SCRIPT_DIR"/*.dpp
 do
     echo "Testing compileable $x"
-    "$BIN_DIR"/d++ --keep-pre-cpp-file -c -of/tmp/compile.o "$x"
+    "$BIN_DIR"/d++ --keep-pre-cpp-files -c -of/tmp/compile.o "$x"
 done

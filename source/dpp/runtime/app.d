@@ -52,10 +52,10 @@ void preprocess(File)(in from!"dpp.runtime.options".Options options,
     import std.conv: text;
     import std.string: splitLines;
     import std.file: remove;
-    import std.array: replace;
+    import std.array: replace, join;
 
     const tmpFileName = outputFileName ~ ".tmp";
-    scope(exit) if(!options.keepPreCppFile) remove(tmpFileName);
+    scope(exit) if(!options.keepPreCppFiles) remove(tmpFileName);
 
     {
         auto outputFile = File(tmpFileName, "w");
@@ -80,8 +80,9 @@ void preprocess(File)(in from!"dpp.runtime.options".Options options,
         outputFile.writeln(context.translation);
     }
 
-    const ret = execute(["cpp", tmpFileName]);
-    enforce(ret.status == 0, text("Could not run cpp on ", tmpFileName, ":\n", ret.output));
+    const cppArgs = ["cpp", tmpFileName];
+    const ret = execute(cppArgs);
+    enforce(ret.status == 0, text("Could not run `", cppArgs.join(" "), "`:\n", ret.output));
 
     {
         auto outputFile = File(outputFileName, "w");

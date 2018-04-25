@@ -19,11 +19,12 @@ struct Options {
     string indentation;
     bool debugOutput;
     string[] includePaths;
-    bool keepPreCppFile;
+    bool keepPreCppFiles;
     bool keepDlangFiles;
     bool preprocessOnly;
     string dlangCompiler = "dmd";
     string[] dlangCompilerArgs;
+    string[] defines;
     bool earlyExit;
 
     this(string[] args) {
@@ -86,10 +87,11 @@ struct Options {
                 config.passThrough,
                 "print-cursors", "Print debug information", &debugOutput,
                 "include-path", "Include paths", &includePaths,
-                "keep-pre-cpp-file", "Do not delete the temporary pre-preprocessed file", &keepPreCppFile,
+                "keep-pre-cpp-files", "Do not delete the temporary pre-preprocessed file", &keepPreCppFiles,
                 "keep-d-files", "Do not delete the temporary D file to be compiled", &keepDlangFiles,
                 "preprocess-only", "Only transform the .dpp file into a .d file, don't compile", &preprocessOnly,
                 "compiler", "D compiler to use", &dlangCompiler,
+                "define", "C Preprocessor macro", &defines,
             );
 
         if(helpInfo.helpWanted) {
@@ -113,6 +115,7 @@ struct Options {
     Options indent() pure nothrow const {
         auto ret = Options(dppFileNames, indentation ~ "    ", debugOutput);
         ret.includePaths = includePaths.dup;
+        ret.defines = defines.dup;
         return ret;
     }
 
