@@ -10,6 +10,7 @@ int main(string[] args) {
 
         // unit tests
         "ut.type",
+        "ut.reponse",
 
         "it.issues",
 
