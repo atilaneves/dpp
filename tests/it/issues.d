@@ -165,22 +165,6 @@ import it;
     );
 }
 
-@Tags("issue")
-@("14")
-@safe unittest {
-    import dpp.runtime.options: Options;
-    with(immutable IncludeSandbox()) {
-
-        writeFile("foo.h",
-                  q{
-                      typedef int foo;
-                  });
-
-        runPreprocessOnly("foo.h").shouldThrowWithMessage(
-            "No .dpp input file specified\n" ~ Options.usage);
-    }
-}
-
 @Tags("issue", "preprocessor")
 @("22.0")
 @safe unittest {

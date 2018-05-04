@@ -35,6 +35,7 @@ struct Options {
         import std.algorithm: map, filter, canFind, startsWith;
         import std.array: array;
         import std.conv: text;
+        import dpp.runtime.response : response_expand;
 
         parseArgs(args);
         if(earlyExit) return;
@@ -46,23 +47,15 @@ struct Options {
         else
             enforce(args.length >= 2, "Not enough arguments\n" ~ usage);
 
+        args = response_expand(args);
+
         dppFileNames = args.filter!(a => a.extension == ".dpp").array;
-        enforce(dppFileNames.length != 0, "No .dpp input file specified\n" ~ usage);
 
         // Remove the name of this binary and the name of the .dpp input file from args
         // so that a D compiler can use the remaining entries.
-        dlangCompilerArgs =
-            args[1..$].filter!(a => a.extension != ".dpp").array ~
-            dFileNames;
-
-        // if no -of option is given, default to the name of the .dpp file
-        if(!dlangCompilerArgs.canFind!(a => a.startsWith("-of")) && !dlangCompilerArgs.canFind("-c"))
-            dlangCompilerArgs ~= "-of" ~
-                args.
-                filter!(a => a.extension == ".dpp" || a.extension == ".d")
-                .front
-                .stripExtension
-                ~ exeExtension;
+        dlangCompilerArgs = args[1..$]
+		    .map!(a => a.extension == ".dpp" ? toDFileName(a) : a)
+		    .array;
 
         includePaths = systemPaths ~ includePaths;
     }
