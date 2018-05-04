@@ -571,3 +571,22 @@ import it;
         ),
     );
 }
+
+
+@Tags("issue")
+@("44")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                #define macro(x) (x) + 42
+            `
+        ),
+        D(
+            q{
+                static assert(macro_(0) == 42);
+                static assert(macro_(1) == 43);
+            }
+        ),
+    );
+}

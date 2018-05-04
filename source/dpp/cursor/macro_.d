@@ -6,6 +6,7 @@ string[] translateMacro(in from!"clang".Cursor cursor,
                         ref from!"dpp.runtime.context".Context context)
     @safe
 {
+    import dpp.cursor.dlang: maybeRename;
     import clang: Cursor;
     import std.algorithm: map;
     import std.string: join;
@@ -46,8 +47,10 @@ string[] translateMacro(in from!"clang".Cursor cursor,
         maybeUndef = "#undef " ~ cursor.spelling ~ "\n";
 
     alreadyDefined[cursor.spelling] = true;
+    const spelling = maybeRename(cursor, context);
+    const body_ = chars.text[cursor.spelling.length .. $];
 
-    return [maybeUndef ~ "#define " ~ translateToD(chars.text, context) ~ "\n"];
+    return [maybeUndef ~ "#define " ~ spelling ~ translateToD(body_, context) ~ "\n"];
 }
 
 

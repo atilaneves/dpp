@@ -63,7 +63,7 @@ struct IncludeSandbox {
     }
 
     void runPreprocessOnly(string[] args...) @safe const {
-        run("--preprocess-only" ~ args);
+        run(["--preprocess-only", "--keep-pre-cpp-files"] ~ args);
     }
 
     void shouldCompile(string file = __FILE__, size_t line = __LINE__)

@@ -6,7 +6,7 @@ string[] translateVariable(in from!"clang".Cursor cursor,
                            ref from!"dpp.runtime.context".Context context)
     @safe
 {
-    import dpp.cursor.dlang: maybeRename, maybePragma;
+    import dpp.cursor.dlang: maybePragma;
     import dpp.cursor.translation: translateCursor = translate;
     import dpp.type: translateType = translate;
     import clang: Cursor, Type;
