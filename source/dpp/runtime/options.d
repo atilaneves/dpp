@@ -21,6 +21,7 @@ struct Options {
     string[] includePaths;
     bool keepPreCppFiles;
     bool keepDlangFiles;
+    bool parseAsCpp;
     bool preprocessOnly;
     string dlangCompiler = "dmd";
     string[] dlangCompilerArgs;
@@ -91,6 +92,7 @@ struct Options {
                 "keep-d-files", "Do not delete the temporary D file to be compiled", &keepDlangFiles,
                 "preprocess-only", "Only transform the .dpp file into a .d file, don't compile", &preprocessOnly,
                 "compiler", "D compiler to use", &dlangCompiler,
+                "parse-as-cpp", "Parse header as C++", &parseAsCpp,
                 "define", "C Preprocessor macro", &defines,
             );
 
