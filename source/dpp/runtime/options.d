@@ -102,18 +102,15 @@ struct Options {
         }
     }
 
-    this(in string[] dppFileNames,
-         in string indentation = "",
-         in bool debugOutput = false)
-    pure nothrow
-    {
-        this.dppFileNames = dppFileNames.dup;
-        this.indentation = indentation;
-        this.debugOutput = debugOutput;
-    }
-
     Options indent() pure nothrow const {
-        auto ret = Options(dppFileNames, indentation ~ "    ", debugOutput);
+        Options ret;
+        foreach(i, ref elt; ret.tupleof) {
+            static if(__traits(compiles, this.tupleof[i].dup))
+                elt = this.tupleof[i].dup;
+            else
+                elt = this.tupleof[i];
+        }
+
         ret.includePaths = includePaths.dup;
         ret.defines = defines.dup;
         return ret;
