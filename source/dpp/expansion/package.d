@@ -97,10 +97,13 @@ void expand(in string headerFileName,
     import std.array: join, array;
     import std.algorithm: sort, filter, map, chunkBy, any;
 
-    const parseArgs =
+    auto parseArgs =
         context.options.includePaths.map!(a => "-I" ~ a).array ~
         context.options.defines.map!(a => "-D" ~ a).array
         ;
+
+	if(context.options.parseAsCpp)
+		parseArgs ~= "-xc++";
 
     auto translationUnit = parse(headerFileName,
                                  parseArgs,
