@@ -319,10 +319,10 @@ import it;
         D(
             q{
                 mixin dpp.EnumD!("Widget", FancyWidget, "Widget_");
-                static assert(Widget.foo == Widget_foo);
-                static assert(Widget.foo == FancyWidget.Widget_foo);
-                static assert(Widget.bar == Widget_bar);
-                static assert(Widget.bar == FancyWidget.Widget_bar);
+                static assert(cast(FancyWidget) Widget.foo == Widget_foo);
+                static assert(cast(FancyWidget) Widget.foo == FancyWidget.Widget_foo);
+                static assert(cast(FancyWidget) Widget.bar == Widget_bar);
+                static assert(cast(FancyWidget) Widget.bar == FancyWidget.Widget_bar);
             }
          ),
     );
