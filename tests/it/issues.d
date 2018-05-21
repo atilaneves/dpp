@@ -574,7 +574,7 @@ import it;
 
 
 @Tags("issue")
-@("44")
+@("44.1")
 @safe unittest {
     shouldCompile(
         C(
@@ -586,6 +586,22 @@ import it;
             q{
                 static assert(macro_(0) == 42);
                 static assert(macro_(1) == 43);
+            }
+        ),
+    );
+}
+
+@Tags("issue")
+@("44.2")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                struct macro { int i };
+            `
+        ),
+        D(
+            q{
             }
         ),
     );

@@ -239,9 +239,9 @@ struct Context {
 
     /// return the spelling if it exists, or our made-up nickname for it if not
     string spellingOrNickname(in Cursor cursor) @safe pure {
-        return cursor.spelling == ""
-            ? nickName(cursor)
-            : cursor.spelling;
+        import dpp.cursor.dlang: rename, isKeyword;
+        if(cursor.spelling == "") return nickName(cursor);
+        return cursor.spelling.isKeyword ? rename(cursor.spelling, this) : cursor.spelling;
     }
 
     private string nickName(in Cursor cursor) @safe pure {

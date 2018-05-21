@@ -49,7 +49,7 @@ private bool nameClashes(in from!"clang".Cursor cursor,
         cursor.spelling in context.aggregateDeclarations;
 }
 
-private bool isKeyword (string str) @safe @nogc pure nothrow {
+bool isKeyword(string str) @safe @nogc pure nothrow {
     switch (str) {
         default: return false;
         case "abstract":
