@@ -1,5 +1,5 @@
 /**
-   Deals with expanding 3include directives inline.
+   Deals with expanding #include directives inline.
  */
 module dpp.expansion;
 
