@@ -554,6 +554,32 @@ import it;
     );
 }
 
+@ShouldFail
+@Tags("issue", "preprocessor")
+@("40")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        writeFile("hdr1.h",
+                  q{
+                      typedef int myint;
+                  });
+        writeFile("hdr2.h",
+                  q{
+                      myint myfunc(void);
+                  });
+        writeFile("src.dpp",
+                  `
+                      #include "hdr1.h"
+                      #include "hdr2.h"
+                      void func() {
+                          myint _ = myfunc();
+                      }
+                  `);
+        runPreprocessOnly("src.dpp");
+        shouldCompile("src.d");
+    }
+}
+
 @Tags("issue")
 @("43")
 @safe unittest {
