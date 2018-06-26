@@ -23,12 +23,12 @@ void run(in from!"dpp.runtime.options".Options options) @safe {
     const args = options.dlangCompiler ~ options.dlangCompilerArgs;
     const res = execute(args);
     enforce(res.status == 0, "Could not execute `" ~ args.join(" ") ~ "`:\n" ~ res.output);
+
     if(!options.keepDlangFiles) {
         foreach(fileName; options.dFileNames)
             remove(fileName);
     }
 }
-
 
 /**
    Preprocesses a quasi-D file, expanding #include directives inline while
@@ -45,14 +45,16 @@ void preprocess(File)(in from!"dpp.runtime.options".Options options,
 {
 
     import dpp.runtime.context: Context;
-    import dpp.expansion: maybeExpand;
+    import dpp.expansion: expand, isCppHeader, getHeaderName, Language;
     import std.algorithm: map, startsWith, filter;
     import std.process: execute;
     import std.exception: enforce;
     import std.conv: text;
-    import std.string: splitLines;
+    import std.string: splitLines, fromStringz;
     import std.file: remove;
     import std.array: replace, join;
+    import std.path: dirName;
+    import core.stdc.stdio: tmpnam;
 
     const tmpFileName = outputFileName ~ ".tmp";
     scope(exit) if(!options.keepPreCppFiles) remove(tmpFileName);
@@ -69,15 +71,38 @@ void preprocess(File)(in from!"dpp.runtime.options".Options options,
         auto context = Context(options.indent);
 
         () @trusted {
-            foreach(immutable line; File(inputFileName).byLine.map!(a => cast(string)a)) {
-                // If the line is an #include directive, expand its translations "inline"
-                // into the context structure.
-                line.maybeExpand(context);
+
+            auto file = File(inputFileName);
+            auto lines = file.byLine.map!(a => cast(string) a);
+            const includePaths = context.options.includePaths ~ inputFileName.dirName;
+            auto includes = lines.map!(a => getHeaderName(a, includePaths)).filter!(a => a != "");
+            char[1024] tmpnamBuf;
+            const includesFileName = cast(string) tmpnam(&tmpnamBuf[0]).fromStringz;
+            auto language = Language.C;
+            // write a temporary file with all #included files in it
+            {
+                auto includesFile = File(includesFileName, "w");
+                foreach(include; includes) {
+                    includesFile.writeln(`#include "`, include, `"`);
+                    if(isCppHeader(include)) language = Language.Cpp;
+                }
             }
+
+            expand(includesFileName, context, language, includePaths);
+
         }();
 
         context.fixNames;
         outputFile.writeln(context.translation);
+
+        () @trusted {
+            foreach(immutable line; File(inputFileName).byLine.map!(a => cast(string)a)) {
+                if(getHeaderName(line) == "")
+                    // not an #include directive, just pass through
+                    outputFile.writeln(line);
+                // otherwise do nothing
+            }
+        }();
     }
 
     const cppArgs = ["cpp", tmpFileName];

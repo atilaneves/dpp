@@ -601,11 +601,14 @@ import it;
     with(immutable IncludeSandbox()) {
 
         writeFile("enum.h",
-                  q{
+                  `
+                  #ifndef _ENUM_H
+                  #define _ENUM_H
                       typedef enum {
                           only_value,
                       } Enum;
-                  });
+                  #endif
+                  `);
 
         writeFile("hdr1.h",
                   `

@@ -554,7 +554,6 @@ import it;
     );
 }
 
-@ShouldFail
 @Tags("issue", "preprocessor")
 @("40")
 @safe unittest {
