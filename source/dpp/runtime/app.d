@@ -105,6 +105,18 @@ void preprocess(File)(in from!"dpp.runtime.options".Options options,
         }();
     }
 
+    runCPreProcessor(tmpFileName, outputFileName);
+}
+
+private void runCPreProcessor(in string tmpFileName, in string outputFileName) @safe {
+
+    import std.exception: enforce;
+    import std.process: execute;
+    import std.conv: text;
+    import std.string: join, splitLines;
+    import std.stdio: File;
+    import std.algorithm: filter, startsWith;
+
     const cppArgs = ["cpp", tmpFileName];
     const ret = execute(cppArgs);
     enforce(ret.status == 0, text("Could not run `", cppArgs.join(" "), "`:\n", ret.output));
@@ -121,6 +133,7 @@ void preprocess(File)(in from!"dpp.runtime.options".Options options,
             outputFile.writeln(line);
         }
     }
+
 }
 
 
