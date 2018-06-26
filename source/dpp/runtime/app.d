@@ -70,42 +70,56 @@ void preprocess(File)(in from!"dpp.runtime.options".Options options,
         */
         auto context = Context(options.indent);
 
-        () @trusted {
+        {
+            () @trusted {
 
-            auto file = File(inputFileName);
-            auto lines = file.byLine.map!(a => cast(string) a);
-            const includePaths = context.options.includePaths ~ inputFileName.dirName;
-            auto includes = lines.map!(a => getHeaderName(a, includePaths)).filter!(a => a != "");
-            char[1024] tmpnamBuf;
-            const includesFileName = cast(string) tmpnam(&tmpnamBuf[0]).fromStringz;
-            auto language = Language.C;
-            // write a temporary file with all #included files in it
-            {
-                auto includesFile = File(includesFileName, "w");
-                foreach(include; includes) {
-                    includesFile.writeln(`#include "`, include, `"`);
-                    if(isCppHeader(include)) language = Language.Cpp;
+                auto inputFile = File(inputFileName);
+                auto lines = inputFile.byLine.map!(a => cast(string) a);
+                const includePaths = context.options.includePaths ~ inputFileName.dirName;
+                auto includes = lines.map!(a => getHeaderName(a, includePaths)).filter!(a => a != "");
+                char[1024] tmpnamBuf;
+                const includesFileName = cast(string) tmpnam(&tmpnamBuf[0]).fromStringz;
+                auto language = Language.C;
+                // write a temporary file with all #included files in it
+                {
+                    auto includesFile = File(includesFileName, "w");
+                    foreach(include; includes) {
+                        includesFile.writeln(`#include "`, include, `"`);
+                        if(isCppHeader(include)) language = Language.Cpp;
+                    }
                 }
-            }
 
-            expand(includesFileName, context, language, includePaths);
+                // parse all #includes at once and populate context with
+                // D definitions
+                expand(includesFileName, context, language, includePaths);
 
-        }();
+            }();
+        }
 
         context.fixNames;
-        outputFile.writeln(context.translation);
 
-        () @trusted {
-            foreach(immutable line; File(inputFileName).byLine.map!(a => cast(string)a)) {
-                if(getHeaderName(line) == "")
-                    // not an #include directive, just pass through
-                    outputFile.writeln(line);
-                // otherwise do nothing
-            }
-        }();
+        // write translated D definitions
+        outputFile.writeln(context.translation);
+        // write original D code
+        writeDlangLines(inputFileName, outputFile);
     }
 
     runCPreProcessor(tmpFileName, outputFileName);
+}
+
+private void writeDlangLines(in string inputFileName, ref from!"std.stdio".File outputFile) @trusted {
+
+    import dpp.expansion: getHeaderName;
+    import std.stdio: File;
+    import std.algorithm: map;
+
+    foreach(immutable line; File(inputFileName).byLine.map!(a => cast(string)a)) {
+        if(getHeaderName(line) == "")
+            // not an #include directive, just pass through
+            outputFile.writeln(line);
+        // otherwise do nothing
+    }
+
 }
 
 private void runCPreProcessor(in string tmpFileName, in string outputFileName) @safe {
