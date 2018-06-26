@@ -43,18 +43,7 @@ void preprocess(File)(in from!"dpp.runtime.options".Options options,
                       in string inputFileName,
                       in string outputFileName)
 {
-
-    import dpp.runtime.context: Context;
-    import dpp.expansion: expand, isCppHeader, getHeaderName, Language;
-    import std.algorithm: map, startsWith, filter;
-    import std.process: execute;
-    import std.exception: enforce;
-    import std.conv: text;
-    import std.string: splitLines, fromStringz;
     import std.file: remove;
-    import std.array: replace, join;
-    import std.path: dirName;
-    import core.stdc.stdio: tmpnam;
 
     const tmpFileName = outputFileName ~ ".tmp";
     scope(exit) if(!options.keepPreCppFiles) remove(tmpFileName);
@@ -62,44 +51,12 @@ void preprocess(File)(in from!"dpp.runtime.options".Options options,
     {
         auto outputFile = File(tmpFileName, "w");
 
+        // write preamble code
         outputFile.writeln(preamble);
 
-        /**
-           We remember the cursors already seen so as to not try and define
-           something twice (legal in C, illegal in D).
-        */
-        auto context = Context(options.indent);
-
-        {
-            () @trusted {
-
-                auto inputFile = File(inputFileName);
-                auto lines = inputFile.byLine.map!(a => cast(string) a);
-                const includePaths = context.options.includePaths ~ inputFileName.dirName;
-                auto includes = lines.map!(a => getHeaderName(a, includePaths)).filter!(a => a != "");
-                char[1024] tmpnamBuf;
-                const includesFileName = cast(string) tmpnam(&tmpnamBuf[0]).fromStringz;
-                auto language = Language.C;
-                // write a temporary file with all #included files in it
-                {
-                    auto includesFile = File(includesFileName, "w");
-                    foreach(include; includes) {
-                        includesFile.writeln(`#include "`, include, `"`);
-                        if(isCppHeader(include)) language = Language.Cpp;
-                    }
-                }
-
-                // parse all #includes at once and populate context with
-                // D definitions
-                expand(includesFileName, context, language, includePaths);
-
-            }();
-        }
-
-        context.fixNames;
-
         // write translated D definitions
-        outputFile.writeln(context.translation);
+        outputFile.writeln(translationText!File(options, inputFileName));
+
         // write original D code
         writeDlangLines(inputFileName, outputFile);
     }
@@ -107,6 +64,53 @@ void preprocess(File)(in from!"dpp.runtime.options".Options options,
     runCPreProcessor(tmpFileName, outputFileName);
 }
 
+// the translated D code from all #included files
+private string translationText(File)(in from!"dpp.runtime.options".Options options,
+                                     in string inputFileName)
+{
+
+    import dpp.runtime.context: Context;
+    import dpp.expansion: expand, isCppHeader, getHeaderName, Language;
+    import std.algorithm: map, filter;
+    import std.string: fromStringz;
+    import std.path: dirName;
+    import core.stdc.stdio: tmpnam;
+
+    /**
+       We remember the cursors already seen so as to not try and define
+       something twice (legal in C, illegal in D).
+    */
+    auto context = Context(options.indent);
+
+    () @trusted {
+
+        auto inputFile = File(inputFileName);
+        auto lines = inputFile.byLine.map!(a => cast(string) a);
+        const includePaths = context.options.includePaths ~ inputFileName.dirName;
+        auto includes = lines.map!(a => getHeaderName(a, includePaths)).filter!(a => a != "");
+        char[1024] tmpnamBuf;
+        const includesFileName = cast(string) tmpnam(&tmpnamBuf[0]).fromStringz;
+        auto language = Language.C;
+        // write a temporary file with all #included files in it
+        {
+            auto includesFile = File(includesFileName, "w");
+            foreach(include; includes) {
+                includesFile.writeln(`#include "`, include, `"`);
+                if(isCppHeader(include)) language = Language.Cpp;
+            }
+        }
+
+        // parse all #includes at once and populate context with
+        // D definitions
+        expand(includesFileName, context, language, includePaths);
+    }();
+
+    context.fixNames;
+
+    return context.translation;
+}
+
+// write the original D code that doesn't need translating
 private void writeDlangLines(in string inputFileName, ref from!"std.stdio".File outputFile) @trusted {
 
     import dpp.expansion: getHeaderName;
