@@ -23,12 +23,12 @@ void run(in from!"dpp.runtime.options".Options options) @safe {
     const args = options.dlangCompiler ~ options.dlangCompilerArgs;
     const res = execute(args);
     enforce(res.status == 0, "Could not execute `" ~ args.join(" ") ~ "`:\n" ~ res.output);
+
     if(!options.keepDlangFiles) {
         foreach(fileName; options.dFileNames)
             remove(fileName);
     }
 }
-
 
 /**
    Preprocesses a quasi-D file, expanding #include directives inline while
@@ -43,16 +43,7 @@ void preprocess(File)(in from!"dpp.runtime.options".Options options,
                       in string inputFileName,
                       in string outputFileName)
 {
-
-    import dpp.runtime.context: Context;
-    import dpp.expansion: maybeExpand;
-    import std.algorithm: map, startsWith, filter;
-    import std.process: execute;
-    import std.exception: enforce;
-    import std.conv: text;
-    import std.string: splitLines;
     import std.file: remove;
-    import std.array: replace, join;
 
     const tmpFileName = outputFileName ~ ".tmp";
     scope(exit) if(!options.keepPreCppFiles) remove(tmpFileName);
@@ -60,25 +51,89 @@ void preprocess(File)(in from!"dpp.runtime.options".Options options,
     {
         auto outputFile = File(tmpFileName, "w");
 
+        // write preamble code
         outputFile.writeln(preamble);
 
-        /**
-           We remember the cursors already seen so as to not try and define
-           something twice (legal in C, illegal in D).
-        */
-        auto context = Context(options.indent);
+        // write translated D definitions
+        outputFile.writeln(translationText!File(options, inputFileName));
 
-        () @trusted {
-            foreach(immutable line; File(inputFileName).byLine.map!(a => cast(string)a)) {
-                // If the line is an #include directive, expand its translations "inline"
-                // into the context structure.
-                line.maybeExpand(context);
-            }
-        }();
-
-        context.fixNames;
-        outputFile.writeln(context.translation);
+        // write original D code
+        writeDlangLines(inputFileName, outputFile);
     }
+
+    runCPreProcessor(tmpFileName, outputFileName);
+}
+
+// the translated D code from all #included files
+private string translationText(File)(in from!"dpp.runtime.options".Options options,
+                                     in string inputFileName)
+{
+
+    import dpp.runtime.context: Context;
+    import dpp.expansion: expand, isCppHeader, getHeaderName, Language;
+    import std.algorithm: map, filter;
+    import std.string: fromStringz;
+    import std.path: dirName;
+    import core.stdc.stdio: tmpnam;
+
+    /**
+       We remember the cursors already seen so as to not try and define
+       something twice (legal in C, illegal in D).
+    */
+    auto context = Context(options.indent);
+
+    () @trusted {
+
+        auto inputFile = File(inputFileName);
+        auto lines = inputFile.byLine.map!(a => cast(string) a);
+        const includePaths = context.options.includePaths ~ inputFileName.dirName;
+        auto includes = lines.map!(a => getHeaderName(a, includePaths)).filter!(a => a != "");
+        char[1024] tmpnamBuf;
+        const includesFileName = cast(string) tmpnam(&tmpnamBuf[0]).fromStringz;
+        auto language = Language.C;
+        // write a temporary file with all #included files in it
+        {
+            auto includesFile = File(includesFileName, "w");
+            foreach(include; includes) {
+                includesFile.writeln(`#include "`, include, `"`);
+                if(isCppHeader(include)) language = Language.Cpp;
+            }
+        }
+
+        // parse all #includes at once and populate context with
+        // D definitions
+        expand(includesFileName, context, language, includePaths);
+    }();
+
+    context.fixNames;
+
+    return context.translation;
+}
+
+// write the original D code that doesn't need translating
+private void writeDlangLines(in string inputFileName, ref from!"std.stdio".File outputFile) @trusted {
+
+    import dpp.expansion: getHeaderName;
+    import std.stdio: File;
+    import std.algorithm: map;
+
+    foreach(immutable line; File(inputFileName).byLine.map!(a => cast(string)a)) {
+        if(getHeaderName(line) == "")
+            // not an #include directive, just pass through
+            outputFile.writeln(line);
+        // otherwise do nothing
+    }
+
+}
+
+private void runCPreProcessor(in string tmpFileName, in string outputFileName) @safe {
+
+    import std.exception: enforce;
+    import std.process: execute;
+    import std.conv: text;
+    import std.string: join, splitLines;
+    import std.stdio: File;
+    import std.algorithm: filter, startsWith;
 
     const cppArgs = ["cpp", tmpFileName];
     const ret = execute(cppArgs);
@@ -96,6 +151,7 @@ void preprocess(File)(in from!"dpp.runtime.options".Options options,
             outputFile.writeln(line);
         }
     }
+
 }
 
 

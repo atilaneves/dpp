@@ -5,89 +5,15 @@ module dpp.expansion;
 
 import dpp.from;
 
-version(unittest) {
-    import unit_threaded: shouldEqual;
+enum Language {
+    C,
+    Cpp,
 }
 
-
-/**
-   If an #include directive, expand in place (add to context lines)
-   otherwise do nothing (add the line to the context)
- */
-void maybeExpand(in string line, ref from!"dpp.runtime.context".Context context)
-    @safe
-{
-    const headerName = getHeaderName(line);
-
-    if(headerName == "")
-        context.writeln(line);
-    else
-        expand(toFileName(context.options.includePaths, headerName),  context);
-}
-
-
-@("translate no include")
-@safe unittest {
-    import dpp.runtime.context: Context;
-    {
-        Context context;
-        maybeExpand("foo", context);
-        context.translation.shouldEqual("foo");
-    }
-    {
-        Context context;
-        maybeExpand("bar", context);
-        context.translation.shouldEqual("bar");
-    }
-}
-
-private string getHeaderName(string line) @safe pure {
-    import std.algorithm: startsWith, countUntil;
-    import std.range: dropBack;
-    import std.array: popFront;
-    import std.string: stripLeft;
-
-    line = line.stripLeft;
-    if(!line.startsWith(`#include `)) return "";
-
-    const openingQuote = line.countUntil!(a => a == '"' || a == '<');
-    const closingQuote = line[openingQuote + 1 .. $].countUntil!(a => a == '"' || a == '>') + openingQuote + 1;
-    return line[openingQuote + 1 .. closingQuote];
-}
-
-@("getHeaderFileName")
-@safe pure unittest {
-    getHeaderName(`#include "foo.h"`).shouldEqual(`foo.h`);
-    getHeaderName(`#include "bar.h"`).shouldEqual(`bar.h`);
-    getHeaderName(`#include "foo.h" // comment`).shouldEqual(`foo.h`);
-    getHeaderName(`#include <foo.h>`).shouldEqual(`foo.h`);
-    getHeaderName(`    #include "foo.h"`).shouldEqual(`foo.h`);
-}
-
-// transforms a header name, e.g. stdio.h
-// into a full file path, e.g. /usr/include/stdio.h
-private string toFileName(in string[] includePaths, in string headerName) @safe {
-
-    import std.algorithm: map, filter;
-    import std.path: buildPath, absolutePath;
-    import std.file: exists;
-    import std.conv: text;
-    import std.exception: enforce;
-
-    if(headerName.exists) return headerName;
-
-    auto filePaths = includePaths
-        .map!(a => buildPath(a, headerName).absolutePath)
-        .filter!exists;
-
-    enforce(!filePaths.empty, text("d++ cannot find file path for header '", headerName, "'"));
-
-    return filePaths.front;
-}
-
-
-void expand(in string headerFileName,
+void expand(in string translUnitFileName,
             ref from!"dpp.runtime.context".Context context,
+            in Language language,
+            in string[] includePaths,
             in string file = __FILE__,
             in size_t line = __LINE__)
     @safe
@@ -98,14 +24,16 @@ void expand(in string headerFileName,
     import std.algorithm: sort, filter, map, chunkBy, any;
 
     auto parseArgs =
-        context.options.includePaths.map!(a => "-I" ~ a).array ~
+        includePaths.map!(a => "-I" ~ a).array ~
         context.options.defines.map!(a => "-D" ~ a).array
         ;
 
-	if(context.options.parseAsCpp)
-		parseArgs ~= "-xc++";
+    if(context.options.parseAsCpp || language == Language.Cpp)
+        parseArgs ~= "-xc++";
+    else
+        parseArgs ~= "-xc";
 
-    auto translationUnit = parse(headerFileName,
+    auto translationUnit = parse(translUnitFileName,
                                  parseArgs,
                                  TranslationUnitFlags.DetailedPreprocessingRecord);
 
@@ -150,7 +78,8 @@ void expand(in string headerFileName,
         ;
     }();
 
-    const extern_ = isCppHeader(headerFileName) ? "extern(C++)" : "extern(C)";
+    //const extern_ = isCppHeader(translUnitFileName) ? "extern(C++)" : "extern(C)";
+    const extern_ = language == Language.Cpp ? "extern(C++)" : "extern(C)";
     context.writeln([extern_, "{"]);
 
     foreach(cursor; cursors) {
@@ -165,9 +94,69 @@ void expand(in string headerFileName,
     }
 
     context.writeln(["}", ""]);
+    context.writeln("");
 }
 
-private bool isCppHeader(in string headerFileName) @safe pure {
+bool isCppHeader(in string headerFileName) @safe pure {
     import std.path: extension;
     return headerFileName.extension != ".h";
+}
+
+
+string getHeaderName(in string line, in string[] includePaths)
+    @safe
+{
+    const name = getHeaderName(line);
+    return name == "" ? name : fullPath(includePaths, name);
+}
+
+
+string getHeaderName(string line)
+    @safe pure
+{
+    import std.algorithm: startsWith, countUntil;
+    import std.range: dropBack;
+    import std.array: popFront;
+    import std.string: stripLeft;
+
+    line = line.stripLeft;
+    if(!line.startsWith(`#include `)) return "";
+
+    const openingQuote = line.countUntil!(a => a == '"' || a == '<');
+    const closingQuote = line[openingQuote + 1 .. $].countUntil!(a => a == '"' || a == '>') + openingQuote + 1;
+    return line[openingQuote + 1 .. closingQuote];
+}
+
+///
+@("getHeaderName")
+@safe pure unittest {
+    import unit_threaded: shouldEqual;
+    getHeaderName(`#include "foo.h"`).shouldEqual(`foo.h`);
+    getHeaderName(`#include "bar.h"`).shouldEqual(`bar.h`);
+    getHeaderName(`#include "foo.h" // comment`).shouldEqual(`foo.h`);
+    getHeaderName(`#include <foo.h>`).shouldEqual(`foo.h`);
+    getHeaderName(`    #include "foo.h"`).shouldEqual(`foo.h`);
+}
+
+
+
+// transforms a header name, e.g. stdio.h
+// into a full file path, e.g. /usr/include/stdio.h
+private string fullPath(in string[] includePaths, in string headerName) @safe {
+
+    import std.algorithm: map, filter;
+    import std.path: buildPath, absolutePath;
+    import std.file: exists;
+    import std.conv: text;
+    import std.exception: enforce;
+
+    if(headerName.exists) return headerName;
+
+    auto filePaths = includePaths
+        .map!(a => buildPath(a, headerName).absolutePath)
+        .filter!exists;
+
+    enforce(!filePaths.empty, text("d++ cannot find file path for header '", headerName, "'"));
+
+    return filePaths.front;
 }
