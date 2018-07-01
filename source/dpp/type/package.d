@@ -277,7 +277,7 @@ private string translateUnexposed(in from!"clang".Type type,
 
 private string addModifiers(in from!"clang".Type type, in string translation) @safe pure {
     import std.array: replace;
-    const realTranslation = translation.replace("const ", "");
+    const realTranslation = translation.replace("const ", "").replace("volatile ", "");
     return type.isConstQualified
         ? `const(` ~  realTranslation ~ `)`
         : realTranslation;

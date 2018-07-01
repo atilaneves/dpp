@@ -631,3 +631,25 @@ import it;
         ),
     );
 }
+
+
+@Tags("issue")
+@("48")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                #include <stddef.h>
+                struct Struct {
+                    volatile int x;
+                    volatile size_t y;
+                };
+            `
+        ),
+        D(
+            q{
+
+            }
+        ),
+    );
+}

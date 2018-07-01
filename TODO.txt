@@ -1,5 +1,5 @@
 Misc
-  * volatile (methods and variables, including C)
+  * volatile member functions
   * Definitions in headers (no code to link to, always inlined)
     - See clang_Cursor_isFunctionInlined
 
