@@ -288,7 +288,11 @@ private string translateSimdVector(in from!"clang".Type type,
         translate(type.elementType, context, translatingFunction) ~
         text(type.getSizeof / numBytes);
 
-    const isUnsupportedType = ["long8", "short2", "char1"].canFind(dtype);
+    const isUnsupportedType =
+        [
+            "long8", "short2", "char1", "double8", "ubyte1", "ushort2",
+            "ulong8", "byte1",
+        ].canFind(dtype);
 
     return isUnsupportedType ? "int /* FIXME: unsupported SIMD type */" : "core.simd." ~ dtype;
 }
