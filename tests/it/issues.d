@@ -486,6 +486,23 @@ import it;
     );
 }
 
+@ShouldFail("issue #37")
+@Tags("issue")
+@("37")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                #include "mmintrin.h"
+            `
+        ),
+        D(
+            q{
+            }
+        ),
+    );
+}
+
 
 @Tags("issue", "preprocessor")
 @("39.0")
