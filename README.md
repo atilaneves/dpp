@@ -66,6 +66,7 @@ This is alpha sofware. It has however produced programs that compile that #inclu
 * curl/curl.h
 * stdio.h, stdlib.h
 * pthread.h
+* julia.h
 * xlsxwriter.h
 * libvirt/libvirt.h, libvirt/virterror.h
 * libzfs
