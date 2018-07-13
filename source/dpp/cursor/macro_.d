@@ -17,8 +17,6 @@ string[] translateMacro(in from!"clang".Cursor cursor,
 
     assert(cursor.kind == Cursor.Kind.MacroDefinition);
 
-    static bool[string] alreadyDefined;
-
     // we want non-built-in macro definitions to be defined and then preprocessed
     // again
 
@@ -43,10 +41,10 @@ string[] translateMacro(in from!"clang".Cursor cursor,
     // in the meanwhile. Unfortunately, libclang has no way of passing
     // that information to us
     string maybeUndef;
-    if(cursor.spelling in alreadyDefined)
+    if(context.macroAlreadyDefined(cursor))
         maybeUndef = "#undef " ~ cursor.spelling ~ "\n";
 
-    alreadyDefined[cursor.spelling] = true;
+    context.rememberMacro(cursor);
     const spelling = maybeRename(cursor, context);
     const body_ = chars.text[cursor.spelling.length .. $];
 

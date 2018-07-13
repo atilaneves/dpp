@@ -60,12 +60,22 @@ struct Context {
     private bool[string] _aggregateDeclarations;
 
     /**
-       A linkable is a function or a global variable.
-       We remember all the ones we saw here so that if there's a name clash
-       with an aggregate we can come back and fix the declarations after
-       the fact with  pragma(mangle).
+       A linkable is a function or a global variable.  We remember all
+       the ones we saw here so that if there's a name clash we can
+       come back and fix the declarations after the fact with
+       pragma(mangle).
      */
     private Linkable[string] linkableDeclarations;
+
+    /**
+       All the function-like macros that have been declared
+     */
+    private bool[string] functionMacroDeclarations;
+
+    /**
+       Remember all the macros already defined
+     */
+    private bool[string] macros;
 
     /**
        All previously seen cursors
@@ -160,11 +170,13 @@ struct Context {
     }
 
     void fixLinkables() @safe pure {
-        foreach(aggregate, _; _aggregateDeclarations) {
-            // if there's a name clash, fix it
-            auto clashingLinkable = aggregate in linkableDeclarations;
-            if(clashingLinkable) {
-                resolveClash(lines[clashingLinkable.lineNumber], aggregate, clashingLinkable.mangling);
+        foreach(declarations; [_aggregateDeclarations, functionMacroDeclarations]) {
+            foreach(name, _; declarations) {
+                // if there's a name clash, fix it
+                auto clashingLinkable = name in linkableDeclarations;
+                if(clashingLinkable) {
+                    resolveClash(lines[clashingLinkable.lineNumber], name, clashingLinkable.mangling);
+                }
             }
         }
     }
@@ -303,6 +315,16 @@ struct Context {
         const regexStr = `\(( *?(?:` ~ typeSelectionStr ~ `) *?)\)`;
 
         return regex(regexStr);
+    }
+
+    void rememberMacro(in Cursor cursor) @safe pure {
+        macros[cursor.spelling] = true;
+        if(cursor.isMacroFunction)
+            functionMacroDeclarations[cursor.spelling] = true;
+    }
+
+    bool macroAlreadyDefined(in Cursor cursor) @safe pure const {
+        return cast(bool) (cursor.spelling in macros);
     }
 }
 

@@ -670,7 +670,6 @@ import it;
     );
 }
 
-@ShouldFail
 @Tags("issue", "preprocessor")
 @("49")
 @safe unittest {
@@ -683,7 +682,8 @@ import it;
         ),
         D(
             q{
-
+                // it gets renamed
+                func_();
             }
         ),
     );
