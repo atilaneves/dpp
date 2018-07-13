@@ -1,0 +1,7 @@
+{
+	"fileVersion": 1,
+	"versions": {
+		"libclang": "0.0.6",
+		"unit-threaded": "0.7.46"
+	}
+}

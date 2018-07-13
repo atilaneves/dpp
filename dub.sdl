@@ -7,7 +7,7 @@ targetType "executable"
 targetPath "bin"
 targetName "d++"
 dflags "-dip25"
-dependency "libclang" version="~master"
+dependency "libclang" version="~>0.0.6"
 
 configuration "executable" {
     dflags "-dip1000" platform="dmd"
