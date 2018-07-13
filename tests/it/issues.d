@@ -669,3 +669,22 @@ import it;
         ),
     );
 }
+
+@ShouldFail
+@Tags("issue", "preprocessor")
+@("49")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                #define func() ((void)0)
+                void (func)(void);
+            `
+        ),
+        D(
+            q{
+
+            }
+        ),
+    );
+}
