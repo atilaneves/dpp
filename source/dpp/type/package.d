@@ -69,6 +69,7 @@ Translators translators() @safe pure {
             Complex: &translateComplex,
             Unexposed: &translateUnexposed,
             DependentSizedArray: &translateDependentSizedArray,
+            Vector: &translateSimdVector,
         ];
     }
 }
@@ -272,6 +273,24 @@ private string translateUnexposed(in from!"clang".Type type,
     @safe pure
 {
     return type.spelling;
+}
+
+private string translateSimdVector(in from!"clang".Type type,
+                                   ref from!"dpp.runtime.context".Context context,
+                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
+    @safe pure
+{
+    import std.conv: text;
+    import std.algorithm: canFind;
+
+    const numBytes = type.numElements;
+    const dtype =
+        translate(type.elementType, context, translatingFunction) ~
+        text(type.getSizeof / numBytes);
+
+    const isUnsupportedType = ["long8", "short2", "char1"].canFind(dtype);
+
+    return isUnsupportedType ? "int /* FIXME: unsupported SIMD type */" : "core.simd." ~ dtype;
 }
 
 

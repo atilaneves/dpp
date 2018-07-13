@@ -486,6 +486,22 @@ import it;
     );
 }
 
+@Tags("issue")
+@("37")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                #include "mmintrin.h"
+            `
+        ),
+        D(
+            q{
+            }
+        ),
+    );
+}
+
 
 @Tags("issue", "preprocessor")
 @("39.0")
