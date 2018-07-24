@@ -688,3 +688,20 @@ import it;
         ),
     );
 }
+
+@Tags("issue")
+@("53")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                typedef int bool;
+            }
+        ),
+        D(
+            q{
+
+            }
+        ),
+    );
+}

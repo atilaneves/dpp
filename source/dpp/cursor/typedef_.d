@@ -11,6 +11,7 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
 {
     import dpp.type: translate;
     import dpp.cursor.aggregate: isAggregateC;
+    import dpp.cursor.dlang: maybeRename;
     import clang: Cursor, Type;
     import std.conv: text;
     import std.typecons: No;
@@ -58,7 +59,7 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     // situration, and there's no reason to alias to anything, so we return nothing.
     return typedef_.spelling == underlyingSpelling
         ? []
-        : [`alias ` ~ typedef_.spelling ~ ` = ` ~ underlyingSpelling  ~ `;`];
+        : [`alias ` ~ maybeRename(typedef_, context) ~ ` = ` ~ underlyingSpelling  ~ `;`];
 }
 
 private string[] translateFunctionTypeDef(in from!"clang".Cursor typedef_,
