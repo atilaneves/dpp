@@ -60,7 +60,7 @@ Limitations
 * Only known to work on Linux with libclang.so.6.0. It might work in different conditions.
 * When used on multiple files, there might be problems with duplicate definitions depending on imports. This will be fixed.
 
-This is alpha sofware. It has however produced programs that compile that #included several "real-life" C headers:
+This is alpha software. It has however produced programs that compile that #included several "real-life" C headers:
 
 * nanomsg/nn.h, nanomsg/pubsub.h
 * curl/curl.h
@@ -90,7 +90,7 @@ Use `-h` or `--help` to learn more.
 Details
 -------
 
-`d++` is an executable wraps a D compiler such as dmd (the default) so that D files with `#include`
+`d++` is an executable that wraps a D compiler such as dmd (the default) so that D files with `#include`
 directives can be compiled.
 
 It takes a `.dpp` file and outputs a valid D file that can be compiled. The original can't since D
