@@ -11,6 +11,9 @@ int main(string[] args) {
         // unit tests
         "ut.type",
 
+        // contract tests
+        "contract.array",
+
         "it.issues",
 
         // C tests
