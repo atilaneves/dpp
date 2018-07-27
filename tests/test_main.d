@@ -5,7 +5,7 @@ int main(string[] args) {
 
         // in-file
         "dpp.runtime",
-        "dpp.cursor",
+        "dpp.translation",
         "dpp.expansion",
 
         // unit tests

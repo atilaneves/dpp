@@ -1,7 +1,7 @@
 /**
    Cursor translations
  */
-module dpp.cursor.translation;
+module dpp.translation.translation;
 
 import dpp.from;
 
@@ -25,7 +25,7 @@ string translateTopLevelCursor(in from!"clang".Cursor cursor,
 }
 
 private bool skipTopLevel(in from!"clang".Cursor cursor) @safe pure {
-    import dpp.cursor.aggregate: isAggregateC;
+    import dpp.translation.aggregate: isAggregateC;
     import clang: Cursor;
     import std.algorithm: startsWith, canFind;
 
@@ -108,7 +108,7 @@ void debugCursor(in from!"clang".Cursor cursor,
 }
 
 Translator[from!"clang".Cursor.Kind] translators() @safe {
-    import dpp.cursor;
+    import dpp.translation;
     import clang: Cursor;
     import dpp.expansion: expand;
 

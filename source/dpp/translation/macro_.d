@@ -1,4 +1,4 @@
-module dpp.cursor.macro_;
+module dpp.translation.macro_;
 
 import dpp.from;
 
@@ -6,7 +6,7 @@ string[] translateMacro(in from!"clang".Cursor cursor,
                         ref from!"dpp.runtime.context".Context context)
     @safe
 {
-    import dpp.cursor.dlang: maybeRename;
+    import dpp.translation.dlang: maybeRename;
     import clang: Cursor;
     import std.algorithm: map;
     import std.string: join;

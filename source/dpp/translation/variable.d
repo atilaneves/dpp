@@ -1,4 +1,4 @@
-module dpp.cursor.variable;
+module dpp.translation.variable;
 
 import dpp.from;
 
@@ -6,8 +6,8 @@ string[] translateVariable(in from!"clang".Cursor cursor,
                            ref from!"dpp.runtime.context".Context context)
     @safe
 {
-    import dpp.cursor.dlang: maybePragma;
-    import dpp.cursor.translation: translateCursor = translate;
+    import dpp.translation.dlang: maybePragma;
+    import dpp.translation.translation: translateCursor = translate;
     import dpp.type: translateType = translate;
     import clang: Cursor, Type;
     import std.conv: text;

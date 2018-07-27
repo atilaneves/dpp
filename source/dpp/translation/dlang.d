@@ -1,7 +1,7 @@
 /**
    Deals with D-specific translation, such as avoiding keywords
  */
-module dpp.cursor.dlang;
+module dpp.translation.dlang;
 
 import dpp.from;
 

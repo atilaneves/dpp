@@ -1,7 +1,7 @@
 /**
    Enum translation
  */
-module dpp.cursor.enum_;
+module dpp.translation.enum_;
 
 import dpp.from;
 

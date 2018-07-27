@@ -155,7 +155,7 @@ struct Context {
 
     // remember a function or variable declaration
     string rememberLinkable(in Cursor cursor) @safe pure nothrow {
-        import dpp.cursor.dlang: maybeRename;
+        import dpp.translation.dlang: maybeRename;
         const spelling = maybeRename(cursor, this);
         // since linkables produce one-line translations, the next
         // will be the linkable
@@ -183,7 +183,7 @@ struct Context {
 
     void fixFields() @safe pure {
 
-        import dpp.cursor.dlang: pragmaMangle, rename;
+        import dpp.translation.dlang: pragmaMangle, rename;
         import std.string: replace;
 
         foreach(spelling, lineNumber; fieldDeclarations) {
@@ -257,7 +257,7 @@ struct Context {
 
     /// return the spelling if it exists, or our made-up nickname for it if not
     string spellingOrNickname(in Cursor cursor) @safe pure {
-        import dpp.cursor.dlang: rename, isKeyword;
+        import dpp.translation.dlang: rename, isKeyword;
         if(cursor.spelling == "") return nickName(cursor);
         return cursor.spelling.isKeyword ? rename(cursor.spelling, this) : cursor.spelling;
     }
@@ -283,12 +283,12 @@ struct Context {
     }
 
     private void resolveClash(ref string line, in string spelling, in string mangling) @safe pure const {
-        import dpp.cursor.dlang: pragmaMangle;
+        import dpp.translation.dlang: pragmaMangle;
         line = `    ` ~ pragmaMangle(mangling) ~ replaceSpelling(line, spelling);
     }
 
     private string replaceSpelling(in string line, in string spelling) @safe pure const {
-        import dpp.cursor.dlang: rename;
+        import dpp.translation.dlang: rename;
         import std.array: replace;
         return line
             .replace(spelling ~ `;`, rename(spelling, this) ~ `;`)

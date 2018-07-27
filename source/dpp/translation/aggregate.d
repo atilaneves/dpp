@@ -1,7 +1,7 @@
 /**
    Translate aggregates
  */
-module dpp.cursor.aggregate;
+module dpp.translation.aggregate;
 
 import dpp.from;
 import std.range: isInputRange;
@@ -196,7 +196,7 @@ string[] translateAggregate(
 )
     @safe
 {
-    import dpp.cursor.translation: translate;
+    import dpp.translation.translation: translate;
     import clang: Cursor, Type;
     import std.algorithm: map;
     import std.array: array;
@@ -272,7 +272,7 @@ string[] translateField(in from!"clang".Cursor field,
     @safe
 {
 
-    import dpp.cursor.dlang: maybeRename;
+    import dpp.translation.dlang: maybeRename;
     import dpp.type: translate;
     import clang: Cursor, Type;
     import std.conv: text;
@@ -301,7 +301,7 @@ string[] translateBitField(in from!"clang".Cursor cursor,
                            in string type)
     @safe
 {
-    import dpp.cursor.dlang: maybeRename;
+    import dpp.translation.dlang: maybeRename;
     import std.conv: text;
 
     auto spelling = maybeRename(cursor, context);
@@ -443,7 +443,7 @@ private string[] innerFieldAccessors(in string varName, in from !"clang".Cursor 
 private string[] maybeOperators(in from!"clang".Cursor cursor, in string name)
     @safe
 {
-    import dpp.cursor.function_: OPERATOR_PREFIX;
+    import dpp.translation.function_: OPERATOR_PREFIX;
     import std.algorithm: map, any;
     import std.array: array;
 

@@ -1,7 +1,7 @@
 /**
    Function translations.
  */
-module dpp.cursor.function_;
+module dpp.translation.function_;
 
 import dpp.from;
 
@@ -13,8 +13,8 @@ string[] translateFunction(in from!"clang".Cursor cursor,
                            ref from!"dpp.runtime.context".Context context)
     @safe
 {
-    import dpp.cursor.dlang: maybeRename, maybePragma;
-    import dpp.cursor.aggregate: maybeRememberStructs;
+    import dpp.translation.dlang: maybeRename, maybePragma;
+    import dpp.translation.aggregate: maybeRememberStructs;
     import dpp.type: translate;
     import clang: Cursor, Type, Language;
     import std.array: join, array;
@@ -269,7 +269,7 @@ private string[] maybeCopyCtor(in from!"clang".Cursor cursor,
     @safe
 {
 
-    import dpp.cursor.dlang: maybeRename, maybePragma;
+    import dpp.translation.dlang: maybeRename, maybePragma;
     import dpp.type: translate;
     import clang: Cursor, Type;
 
@@ -292,7 +292,7 @@ private string[] maybeMoveCtor(in from!"clang".Cursor cursor,
     @safe
 {
 
-    import dpp.cursor.dlang: maybeRename, maybePragma;
+    import dpp.translation.dlang: maybeRename, maybePragma;
     import dpp.type: translate;
     import clang: Cursor, Type;
 

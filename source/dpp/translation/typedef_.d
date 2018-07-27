@@ -1,7 +1,7 @@
 /**
    typedef translations
  */
-module dpp.cursor.typedef_;
+module dpp.translation.typedef_;
 
 import dpp.from;
 
@@ -10,8 +10,8 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     @safe
 {
     import dpp.type: translate;
-    import dpp.cursor.aggregate: isAggregateC;
-    import dpp.cursor.dlang: maybeRename;
+    import dpp.translation.aggregate: isAggregateC;
+    import dpp.translation.dlang: maybeRename;
     import clang: Cursor, Type;
     import std.conv: text;
     import std.typecons: No;
@@ -70,7 +70,7 @@ private string[] translateFunctionTypeDef(in from!"clang".Cursor typedef_,
     @safe
 {
     import dpp.type: translate;
-    import dpp.cursor.function_: translateParamTypes;
+    import dpp.translation.function_: translateParamTypes;
     import clang: Cursor, Type;
     import std.algorithm: map, filter;
     import std.array: join;
@@ -102,7 +102,7 @@ private string[] translateTopLevelAnonymous(in from!"clang".Cursor cursor,
                                             ref from!"dpp.runtime.context".Context context)
     @safe
 {
-    import dpp.cursor.translation: translate;
+    import dpp.translation.translation: translate;
     import clang: Cursor;
 
     // the old cursor has no spelling, so construct a new one

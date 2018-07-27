@@ -18,7 +18,7 @@ void expand(in string translUnitFileName,
             in size_t line = __LINE__)
     @safe
 {
-    import dpp.cursor.translation: translateTopLevelCursor;
+    import dpp.translation.translation: translateTopLevelCursor;
     import clang: parse, TranslationUnitFlags, Cursor;
     import std.array: join, array;
     import std.algorithm: sort, filter, map, chunkBy, any;
