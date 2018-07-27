@@ -9,7 +9,7 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
                           ref from!"dpp.runtime.context".Context context)
     @safe
 {
-    import dpp.type: translate;
+    import dpp.translation.type: translate;
     import dpp.translation.aggregate: isAggregateC;
     import dpp.translation.dlang: maybeRename;
     import clang: Cursor, Type;
@@ -69,7 +69,7 @@ private string[] translateFunctionTypeDef(in from!"clang".Cursor typedef_,
                                           ref from!"dpp.runtime.context".Context context)
     @safe
 {
-    import dpp.type: translate;
+    import dpp.translation.type: translate;
     import dpp.translation.function_: translateParamTypes;
     import clang: Cursor, Type;
     import std.algorithm: map, filter;

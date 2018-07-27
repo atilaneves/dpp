@@ -1,7 +1,7 @@
 /**
    Type translations
  */
-module dpp.type;
+module dpp.translation.type;
 
 import dpp.from: from;
 

@@ -30,7 +30,7 @@ string[] translateClass(in from!"clang".Cursor cursor,
     assert(cursor.kind == Cursor.Kind.ClassDecl || cursor.kind == Cursor.Kind.ClassTemplate);
 
     string translateTemplateParam(in Cursor cursor) {
-        import dpp.type: translate;
+        import dpp.translation.type: translate;
         const maybeType = cursor.kind == Cursor.Kind.TemplateTypeParameter
             ? ""
             : translate(cursor.type, context) ~ " ";
@@ -273,7 +273,7 @@ string[] translateField(in from!"clang".Cursor field,
 {
 
     import dpp.translation.dlang: maybeRename;
-    import dpp.type: translate;
+    import dpp.translation.type: translate;
     import clang: Cursor, Type;
     import std.conv: text;
     import std.typecons: No;
@@ -334,7 +334,7 @@ private void maybeRememberStructsFromType(in from!"clang".Type type,
 void maybeRememberStructs(R)(R types, ref from!"dpp.runtime.context".Context context)
     @safe pure if(isInputRange!R)
 {
-    import dpp.type: translate;
+    import dpp.translation.type: translate;
     import clang: Type;
     import std.algorithm: map, filter;
 
@@ -375,7 +375,7 @@ private string[] maybeC11AnonymousRecords(in from!"clang".Cursor cursor,
     @safe
 
 {
-    import dpp.type: translate, hasAnonymousSpelling;
+    import dpp.translation.type: translate, hasAnonymousSpelling;
     import clang: Cursor, Type;
     import std.algorithm: any, filter;
 

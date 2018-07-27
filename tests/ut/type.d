@@ -1,12 +1,12 @@
 module ut.type;
 
 import dpp.test;
-import dpp.type;
+import dpp.translation.type;
 import clang: Type;
 
 
 string translate(in from!"clang".Type type) @safe {
-    import dpp.type: translate_ = translate;
+    import dpp.translation.type: translate_ = translate;
     import dpp.runtime.context: Context;
     Context context;
     return translate_(type, context);

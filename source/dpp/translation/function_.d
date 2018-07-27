@@ -15,7 +15,7 @@ string[] translateFunction(in from!"clang".Cursor cursor,
 {
     import dpp.translation.dlang: maybeRename, maybePragma;
     import dpp.translation.aggregate: maybeRememberStructs;
-    import dpp.type: translate;
+    import dpp.translation.type: translate;
     import clang: Cursor, Type, Language;
     import std.array: join, array;
     import std.conv: text;
@@ -78,7 +78,7 @@ private string returnType(in from!"clang".Cursor cursor,
                           ref from!"dpp.runtime.context".Context context)
     @safe
 {
-    import dpp.type: translate;
+    import dpp.translation.type: translate;
     import clang: Cursor;
     import std.typecons: Yes;
 
@@ -270,7 +270,7 @@ private string[] maybeCopyCtor(in from!"clang".Cursor cursor,
 {
 
     import dpp.translation.dlang: maybeRename, maybePragma;
-    import dpp.type: translate;
+    import dpp.translation.type: translate;
     import clang: Cursor, Type;
 
     if(!cursor.isCopyConstructor) return [];
@@ -293,7 +293,7 @@ private string[] maybeMoveCtor(in from!"clang".Cursor cursor,
 {
 
     import dpp.translation.dlang: maybeRename, maybePragma;
-    import dpp.type: translate;
+    import dpp.translation.type: translate;
     import clang: Cursor, Type;
 
     if(!cursor.isMoveConstructor) return [];
@@ -346,7 +346,7 @@ auto translateParamTypes(in from!"clang".Cursor cursor,
                          ref from!"dpp.runtime.context".Context context)
     @safe
 {
-    import dpp.type: translate;
+    import dpp.translation.type: translate;
     import clang: Type, Language;
     import std.algorithm: map;
     import std.range: tee;

@@ -8,7 +8,7 @@ string[] translateVariable(in from!"clang".Cursor cursor,
 {
     import dpp.translation.dlang: maybePragma;
     import dpp.translation.translation: translateCursor = translate;
-    import dpp.type: translateType = translate;
+    import dpp.translation.type: translateType = translate;
     import clang: Cursor, Type;
     import std.conv: text;
     import std.typecons: No;
