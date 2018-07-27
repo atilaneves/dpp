@@ -1,6 +1,8 @@
 module contract.array;
 
+
 import contract;
+
 
 @("int[4]")
 @safe unittest {
