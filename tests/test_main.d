@@ -9,7 +9,7 @@ int main(string[] args) {
         "dpp.expansion",
 
         // unit tests
-        "ut.type",
+        "ut.old.type",
 
         // contract tests
         "contract.array",

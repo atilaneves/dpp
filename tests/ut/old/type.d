@@ -1,4 +1,4 @@
-module ut.type;
+module ut.old.type;
 
 import dpp.test;
 import dpp.translation.type;
