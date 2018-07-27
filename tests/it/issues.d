@@ -706,7 +706,6 @@ import it;
     );
 }
 
-@ShouldFail
 @Tags("issue", "enum")
 @("54")
 @safe unittest {

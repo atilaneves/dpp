@@ -96,7 +96,7 @@ struct Context {
     ];
 
     /// to generate unique names
-    private int anonymousIndex;
+    private int _anonymousIndex;
 
     this(Options options) @safe pure {
         this.options = options;
@@ -223,7 +223,13 @@ struct Context {
     // find the last one we named, pop it off, and return it
     string popLastNickName() @safe pure {
 
-        if(nickNames.length == 0) throw new Exception("No nickname to pop");
+        if(nickNames.length == 0) {
+            // this might happen with `enum { one, two } var;`
+            // We need the typename to declare `var` with but the translation only comes
+            auto ret = newAnonymousTypeName;
+            --_anonymousIndex; // make sure we return the same name next time
+            return ret;
+        }
 
         auto ret = nickNames[$-1];
         nickNames = nickNames[0 .. $-1];
@@ -268,8 +274,7 @@ struct Context {
 
     private string newAnonymousTypeName() @safe pure {
         import std.conv: text;
-        import core.atomic: atomicOp;
-        return text("_Anonymous_", anonymousIndex++);
+        return text("_Anonymous_", _anonymousIndex++);
     }
 
     string newAnonymousMemberName() @safe pure {

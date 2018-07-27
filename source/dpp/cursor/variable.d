@@ -20,8 +20,10 @@ string[] translateVariable(in from!"clang".Cursor cursor,
 
     const isAnonymous = cursor.type.spelling.canFind("(anonymous");
     // If the type is anonymous, then we need to define it before we declare
-    // ourselves of that type.
-    if(isAnonymous) ret ~= translateCursor(cursor.type.canonical.declaration, context);
+    // ourselves of that type, unless that type is an enum. See #54.
+    if(isAnonymous && cursor.type.canonical.declaration.kind != Cursor.Kind.EnumDecl) {
+        ret ~= translateCursor(cursor.type.canonical.declaration, context);
+    }
 
     // variables can be declared multiple times in C but only one in D
     if(!cursor.isCanonical) return [];
