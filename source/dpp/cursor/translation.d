@@ -29,6 +29,10 @@ private bool skipTopLevel(in from!"clang".Cursor cursor) @safe pure {
     import clang: Cursor;
     import std.algorithm: startsWith, canFind;
 
+    // We want to ignore anonymous structs and unions but not enums. See #54
+    if(cursor.spelling == "" && cursor.kind == Cursor.Kind.EnumDecl)
+        return false;
+
     // don't bother translating top-level anonymous aggregates
     if(isAggregateC(cursor) && cursor.spelling == "")
         return true;

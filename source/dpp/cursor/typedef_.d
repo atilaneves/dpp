@@ -46,7 +46,10 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     // it and give the struct a silly name, instead just define a struct with
     // the typedef name instead. e.g.
     // typedef struct { int dummy; } Foo -> struct Foo { int dummy; }
-    if(isTopLevelAnonymous) return translateTopLevelAnonymous(children[0], context);
+    // However, this isn't true for enums since an anonymous enum can be declared
+    // with no typedef. See #54.
+    if(isTopLevelAnonymous && children[0].kind != Cursor.Kind.EnumDecl)
+        return translateTopLevelAnonymous(children[0], context);
 
     // FIXME - still not sure I understand this
     const underlyingSpelling = isOnlyAggregateChild

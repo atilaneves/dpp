@@ -705,3 +705,23 @@ import it;
         ),
     );
 }
+
+@Tags("issue", "enum")
+@("54")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                enum {
+                    SUCCESS,
+                };
+                typedef int boolean;
+            }
+        ),
+        D(
+            q{
+                static assert(SUCCESS == 0);
+            }
+        ),
+    );
+}
