@@ -1,22 +1,19 @@
 module dpp2.sum;
 
-import dpp.from;
 
-alias Sum = from!"sumtype".SumType;
+struct Sum(T...) {
+    import sumtype: SumType;
 
-// struct Sum(T...) {
-//     import sumtype: SumType;
+    private SumType!T sumType;
 
-//     private SumType!T sumType;
+    @disable this();
 
-//     @disable this();
+    this(U)(auto ref U u) {
+        this.sumType = SumType!T(u);
+    }
 
-//     this(U)(auto ref U u) {
-//         import std.functional: forward;
-//         this.sumType = SumType!T(forward!u);
-//     }
-
-//     auto match(A...)() {
-//         return sumType.match!A;
-//     }
-// }
+    auto match(A...)() {
+        import sumtype: match;
+        return sumType.match!A;
+    }
+}
