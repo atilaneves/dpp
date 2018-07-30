@@ -12,6 +12,7 @@ int main(string[] args) {
         "ut.old.type",
         "ut.type.primitives",
         "ut.type.array",
+        "ut.type.pointer",
 
         // contract tests
         "contract.array",
