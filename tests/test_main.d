@@ -10,6 +10,8 @@ int main(string[] args) {
 
         // unit tests
         "ut.old.type",
+        "ut.type.primitives",
+        "ut.type.array",
 
         // contract tests
         "contract.array",

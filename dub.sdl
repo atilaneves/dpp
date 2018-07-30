@@ -3,11 +3,14 @@ description "Include C/C++ headers directly in D files"
 authors "Atila Neves"
 copyright "Copyright © 2017-2018, Atila Neves"
 license "boost"
+
 targetType "executable"
 targetPath "bin"
 targetName "d++"
 dflags "-dip25"
+
 dependency "libclang" version="~>0.0.6"
+dependency "sumtype" version="~>0.4.0"
 
 configuration "executable" {
     dflags "-dip1000" platform="dmd"
