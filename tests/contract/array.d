@@ -4,6 +4,7 @@ module contract.array;
 import contract;
 
 
+@Tags("contract")
 @("int[4]")
 @safe unittest {
     const tu = parse(
@@ -28,6 +29,7 @@ import contract;
 }
 
 
+@Tags("contract")
 @("flexible")
 @safe unittest {
     const tu = parse(
