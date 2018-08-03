@@ -175,6 +175,12 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
             NonTypeTemplateParameter: &ignore,
             ConversionFunction:       &translateFunction,
             Namespace:                &translateNamespace,
+            VisibilityAttr:           &ignore, // ???
+            FirstAttr:                &ignore, // ???
+            UsingDeclaration:         &ignore, // FIXME #56
+            UsingDirective:           &ignore, // FIXME #57
+            FunctionTemplate:         &ignore, // FIXME #58
+            ClassTemplatePartialSpecialization: &ignore, //FIXME #59
         ];
     }
 }
