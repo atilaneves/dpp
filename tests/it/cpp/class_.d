@@ -197,3 +197,22 @@ import it;
         ),
    );
 }
+
+@("template nameless type")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<bool, bool, typename>
+                struct Foo {
+
+                };
+            }
+        ),
+        D(
+            q{
+                auto f = Foo!(true, false, int)();
+            }
+        ),
+    );
+}

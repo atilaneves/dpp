@@ -9,6 +9,7 @@ import std.range: isInputRange;
 
 enum MAX_BITFIELD_WIDTH = 64;
 
+
 string[] translateStruct(in from!"clang".Cursor cursor,
                          ref from!"dpp.runtime.context".Context context)
     @safe
@@ -26,15 +27,29 @@ string[] translateClass(in from!"clang".Cursor cursor,
     import std.typecons: Nullable, nullable;
     import std.algorithm: map, filter;
     import std.array: join;
+    import std.conv: text;
 
     assert(cursor.kind == Cursor.Kind.ClassDecl || cursor.kind == Cursor.Kind.ClassTemplate);
 
+    int templateParamIndex;  // used to generate names when there are none
+
+    string newTemplateParamName() {
+        return text("_TemplateParam_", templateParamIndex++);
+    }
+
     string translateTemplateParam(in Cursor cursor) {
         import dpp.translation.type: translate;
+
+        // The template parameter might be a value (bool, int, ...)
+        // or a type. If it's a value we get its type here.
         const maybeType = cursor.kind == Cursor.Kind.TemplateTypeParameter
-            ? ""
+            ? ""  // a type doens't have a type
             : translate(cursor.type, context) ~ " ";
-        return maybeType ~ cursor.spelling;
+
+        // D requires template parameters to have names
+        const spelling = cursor.spelling == "" ? newTemplateParamName : cursor.spelling;
+
+        return maybeType ~ spelling;
     }
 
     auto templateParams = cursor
