@@ -42,6 +42,7 @@ int main(string[] args) {
         "it.cpp.run",
         "it.cpp.function_",
         "it.cpp.class_",
+        "it.cpp.templates",
         "it.cpp.misc",
     );
 }

@@ -115,6 +115,8 @@ struct Options {
 
         ret.includePaths = includePaths.dup;
         ret.defines = defines.dup;
+        ret.indentation = indentation ~ "    ";
+
         return ret;
     }
 
