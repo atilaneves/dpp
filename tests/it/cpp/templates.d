@@ -63,6 +63,29 @@ import it;
     );
 }
 
+@ShouldFail
+@("full specialisation")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<bool, bool, typename>
+                struct __copy_move {};
+
+                template<>
+                struct __copy_move<false, true, int> {};
+            }
+        ),
+        D(
+            q{
+                auto c1 = __copy_move!(true, true, int)();
+                auto c2 = __copy_move!(false, true, double)();
+            }
+        ),
+    );
+
+}
+
 // as seen in stl_algobase.h
 @ShouldFail
 @("__copy_move")
@@ -90,12 +113,12 @@ import it;
         ),
         D(
             q{
-                    auto c1 = __copy_move!(false, true, int)();
-                    auto c2 = __copy_move!(true, false, RandomStruct)();
-                    auto c3 = __copy_move!(false, false, random_access_iterator_tag)();
-                    auto c4 = __copy_move!(true, false, random_access_iterator_tag)();
-                    auto c5 = __copy_move!(false, true, random_access_iterator_tag)();
-                    auto c6 = __copy_move!(true, true, random_access_iterator_tag)();
+                auto c1 = __copy_move!(false, true, int)();
+                auto c2 = __copy_move!(true, false, RandomStruct)();
+                auto c3 = __copy_move!(false, false, random_access_iterator_tag)();
+                auto c4 = __copy_move!(true, false, random_access_iterator_tag)();
+                auto c5 = __copy_move!(false, true, random_access_iterator_tag)();
+                auto c6 = __copy_move!(true, true, random_access_iterator_tag)();
             }
         ),
     );
