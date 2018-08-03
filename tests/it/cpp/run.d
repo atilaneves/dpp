@@ -532,3 +532,50 @@ import it;
          ),
     );
 }
+
+
+@ShouldFail
+@Tags("run")
+@("namespaces")
+@safe unittest {
+    shouldRun(
+        Cpp(
+            q{
+                namespace ns0 {
+                    int foo();
+                    int bar();
+                    namespace ns1 {
+                        int baz();
+                    }
+                }
+
+                namespace other {
+                    int quux();
+                }
+            }
+        ),
+        Cpp(
+            q{
+                namespace ns0 {
+                    int foo() { return 1; }
+                    int bar() { return 2; }
+                    namespace ns1 {
+                        int baz() { return 3; }
+                    }
+                }
+
+                namespace other {
+                    int quux() { return 4; }
+                }
+            }
+        ),
+        D(
+            q{
+                assert(foo == 1);
+                assert(bar == 2);
+                assert(baz == 3);
+                assert(quux == 4);
+            }
+         ),
+    );
+}
