@@ -18,6 +18,7 @@ struct Linkable {
 struct Context {
 
     import dpp.runtime.options: Options;
+    import dpp.runtime.namespace: Namespace;
     import clang: Cursor;
 
     alias CursorHash = uint;
@@ -81,6 +82,11 @@ struct Context {
        All previously seen cursors
      */
     private SeenCursors seenCursors;
+
+    /**
+       Deals with C++ namespaces
+     */
+    /*private*/ Namespace _namespace;
 
     /// Command-line options
     Options options;
@@ -330,6 +336,18 @@ struct Context {
 
     bool macroAlreadyDefined(in Cursor cursor) @safe pure const {
         return cast(bool) (cursor.spelling in macros);
+    }
+
+    string[] pushNamespace(in string name) @safe pure {
+        return _namespace.push(name);
+    }
+
+    string[] popNamespace() @safe pure {
+        return _namespace.pop;
+    }
+
+    void addNamespaceSymbol(in string symbol) @safe pure {
+        _namespace.addSymbol(symbol);
     }
 }
 

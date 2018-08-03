@@ -534,7 +534,6 @@ import it;
 }
 
 
-@ShouldFail
 @Tags("run")
 @("namespaces")
 @safe unittest {

@@ -174,6 +174,7 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
             TemplateTypeParameter:    &ignore,
             NonTypeTemplateParameter: &ignore,
             ConversionFunction:       &translateFunction,
+            Namespace:                &translateNamespace,
         ];
     }
 }
