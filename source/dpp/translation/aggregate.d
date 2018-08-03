@@ -25,11 +25,28 @@ string[] translateClass(in from!"clang".Cursor cursor,
 {
     import clang: Cursor;
     import std.typecons: Nullable, nullable;
-    import std.algorithm: map, filter;
     import std.array: join;
     import std.conv: text;
 
     assert(cursor.kind == Cursor.Kind.ClassDecl || cursor.kind == Cursor.Kind.ClassTemplate);
+
+    const spelling = cursor.kind == Cursor.Kind.ClassTemplate
+        ? nullable(cursor.spelling ~ `(` ~ templateParams(cursor, context).join(", ") ~ `)`)
+        : Nullable!string();
+
+    return translateAggregate(context, cursor, "class", "struct", spelling);
+}
+
+private auto templateParams(in from!"clang".Cursor cursor,
+                            ref from!"dpp.runtime.context".Context context)
+    @safe
+{
+
+    import clang: Cursor;
+    import std.conv: text;
+    import std.algorithm: map, filter;
+
+    assert(cursor.kind == Cursor.Kind.ClassTemplate);
 
     int templateParamIndex;  // used to generate names when there are none
 
@@ -52,17 +69,11 @@ string[] translateClass(in from!"clang".Cursor cursor,
         return maybeType ~ spelling;
     }
 
-    auto templateParams = cursor
+    return cursor
         .children
         .filter!(a => a.kind == Cursor.Kind.TemplateTypeParameter || a.kind == Cursor.Kind.NonTypeTemplateParameter)
         .map!translateTemplateParam
         ;
-
-    const spelling = cursor.kind == Cursor.Kind.ClassTemplate
-        ? nullable(cursor.spelling ~ `(` ~ templateParams.join(", ") ~ `)`)
-        : Nullable!string();
-
-    return translateAggregate(context, cursor, "class", "struct", spelling);
 }
 
 string[] translateUnion(in from!"clang".Cursor cursor,
