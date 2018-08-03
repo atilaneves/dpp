@@ -44,7 +44,8 @@ struct Namespace {
 
     void addSymbol(in string symbol) @safe pure {
         import std.array: join;
-        _symbols ~= Symbol(_nestedNamespaces.join("."), symbol);
+        if(symbol != "")
+            _symbols ~= Symbol(_nestedNamespaces.join("."), symbol);
     }
 
     private string[] finish() @safe pure {
