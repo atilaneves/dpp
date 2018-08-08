@@ -51,6 +51,7 @@ $ ./foo
 $ 30
 ```
 
+[![Open on run.dlang.io](https://img.shields.io/badge/run.dlang.io-open-blue.svg)](https://run.dlang.io/is/WwpvhT)
 
 Limitations
 -----------
