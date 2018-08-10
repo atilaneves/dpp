@@ -1,6 +1,0 @@
-#include <libio.h>
-
-void main() {
-    __io_read_fn func;
-    func(null, null, 7);
-}

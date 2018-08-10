@@ -12,11 +12,18 @@ string[] translateNamespace(in from!"clang".Cursor cursor,
     import std.algorithm: map;
     import std.array: array;
 
+    assert(cursor.kind == Cursor.Kind.Namespace);
+
+    context.log("    Namespace children: ", cursor.children);
+
     string[] lines;
 
     lines ~= context.pushNamespace(cursor.spelling);
 
     foreach(child; cursor.children) {
+
+        if(child.kind == Cursor.Kind.VisibilityAttr) continue;
+
         lines ~= translate(child, context)
             .map!(a => (child.kind == Cursor.Kind.Namespace ? "    " : "        ") ~ a)
             .array;

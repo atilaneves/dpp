@@ -180,7 +180,7 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
             UsingDeclaration:         &ignore, // FIXME #56
             UsingDirective:           &ignore, // FIXME #57
             FunctionTemplate:         &ignore, // FIXME #58
-            ClassTemplatePartialSpecialization: &ignore, //FIXME #59
+            ClassTemplatePartialSpecialization: &translateClass,
         ];
     }
 }
