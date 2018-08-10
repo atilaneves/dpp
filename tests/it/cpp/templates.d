@@ -143,28 +143,28 @@ import it;
         Cpp(
             q{
                 // just structs to use as template type parameters
-                struct Foo; struct Bar; struct Baz;
+                struct Foo; struct Bar; struct Baz; struct Quux;
 
                 // this is a ClassTemplate
-                template<int, typename, bool, typename>
+                template<typename, typename, bool, typename, int, typename>
                 struct Template { enum { value = 1 }; };
 
                 // this is a ClassTemplatePartialSpecialization
-                template<int V0, typename T0, typename T1>
-                struct Template<V0, T0, true, T1> { enum { value = 2 }; };
+                template<typename T, bool V0, typename T3, typename T4>
+                struct Template<Quux, T, V0, T3, 42, T4> { enum { value = 2 }; };
 
                 // this is a ClassTemplatePartialSpecialization
-                template<int V0, bool V1, typename T1>
-                struct Template<V0, Foo, V1, T1> { enum { value = 3 }; };
+                template<typename T, bool V0, typename T3, typename T4>
+                struct Template<T, Quux, V0, T3, 42, T4> { enum { value = 3 }; };
             }
         ),
         D(
             q{
                 import std.conv: text;
 
-                auto t1 = __copy_move!(true, true, int);       // full template
-                auto t2 = __copy_move!(true, false, double)(); // partial specialisation 1
-                auto t3 = __copy_move!(false, false, Foo)();   // partial specialisation 2
+                auto t1 = Template!(Foo,  Bar,  false, Baz,  0, Quux)(); // full template
+                auto t2 = Template!(Quux, Bar,  false, Baz, 42, Quux)(); // partial1
+                auto t3 = Template!(Foo,  Quux, false, Baz, 42, Quux)(); // partial2
 
                 static assert(t2.value == 2, text(cast(int) t2.value));
                 static assert(t3.value == 3, text(cast(int) t3.value));
