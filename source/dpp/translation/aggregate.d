@@ -15,8 +15,72 @@ string[] translateStruct(in from!"clang".Cursor cursor,
     @safe
 {
     import clang: Cursor;
+    import std.typecons: Nullable, nullable;
+
     assert(cursor.kind == Cursor.Kind.StructDecl);
-    return translateAggregate(context, cursor, "struct");
+
+    const spelling = cursor.type.numTemplateArguments == -1
+        ? Nullable!string()
+        : nullable(cursor.spelling ~ translateSpecialisedTemplateParams(cursor, context));
+
+    return translateAggregate(context, cursor, "struct", "struct", spelling);
+}
+
+// Deal with full and partial template specialisations
+private string translateSpecialisedTemplateParams(in from!"clang".Cursor cursor,
+                                                  ref from!"dpp.runtime.context".Context context)
+    @safe
+{
+    import dpp.translation.type: translate;
+    import clang: Type;
+    import std.algorithm: map;
+    import std.range: iota;
+    import std.array: array, join;
+
+    assert(cursor.type.numTemplateArguments != -1);
+
+    // get the original list of template parameters and translate them
+    // e.g. template<bool, bool, typename> -> (bool V0, bool V1, T)
+    const translatedTemplateParams = translateTemplateParams(cursor.specializedCursorTemplate, context).array;
+
+    // e.g. template<> struct foo<false, true, int32_t> -> 0:false, 1:true, 2: int
+    string translateTemplateParamSpecialisation(in Type type, in int index) {
+        return type.kind == Type.Kind.Invalid
+            ? templateParameterSpelling(cursor, index)
+            : translate(type, context);
+    }
+
+    // e.g. for template<> struct foo<false, true, int32_t>
+    // 0 -> bool V0: false, 1 -> bool V1: true, 2 -> T0: int
+    string element(in Type type, in int index) {
+        return
+            translatedTemplateParams[index] ~
+            ": " ~
+            translateTemplateParamSpecialisation(type, index);
+    }
+
+    auto elements = cursor.type.numTemplateArguments
+        .iota
+        .map!(i => element(cursor.type.typeTemplateArgument(i), i))
+        ;
+    const elementsWithCommas = () @trusted { return elements.join(", "); }();
+
+    return `(` ~ elementsWithCommas ~ `)`;
+}
+
+// returns the indexth template parameter value from a fully specialised struct/class
+// cursor
+private string templateParameterSpelling(in from!"clang".Cursor cursor, int index) {
+    import std.algorithm: findSkip, until, OpenRight;
+    import std.array: empty, save, split, array;
+    import std.conv: text;
+
+    auto spelling = cursor.type.spelling.dup;
+    if(!spelling.findSkip("<")) return "";
+
+    auto templateParams = spelling.until(">", OpenRight.yes).array.split(", ");
+
+    return templateParams[index].text;
 }
 
 string[] translateClass(in from!"clang".Cursor cursor,
@@ -31,14 +95,15 @@ string[] translateClass(in from!"clang".Cursor cursor,
     assert(cursor.kind == Cursor.Kind.ClassDecl || cursor.kind == Cursor.Kind.ClassTemplate);
 
     const spelling = cursor.kind == Cursor.Kind.ClassTemplate
-        ? nullable(cursor.spelling ~ `(` ~ templateParams(cursor, context).join(", ") ~ `)`)
+        ? nullable(cursor.spelling ~ `(` ~ translateTemplateParams(cursor, context).join(", ") ~ `)`)
         : Nullable!string();
 
     return translateAggregate(context, cursor, "class", "struct", spelling);
 }
 
-private auto templateParams(in from!"clang".Cursor cursor,
-                            ref from!"dpp.runtime.context".Context context)
+// Returns a range of string
+private auto translateTemplateParams(in from!"clang".Cursor cursor,
+                                     ref from!"dpp.runtime.context".Context context)
     @safe
 {
 
@@ -69,10 +134,20 @@ private auto templateParams(in from!"clang".Cursor cursor,
         return maybeType ~ spelling;
     }
 
+    return templateParams(cursor).map!translateTemplateParam;
+}
+
+// returns a range of cursors
+private auto templateParams(in from!"clang".Cursor cursor)
+    @safe
+{
+
+    import clang: Cursor;
+    import std.algorithm: filter;
+
     return cursor
         .children
         .filter!(a => a.kind == Cursor.Kind.TemplateTypeParameter || a.kind == Cursor.Kind.NonTypeTemplateParameter)
-        .map!translateTemplateParam
         ;
 }
 

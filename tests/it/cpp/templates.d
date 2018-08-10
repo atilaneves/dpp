@@ -65,7 +65,6 @@ import it;
     );
 }
 
-@ShouldFail
 @("struct full specialisation")
 @safe unittest {
     shouldCompile(
