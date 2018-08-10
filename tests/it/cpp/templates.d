@@ -142,29 +142,37 @@ import it;
     shouldCompile(
         Cpp(
             q{
-                // this is a ClassTemplate
-                template<bool, bool, typename>
-                struct __copy_move {
-                    enum { value = 42 };
-                };
+                // just structs to use as template type parameters
+                struct Foo; struct Bar; struct Baz;
 
-                // I don't know what this is
-                template<typename _Category>
-                struct __copy_move<true, false, _Category> {
-                    enum { value = 77 };
-                };
+                // this is a ClassTemplate
+                template<int, typename, bool, typename>
+                struct Template { enum { value = 1 }; };
+
+                // this is a ClassTemplatePartialSpecialization
+                template<int V0, typename T0, typename T1>
+                struct Template<V0, T0, true, T1> { enum { value = 2 }; };
+
+                // this is a ClassTemplatePartialSpecialization
+                template<int V0, bool V1, typename T1>
+                struct Template<V0, Foo, V1, T1> { enum { value = 3 }; };
             }
         ),
         D(
             q{
                 import std.conv: text;
-                auto c1 = __copy_move!(true, true, int); // "global" template
-                auto c2 = __copy_move!(true, false, double)(); // partial specialisation
-                static assert(c2.value == 77, text(cast(int) c2.value));
+
+                auto t1 = __copy_move!(true, true, int);       // full template
+                auto t2 = __copy_move!(true, false, double)(); // partial specialisation 1
+                auto t3 = __copy_move!(false, false, Foo)();   // partial specialisation 2
+
+                static assert(t2.value == 2, text(cast(int) t2.value));
+                static assert(t3.value == 3, text(cast(int) t3.value));
             }
         ),
     );
 }
+
 
 
 // as seen in stl_algobase.h
