@@ -176,7 +176,6 @@ import it;
 
 
 // as seen in stl_algobase.h
-@ShouldFail
 @("__copy_move")
 @safe unittest {
     shouldCompile(
@@ -202,6 +201,7 @@ import it;
         ),
         D(
             q{
+                struct RandomStruct {}
                 auto c1 = __copy_move!(false, true, int)();
                 auto c2 = __copy_move!(true, false, RandomStruct)();
                 auto c3 = __copy_move!(false, false, random_access_iterator_tag)();
