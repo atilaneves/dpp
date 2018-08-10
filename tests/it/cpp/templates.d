@@ -65,6 +65,7 @@ import it;
     );
 }
 
+@ShouldFail
 @("struct full specialisation")
 @safe unittest {
     shouldCompile(
@@ -89,9 +90,8 @@ import it;
             q{
                 import std.conv: text;
 
-                // FIXME
-                // auto c1 = __copy_move!(true, true, int)();
-                // static assert(c1.value == 42, text(cast(int) c1.value));
+                auto c1 = __copy_move!(true, true, int)();
+                static assert(c1.value == 42, text(cast(int) c1.value));
 
                 auto c2 = __copy_move!(false, true, double)();
                 static assert(c2.value == 33, text(cast(int) c2.value));
