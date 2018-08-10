@@ -94,9 +94,16 @@ string[] translateClass(in from!"clang".Cursor cursor,
 
     assert(cursor.kind == Cursor.Kind.ClassDecl || cursor.kind == Cursor.Kind.ClassTemplate);
 
-    const spelling = cursor.kind == Cursor.Kind.ClassTemplate
-        ? nullable(cursor.spelling ~ `(` ~ translateTemplateParams(cursor, context).join(", ") ~ `)`)
-        : Nullable!string();
+    const spelling = () {
+
+        if(cursor.kind == Cursor.Kind.ClassTemplate)
+            return nullable(cursor.spelling ~ `(` ~ translateTemplateParams(cursor, context).join(", ") ~ `)`);
+
+        if(cursor.type.numTemplateArguments != -1)
+            return nullable(cursor.spelling ~ translateSpecialisedTemplateParams(cursor, context));
+
+        return Nullable!string();
+    }();
 
     return translateAggregate(context, cursor, "class", "struct", spelling);
 }

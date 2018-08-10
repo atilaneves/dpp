@@ -100,7 +100,6 @@ import it;
 }
 
 // struct/class keyword could end up in different code paths
-@ShouldFail
 @("class full specialisation")
 @safe unittest {
     shouldCompile(
@@ -113,7 +112,7 @@ import it;
                     enum { value = 42 };
                 };
 
-                // This is a StructDecl
+                // This is a ClassDecl
                 template<>
                 class __copy_move<false, true, double> {
                 public:
