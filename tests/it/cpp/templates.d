@@ -49,6 +49,8 @@ import it;
     shouldCompile(
         Cpp(
             q{
+                // none of the template parameters have names, which is allowed
+                // in C++ but not in D
                 template<bool, bool, typename>
                 struct Foo {
 
@@ -64,22 +66,36 @@ import it;
 }
 
 @ShouldFail
-@("full specialisation")
+@("struct full specialisation")
 @safe unittest {
     shouldCompile(
         Cpp(
             q{
+                // this is a ClassTemplate
                 template<bool, bool, typename>
-                struct __copy_move {};
+                struct __copy_move {
+                    enum { value = 42 };
+                };
 
+                // This is a StructDecl
                 template<>
-                struct __copy_move<false, true, int> {};
+                struct __copy_move<false, true, double> {
+                    enum { value = 33 };
+                };
+
+                struct Whatever {};
             }
         ),
         D(
             q{
-                auto c1 = __copy_move!(true, true, int)();
+                import std.conv: text;
+
+                // FIXME
+                // auto c1 = __copy_move!(true, true, int)();
+                // static assert(c1.value == 42, text(cast(int) c1.value));
+
                 auto c2 = __copy_move!(false, true, double)();
+                static assert(c2.value == 33, text(cast(int) c2.value));
             }
         ),
     );
