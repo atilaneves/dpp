@@ -136,7 +136,6 @@ import it;
     );
 }
 
-@ShouldFail
 @("struct partial specialisation")
 @safe unittest {
     shouldCompile(
@@ -147,15 +146,15 @@ import it;
 
                 // this is a ClassTemplate
                 template<typename, typename, bool, typename, int, typename>
-                struct Template { enum { value = 1 }; };
+                struct Template { using Type = bool; };
 
                 // this is a ClassTemplatePartialSpecialization
                 template<typename T, bool V0, typename T3, typename T4>
-                struct Template<Quux, T, V0, T3, 42, T4> { enum { value = 2 }; };
+                struct Template<Quux, T, V0, T3, 42, T4> { using Type = short; };
 
                 // this is a ClassTemplatePartialSpecialization
                 template<typename T, bool V0, typename T3, typename T4>
-                struct Template<T, Quux, V0, T3, 42, T4> { enum { value = 3 }; };
+                struct Template<T, Quux, V0, T3, 42, T4> { using Type = double; };
             }
         ),
         D(
@@ -166,8 +165,9 @@ import it;
                 auto t2 = Template!(Quux, Bar,  false, Baz, 42, Quux)(); // partial1
                 auto t3 = Template!(Foo,  Quux, false, Baz, 42, Quux)(); // partial2
 
-                static assert(t2.value == 2, text(cast(int) t2.value));
-                static assert(t3.value == 3, text(cast(int) t3.value));
+                static assert(is(t1.Type == bool),   t2.Type.stringof);
+                static assert(is(t2.Type == short),  t2.Type.stringof);
+                static assert(is(t3.Type == double), t3.Type.stringof);
             }
         ),
     );

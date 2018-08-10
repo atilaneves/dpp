@@ -35,9 +35,12 @@ private string[] translateStrass(in from!"clang".Cursor cursor,
     import std.array: join;
     import std.conv: text;
 
-    assert(cursor.kind == Cursor.Kind.StructDecl ||
-           cursor.kind == Cursor.Kind.ClassDecl ||
-           cursor.kind == Cursor.Kind.ClassTemplate);
+    assert(
+        cursor.kind == Cursor.Kind.StructDecl ||
+        cursor.kind == Cursor.Kind.ClassDecl ||
+        cursor.kind == Cursor.Kind.ClassTemplate ||
+        cursor.kind == Cursor.Kind.ClassTemplatePartialSpecialization
+    );
 
     string templateParamList(R)(R range) {
         return `(` ~ () @trusted { return range.join(", "); }() ~ `)`;
@@ -95,10 +98,24 @@ private auto translateSpecialisedTemplateParams(in from!"clang".Cursor cursor,
     // e.g. for template<> struct foo<false, true, int32_t>
     // 0 -> bool V0: false, 1 -> bool V1: true, 2 -> T0: int
     string element(in Type type, in int index) {
-        return
-            translatedTemplateParams[index] ~
-            ": " ~
-            translateTemplateParamSpecialisation(type, index);
+        string ret = translatedTemplateParams[index];  // e.g. `T`,  `bool V0`
+        const maybeSpecialisation = translateTemplateParamSpecialisation(type, index);
+
+        // type template arguments may be:
+        // Invalid - value (could be specialised or not)
+        // Unexposed - non-specialised type or
+        // anything else - specialised type
+        // The trick is figuring out if a value is specialised or not
+        const isValue = type.kind == Type.Kind.Invalid;
+        const isType = !isValue;
+        const isSpecialised =
+            (isValue && isValueOfType(cursor, context, index, maybeSpecialisation))
+            ||
+            (isType && type.kind != Type.Kind.Unexposed);
+
+        if(isSpecialised) ret ~= ": " ~ maybeSpecialisation;
+
+        return ret;
     }
 
     return cursor.type.numTemplateArguments
@@ -107,8 +124,56 @@ private auto translateSpecialisedTemplateParams(in from!"clang".Cursor cursor,
         ;
 }
 
-// returns the indexth template parameter value from a fully specialised struct/class
-// cursor
+// In the case cursor is a partial or full template specialisation,
+// check to see if `maybeSpecialisation` can be converted to the
+// indexth template parater of the cursor's original template.
+// If it can, then it's a value of that type.
+private bool isValueOfType(
+    in from!"clang".Cursor cursor,
+    ref from!"dpp.runtime.context".Context context,
+    in int index,
+    in string maybeSpecialisation,
+    )
+    @safe
+{
+    import dpp.translation.type: translate;
+    import std.array: array;
+    import std.exception: collectException;
+    import std.conv: to;
+
+    // the original template cursor (no specialisations)
+    const templateCursor = cursor.specializedCursorTemplate;
+    // the type of the indexth template parameter
+    const templateParamCursor = () @trusted { return templateCursor.templateParams.array[index]; }();
+    // the D translation of that type
+    const dtype = translate(templateParamCursor.type, context);
+
+    Exception conversionException;
+
+    void tryConvert(T)() {
+        conversionException = collectException(maybeSpecialisation.to!T);
+    }
+
+    switch(dtype) {
+        default: throw new Exception("isValueOfType cannot handle type `" ~ dtype ~ "`");
+        case "bool":   tryConvert!bool;   break;
+        case "char":   tryConvert!char;   break;
+        case "wchar":  tryConvert!wchar;  break;
+        case "dchar":  tryConvert!dchar;  break;
+        case "short":  tryConvert!short;  break;
+        case "ushort": tryConvert!ushort; break;
+        case "int":    tryConvert!int;    break;
+        case "uint":   tryConvert!uint;   break;
+        case "long":   tryConvert!long;   break;
+        case "ulong":  tryConvert!long;   break;
+    }
+
+    return conversionException is null;
+}
+
+// returns the indexth template parameter value from a specialised
+// template struct/class cursor (full or partial)
+// e.g. template<> struct Foo<int, 42, double> -> 1: 42
 private string templateParameterSpelling(in from!"clang".Cursor cursor, int index) {
     import std.algorithm: findSkip, until, OpenRight;
     import std.array: empty, save, split, array;
@@ -122,6 +187,8 @@ private string templateParameterSpelling(in from!"clang".Cursor cursor, int inde
     return templateParams[index].text;
 }
 
+// Translates a C++ template parameter (value, type) to a D declaration
+// e.g. template<typename, bool, typename> -> ["T0", "bool V0", "T1"]
 // Returns a range of string
 private auto translateTemplateParams(in from!"clang".Cursor cursor,
                                      ref from!"dpp.runtime.context".Context context)
