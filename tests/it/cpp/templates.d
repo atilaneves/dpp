@@ -134,8 +134,38 @@ import it;
             }
         ),
     );
-
 }
+
+@ShouldFail
+@("struct partial specialisation")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                // this is a ClassTemplate
+                template<bool, bool, typename>
+                struct __copy_move {
+                    enum { value = 42 };
+                };
+
+                // I don't know what this is
+                template<typename _Category>
+                struct __copy_move<true, false, _Category> {
+                    enum { value = 77 };
+                };
+            }
+        ),
+        D(
+            q{
+                import std.conv: text;
+                auto c1 = __copy_move!(true, true, int); // "global" template
+                auto c2 = __copy_move!(true, false, double)(); // partial specialisation
+                static assert(c2.value == 77, text(cast(int) c2.value));
+            }
+        ),
+    );
+}
+
 
 // as seen in stl_algobase.h
 @ShouldFail
