@@ -97,6 +97,44 @@ import it;
             }
         ),
     );
+}
+
+// struct/class keyword could end up in different code paths
+@ShouldFail
+@("class full specialisation")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                // this is a ClassTemplate
+                template<bool, bool, typename>
+                class __copy_move {
+                public:
+                    enum { value = 42 };
+                };
+
+                // This is a StructDecl
+                template<>
+                class __copy_move<false, true, double> {
+                public:
+                    enum { value = 33 };
+                };
+            }
+        ),
+        D(
+            q{
+                import std.conv: text;
+
+                // FIXME: libclang bug - templates don't have proper
+                // EnumConstantDecl values for some reason
+                // auto c1 = __copy_move!(true, true, int)();
+                // static assert(c1.value == 42, text(cast(int) c1.value));
+
+                auto c2 = __copy_move!(false, true, double)();
+                static assert(c2.value == 33, text(cast(int) c2.value));
+            }
+        ),
+    );
 
 }
 
