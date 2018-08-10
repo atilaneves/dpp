@@ -14,21 +14,63 @@ string[] translateStruct(in from!"clang".Cursor cursor,
                          ref from!"dpp.runtime.context".Context context)
     @safe
 {
-    import clang: Cursor;
-    import std.typecons: Nullable, nullable;
-
-    assert(cursor.kind == Cursor.Kind.StructDecl);
-
-    const spelling = cursor.type.numTemplateArguments == -1
-        ? Nullable!string()
-        : nullable(cursor.spelling ~ translateSpecialisedTemplateParams(cursor, context));
-
-    return translateAggregate(context, cursor, "struct", "struct", spelling);
+    return translateStrass(cursor, context, "struct");
 }
 
+string[] translateClass(in from!"clang".Cursor cursor,
+                        ref from!"dpp.runtime.context".Context context)
+    @safe
+{
+    return translateStrass(cursor, context, "class");
+}
+
+// "strass" is a struct or class
+private string[] translateStrass(in from!"clang".Cursor cursor,
+                                 ref from!"dpp.runtime.context".Context context,
+                                 in string cKeyword)
+    @safe
+{
+    import clang: Cursor;
+    import std.typecons: Nullable, nullable;
+    import std.array: join;
+    import std.conv: text;
+
+    assert(cursor.kind == Cursor.Kind.StructDecl ||
+           cursor.kind == Cursor.Kind.ClassDecl ||
+           cursor.kind == Cursor.Kind.ClassTemplate);
+
+    string templateParamList(R)(R range) {
+        return `(` ~ () @trusted { return range.join(", "); }() ~ `)`;
+    }
+
+    string templateSpelling(R)(in Cursor cursor, R range) {
+        return cursor.spelling ~ templateParamList(range);
+    }
+
+    const spelling = () {
+
+        // full template
+        if(cursor.kind == Cursor.Kind.ClassTemplate)
+            return nullable(templateSpelling(cursor, translateTemplateParams(cursor, context)));
+
+        // partial or full template specialisation
+        if(cursor.type.numTemplateArguments != -1)
+            return nullable(templateSpelling(cursor, translateSpecialisedTemplateParams(cursor, context)));
+
+        // non-template class/struct
+        return Nullable!string();
+    }();
+
+    const dKeyword = "struct";
+
+    return translateAggregate(context, cursor, cKeyword, dKeyword, spelling);
+}
+
+
 // Deal with full and partial template specialisations
-private string translateSpecialisedTemplateParams(in from!"clang".Cursor cursor,
-                                                  ref from!"dpp.runtime.context".Context context)
+// returns a range of string
+private auto translateSpecialisedTemplateParams(in from!"clang".Cursor cursor,
+                                                ref from!"dpp.runtime.context".Context context)
     @safe
 {
     import dpp.translation.type: translate;
@@ -59,13 +101,10 @@ private string translateSpecialisedTemplateParams(in from!"clang".Cursor cursor,
             translateTemplateParamSpecialisation(type, index);
     }
 
-    auto elements = cursor.type.numTemplateArguments
+    return cursor.type.numTemplateArguments
         .iota
         .map!(i => element(cursor.type.typeTemplateArgument(i), i))
         ;
-    const elementsWithCommas = () @trusted { return elements.join(", "); }();
-
-    return `(` ~ elementsWithCommas ~ `)`;
 }
 
 // returns the indexth template parameter value from a fully specialised struct/class
@@ -81,31 +120,6 @@ private string templateParameterSpelling(in from!"clang".Cursor cursor, int inde
     auto templateParams = spelling.until(">", OpenRight.yes).array.split(", ");
 
     return templateParams[index].text;
-}
-
-string[] translateClass(in from!"clang".Cursor cursor,
-                        ref from!"dpp.runtime.context".Context context)
-    @safe
-{
-    import clang: Cursor;
-    import std.typecons: Nullable, nullable;
-    import std.array: join;
-    import std.conv: text;
-
-    assert(cursor.kind == Cursor.Kind.ClassDecl || cursor.kind == Cursor.Kind.ClassTemplate);
-
-    const spelling = () {
-
-        if(cursor.kind == Cursor.Kind.ClassTemplate)
-            return nullable(cursor.spelling ~ `(` ~ translateTemplateParams(cursor, context).join(", ") ~ `)`);
-
-        if(cursor.type.numTemplateArguments != -1)
-            return nullable(cursor.spelling ~ translateSpecialisedTemplateParams(cursor, context));
-
-        return Nullable!string();
-    }();
-
-    return translateAggregate(context, cursor, "class", "struct", spelling);
 }
 
 // Returns a range of string
