@@ -153,33 +153,37 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
 
     with(Cursor.Kind) {
         return [
-            ClassDecl:                &translateClass,
-            StructDecl:               &translateStruct,
-            UnionDecl:                &translateUnion,
-            EnumDecl:                 &translateEnum,
-            FunctionDecl:             &translateFunction,
-            FieldDecl:                &translateField,
-            TypedefDecl:              &translateTypedef,
-            MacroDefinition:          &translateMacro,
-            InclusionDirective:       &ignore,
-            EnumConstantDecl:         &translateEnumConstant,
-            VarDecl:                  &translateVariable,
-            UnexposedDecl:            &translateUnexposed,
-            CXXAccessSpecifier:       &translateAccess,
-            CXXMethod:                &translateFunction,
-            Constructor:              &translateFunction,
-            Destructor:               &translateFunction,
-            TypeAliasDecl:            &translateTypedef,
-            ClassTemplate:            &translateClass,
-            TemplateTypeParameter:    &ignore,
-            NonTypeTemplateParameter: &ignore,
-            ConversionFunction:       &translateFunction,
-            Namespace:                &translateNamespace,
-            VisibilityAttr:           &ignore, // ???
-            FirstAttr:                &ignore, // ???
-            UsingDeclaration:         &ignore, // FIXME #56
-            UsingDirective:           &ignore, // FIXME #57
-            FunctionTemplate:         &ignore, // FIXME #58
+            ClassDecl:                          &translateClass,
+            StructDecl:                         &translateStruct,
+            UnionDecl:                          &translateUnion,
+            EnumDecl:                           &translateEnum,
+            FunctionDecl:                       &translateFunction,
+            FieldDecl:                          &translateField,
+            TypedefDecl:                        &translateTypedef,
+            MacroDefinition:                    &translateMacro,
+            InclusionDirective:                 &ignore,
+            EnumConstantDecl:                   &translateEnumConstant,
+            VarDecl:                            &translateVariable,
+            UnexposedDecl:                      &translateUnexposed,
+            CXXAccessSpecifier:                 &translateAccess,
+            CXXMethod:                          &translateFunction,
+            Constructor:                        &translateFunction,
+            Destructor:                         &translateFunction,
+            TypeAliasDecl:                      &translateTypedef,
+            ClassTemplate:                      &translateClass,
+            TemplateTypeParameter:              &ignore,
+            NonTypeTemplateParameter:           &ignore,
+            ConversionFunction:                 &translateFunction,
+            Namespace:                          &translateNamespace,
+            VisibilityAttr:                     &ignore, // ???
+            FirstAttr:                          &ignore, // ???
+            UsingDeclaration:                   &ignore, // FIXME #56
+            UsingDirective:                     &ignore, // FIXME #57
+            FunctionTemplate:                   &ignore, // FIXME #58
+            TemplateTemplateParameter:          &ignore, // FIXME #72
+            TypeAliasTemplateDecl:              &ignore, // FIXME #73
+            CXXBaseSpecifier:                   &ignore, // FIXME #74
+            StaticAssert:                       &ignore, // FIXME #75
             ClassTemplatePartialSpecialization: &translateClass,
         ];
     }
