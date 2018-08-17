@@ -101,6 +101,7 @@ private auto translateSpecialisedTemplateParams(in from!"clang".Cursor cursor,
         context.log("*** type: ", type);
         context.log("*** index: ", index);
         context.log("*** params: ", translatedTemplateParams);
+
         import std.conv: text;
         if(index >= translatedTemplateParams.length)
             throw new Exception(text("impossiburu cursor:\n", cursor, "type:\n", type));

@@ -317,8 +317,8 @@ import it;
                     public: // FIXME #76
                     static constexpr _Tp value = __v;
                     typedef _Tp value_type;
-                    // constexpr operator value_type() const noexcept { return value; }
-                    // constexpr value_type operator()() const noexcept { return value; }
+                    constexpr operator value_type() const noexcept { return value; }
+                    constexpr value_type operator()() const noexcept { return value; }
                 };
             }
         ),
@@ -330,7 +330,6 @@ import it;
 }
 
 // as seen in type_traits
-@ShouldFail
 @("__or_")
 @safe unittest {
     shouldCompile(
@@ -350,30 +349,33 @@ import it;
                 template<typename _Tp, _Tp __v>
                 constexpr _Tp integral_constant<_Tp, __v>::value;
 
-                /// The type used as a compile-time boolean with true value.
-                typedef integral_constant<bool, true>     true_type;
+                // /// The type used as a compile-time boolean with true value.
+                // typedef integral_constant<bool, true>     true_type;
 
-                /// The type used as a compile-time boolean with false value.
-                typedef integral_constant<bool, false>    false_type;
+                // /// The type used as a compile-time boolean with false value.
+                // typedef integral_constant<bool, false>    false_type;
 
-                template<typename...>
-                struct __or_;
+                // template<bool, typename, typename>
+                // struct conditional;
 
-                template<>
-                struct __or_<> : public false_type { };
+                // template<typename...>
+                // struct __or_;
 
-                template<typename _B1>
-                struct __or_<_B1> : public _B1 { };
+                // template<>
+                // struct __or_<> : public false_type { };
 
-                template<typename _B1, typename _B2>
-                struct __or_<_B1, _B2>
-                    : public conditional<_B1::value, _B1, _B2>::type
-                { };
+                // template<typename _B1>
+                // struct __or_<_B1> : public _B1 { };
 
-                template<typename _B1, typename _B2, typename _B3, typename... _Bn>
-                struct __or_<_B1, _B2, _B3, _Bn...>
-                    : public conditional<_B1::value, _B1, __or_<_B2, _B3, _Bn...>>::type
-                { };
+                // template<typename _B1, typename _B2>
+                // struct __or_<_B1, _B2>
+                //     : public conditional<_B1::value, _B1, _B2>::type
+                // { };
+
+                // template<typename _B1, typename _B2, typename _B3, typename... _Bn>
+                // struct __or_<_B1, _B2, _B3, _Bn...>
+                //     : public conditional<_B1::value, _B1, __or_<_B2, _B3, _Bn...>>::type
+                // { };
             }
         ),
         D(
