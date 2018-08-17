@@ -9,7 +9,7 @@ string[] translateVariable(in from!"clang".Cursor cursor,
     import dpp.translation.dlang: maybePragma;
     import dpp.translation.translation: translateCursor = translate;
     import dpp.translation.type: translateType = translate;
-    import clang: Cursor, Type;
+    import clang: Cursor, Type, Token;
     import std.conv: text;
     import std.typecons: No;
     import std.algorithm: canFind;
@@ -44,12 +44,17 @@ string[] translateVariable(in from!"clang".Cursor cursor,
     const static_ = cursor.semanticParent.type.canonical.kind == Type.Kind.Record
         ? "static  "
         : "";
+    const constexpr = cursor.tokens.canFind(Token(Token.Kind.Keyword, "constexpr"));
 
-    ret ~=
-        maybePragma(cursor, context) ~
-        text("extern __gshared ", static_,
-             translateType(cursor.type, context, No.translatingFunction), " ", spelling, ";")
-    ;
+    if(constexpr)
+        // e.g. enum foo = 42;
+        ret ~= text("enum ", spelling, " = ", cursor.tokens[$-1].spelling, ";");
+    else
+        ret ~=
+            maybePragma(cursor, context) ~
+            text("extern __gshared ", static_,
+                 translateType(cursor.type, context, No.translatingFunction), " ", spelling, ";")
+            ;
 
     return ret;
 }

@@ -226,16 +226,18 @@ import it;
                 template<typename _Tp, _Tp __v>
                 struct integral_constant
                 {
+                    public: // FIXME #76
                     static constexpr _Tp                  value = __v;
-                    typedef _Tp                           value_type;
-                    typedef integral_constant<_Tp, __v>   type;
-                    constexpr operator value_type() const noexcept { return value; }
-                    constexpr value_type operator()() const noexcept { return value; }
+                    // typedef _Tp                           value_type;
+                    // typedef integral_constant<_Tp, __v>   type;
+                    // constexpr operator value_type() const noexcept { return value; }
+                    // constexpr value_type operator()() const noexcept { return value; }
                 };
             }
         ),
         D(
             q{
+                static assert(integral_constant!(int, 42).value == 42);
             }
         ),
     );
