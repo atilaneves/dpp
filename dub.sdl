@@ -9,7 +9,7 @@ targetPath "bin"
 targetName "d++"
 dflags "-dip25"
 
-dependency "libclang" version="~>0.0.9"
+dependency "libclang" version="~>0.0.10"
 dependency "sumtype" version="~>0.4.0"
 
 configuration "executable" {

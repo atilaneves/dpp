@@ -26,6 +26,20 @@ auto parse(T)(in T code) {
         const extension = isCpp ? "cpp" : "c";
         const fileName = "code." ~ extension;
         writeFile(fileName, code.value);
-        return parse_(inSandboxPath(fileName)).cursor;
+
+        auto tu = parse_(inSandboxPath(fileName)).cursor;
+        printChildren(tu);
+        return tu;
     }
+}
+
+
+void printChildren(T)(auto ref T cursorOrTU) {
+    import unit_threaded.io: writelnUt;
+    import std.algorithm: map;
+    import std.array: join;
+    import std.conv: text;
+
+    writelnUt("\n", cursorOrTU, " children:\n[\n", cursorOrTU.children.map!(a => text("    ", a)).join(",\n"));
+    writelnUt("]\n");
 }
