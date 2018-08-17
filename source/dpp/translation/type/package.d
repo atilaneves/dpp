@@ -280,7 +280,9 @@ private string translateUnexposed(in from!"clang".Type type,
                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
     @safe pure
 {
-    return type.spelling;
+    import std.string: replace;
+    // we might get template arguments here
+    return type.spelling.replace("<", "!(").replace(">", ")");
 }
 
 private string translateSimdVector(in from!"clang".Type type,
