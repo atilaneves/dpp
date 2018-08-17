@@ -176,7 +176,6 @@ import it;
 
 
 // as seen in stl_algobase.h
-@ShouldFail("std:: shows up in specialised template")
 @("__copy_move")
 @safe unittest {
     shouldCompile(
