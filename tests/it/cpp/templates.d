@@ -176,27 +176,30 @@ import it;
 
 
 // as seen in stl_algobase.h
+@ShouldFail("std:: shows up in specialised template")
 @("__copy_move")
 @safe unittest {
     shouldCompile(
         Cpp(
             q{
-                struct random_access_iterator_tag;
+                namespace std {
+                    struct random_access_iterator_tag;
 
-                template<bool, bool, typename>
-                struct __copy_move {};
+                    template<bool, bool, typename>
+                        struct __copy_move {};
 
-                template<typename _Category>
-                struct __copy_move<true, false, _Category> {};
+                    template<typename _Category>
+                        struct __copy_move<true, false, _Category> {};
 
-                template<>
-                struct __copy_move<false, false, random_access_iterator_tag> {};
+                    template<>
+                        struct __copy_move<false, false, random_access_iterator_tag> {};
 
-                template<>
-                struct __copy_move<true, false, random_access_iterator_tag> {};
+                    template<>
+                        struct __copy_move<true, false, random_access_iterator_tag> {};
 
-                template<bool _IsMove>
-                struct __copy_move<_IsMove, true, random_access_iterator_tag> {};
+                    template<bool _IsMove>
+                        struct __copy_move<_IsMove, true, random_access_iterator_tag> {};
+                }
             }
         ),
         D(
