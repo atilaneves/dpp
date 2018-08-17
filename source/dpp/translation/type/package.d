@@ -120,7 +120,11 @@ private string translateAggregate(in from!"clang".Type type,
 
     return addModifiers(type, spelling)
         // "struct Foo" -> Foo, "union Foo" -> Foo, "enum Foo" -> Foo
-        .replace("struct ", "").replace("union ", "").replace("enum ", "")
+        .replace("struct ", "")
+        .replace("union ", "")
+        .replace("enum ", "")
+        .replace("<", "!(")
+        .replace(">", ")")
         ;
 }
 

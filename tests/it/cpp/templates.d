@@ -349,8 +349,8 @@ import it;
                 template<typename _Tp, _Tp __v>
                 constexpr _Tp integral_constant<_Tp, __v>::value;
 
-                // /// The type used as a compile-time boolean with true value.
-                // typedef integral_constant<bool, true>     true_type;
+                /// The type used as a compile-time boolean with true value.
+                typedef integral_constant<bool, true>     true_type;
 
                 // /// The type used as a compile-time boolean with false value.
                 // typedef integral_constant<bool, false>    false_type;
