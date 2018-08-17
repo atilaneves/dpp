@@ -19,9 +19,42 @@ void expand(in string translUnitFileName,
     @safe
 {
     import dpp.translation.translation: translateTopLevelCursor;
-    import clang: parse, TranslationUnitFlags, Cursor;
-    import std.array: join, array;
+    import clang: Cursor;
+    import std.array: array;
     import std.algorithm: sort, filter, map, chunkBy, any;
+
+    const extern_ = language == Language.Cpp ? "extern(C++)" : "extern(C)";
+    context.writeln([extern_, "{"]);
+
+    auto translationUnit = parseTU(translUnitFileName, context, language, includePaths);
+    auto cursors = canonicalCursors(translationUnit);
+
+    foreach(cursor; cursors) {
+
+        if(context.hasSeen(cursor)) continue;
+        context.rememberCursor(cursor);
+
+        const indentation = context.indentation;
+        const lines = translateTopLevelCursor(cursor, context, file, line);
+        if(lines.length) context.writeln(lines);
+        context.setIndentation(indentation);
+    }
+
+    context.writeln(["}", ""]);
+    context.writeln("");
+}
+
+
+private from!"clang".TranslationUnit parseTU(
+    in string translUnitFileName,
+    ref from!"dpp.runtime.context".Context context,
+    in Language language,
+    in string[] includePaths,
+    ) @safe
+{
+    import clang: parse, TranslationUnitFlags;
+    import std.array: array;
+    import std.algorithm: map;
 
     auto parseArgs =
         includePaths.map!(a => "-I" ~ a).array ~
@@ -33,9 +66,18 @@ void expand(in string translUnitFileName,
     else
         parseArgs ~= "-xc";
 
-    auto translationUnit = parse(translUnitFileName,
-                                 parseArgs,
-                                 TranslationUnitFlags.DetailedPreprocessingRecord);
+    return parse(translUnitFileName,
+                 parseArgs,
+                 TranslationUnitFlags.DetailedPreprocessingRecord);
+}
+
+// returns a range of Cursor
+private auto canonicalCursors(from!"clang".TranslationUnit translationUnit) @safe {
+
+    import dpp.translation.translation: translateTopLevelCursor;
+    import clang: Cursor;
+    import std.array: array;
+    import std.algorithm: sort, filter, map, chunkBy, any;
 
     // In C there can be several declarations and one definition of a type.
     // In D we can have only ever one of either. There might be multiple
@@ -59,7 +101,7 @@ void expand(in string translUnitFileName,
         return cursor.isCanonical || cursor.isDefinition;
     }
 
-    auto cursors = () @trusted {
+    return () @trusted {
         return translationUnit
         .cursor
         .children
@@ -78,23 +120,6 @@ void expand(in string translUnitFileName,
         ;
     }();
 
-    //const extern_ = isCppHeader(translUnitFileName) ? "extern(C++)" : "extern(C)";
-    const extern_ = language == Language.Cpp ? "extern(C++)" : "extern(C)";
-    context.writeln([extern_, "{"]);
-
-    foreach(cursor; cursors) {
-
-        if(context.hasSeen(cursor)) continue;
-        context.rememberCursor(cursor);
-
-        const indentation = context.indentation;
-        const lines = translateTopLevelCursor(cursor, context, file, line);
-        if(lines.length) context.writeln(lines);
-        context.setIndentation(indentation);
-    }
-
-    context.writeln(["}", ""]);
-    context.writeln("");
 }
 
 bool isCppHeader(in string headerFileName) @safe pure {
