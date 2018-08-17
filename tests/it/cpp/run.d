@@ -534,6 +534,7 @@ import it;
 }
 
 
+@ShouldFail
 @Tags("run")
 @("namespaces")
 @safe unittest {
@@ -551,6 +552,10 @@ import it;
                 namespace other {
                     int quux();
                 }
+
+                namespace ns0 {
+                    int toto();
+                }
             }
         ),
         Cpp(
@@ -566,6 +571,10 @@ import it;
                 namespace other {
                     int quux() { return 4; }
                 }
+
+                namespace toto {
+                    int toto() { return 5; }
+                }
             }
         ),
         D(
@@ -574,6 +583,7 @@ import it;
                 assert(bar == 2);
                 assert(baz == 3);
                 assert(quux == 4);
+                assert(toto == 5);
             }
          ),
     );
