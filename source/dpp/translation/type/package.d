@@ -114,7 +114,7 @@ private string translateAggregate(in from!"clang".Type type,
         // qualified name (e.g. std::random_access_iterator_tag), but the cursor
         // itself has only the name (e.g. random_access_iterator_tag), so we get
         // the spelling from the type's declaration instead of from the type itself.
-        // See it.cpp.templates.__copy_move.
+        // See it.cpp.templates.__copy_move and contract.namespace.struct.
         return type.spelling.canFind(":") ? type.declaration.spelling : type.spelling;
     }
 
