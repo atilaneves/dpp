@@ -228,7 +228,7 @@ import it;
                 {
                     public: // FIXME #76
                     static constexpr _Tp                  value = __v;
-                    // typedef _Tp                           value_type;
+                    typedef _Tp                           value_type;
                     // typedef integral_constant<_Tp, __v>   type;
                     // constexpr operator value_type() const noexcept { return value; }
                     // constexpr value_type operator()() const noexcept { return value; }
@@ -238,6 +238,8 @@ import it;
         D(
             q{
                 static assert(integral_constant!(int, 42).value == 42);
+                static assert(is(integral_constant!(short, 42).value_type == short));
+                static assert(is(integral_constant!(long, 42).value_type == long));
             }
         ),
     );

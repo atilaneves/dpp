@@ -15,7 +15,7 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     import clang: Cursor, Type;
     import std.conv: text;
     import std.typecons: No;
-    import std.algorithm: filter;
+    import std.algorithm: filter, startsWith;
     import std.array: array;
 
     const children = () @trusted {
@@ -27,13 +27,13 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     }();
 
     const nonCanonicalUnderlyingType = typedef_.underlyingType;
-    const underlyingType = nonCanonicalUnderlyingType.canonical;
+    const canonicalUnderlyingType = nonCanonicalUnderlyingType.canonical;
 
     context.log("Children: ", children);
     context.log("          Underlying type: ", nonCanonicalUnderlyingType);
-    context.log("Canonical underlying type: ", underlyingType);
+    context.log("Canonical underlying type: ", canonicalUnderlyingType);
 
-    if(isSomeFunction(underlyingType))
+    if(isSomeFunction(canonicalUnderlyingType))
         return translateFunctionTypeDef(typedef_, context.indent);
 
     const isOnlyAggregateChild = children.length == 1 && isAggregateC(children[0]);
@@ -51,10 +51,15 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     if(isTopLevelAnonymous && children[0].kind != Cursor.Kind.EnumDecl)
         return translateTopLevelAnonymous(children[0], context);
 
-    // FIXME - still not sure I understand this
-    const underlyingSpelling = isOnlyAggregateChild
-        ? context.spellingOrNickname(children[0])
-        : translate(underlyingType, context, No.translatingFunction);
+    // See contract.typedef_.typedef to a template type parameter
+    const isTypeParameter = canonicalUnderlyingType.spelling.startsWith("type-");
+
+    // FIXME - still not sure I understand isOnlyAggregateChild here
+    const underlyingSpelling = () {
+        if(isOnlyAggregateChild) return context.spellingOrNickname(children[0]);
+        const typeToUse = isTypeParameter ? nonCanonicalUnderlyingType : canonicalUnderlyingType;
+        return translate(typeToUse, context, No.translatingFunction);
+    }();
 
     context.rememberType(typedef_.spelling);
 
