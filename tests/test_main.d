@@ -20,6 +20,7 @@ int main(string[] args) {
         "contract.namespace",
         "contract.constexpr",
         "contract.typedef_",
+        "contract.operators",
 
         "it.issues",
 

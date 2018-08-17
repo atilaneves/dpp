@@ -216,6 +216,94 @@ import it;
 }
 
 
+@("constexpr struct variable")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<typename _Tp, _Tp __v>
+                struct integral_constant {
+                    public: // FIXME #76
+                    static constexpr _Tp value = __v;
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(integral_constant!(int, 42).value == 42);
+                static assert(integral_constant!(int, 33).value == 33);
+            }
+        ),
+    );
+}
+
+@("typedef to template type parameter")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<typename _Tp, _Tp __v>
+                struct integral_constant {
+                    public: // FIXME #76
+                    typedef _Tp value_type;
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(is(integral_constant!(short, 42).value_type == short));
+                static assert(is(integral_constant!(long, 42).value_type == long));
+            }
+        ),
+    );
+}
+
+@("typedef to template struct")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<typename _Tp, _Tp __v>
+                struct integral_constant {
+                    public: // FIXME #76
+                    typedef integral_constant<_Tp, __v>   type;
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(is(integral_constant!(int, 33).type == integral_constant!(int, 33)));
+            }
+        ),
+    );
+}
+
+@("opCast template type")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                /// integral_constant
+                template<typename _Tp, _Tp __v>
+                struct integral_constant
+                {
+                    public: // FIXME #76
+                    static constexpr _Tp value = __v;
+                    typedef _Tp value_type;
+                    constexpr operator value_type() const noexcept { return value; }
+                };
+            }
+        ),
+        D(
+            q{
+                integral_constant!(int , 42) i;
+                auto j = cast(int) i;
+            }
+        ),
+    );
+}
+
+
 // as seen in type_traits
 @("integral_constant")
 @safe unittest {
@@ -227,9 +315,8 @@ import it;
                 struct integral_constant
                 {
                     public: // FIXME #76
-                    static constexpr _Tp                  value = __v;
-                    typedef _Tp                           value_type;
-                    typedef integral_constant<_Tp, __v>   type;
+                    static constexpr _Tp value = __v;
+                    typedef _Tp value_type;
                     // constexpr operator value_type() const noexcept { return value; }
                     // constexpr value_type operator()() const noexcept { return value; }
                 };
@@ -237,10 +324,6 @@ import it;
         ),
         D(
             q{
-                static assert(integral_constant!(int, 42).value == 42);
-                static assert(is(integral_constant!(short, 42).value_type == short));
-                static assert(is(integral_constant!(long, 42).value_type == long));
-                static assert(is(integral_constant!(int, 33).type == integral_constant!(int, 33)));
             }
         ),
     );
