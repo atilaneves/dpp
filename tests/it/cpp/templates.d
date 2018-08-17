@@ -352,20 +352,20 @@ import it;
                 /// The type used as a compile-time boolean with true value.
                 typedef integral_constant<bool, true>     true_type;
 
-                // /// The type used as a compile-time boolean with false value.
-                // typedef integral_constant<bool, false>    false_type;
+                /// The type used as a compile-time boolean with false value.
+                typedef integral_constant<bool, false>    false_type;
 
-                // template<bool, typename, typename>
-                // struct conditional;
+                template<bool, typename, typename>
+                struct conditional;
 
-                // template<typename...>
-                // struct __or_;
+                template<typename...>
+                struct __or_;
 
-                // template<>
-                // struct __or_<> : public false_type { };
+                template<>
+                struct __or_<> : public false_type { };
 
-                // template<typename _B1>
-                // struct __or_<_B1> : public _B1 { };
+                template<typename _B1>
+                struct __or_<_B1> : public _B1 { };
 
                 // template<typename _B1, typename _B2>
                 // struct __or_<_B1, _B2>
