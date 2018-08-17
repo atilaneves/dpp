@@ -17,6 +17,7 @@ int main(string[] args) {
         // contract tests
         "contract.array",
         "contract.templates",
+        "contract.namespace",
 
         "it.issues",
 

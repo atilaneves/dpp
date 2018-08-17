@@ -19,68 +19,13 @@ void expand(in string translUnitFileName,
     @safe
 {
     import dpp.translation.translation: translateTopLevelCursor;
-    import clang: parse, TranslationUnitFlags, Cursor;
-    import std.array: join, array;
-    import std.algorithm: sort, filter, map, chunkBy, any;
+    import clang: Cursor;
 
-    auto parseArgs =
-        includePaths.map!(a => "-I" ~ a).array ~
-        context.options.defines.map!(a => "-D" ~ a).array
-        ;
-
-    if(context.options.parseAsCpp || language == Language.Cpp)
-        parseArgs ~= "-xc++";
-    else
-        parseArgs ~= "-xc";
-
-    auto translationUnit = parse(translUnitFileName,
-                                 parseArgs,
-                                 TranslationUnitFlags.DetailedPreprocessingRecord);
-
-    // In C there can be several declarations and one definition of a type.
-    // In D we can have only ever one of either. There might be multiple
-    // cursors in the translation unit that all refer to the same canonical type.
-    // Unfortunately, the canonical type is orthogonal to which cursor is the actual
-    // definition, so we prefer to find the definition if it exists, and if not, we
-    // take the canonical declaration so as to not repeat ourselves in D.
-    static Cursor trueCursor(R)(R cursors) {
-
-        if(cursors.save.any!(a => a.isDefinition))
-            return cursors.filter!(a => a.isDefinition).front;
-
-        if(cursors.save.any!(a => a.isCanonical))
-            return cursors.filter!(a => a.isCanonical).front;
-
-        assert(!cursors.empty);
-        return cursors.front;
-    }
-
-    static bool goodCursor(in Cursor cursor) {
-        return cursor.isCanonical || cursor.isDefinition;
-    }
-
-    auto cursors = () @trusted {
-        return translationUnit
-        .cursor
-        .children
-        // sort them by canonical cursor
-        .sort!((a, b) => a.canonical.sourceRange.start <
-                         b.canonical.sourceRange.start)
-        // each chunk is a range of cursors representing the same canonical entity
-        .chunkBy!((a, b) => a.canonical == b.canonical)
-        // for each chunk, extract the one cursor we want
-        .map!trueCursor
-        // array is needed for sort
-        .array
-        // libclang gives us macros first, so we sort by line here
-        // (we also just messed up the order above as well)
-        .sort!((a, b) => a.sourceRange.start.line < b.sourceRange.start.line)
-        ;
-    }();
-
-    //const extern_ = isCppHeader(translUnitFileName) ? "extern(C++)" : "extern(C)";
     const extern_ = language == Language.Cpp ? "extern(C++)" : "extern(C)";
     context.writeln([extern_, "{"]);
+
+    auto translationUnit = parseTU(translUnitFileName, context, language, includePaths);
+    auto cursors = canonicalCursors(translationUnit);
 
     foreach(cursor; cursors) {
 
@@ -95,6 +40,86 @@ void expand(in string translUnitFileName,
 
     context.writeln(["}", ""]);
     context.writeln("");
+}
+
+
+private from!"clang".TranslationUnit parseTU(
+    in string translUnitFileName,
+    ref from!"dpp.runtime.context".Context context,
+    in Language language,
+    in string[] includePaths,
+    ) @safe
+{
+    import clang: parse, TranslationUnitFlags;
+    import std.array: array;
+    import std.algorithm: map;
+
+    auto parseArgs =
+        includePaths.map!(a => "-I" ~ a).array ~
+        context.options.defines.map!(a => "-D" ~ a).array
+        ;
+
+    if(context.options.parseAsCpp || language == Language.Cpp)
+        parseArgs ~= "-xc++";
+    else
+        parseArgs ~= "-xc";
+
+    return parse(translUnitFileName,
+                 parseArgs,
+                 TranslationUnitFlags.DetailedPreprocessingRecord);
+}
+
+// returns a range of Cursor
+private auto canonicalCursors(from!"clang".TranslationUnit translationUnit) @safe {
+
+    import dpp.translation.translation: translateTopLevelCursor;
+    import clang: Cursor;
+    import std.array: array, join;
+    import std.algorithm: sort, filter, map, chunkBy, all;
+
+    // In C there can be several declarations and one definition of a type.
+    // In D we can have only ever one of either. There might be multiple
+    // cursors in the translation unit that all refer to the same canonical type.
+    // Unfortunately, the canonical type is orthogonal to which cursor is the actual
+    // definition, so we prefer to find the definition if it exists, and if not, we
+    // take the canonical declaration so as to not repeat ourselves in D.
+    static Cursor[] trueCursors(R)(R cursors) {
+
+        // we always accept multiple namespaces
+        if(cursors.save.all!(a => a.kind == Cursor.Kind.Namespace))
+            return cursors.array;
+
+        auto definitions = cursors.save.filter!(a => a.isDefinition);
+        if(!definitions.empty) return [definitions.front];
+
+        auto canonicals = cursors.save.filter!(a => a.isCanonical);
+        if(!canonicals.empty) return [canonicals.front];
+
+        assert(!cursors.empty);
+        return [cursors.front];
+    }
+
+    static bool goodCursor(in Cursor cursor) {
+        return cursor.isCanonical || cursor.isDefinition;
+    }
+
+    return () @trusted {
+        return translationUnit
+        .cursor
+        .children
+        // sort them by canonical cursor
+        .sort!((a, b) => a.canonical.sourceRange.start <
+                         b.canonical.sourceRange.start)
+        // each chunk is a range of cursors representing the same canonical entity
+        .chunkBy!((a, b) => a.canonical == b.canonical)
+        // for each chunk, extract the one cursor we want
+        .map!trueCursors
+        .join
+        // libclang gives us macros first, so we sort by line here
+        // (we also just messed up the order above as well)
+        .sort!((a, b) => a.sourceRange.start.line < b.sourceRange.start.line)
+        ;
+    }();
 }
 
 bool isCppHeader(in string headerFileName) @safe pure {

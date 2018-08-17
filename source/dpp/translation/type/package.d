@@ -102,12 +102,20 @@ private string translateAggregate(in from!"clang".Type type,
     @safe pure
 {
     import std.array: replace;
+    import std.algorithm: canFind;
 
     // if it's anonymous, find the nickname, otherwise return the spelling
     string spelling() {
         // clang names anonymous types with a long name indicating where the type
-        // was declared
-        return hasAnonymousSpelling(type) ? context.popLastNickName : type.spelling;
+        // was declared, so we check here with `hasAnonymousSpelling`
+        if(hasAnonymousSpelling(type)) return context.popLastNickName;
+
+        // A struct in a namespace will have a type of kind Record with the fully
+        // qualified name (e.g. std::random_access_iterator_tag), but the cursor
+        // itself has only the name (e.g. random_access_iterator_tag), so we get
+        // the spelling from the type's declaration instead of from the type itself.
+        // See it.cpp.templates.__copy_move and contract.namespace.struct.
+        return type.spelling.canFind(":") ? type.declaration.spelling : type.spelling;
     }
 
     return addModifiers(type, spelling)

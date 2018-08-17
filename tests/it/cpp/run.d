@@ -551,6 +551,11 @@ import it;
                 namespace other {
                     int quux();
                 }
+
+                // can reopen namespace
+                namespace ns0 {
+                    int toto();
+                }
             }
         ),
         Cpp(
@@ -566,6 +571,11 @@ import it;
                 namespace other {
                     int quux() { return 4; }
                 }
+
+                // can reopen namespace
+                namespace ns0 {
+                    int toto() { return 5; }
+                }
             }
         ),
         D(
@@ -574,6 +584,7 @@ import it;
                 assert(bar == 2);
                 assert(baz == 3);
                 assert(quux == 4);
+                assert(toto == 5);
             }
          ),
     );

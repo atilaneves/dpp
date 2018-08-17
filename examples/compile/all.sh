@@ -10,8 +10,9 @@ source "$SCRIPT_DIR/../../bash/funcs.bash"
 
 build_dpp
 
-for x in "$SCRIPT_DIR"/*.dpp
-do
-    echo "Testing compileable $x"
-    "$BIN_DIR"/d++ --keep-pre-cpp-files -c -of/tmp/compile.o "$x"
-done
+# Restore when there are files
+# for x in "$SCRIPT_DIR"/*.dpp
+# do
+#     echo "Testing compileable $x"
+#     "$BIN_DIR"/d++ --keep-pre-cpp-files -c -of/tmp/compile.o "$x"
+# done
