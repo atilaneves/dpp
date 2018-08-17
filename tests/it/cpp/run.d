@@ -534,7 +534,6 @@ import it;
 }
 
 
-@ShouldFail
 @Tags("run")
 @("namespaces")
 @safe unittest {
@@ -553,6 +552,7 @@ import it;
                     int quux();
                 }
 
+                // can reopen namespace
                 namespace ns0 {
                     int toto();
                 }
@@ -572,7 +572,8 @@ import it;
                     int quux() { return 4; }
                 }
 
-                namespace toto {
+                // can reopen namespace
+                namespace ns0 {
                     int toto() { return 5; }
                 }
             }
