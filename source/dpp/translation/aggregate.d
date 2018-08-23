@@ -86,7 +86,10 @@ private auto translateSpecialisedTemplateParams(in from!"clang".Cursor cursor,
 
     // get the original list of template parameters and translate them
     // e.g. template<bool, bool, typename> -> (bool V0, bool V1, T)
-    const translatedTemplateParams = translateTemplateParams(cursor.specializedCursorTemplate, context).array;
+    const translatedTemplateParams = () @trusted {
+        return translateTemplateParams(cursor, context)
+        .array;
+    }();
 
     // e.g. template<> struct foo<false, true, int32_t> -> 0:false, 1:true, 2: int
     string translateTemplateParamSpecialisation(in Type type, in int index) {
@@ -98,11 +101,6 @@ private auto translateSpecialisedTemplateParams(in from!"clang".Cursor cursor,
     // e.g. for template<> struct foo<false, true, int32_t>
     // 0 -> bool V0: false, 1 -> bool V1: true, 2 -> T0: int
     string element(in Type type, in int index) {
-        // DELETE
-        context.log("*** type: ", type);
-        context.log("*** index: ", index);
-        context.log("*** params: ", translatedTemplateParams);
-
         // DELETE
         import std.conv: text;
         if(index >= translatedTemplateParams.length)
@@ -210,8 +208,6 @@ private auto translateTemplateParams(in from!"clang".Cursor cursor,
     import std.conv: text;
     import std.algorithm: map, filter;
 
-    assert(cursor.kind == Cursor.Kind.ClassTemplate);
-
     int templateParamIndex;  // used to generate names when there are none
 
     string newTemplateParamName() {
@@ -233,7 +229,12 @@ private auto translateTemplateParams(in from!"clang".Cursor cursor,
         return maybeType ~ spelling;
     }
 
-    return templateParams(cursor).map!translateTemplateParam;
+    return () @trusted {
+        return templateParams(cursor)
+        .map!translateTemplateParam
+        .map!(a => cursor.isVariadicTemplate ? a ~ "...": a)
+        ;
+    }();
 }
 
 // returns a range of cursors
@@ -244,13 +245,21 @@ private auto templateParams(in from!"clang".Cursor cursor)
     import clang: Cursor;
     import std.algorithm: filter;
 
-    return cursor
+    const templateCursor = cursor.kind == Cursor.Kind.ClassTemplate
+        ? cursor
+        : cursor.specializedCursorTemplate;
+
+    return templateCursor
         .children
         .filter!(a => a.kind == Cursor.Kind.TemplateTypeParameter || a.kind == Cursor.Kind.NonTypeTemplateParameter)
         ;
 }
 
 bool isFromVariadicTemplate(in from!"clang".Cursor cursor) {
+    return isVariadicTemplate(cursor.specializedCursorTemplate);
+}
+
+bool isVariadicTemplate(in from!"clang".Cursor cursor) {
     import clang: Cursor, Token;
     import std.array: array;
     import std.algorithm: canFind;
@@ -260,8 +269,9 @@ bool isFromVariadicTemplate(in from!"clang".Cursor cursor) {
     return
         templateParamChildren.length == 1 &&
         templateParamChildren[0].kind == Cursor.Kind.TemplateTypeParameter &&
-        cursor.specializedCursorTemplate.tokens.canFind(Token(Token.Kind.Punctuation, "..."));
+        cursor.tokens.canFind(Token(Token.Kind.Punctuation, "..."));
 }
+
 
 
 string[] translateUnion(in from!"clang".Cursor cursor,

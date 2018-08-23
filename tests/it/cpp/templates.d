@@ -185,19 +185,19 @@ import it;
                     struct random_access_iterator_tag;
 
                     template<bool, bool, typename>
-                        struct __copy_move {};
+                    struct __copy_move {};
 
                     template<typename _Category>
-                        struct __copy_move<true, false, _Category> {};
+                    struct __copy_move<true, false, _Category> {};
 
                     template<>
-                        struct __copy_move<false, false, random_access_iterator_tag> {};
+                    struct __copy_move<false, false, random_access_iterator_tag> {};
 
                     template<>
-                        struct __copy_move<true, false, random_access_iterator_tag> {};
+                    struct __copy_move<true, false, random_access_iterator_tag> {};
 
                     template<bool _IsMove>
-                        struct __copy_move<_IsMove, true, random_access_iterator_tag> {};
+                    struct __copy_move<_IsMove, true, random_access_iterator_tag> {};
                 }
             }
         ),
@@ -328,7 +328,6 @@ import it;
 }
 
 
-@ShouldFail
 @("variadic.only")
 @safe unittest {
     shouldCompile(
