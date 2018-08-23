@@ -233,8 +233,6 @@ private auto translateTemplateParams(in from!"clang".Cursor cursor,
         return maybeType ~ spelling;
     }
 
-    context.log("\n---\ntemplate params:", templateParams(cursor), "\n", templateParams(cursor).map!translateTemplateParam,
-                "\n---\n");
     return templateParams(cursor).map!translateTemplateParam;
 }
 
@@ -246,16 +244,25 @@ private auto templateParams(in from!"clang".Cursor cursor)
     import clang: Cursor;
     import std.algorithm: filter;
 
-    import unit_threaded.io;
-    writelnUt("****** templateParams cursor: ", cursor);
-    writelnUt("****** templateParams cursor children: ", cursor.children);
-    writelnUt("****** cursor range: ", cursor.sourceRange);
-
     return cursor
         .children
         .filter!(a => a.kind == Cursor.Kind.TemplateTypeParameter || a.kind == Cursor.Kind.NonTypeTemplateParameter)
         ;
 }
+
+bool isFromVariadicTemplate(in from!"clang".Cursor cursor) {
+    import clang: Cursor, Token;
+    import std.array: array;
+    import std.algorithm: canFind;
+
+    const templateParamChildren = templateParams(cursor).array;
+
+    return
+        templateParamChildren.length == 1 &&
+        templateParamChildren[0].kind == Cursor.Kind.TemplateTypeParameter &&
+        cursor.specializedCursorTemplate.tokens.canFind(Token(Token.Kind.Punctuation, "..."));
+}
+
 
 string[] translateUnion(in from!"clang".Cursor cursor,
                         ref from!"dpp.runtime.context".Context context)

@@ -327,8 +327,32 @@ import it;
     );
 }
 
+
 @ShouldFail
-@("variadic")
+@("variadic.only")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<typename...>
+                struct Variadic {
+                    using Type = void;
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(is(Variadic!().Type == void));
+                static assert(is(Variadic!(int).Type == void));
+                static assert(is(Variadic!(int, double, bool).Type == void));
+                static assert(is(Variadic!(int, int).Type == void));
+            }
+        ),
+    );
+}
+
+@ShouldFail
+@("variadic.specialized")
 @safe unittest {
     shouldCompile(
         Cpp(

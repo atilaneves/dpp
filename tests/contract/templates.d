@@ -104,3 +104,35 @@ import contract;
 
     Token(Token.Kind.Punctuation, "...").should.be in variadic.tokens;
 }
+
+@Tags("contract")
+@("variadic.specialization")
+@safe unittest {
+    import clang: Token;
+
+    const tu = parse(
+        Cpp(
+            q{
+                template<typename...>
+                struct Variadic {};
+
+                template<typename T0, typename T1>
+                struct Variadic<T0, T1> { };
+            }
+        )
+    );
+
+    tu.children.length.shouldEqual(2);
+
+    const template_ = tu.children[0];
+    printChildren(template_);
+
+    const special = tu.children[1];
+    printChildren(special);
+
+    special.kind.should == Cursor.Kind.ClassTemplatePartialSpecialization;
+    special.type.numTemplateArguments.should == 2;
+    // unexposed - non-specialised type
+    special.type.typeTemplateArgument(0).kind.should == Type.Kind.Unexposed;
+    special.type.typeTemplateArgument(1).kind.should == Type.Kind.Unexposed;
+}
