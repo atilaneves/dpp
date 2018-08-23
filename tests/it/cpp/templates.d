@@ -328,23 +328,30 @@ import it;
 }
 
 
+@ShouldFail
 @("variadic.only")
 @safe unittest {
     shouldCompile(
         Cpp(
             q{
-                template<typename...>
-                struct Variadic {
+                template<int, typename, bool, typename...>
+                struct VariadicTypes {
                     using Type = void;
                 };
+
+                // TODO:
+                /*
+                  template<, , int...>
+                  struct VariadicValues {};
+                 */
             }
         ),
         D(
             q{
-                static assert(is(Variadic!().Type == void));
-                static assert(is(Variadic!(int).Type == void));
-                static assert(is(Variadic!(int, double, bool).Type == void));
-                static assert(is(Variadic!(int, int).Type == void));
+                static assert(is(VariadicTypes!(0, short, false).Type == void));
+                static assert(is(VariadicTypes!(1, short, false, int).Type == void));
+                static assert(is(VariadicTypes!(2, short, false, int, double, bool).Type == void));
+                static assert(is(VariadicTypes!(3, short, false, int, int).Type == void));
             }
         ),
     );
