@@ -60,6 +60,7 @@ import contract;
     foreach(partial; partials) {
         partial.kind.should == Cursor.Kind.ClassTemplatePartialSpecialization;
         partial.type.numTemplateArguments.should == 6;
+        partial.specializedCursorTemplate.should == template_;
     }
 
     full.kind.should == Cursor.Kind.StructDecl;
