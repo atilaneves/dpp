@@ -70,7 +70,7 @@ import contract;
 
 
 @Tags("contract")
-@("variadic")
+@("variadic.types")
 @safe unittest {
     import clang: Token;
 
@@ -100,10 +100,47 @@ import contract;
     templateParameter.kind.should == Cursor.Kind.TemplateTypeParameter;
     templateParameter.type.kind.should == Type.Kind.Unexposed;
     templateParameter.type.canonical.kind.should == Type.Kind.Unexposed;
-    templateParameter.type.spelling.shouldEqual("type-parameter-0-0");
+    templateParameter.type.spelling.should == "type-parameter-0-0";
 
     Token(Token.Kind.Punctuation, "...").should.be in variadic.tokens;
 }
+
+@Tags("contract")
+@("variadic.values")
+@safe unittest {
+    import clang: Token;
+
+    const tu = parse(
+        Cpp(
+            q{
+                template<int...>
+                struct Variadic {};
+            }
+        )
+    );
+
+    tu.children.length.shouldEqual(1);
+
+    const variadic = tu.children[0];
+    printChildren(variadic);
+
+    variadic.kind.should == Cursor.Kind.ClassTemplate;
+    variadic.type.numTemplateArguments.should == -1;
+
+    // variadic templates can't use the children to figure out how many template
+    // arguments there are, since there's only one "typename" and the length
+    // can be any number.
+    variadic.children.length.should == 1;
+    const templateParameter = variadic.children[0];
+
+    templateParameter.kind.should == Cursor.Kind.NonTypeTemplateParameter;
+    templateParameter.type.kind.should == Type.Kind.Int;
+    templateParameter.type.canonical.kind.should == Type.Kind.Int;
+    templateParameter.type.spelling.should == "int";
+
+    Token(Token.Kind.Punctuation, "...").should.be in variadic.tokens;
+}
+
 
 @Tags("contract")
 @("variadic.specialization")
