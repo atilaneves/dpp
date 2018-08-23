@@ -1,8 +1,8 @@
 {
 	"fileVersion": 1,
 	"versions": {
-		"libclang": "0.0.9",
+		"libclang": "0.0.11",
 		"sumtype": "0.4.1",
-		"unit-threaded": "0.7.50"
+		"unit-threaded": "0.7.51"
 	}
 }

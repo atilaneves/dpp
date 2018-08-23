@@ -21,7 +21,6 @@ struct Context {
     import dpp.runtime.namespace: Namespace;
     import clang: Cursor;
 
-    alias CursorHash = uint;
     alias SeenCursors = bool[CursorId];
 
     /**
@@ -34,10 +33,10 @@ struct Context {
     /**
        Structs can be anonymous in C, and it's even common
        to typedef them to a name. We come up with new names
-       that we track here so as to be able to properly transate
+       that we track here so as to be able to properly translate
        those typedefs.
     */
-    private string[CursorHash] cursorNickNames;
+    private string[Cursor.Hash] cursorNickNames;
 
     // FIXME - there must be a better way
     /// Used to find the last nickname we coined (e.g. "_Anonymous_1")
@@ -225,22 +224,6 @@ struct Context {
         const spelling = spellingOrNickname(cursor);
         _aggregateDeclarations[spelling] = true;
         rememberType(spelling);
-    }
-
-    // find the last one we named, pop it off, and return it
-    string popLastNickName() @safe pure {
-
-        if(nickNames.length == 0) {
-            // this might happen with `enum { one, two } var;`
-            // We need the typename to declare `var` with but the translation only comes
-            auto ret = newAnonymousTypeName;
-            --_anonymousIndex; // make sure we return the same name next time
-            return ret;
-        }
-
-        auto ret = nickNames[$-1];
-        nickNames = nickNames[0 .. $-1];
-        return ret;
     }
 
     /**

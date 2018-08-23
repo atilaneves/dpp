@@ -3,7 +3,9 @@
  */
 module dpp.translation.type;
 
+
 import dpp.from: from;
+
 
 alias Translator = string function(
     in from!"clang".Type type,
@@ -12,6 +14,7 @@ alias Translator = string function(
 ) @safe pure;
 
 alias Translators = Translator[from!"clang".Type.Kind];
+
 
 string translate(in from!"clang".Type type,
                  ref from!"dpp.runtime.context".Context context,
@@ -108,7 +111,7 @@ private string translateAggregate(in from!"clang".Type type,
     string spelling() {
         // clang names anonymous types with a long name indicating where the type
         // was declared, so we check here with `hasAnonymousSpelling`
-        if(hasAnonymousSpelling(type)) return context.popLastNickName;
+        if(hasAnonymousSpelling(type)) return context.spellingOrNickname(type.declaration);
 
         // A struct in a namespace will have a type of kind Record with the fully
         // qualified name (e.g. std::random_access_iterator_tag), but the cursor
