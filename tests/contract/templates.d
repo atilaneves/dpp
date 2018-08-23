@@ -29,11 +29,77 @@ import contract;
 
     tu.children.length.shouldEqual(8);
 
-    foreach(i; 0 .. 4) tu.children[i].kind.shouldEqual(Cursor.Kind.StructDecl);
+    auto structs = tu.children[0 .. 4];     // Foo, Bar, Baz, Quux
+    auto template_ = tu.children[4];        // The full or pure template
+    auto partials = tu.children[5 .. 7];    // The partial template specialisations
+    auto full = tu.children[7]; // The last Template declaration
 
-    tu.children[4].kind.shouldEqual(Cursor.Kind.ClassTemplate);
+    foreach(struct_; structs) {
+        struct_.kind.should == Cursor.Kind.StructDecl;
+        struct_.type.numTemplateArguments.should == -1;
+    }
 
-    foreach(i; 5 .. 7) tu.children[i].kind.shouldEqual(Cursor.Kind.ClassTemplatePartialSpecialization);
+    template_.kind.should == Cursor.Kind.ClassTemplate;
+    // The actual template, according to clang, has no template arguments
+    template_.type.numTemplateArguments.should == -1;
+    // To get the template parameters, one must look at the ClassTemplate's children
+    template_.children.length.should == 7;
+    printChildren(template_);
 
-    tu.children[7].kind.shouldEqual(Cursor.Kind.StructDecl);
+    const typeAliasDecl = template_.children[$ - 1];
+    typeAliasDecl.kind.should == Cursor.Kind.TypeAliasDecl;
+
+    const templateParameters = template_.children[0 .. $ - 1];
+    templateParameters[0].kind.should == Cursor.Kind.TemplateTypeParameter;
+    templateParameters[1].kind.should == Cursor.Kind.TemplateTypeParameter;
+    templateParameters[2].kind.should == Cursor.Kind.NonTypeTemplateParameter;
+    templateParameters[3].kind.should == Cursor.Kind.TemplateTypeParameter; // bool
+    templateParameters[4].kind.should == Cursor.Kind.NonTypeTemplateParameter;
+    templateParameters[5].kind.should == Cursor.Kind.TemplateTypeParameter; // int
+
+    foreach(partial; partials) {
+        partial.kind.should == Cursor.Kind.ClassTemplatePartialSpecialization;
+        partial.type.numTemplateArguments.should == 6;
+    }
+
+    full.kind.should == Cursor.Kind.StructDecl;
+    full.type.numTemplateArguments.should == 6;
+}
+
+
+
+@Tags("contract")
+@("variadic")
+@safe unittest {
+    import clang: Token;
+
+    const tu = parse(
+        Cpp(
+            q{
+                template<typename...>
+                struct Variadic {};
+            }
+        )
+    );
+
+    tu.children.length.shouldEqual(1);
+
+    const variadic = tu.children[0];
+    printChildren(variadic);
+
+    variadic.kind.should == Cursor.Kind.ClassTemplate;
+    variadic.type.numTemplateArguments.should == -1;
+
+    // variadic templates can't use the children to figure out how many template
+    // arguments there are, since there's only one "typename" and the length
+    // can be any number.
+    variadic.children.length.should == 1;
+    const templateParameter = variadic.children[0];
+
+    templateParameter.kind.should == Cursor.Kind.TemplateTypeParameter;
+    templateParameter.type.kind.should == Type.Kind.Unexposed;
+    templateParameter.type.canonical.kind.should == Type.Kind.Unexposed;
+    templateParameter.type.spelling.shouldEqual("type-parameter-0-0");
+
+    Token(Token.Kind.Punctuation, "...").should.be in variadic.tokens;
 }
