@@ -726,7 +726,7 @@ import it;
     );
 }
 
-@ShouldFail
+
 @Tags("issue")
 @("66")
 @safe unittest {

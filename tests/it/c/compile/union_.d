@@ -37,7 +37,6 @@ import it;
 }
 
 
-@ShouldFail
 @("immediate union variable declarations")
 @safe unittest {
     shouldCompile(
