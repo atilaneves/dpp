@@ -287,7 +287,11 @@ private string translateUnexposed(in from!"clang".Type type,
 {
     import std.string: replace;
     // we might get template arguments here
-    return type.spelling.replace("<", "!(").replace(">", ")");
+    return type.spelling
+        .replace("<", "!(")
+        .replace(">", ")")
+        .replace("-", "_")
+        ;
 }
 
 private string translateSimdVector(in from!"clang".Type type,

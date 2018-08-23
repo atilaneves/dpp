@@ -72,8 +72,8 @@ private string[] translateStrass(in from!"clang".Cursor cursor,
 
 // Deal with full and partial template specialisations
 // returns a range of string
-private auto translateSpecialisedTemplateParams(in from!"clang".Cursor cursor,
-                                                ref from!"dpp.runtime.context".Context context)
+private string[] translateSpecialisedTemplateParams(in from!"clang".Cursor cursor,
+                                                    ref from!"dpp.runtime.context".Context context)
     @safe
 {
     import dpp.translation.type: translate;
@@ -83,6 +83,10 @@ private auto translateSpecialisedTemplateParams(in from!"clang".Cursor cursor,
     import std.array: array, join;
 
     assert(cursor.type.numTemplateArguments != -1);
+
+    if(isFromVariadicTemplate(cursor))
+        return translateSpecialisedTemplateParamsVariadic(cursor, context);
+
 
     // get the original list of template parameters and translate them
     // e.g. template<bool, bool, typename> -> (bool V0, bool V1, T)
@@ -127,10 +131,33 @@ private auto translateSpecialisedTemplateParams(in from!"clang".Cursor cursor,
         return ret;
     }
 
-    return cursor.type.numTemplateArguments
-        .iota
-        .map!(i => element(cursor.type.typeTemplateArgument(i), i))
-        ;
+    return () @trusted {
+        return
+            cursor.type.numTemplateArguments
+            .iota
+            .map!(i => element(cursor.type.typeTemplateArgument(i), i))
+            .array
+            ;
+    }();
+}
+
+// FIXME: refactor
+private auto translateSpecialisedTemplateParamsVariadic(in from!"clang".Cursor cursor,
+                                                        ref from!"dpp.runtime.context".Context context)
+    @safe
+{
+    import dpp.translation.type: translate;
+
+    assert(isFromVariadicTemplate(cursor));
+    assert(cursor.type.numTemplateArguments != -1);
+
+    string[] ret;
+
+    foreach(i; 0 .. cursor.type.numTemplateArguments) {
+        ret ~= translate(cursor.type.typeTemplateArgument(i), context);
+    }
+
+    return ret;
 }
 
 // In the case cursor is a partial or full template specialisation,
@@ -203,7 +230,7 @@ private auto translateTemplateParams(in from!"clang".Cursor cursor,
                                      ref from!"dpp.runtime.context".Context context)
     @safe
 {
-
+    import dpp.translation.type: translate;
     import clang: Cursor;
     import std.conv: text;
     import std.algorithm: map, filter;
@@ -258,16 +285,16 @@ private auto templateParams(in from!"clang".Cursor cursor)
         ;
 }
 
-bool isFromVariadicTemplate(in from!"clang".Cursor cursor) {
+bool isFromVariadicTemplate(in from!"clang".Cursor cursor) @safe {
     return isVariadicTemplate(cursor.specializedCursorTemplate);
 }
 
-bool isVariadicTemplate(in from!"clang".Cursor cursor) {
+bool isVariadicTemplate(in from!"clang".Cursor cursor) @safe {
     import clang: Cursor, Token;
     import std.array: array;
     import std.algorithm: canFind;
 
-    const templateParamChildren = templateParams(cursor).array;
+    const templateParamChildren = () @trusted { return templateParams(cursor).array; }();
 
     return
         templateParamChildren.length == 1 &&

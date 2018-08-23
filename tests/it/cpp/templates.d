@@ -350,7 +350,7 @@ import it;
     );
 }
 
-@ShouldFail
+
 @("variadic.specialized")
 @safe unittest {
     shouldCompile(
@@ -363,7 +363,7 @@ import it;
 
                 template<typename T0, typename T1>
                 struct Variadic<T0, T1> {
-                    using type = bool;
+                    using Type = bool;
                 };
             }
         ),
@@ -414,10 +414,10 @@ import it;
                 template<typename _B1>
                 struct __or_<_B1> : public _B1 { };
 
-                // template<typename _B1, typename _B2>
-                // struct __or_<_B1, _B2>
-                //     : public conditional<_B1::value, _B1, _B2>::type
-                // { };
+                template<typename _B1, typename _B2>
+                struct __or_<_B1, _B2>
+                    : public conditional<_B1::value, _B1, _B2>::type
+                { };
 
                 // template<typename _B1, typename _B2, typename _B3, typename... _Bn>
                 // struct __or_<_B1, _B2, _B3, _Bn...>
