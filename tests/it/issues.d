@@ -743,7 +743,6 @@ import it;
     );
 }
 
-@ShouldFail
 @Tags("issue")
 @("77")
 @safe unittest {

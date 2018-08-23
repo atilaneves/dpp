@@ -128,7 +128,7 @@ bool isCppHeader(in string headerFileName) @safe pure {
 }
 
 
-string getHeaderName(in string line, in string[] includePaths)
+string getHeaderName(in const(char)[] line, in string[] includePaths)
     @safe
 {
     const name = getHeaderName(line);
@@ -136,7 +136,7 @@ string getHeaderName(in string line, in string[] includePaths)
 }
 
 
-string getHeaderName(string line)
+string getHeaderName(const(char)[] line)
     @safe pure
 {
     import std.algorithm: startsWith, countUntil;
@@ -149,7 +149,7 @@ string getHeaderName(string line)
 
     const openingQuote = line.countUntil!(a => a == '"' || a == '<');
     const closingQuote = line[openingQuote + 1 .. $].countUntil!(a => a == '"' || a == '>') + openingQuote + 1;
-    return line[openingQuote + 1 .. closingQuote];
+    return line[openingQuote + 1 .. closingQuote].idup;
 }
 
 ///
