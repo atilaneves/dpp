@@ -742,3 +742,21 @@ import it;
         ),
     );
 }
+
+@Tags("issue")
+@("77")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        writeFile("hdr.h", "");
+        writeFile("app.dpp",
+                  `
+                      module mymodule;
+                      #include "hdr.h"
+                      void main() {
+                          static assert(__MODULE__ == "mymodule");
+                      }
+                  `);
+        runPreprocessOnly("app.dpp");
+        shouldCompile("app.d");
+    }
+}

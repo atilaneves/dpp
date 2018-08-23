@@ -51,11 +51,11 @@ void preprocess(File)(in from!"dpp.runtime.options".Options options,
     {
         auto outputFile = File(tmpFileName, "w");
 
-        // write preamble code
-        outputFile.writeln(preamble);
+        const translationText = translationText!File(options, inputFileName);
 
-        // write translated D definitions
-        outputFile.writeln(translationText!File(options, inputFileName));
+        outputFile.writeln(translationText.moduleDeclaration);
+        outputFile.writeln(preamble);
+        outputFile.writeln(translationText.dlangDeclarations);
 
         // write original D code
         writeDlangLines(inputFileName, outputFile);
@@ -64,9 +64,14 @@ void preprocess(File)(in from!"dpp.runtime.options".Options options,
     runCPreProcessor(tmpFileName, outputFileName);
 }
 
+private struct TranslationText {
+    string moduleDeclaration;
+    string dlangDeclarations;
+}
+
 // the translated D code from all #included files
-private string translationText(File)(in from!"dpp.runtime.options".Options options,
-                                     in string inputFileName)
+private TranslationText translationText(File)(in from!"dpp.runtime.options".Options options,
+                                              in string inputFileName)
 {
 
     import dpp.runtime.context: Context;
@@ -74,6 +79,7 @@ private string translationText(File)(in from!"dpp.runtime.options".Options optio
     import std.algorithm: map, filter;
     import std.string: fromStringz;
     import std.path: dirName;
+    import std.array: array, join;
     import core.stdc.stdio: tmpnam;
 
     /**
@@ -82,32 +88,31 @@ private string translationText(File)(in from!"dpp.runtime.options".Options optio
     */
     auto context = Context(options.indent);
 
+    auto inputFile = File(inputFileName);
+    const lines = () @trusted { return inputFile.byLine.map!(a => a.idup).array; }();
+    auto moduleLines = () @trusted { return lines.filter!isModuleLine.array; }();
+    auto nonModuleLines = lines.filter!(a => !isModuleLine(a));
+    const includePaths = context.options.includePaths ~ inputFileName.dirName;
+    auto includes = nonModuleLines.map!(a => getHeaderName(a, includePaths)).filter!(a => a != "");
+    char[1024] tmpnamBuf;
+    const includesFileName = () @trusted { return cast(string) tmpnam(&tmpnamBuf[0]).fromStringz; }();
+    auto language = Language.C;
+    // write a temporary file with all #included files in it
     () @trusted {
-
-        auto inputFile = File(inputFileName);
-        auto lines = inputFile.byLine.map!(a => cast(string) a);
-        const includePaths = context.options.includePaths ~ inputFileName.dirName;
-        auto includes = lines.map!(a => getHeaderName(a, includePaths)).filter!(a => a != "");
-        char[1024] tmpnamBuf;
-        const includesFileName = cast(string) tmpnam(&tmpnamBuf[0]).fromStringz;
-        auto language = Language.C;
-        // write a temporary file with all #included files in it
-        {
-            auto includesFile = File(includesFileName, "w");
-            foreach(include; includes) {
-                includesFile.writeln(`#include "`, include, `"`);
-                if(isCppHeader(include)) language = Language.Cpp;
-            }
+        auto includesFile = File(includesFileName, "w");
+        foreach(include; includes) {
+            includesFile.writeln(`#include "`, include, `"`);
+            if(isCppHeader(include)) language = Language.Cpp;
         }
-
-        // parse all #includes at once and populate context with
-        // D definitions
-        expand(includesFileName, context, language, includePaths);
     }();
+
+    // parse all #includes at once and populate context with
+    // D definitions
+    expand(includesFileName, context, language, includePaths);
 
     context.fixNames;
 
-    return context.translation;
+    return TranslationText(moduleLines.join("\n"), context.translation);
 }
 
 // write the original D code that doesn't need translating
@@ -115,16 +120,22 @@ private void writeDlangLines(in string inputFileName, ref from!"std.stdio".File 
 
     import dpp.expansion: getHeaderName;
     import std.stdio: File;
-    import std.algorithm: map;
+    import std.algorithm: filter;
 
-    foreach(immutable line; File(inputFileName).byLine.map!(a => cast(string)a)) {
+    foreach(line; File(inputFileName).byLine.filter!(a => !isModuleLine(a))) {
         if(getHeaderName(line) == "")
             // not an #include directive, just pass through
             outputFile.writeln(line);
         // otherwise do nothing
     }
-
 }
+
+bool isModuleLine(in const(char)[] line) @safe pure {
+    import std.string: stripLeft;
+    import std.algorithm: startsWith;
+    return line.stripLeft.startsWith("module ");
+}
+
 
 private void runCPreProcessor(in string tmpFileName, in string outputFileName) @safe {
 
