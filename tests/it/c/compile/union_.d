@@ -1,6 +1,8 @@
 module it.c.compile.union_;
 
+
 import it;
+
 
 @("__SIZEOF_PTHREAD_ATTR_T")
 @safe unittest {
@@ -29,6 +31,34 @@ import it;
             q{
                 pthread_attr_t attr;
                 attr.__size[0] = 42;
+            }
+        )
+    );
+}
+
+
+@ShouldFail
+@("immediate union variable declarations")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                struct Struct {
+                    union {
+                        int i;
+                        double d;
+                    } var1, var2;
+                };
+            }
+        ),
+
+        D(
+            q{
+                auto s = Struct();
+                static assert(is(typeof(s.var1.i) == int));
+                static assert(is(typeof(s.var1.d) == double));
+                static assert(is(typeof(s.var2.i) == int));
+                static assert(is(typeof(s.var2.d) == double));
             }
         )
     );
