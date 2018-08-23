@@ -220,18 +220,21 @@ private auto translateTemplateParams(in from!"clang".Cursor cursor,
         // The template parameter might be a value (bool, int, ...)
         // or a type. If it's a value we get its type here.
         const maybeType = cursor.kind == Cursor.Kind.TemplateTypeParameter
-            ? ""  // a type doens't have a type
+            ? ""  // a type doesn't have a type
             : translate(cursor.type, context) ~ " ";
 
         // D requires template parameters to have names
         const spelling = cursor.spelling == "" ? newTemplateParamName : cursor.spelling;
 
+        // e.g. "bool param", "T0"
         return maybeType ~ spelling;
     }
 
+    auto templateParams = templateParams(cursor);
+    auto translated = templateParams.map!translateTemplateParam;
+
     return () @trusted {
-        return templateParams(cursor)
-        .map!translateTemplateParam
+        return translated
         .map!(a => cursor.isVariadicTemplate ? a ~ "...": a)
         ;
     }();
