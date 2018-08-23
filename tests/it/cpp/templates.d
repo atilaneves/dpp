@@ -327,6 +327,35 @@ import it;
     );
 }
 
+@ShouldFail
+@("variadic")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<typename...>
+                struct Variadic {
+                    using Type = void;
+                };
+
+                template<typename T0, typename T1>
+                struct Variadic<T0, T1> {
+                    using type = bool;
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(is(Variadic!().Type == void)); // general
+                static assert(is(Variadic!(int).Type == void)); // general
+                static assert(is(Variadic!(int, double, bool).Type == void)); // general
+                static assert(is(Variadic!(int, int).Type == bool)); // specialisation
+            }
+        ),
+    );
+}
+
+
 // as seen in type_traits
 @("__or_")
 @safe unittest {
@@ -362,10 +391,10 @@ import it;
                 template<typename _B1>
                 struct __or_<_B1> : public _B1 { };
 
-                template<typename _B1, typename _B2>
-                struct __or_<_B1, _B2>
-                    : public conditional<_B1::value, _B1, _B2>::type
-                { };
+                // template<typename _B1, typename _B2>
+                // struct __or_<_B1, _B2>
+                //     : public conditional<_B1::value, _B1, _B2>::type
+                // { };
 
                 // template<typename _B1, typename _B2, typename _B3, typename... _Bn>
                 // struct __or_<_B1, _B2, _B3, _Bn...>
