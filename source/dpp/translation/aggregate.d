@@ -98,13 +98,16 @@ private auto translateSpecialisedTemplateParams(in from!"clang".Cursor cursor,
     // e.g. for template<> struct foo<false, true, int32_t>
     // 0 -> bool V0: false, 1 -> bool V1: true, 2 -> T0: int
     string element(in Type type, in int index) {
+        // DELETE
         context.log("*** type: ", type);
         context.log("*** index: ", index);
         context.log("*** params: ", translatedTemplateParams);
 
+        // DELETE
         import std.conv: text;
         if(index >= translatedTemplateParams.length)
-            throw new Exception(text("impossiburu cursor:\n", cursor, "type:\n", type));
+            throw new Exception(text("impossiburu! index:", index, " length: ", translatedTemplateParams.length,
+                                     "\ncursor: ", cursor, "\ntype: ", type, "\nrange: ", cursor.sourceRange));
 
         string ret = translatedTemplateParams[index];  // e.g. `T`,  `bool V0`
         const maybeSpecialisation = translateTemplateParamSpecialisation(type, index);
@@ -195,7 +198,7 @@ private string templateParameterSpelling(in from!"clang".Cursor cursor, int inde
     return templateParams[index].text;
 }
 
-// Translates a C++ template parameter (value, type) to a D declaration
+// Translates a C++ template parameter (value or type) to a D declaration
 // e.g. template<typename, bool, typename> -> ["T0", "bool V0", "T1"]
 // Returns a range of string
 private auto translateTemplateParams(in from!"clang".Cursor cursor,
@@ -230,6 +233,8 @@ private auto translateTemplateParams(in from!"clang".Cursor cursor,
         return maybeType ~ spelling;
     }
 
+    context.log("\n---\ntemplate params:", templateParams(cursor), "\n", templateParams(cursor).map!translateTemplateParam,
+                "\n---\n");
     return templateParams(cursor).map!translateTemplateParam;
 }
 
@@ -240,6 +245,11 @@ private auto templateParams(in from!"clang".Cursor cursor)
 
     import clang: Cursor;
     import std.algorithm: filter;
+
+    import unit_threaded.io;
+    writelnUt("****** templateParams cursor: ", cursor);
+    writelnUt("****** templateParams cursor children: ", cursor.children);
+    writelnUt("****** cursor range: ", cursor.sourceRange);
 
     return cursor
         .children
