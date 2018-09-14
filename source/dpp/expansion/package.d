@@ -3,13 +3,22 @@
  */
 module dpp.expansion;
 
+
 import dpp.from;
+
 
 enum Language {
     C,
     Cpp,
 }
 
+/**
+   Params:
+       translUnitFileName = The file name with all #include directives to parse
+       context = The translation context
+       language = Whether it's a C or C++ file
+       includePaths = The list of files to pass as -I options to clang
+ */
 void expand(in string translUnitFileName,
             ref from!"dpp.runtime.context".Context context,
             in Language language,
@@ -43,12 +52,14 @@ void expand(in string translUnitFileName,
 }
 
 
-private from!"clang".TranslationUnit parseTU(
-    in string translUnitFileName,
-    ref from!"dpp.runtime.context".Context context,
-    in Language language,
-    in string[] includePaths,
-    ) @safe
+private from!"clang".TranslationUnit parseTU
+    (
+        in string translUnitFileName,
+        ref from!"dpp.runtime.context".Context context,
+        in Language language,
+        in string[] includePaths,
+    )
+    @safe
 {
     import clang: parse, TranslationUnitFlags;
     import std.array: array;
