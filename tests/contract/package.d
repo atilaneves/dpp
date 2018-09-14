@@ -4,6 +4,8 @@
  */
 module contract;
 
+import dpp.from;
+
 public import unit_threaded;
 public import clang: Cursor, Type;
 
@@ -16,7 +18,12 @@ struct Cpp {
     string value;
 }
 
-auto parse(T)(in T code) {
+auto parse(T)
+          (
+              in T code,
+              in from!"clang".TranslationUnitFlags tuFlags = from!"clang".TranslationUnitFlags.None,
+          )
+{
     import unit_threaded.integration: Sandbox;
     import clang: parse_ = parse;
 
@@ -26,6 +33,6 @@ auto parse(T)(in T code) {
         const extension = isCpp ? "cpp" : "c";
         const fileName = "code." ~ extension;
         writeFile(fileName, code.value);
-        return parse_(inSandboxPath(fileName)).cursor;
+        return parse_(inSandboxPath(fileName), tuFlags).cursor;
     }
 }
