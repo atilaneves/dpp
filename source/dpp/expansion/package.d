@@ -114,7 +114,7 @@ private auto canonicalCursors(from!"clang".TranslationUnit translationUnit) @saf
         .chunkBy!((a, b) => a.canonical == b.canonical)
         // for each chunk, extract the one cursor we want
         .map!trueCursors
-        .join
+        .join  // flatten
         // libclang gives us macros first, so we sort by line here
         // (we also just messed up the order above as well)
         .sort!((a, b) => a.sourceRange.start.line < b.sourceRange.start.line)

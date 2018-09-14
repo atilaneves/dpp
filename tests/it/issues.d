@@ -760,3 +760,30 @@ import it;
         shouldCompile("app.d");
     }
 }
+
+@ShouldFail
+@Tags("issue")
+@("79")
+unittest {
+
+    import clang: Cursor, parse, TranslationUnitFlags;
+
+    with(const IncludeSandbox()) {
+        writeFile("1st.h",
+                  `
+                      #include "2nd.h"
+                      #define BAR 33
+                  `);
+        writeFile("2nd.h",
+                  q{
+                      enum TheEnum { BAR = 42 };
+                  });
+
+        const tu = parse(inSandboxPath("1st.h"),
+                         TranslationUnitFlags.DetailedPreprocessingRecord);
+        const lastChild = tu.cursor.children[$-1];
+
+        // the macro should appear after the enum
+        lastChild.kind.shouldEqual(Cursor.Kind.MacroDefinition);
+    }
+}
