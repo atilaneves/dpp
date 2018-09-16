@@ -83,7 +83,7 @@ private string[] translateFunctionTypeDef(in from!"clang".Cursor typedef_,
     const returnTypeTransl = translate(returnType, context);
 
     const params = translateParamTypes(typedef_, context.indent).join(", ");
-    return [`alias ` ~ typedef_.spelling ~ ` = ` ~ returnTypeTransl ~ ` function(` ~ params ~ `);`];
+    return [`alias ` ~ typedef_.spelling ~ ` = ` ~ returnTypeTransl ~ ` function(` ~ params ~ `) @nogc nothrow;`];
 
 }
 
