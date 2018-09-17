@@ -261,10 +261,19 @@ private auto translateTemplateParams(in from!"clang".Cursor cursor,
     auto templateParams = templateParams(cursor);
     auto translated = templateParams.map!translateTemplateParam.array;
 
+    // might need to be a variadic parameter
+    string maybeVariadic(in long index, in string name) {
+        return cursor.isVariadicTemplate && index == translated.length -1
+            // If it's variadic, come up with a new name in case it's variadic
+            // values. D doesn't really care.
+            ? newTemplateParamName ~ "..."
+            : name;
+    }
+
     return () @trusted {
         return translated
             .enumerate
-            .map!(a => a[1] ~ (cursor.isVariadicTemplate && a[0] == translated.length -1 ? "..." : ""))
+            .map!(a => maybeVariadic(a[0], a[1]))
         ;
     }();
 }
@@ -301,7 +310,8 @@ private bool isVariadicTemplate(in from!"clang".Cursor cursor) @safe {
 
     return
         templateParamChildren.length > 0 &&
-        templateParamChildren[$ - 1].kind == Cursor.Kind.TemplateTypeParameter &&
+        (templateParamChildren[$-1].kind == Cursor.Kind.TemplateTypeParameter ||
+         templateParamChildren[$-1].kind == Cursor.Kind.NonTypeTemplateParameter) &&
         cursor.tokens.canFind(Token(Token.Kind.Punctuation, "..."));
 }
 

@@ -350,7 +350,6 @@ import it;
     );
 }
 
-@ShouldFail
 @("variadic.base.values")
 @safe unittest {
     shouldCompile(
