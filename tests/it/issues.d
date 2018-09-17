@@ -761,7 +761,6 @@ import it;
     }
 }
 
-@ShouldFail
 @Tags("issue")
 @("79")
 unittest {
