@@ -3,7 +3,9 @@
  */
 module dpp.translation.type;
 
+
 import dpp.from: from;
+
 
 alias Translator = string function(
     in from!"clang".Type type,
@@ -12,6 +14,7 @@ alias Translator = string function(
 ) @safe pure;
 
 alias Translators = Translator[from!"clang".Type.Kind];
+
 
 string translate(in from!"clang".Type type,
                  ref from!"dpp.runtime.context".Context context,
@@ -24,6 +27,7 @@ string translate(in from!"clang".Type type,
 
     return translators[type.kind](type, context, translatingFunction);
 }
+
 
 Translators translators() @safe pure {
     import clang: Type;
@@ -70,8 +74,18 @@ Translators translators() @safe pure {
             Unexposed: &translateUnexposed,
             DependentSizedArray: &translateDependentSizedArray,
             Vector: &translateSimdVector,
+            MemberPointer: &ignore, // FIXME #84
+            Invalid: &ignore, // FIXME (type_traits)
         ];
     }
+}
+
+private string ignore (in from!"clang".Type type,
+                      ref from!"dpp.runtime.context".Context context,
+                      in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
+@safe pure
+{
+    return "";
 }
 
 

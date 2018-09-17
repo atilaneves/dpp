@@ -185,6 +185,7 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
             CXXBaseSpecifier:                   &ignore, // FIXME #74
             StaticAssert:                       &ignore, // FIXME #75
             ClassTemplatePartialSpecialization: &translateClass,
+            ParmDecl:                           &ignore, // FIXME #76
         ];
     }
 }
