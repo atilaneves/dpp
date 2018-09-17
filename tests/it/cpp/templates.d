@@ -328,8 +328,7 @@ import it;
 }
 
 
-@ShouldFail
-@("variadic.only")
+@("variadic.base.types")
 @safe unittest {
     shouldCompile(
         Cpp(
@@ -338,12 +337,6 @@ import it;
                 struct VariadicTypes {
                     using Type = void;
                 };
-
-                // TODO:
-                /*
-                  template<, , int...>
-                  struct VariadicValues {};
-                 */
             }
         ),
         D(
@@ -356,6 +349,28 @@ import it;
         ),
     );
 }
+
+@ShouldFail
+@("variadic.base.values")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<short, typename, bool, int...>
+                struct VariadicValues {
+                    using Type = void;
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(is(VariadicValues!(0, float, false).Type == void));
+                static assert(is(VariadicValues!(1, float, false, 0, 1, 2, 3).Type == void));
+            }
+        ),
+    );
+}
+
 
 
 @("variadic.specialized")

@@ -87,7 +87,6 @@ private string[] translateSpecialisedTemplateParams(in from!"clang".Cursor curso
     if(isFromVariadicTemplate(cursor))
         return translateSpecialisedTemplateParamsVariadic(cursor, context);
 
-
     // get the original list of template parameters and translate them
     // e.g. template<bool, bool, typename> -> (bool V0, bool V1, T)
     const translatedTemplateParams = () @trusted {
@@ -234,6 +233,8 @@ private auto translateTemplateParams(in from!"clang".Cursor cursor,
     import clang: Cursor;
     import std.conv: text;
     import std.algorithm: map, filter;
+    import std.array: array;
+    import std.range: enumerate;
 
     int templateParamIndex;  // used to generate names when there are none
 
@@ -244,7 +245,7 @@ private auto translateTemplateParams(in from!"clang".Cursor cursor,
     string translateTemplateParam(in Cursor cursor) {
         import dpp.translation.type: translate;
 
-        // The template parameter might be a value (bool, int, ...)
+        // The template parameter might be a value (bool, int, etc.)
         // or a type. If it's a value we get its type here.
         const maybeType = cursor.kind == Cursor.Kind.TemplateTypeParameter
             ? ""  // a type doesn't have a type
@@ -258,11 +259,12 @@ private auto translateTemplateParams(in from!"clang".Cursor cursor,
     }
 
     auto templateParams = templateParams(cursor);
-    auto translated = templateParams.map!translateTemplateParam;
+    auto translated = templateParams.map!translateTemplateParam.array;
 
     return () @trusted {
         return translated
-        .map!(a => cursor.isVariadicTemplate ? a ~ "...": a)
+            .enumerate
+            .map!(a => a[1] ~ (cursor.isVariadicTemplate && a[0] == translated.length -1 ? "..." : ""))
         ;
     }();
 }
@@ -285,11 +287,12 @@ private auto templateParams(in from!"clang".Cursor cursor)
         ;
 }
 
-bool isFromVariadicTemplate(in from!"clang".Cursor cursor) @safe {
+// If the original template is variadic
+private bool isFromVariadicTemplate(in from!"clang".Cursor cursor) @safe {
     return isVariadicTemplate(cursor.specializedCursorTemplate);
 }
 
-bool isVariadicTemplate(in from!"clang".Cursor cursor) @safe {
+private bool isVariadicTemplate(in from!"clang".Cursor cursor) @safe {
     import clang: Cursor, Token;
     import std.array: array;
     import std.algorithm: canFind;
@@ -297,8 +300,8 @@ bool isVariadicTemplate(in from!"clang".Cursor cursor) @safe {
     const templateParamChildren = () @trusted { return templateParams(cursor).array; }();
 
     return
-        templateParamChildren.length == 1 &&
-        templateParamChildren[0].kind == Cursor.Kind.TemplateTypeParameter &&
+        templateParamChildren.length > 0 &&
+        templateParamChildren[$ - 1].kind == Cursor.Kind.TemplateTypeParameter &&
         cursor.tokens.canFind(Token(Token.Kind.Punctuation, "..."));
 }
 
