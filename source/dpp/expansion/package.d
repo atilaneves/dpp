@@ -3,13 +3,22 @@
  */
 module dpp.expansion;
 
+
 import dpp.from;
+
 
 enum Language {
     C,
     Cpp,
 }
 
+/**
+   Params:
+       translUnitFileName = The file name with all #include directives to parse
+       context = The translation context
+       language = Whether it's a C or C++ file
+       includePaths = The list of files to pass as -I options to clang
+ */
 void expand(in string translUnitFileName,
             ref from!"dpp.runtime.context".Context context,
             in Language language,
@@ -43,12 +52,14 @@ void expand(in string translUnitFileName,
 }
 
 
-private from!"clang".TranslationUnit parseTU(
-    in string translUnitFileName,
-    ref from!"dpp.runtime.context".Context context,
-    in Language language,
-    in string[] includePaths,
-    ) @safe
+private from!"clang".TranslationUnit parseTU
+    (
+        in string translUnitFileName,
+        ref from!"dpp.runtime.context".Context context,
+        in Language language,
+        in string[] includePaths,
+    )
+    @safe
 {
     import clang: parse, TranslationUnitFlags;
     import std.array: array;
@@ -75,7 +86,20 @@ private auto canonicalCursors(from!"clang".TranslationUnit translationUnit) @saf
     import dpp.translation.translation: translateTopLevelCursor;
     import clang: Cursor;
     import std.array: array, join;
-    import std.algorithm: sort, filter, map, chunkBy, all;
+    import std.algorithm: sort, filter, map, chunkBy, all, partition;
+
+        {
+            import dpp.runtime.context: Context;
+            import dpp.translation.translation: debugCursor;
+            Context context;
+            context.log("");
+
+            foreach(cursor; translationUnit.cursor.children) {
+                debugCursor(cursor, context);
+            }
+            context.log("\n----------------------------------------\n\n");
+        }
+
 
     // In C there can be several declarations and one definition of a type.
     // In D we can have only ever one of either. There might be multiple
@@ -103,7 +127,7 @@ private auto canonicalCursors(from!"clang".TranslationUnit translationUnit) @saf
         return cursor.isCanonical || cursor.isDefinition;
     }
 
-    return () @trusted {
+    auto cursors = () @trusted {
         return translationUnit
         .cursor
         .children
@@ -114,13 +138,15 @@ private auto canonicalCursors(from!"clang".TranslationUnit translationUnit) @saf
         .chunkBy!((a, b) => a.canonical == b.canonical)
         // for each chunk, extract the one cursor we want
         .map!trueCursors
-        .join
-        // libclang gives us macros first, so we sort by line here
-        // (we also just messed up the order above as well)
-        .sort!((a, b) => a.sourceRange.start.line < b.sourceRange.start.line)
+        .join  // flatten
         ;
     }();
+
+    cursors.partition!(a => a.kind != Cursor.Kind.MacroDefinition);
+
+    return cursors;
 }
+
 
 bool isCppHeader(in string headerFileName) @safe pure {
     import std.path: extension;

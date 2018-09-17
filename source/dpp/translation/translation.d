@@ -110,7 +110,6 @@ void debugCursor(in from!"clang".Cursor cursor,
 Translator[from!"clang".Cursor.Kind] translators() @safe {
     import dpp.translation;
     import clang: Cursor;
-    import dpp.expansion: expand;
 
     static string[] ignore(
         in Cursor cursor,

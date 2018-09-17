@@ -18,6 +18,7 @@ int main(string[] args) {
         "contract.array",
         "contract.templates",
         "contract.namespace",
+        "contract.macro_",
 
         "it.issues",
 

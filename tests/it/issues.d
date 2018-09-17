@@ -760,3 +760,24 @@ import it;
         shouldCompile("app.d");
     }
 }
+
+@Tags("issue")
+@("79")
+unittest {
+    with(const IncludeSandbox()) {
+        writeHeaderAndApp("1st.h",
+                          `
+                              #include "2nd.h"
+                              #define BAR 33
+                          `,
+                          D(""), // no need for .dpp source code
+        );
+        writeFile("2nd.h",
+                  `
+                      // these empty lines are important, since they push the enum
+                      // declaration down to have a higher line number than the BAR macro.
+                      enum TheEnum { BAR = 42 };
+                  `);
+        run("-c", inSandboxPath("app.dpp"));
+    }
+}

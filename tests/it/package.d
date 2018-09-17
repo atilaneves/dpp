@@ -121,7 +121,7 @@ struct IncludeSandbox {
         return `#include "` ~ inSandboxPath(headerFileName) ~ `"`;
     }
 
-    private void writeHeaderAndApp(in string headerFileName, in string headerText, in D app) @safe const {
+    void writeHeaderAndApp(in string headerFileName, in string headerText, in D app) @safe const {
         writeFile(headerFileName, headerText);
         // take care of including the header and putting the D
         // code in a function

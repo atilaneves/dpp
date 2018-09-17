@@ -116,7 +116,9 @@ private TranslationText translationText(File)(in from!"dpp.runtime.options".Opti
 }
 
 // write the original D code that doesn't need translating
-private void writeDlangLines(in string inputFileName, ref from!"std.stdio".File outputFile) @trusted {
+private void writeDlangLines(in string inputFileName, ref from!"std.stdio".File outputFile)
+    @trusted
+{
 
     import dpp.expansion: getHeaderName;
     import std.stdio: File;
