@@ -440,18 +440,18 @@ import it;
                     : public conditional<_B1::value, _B1, _B2>::type
                 { };
 
-                // template<typename _B1, typename _B2, typename _B3, typename... _Bn>
-                // struct __or_<_B1, _B2, _B3, _Bn...>
-                //     : public conditional<_B1::value, _B1, __or_<_B2, _B3, _Bn...>>::type
-                // { };
+                template<typename _B1, typename _B2, typename _B3, typename... _Bn>
+                struct __or_<_B1, _B2, _B3, _Bn...>
+                    : public conditional<_B1::value, _B1, __or_<_B2, _B3, _Bn...>>::type
+                { };
 
-                // template<bool _Cond, typename _Iftrue, typename _Iffalse>
-                // struct conditional
-                // { typedef _Iftrue type; };
+                template<bool _Cond, typename _Iftrue, typename _Iffalse>
+                struct conditional
+                { typedef _Iftrue type; };
 
-                // template<typename _Iftrue, typename _Iffalse>
-                // struct conditional<false, _Iftrue, _Iffalse>
-                // { typedef _Iffalse type; };
+                template<typename _Iftrue, typename _Iffalse>
+                struct conditional<false, _Iftrue, _Iffalse>
+                { typedef _Iffalse type; };
             }
         ),
         D(
