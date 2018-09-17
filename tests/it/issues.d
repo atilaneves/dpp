@@ -765,25 +765,20 @@ import it;
 @Tags("issue")
 @("79")
 unittest {
-
-    import clang: Cursor, parse, TranslationUnitFlags;
-
     with(const IncludeSandbox()) {
-        writeFile("1st.h",
-                  `
-                      #include "2nd.h"
-                      #define BAR 33
-                  `);
+        writeHeaderAndApp("1st.h",
+                          `
+                              #include "2nd.h"
+                              #define BAR 33
+                          `,
+                          D(""), // no need for .dpp source code
+        );
         writeFile("2nd.h",
-                  q{
+                  `
+                      // these empty lines are important, since they push the enum
+                      // declaration down to have a higher line number than the BAR macro.
                       enum TheEnum { BAR = 42 };
-                  });
-
-        const tu = parse(inSandboxPath("1st.h"),
-                         TranslationUnitFlags.DetailedPreprocessingRecord);
-        const lastChild = tu.cursor.children[$-1];
-
-        // the macro should appear after the enum
-        lastChild.kind.shouldEqual(Cursor.Kind.MacroDefinition);
+                  `);
+        run("-c", inSandboxPath("app.dpp"));
     }
 }
