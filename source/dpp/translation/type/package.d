@@ -80,7 +80,7 @@ Translators translators() @safe pure {
     }
 }
 
-private string ignore (in from!"clang".Type type,
+private string ignore(in from!"clang".Type type,
                       ref from!"dpp.runtime.context".Context context,
                       in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
 @safe pure
@@ -272,7 +272,10 @@ private string translateLvalueRef(in from!"clang".Type type,
                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
     @safe pure
 {
-    return "ref " ~ translate(type.canonical.pointee, context, translatingFunction);
+    const pointeeTranslation = translate(type.canonical.pointee, context, translatingFunction);
+    return translatingFunction
+        ? "ref " ~ pointeeTranslation
+        : pointeeTranslation ~ "*";
 }
 
 // we cheat and pretend it's a value

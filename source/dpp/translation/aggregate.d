@@ -233,7 +233,10 @@ private auto translateTemplateParams(in from!"clang".Cursor cursor,
     int templateParamIndex;  // used to generate names when there are none
 
     string newTemplateParamName() {
-        return text("_TemplateParam_", templateParamIndex++);
+        // FIXME
+        // the naming convention is to match what libclang gives, but there's no
+        // guarantee that it'll always match.
+        return text("type_parameter_0_", templateParamIndex++);
     }
 
     string translateTemplateParam(in Cursor cursor) {

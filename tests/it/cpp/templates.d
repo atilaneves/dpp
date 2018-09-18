@@ -463,7 +463,6 @@ import it;
 
 
 // as seen in type traits
-@ShouldFail
 @("is_lvalue_reference")
 @safe unittest {
     shouldCompile(
@@ -494,6 +493,9 @@ import it;
         ),
         D(
             q{
+                // FIXME #85
+                // static assert(!is_lvalue_reference!int.value);
+                // static assert( is_lvalue_reference!(int*).value);
             }
         ),
     );
