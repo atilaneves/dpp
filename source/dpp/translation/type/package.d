@@ -74,8 +74,8 @@ Translators translators() @safe pure {
             Unexposed: &translateUnexposed,
             DependentSizedArray: &translateDependentSizedArray,
             Vector: &translateSimdVector,
-            MemberPointer: &ignore, // FIXME #84
-            Invalid: &ignore, // FIXME (type_traits)
+            MemberPointer: &translatePointer, // FIXME #83
+            Invalid: &ignore, // FIXME C++ stdlib <type_traits>
         ];
     }
 }
@@ -206,7 +206,7 @@ private string translatePointer(in from!"clang".Type type,
     import clang: Type;
     import std.conv: text;
 
-    assert(type.kind == Type.Kind.Pointer, "type kind not Pointer");
+    assert(type.kind == Type.Kind.Pointer || type.kind == Type.Kind.MemberPointer, "type kind not Pointer");
     assert(!type.pointee.isInvalid, "pointee is invalid");
 
     const isFunction =

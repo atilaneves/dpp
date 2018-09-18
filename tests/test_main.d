@@ -21,6 +21,7 @@ int main(string[] args) {
         "contract.constexpr",
         "contract.typedef_",
         "contract.operators",
+        "contract.member",
 
         "it.issues",
 
