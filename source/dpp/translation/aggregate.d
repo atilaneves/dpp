@@ -104,12 +104,6 @@ private string[] translateSpecialisedTemplateParams(in from!"clang".Cursor curso
     // e.g. for template<> struct foo<false, true, int32_t>
     // 0 -> bool V0: false, 1 -> bool V1: true, 2 -> T0: int
     string element(in Type type, in int index) {
-        // DELETE
-        import std.conv: text;
-        if(index >= translatedTemplateParams.length)
-            throw new Exception(text("impossiburu! index:", index, " length: ", translatedTemplateParams.length,
-                                     "\ncursor: ", cursor, "\ntype: ", type, "\nrange: ", cursor.sourceRange));
-
         string ret = translatedTemplateParams[index];  // e.g. `T`,  `bool V0`
         const maybeSpecialisation = translateTemplateParamSpecialisation(type, index);
 
