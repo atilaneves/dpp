@@ -270,3 +270,36 @@ import contract;
     special.type.typeTemplateArgument(0).kind.should == Type.Kind.Unexposed;
     special.type.typeTemplateArgument(1).kind.should == Type.Kind.Unexposed;
 }
+
+
+@Tags("contract")
+@("lref")
+@safe unittest {
+    const tu = parse(
+        Cpp(
+            q{
+                template<typename>
+                struct Struct{};
+
+                template<typename T>
+                struct Struct<T&> {
+                    using Type = T;
+                };
+            }
+        )
+    );
+
+    tu.children.length.shouldEqual(2);
+
+    const general = tu.children[0];
+    const special = tu.children[1];
+
+    general.kind.should == Cursor.Kind.ClassTemplate;
+    special.kind.should == Cursor.Kind.ClassTemplatePartialSpecialization;
+
+    special.type.kind.should == Type.Kind.Unexposed;
+    special.type.numTemplateArguments.should == 1;
+    const templateType = special.type.typeTemplateArgument(0);
+
+    templateType.spelling.should == "type-parameter-0-0 &";
+}
