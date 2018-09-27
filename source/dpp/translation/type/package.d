@@ -305,9 +305,16 @@ private string translateUnexposed(in from!"clang".Type type,
     import std.string: replace;
     // we might get template arguments here
     return type.spelling
+        .translateString
+        .replace("-", "_")
+        ;
+}
+
+string translateString(in string spelling) @safe pure nothrow {
+    import std.string: replace;
+    return spelling
         .replace("<", "!(")
         .replace(">", ")")
-        .replace("-", "_")
         .replace("decltype", "typeof")
         .replace("typename ", "")
         .replace("::", ".")
@@ -316,6 +323,7 @@ private string translateUnexposed(in from!"clang".Type type,
         .replace("unsigned ", "u")
         ;
 }
+
 
 private string translateSimdVector(in from!"clang".Type type,
                                    ref from!"dpp.runtime.context".Context context,

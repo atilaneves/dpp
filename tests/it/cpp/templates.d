@@ -596,3 +596,24 @@ import it;
         ),
     );
 }
+
+
+@("sizeof")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<typename T>
+                struct Thingie {
+                    static constexpr auto b0 = sizeof(T) < sizeof(unsigned short);
+                };
+            }
+        ),
+        D(
+            q{
+                static assert( Thingie!ubyte.b0);
+                static assert(!Thingie!int.b0);
+            }
+        ),
+    );
+}
