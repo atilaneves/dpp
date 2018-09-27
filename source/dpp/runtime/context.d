@@ -90,7 +90,7 @@ struct Context {
     /**
        Deals with C++ namespaces
      */
-    /*private*/ Namespace _namespace;
+    private Namespace _namespace;
 
     /// Command-line options
     Options options;

@@ -64,7 +64,7 @@ string[] translate(in from!"clang".Cursor cursor,
 
     debugCursor(cursor, context);
 
-    if(context.language == Language.Cpp && ignoredCursorSpellings.canFind(cursor.spelling)) {
+    if(context.language == Language.Cpp && ignoredCppCursorSpellings.canFind(cursor.spelling)) {
         return [];
     }
 
@@ -194,7 +194,7 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
 }
 
 // blacklist of cursors in the C++ standard library that dpp can't handle
-private string[] ignoredCursorSpellings() @safe pure nothrow {
+string[] ignoredCppCursorSpellings() @safe pure nothrow {
     return
         [
             "is_function",
