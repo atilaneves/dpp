@@ -570,3 +570,29 @@ import it;
         ),
     );
 }
+
+
+// as seen in type traits
+@("unsigned")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<bool C, typename T0, typename T1>
+                struct Helper {
+                    using Type = T1;
+                };
+
+                template<typename T>
+                struct Thingie {
+                    static const bool b0 = sizeof(T) < sizeof(unsigned short);
+                    using Type = typename Helper<b0, unsigned long, unsigned long long>::Type;
+                };
+            }
+        ),
+        D(
+            q{
+            }
+        ),
+    );
+}
