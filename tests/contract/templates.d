@@ -303,3 +303,41 @@ import contract;
 
     templateType.spelling.should == "type-parameter-0-0 &";
 }
+
+
+@Tags("contract")
+@("ParmDecl")
+@safe unittest {
+    const tu = parse(
+        Cpp(
+            q{
+                template<typename> struct Struct{};
+                template<typename R, typename... A>
+                struct Struct<R(A...)> {};
+            }
+        )
+    );
+
+    tu.children.length.should == 2;
+    const partial = tu.children[1];
+
+    partial.kind.should == Cursor.Kind.ClassTemplatePartialSpecialization;
+    printChildren(partial);
+    partial.children.length.should == 4;
+
+    partial.children[0].kind.should == Cursor.Kind.TemplateTypeParameter;
+    partial.children[0].spelling.should == "R";
+
+    partial.children[1].kind.should == Cursor.Kind.TemplateTypeParameter;
+    partial.children[1].spelling.should == "A";
+
+    partial.children[2].kind.should == Cursor.Kind.TypeRef;
+    partial.children[2].spelling.should == "R";
+
+    partial.children[3].kind.should == Cursor.Kind.ParmDecl;
+    partial.children[3].spelling.should == "";
+
+    const parmDecl = partial.children[3];
+    parmDecl.type.kind.should == Type.Kind.Unexposed;
+    parmDecl.type.spelling.should == "A...";
+}
