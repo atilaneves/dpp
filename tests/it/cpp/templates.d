@@ -503,30 +503,22 @@ import it;
 
 
 // as seen in type traits
-@ShouldFail
-@("is_function")
+@("decltype")
 @safe unittest {
     shouldCompile(
         Cpp(
             q{
-                template<typename>
-                struct is_function {
-                    static constexpr bool value = false;
+                template<typename T>
+                struct Struct {
+                    T i;
+                    using Type = decltype(i);
                 };
-
-                template<typename Res, typename... Args>
-                    struct is_function<Res(Args...)> {
-                    static constexpr bool value = true;
-                };
-
             }
         ),
         D(
             q{
-                static int foo(short, double);
-                int i;
-                static assert( is_function!(typeof(foo)).value);
-                static assert(!is_function!(typeof(i)).value);
+                static assert(is(Struct!int.Type == int));
+                static assert(is(Struct!double.Type == double));
             }
         ),
     );
