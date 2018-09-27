@@ -5,6 +5,7 @@ module dpp.translation.translation;
 
 import dpp.from;
 
+
 alias Translator = string[] function(
     in from!"clang".Cursor cursor,
     ref from!"dpp.runtime.context".Context context,
@@ -61,10 +62,14 @@ string[] translate(in from!"clang".Cursor cursor,
 
     debugCursor(cursor, context);
 
-    if(cursor.kind !in translators)
-        throw new Exception(text("Cannot translate unknown cursor kind ", cursor.kind),
-                            file,
-                            line);
+    if(cursor.kind !in translators) {
+        if(context.options.hardFail)
+            throw new Exception(text("Cannot translate unknown cursor kind ", cursor.kind),
+                                file,
+                                line);
+        else
+            return [];
+    }
 
     const indentation = context.indentation;
     scope(exit) context.setIndentation(indentation);
@@ -176,15 +181,7 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
             Namespace:                          &translateNamespace,
             VisibilityAttr:                     &ignore, // ???
             FirstAttr:                          &ignore, // ???
-            UsingDeclaration:                   &ignore, // FIXME #56
-            UsingDirective:                     &ignore, // FIXME #57
-            FunctionTemplate:                   &ignore, // FIXME #58
-            TemplateTemplateParameter:          &ignore, // FIXME #72
-            TypeAliasTemplateDecl:              &ignore, // FIXME #73
-            CXXBaseSpecifier:                   &ignore, // FIXME #74
-            StaticAssert:                       &ignore, // FIXME #75
             ClassTemplatePartialSpecialization: &translateClass,
-            ParmDecl:                           &ignore, // FIXME #76
         ];
     }
 }

@@ -27,6 +27,7 @@ struct Options {
     string[] dlangCompilerArgs;
     string[] defines;
     bool earlyExit;
+    bool hardFail;
 
     this(string[] args) {
 
@@ -94,6 +95,7 @@ struct Options {
                 "compiler", "D compiler to use", &dlangCompiler,
                 "parse-as-cpp", "Parse header as C++", &parseAsCpp,
                 "define", "C Preprocessor macro", &defines,
+                "hard-fail", "Translate nothing if any part fails", &hardFail,
             );
 
         if(helpInfo.helpWanted) {
