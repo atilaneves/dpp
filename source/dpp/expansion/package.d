@@ -7,11 +7,6 @@ module dpp.expansion;
 import dpp.from;
 
 
-enum Language {
-    C,
-    Cpp,
-}
-
 /**
    Params:
        translUnitFileName = The file name with all #include directives to parse
@@ -21,19 +16,19 @@ enum Language {
  */
 void expand(in string translUnitFileName,
             ref from!"dpp.runtime.context".Context context,
-            in Language language,
             in string[] includePaths,
             in string file = __FILE__,
             in size_t line = __LINE__)
     @safe
 {
     import dpp.translation.translation: translateTopLevelCursor;
+    import dpp.runtime.context: Language;
     import clang: Cursor;
 
-    const extern_ = language == Language.Cpp ? "extern(C++)" : "extern(C)";
+    const extern_ = context.language == Language.Cpp ? "extern(C++)" : "extern(C)";
     context.writeln([extern_, "{"]);
 
-    auto translationUnit = parseTU(translUnitFileName, context, language, includePaths);
+    auto translationUnit = parseTU(translUnitFileName, context, includePaths);
     auto cursors = canonicalCursors(translationUnit);
 
     foreach(cursor; cursors) {
@@ -56,11 +51,11 @@ private from!"clang".TranslationUnit parseTU
     (
         in string translUnitFileName,
         ref from!"dpp.runtime.context".Context context,
-        in Language language,
         in string[] includePaths,
     )
     @safe
 {
+    import dpp.runtime.context: Language;
     import clang: parse, TranslationUnitFlags;
     import std.array: array;
     import std.algorithm: map;
@@ -70,7 +65,7 @@ private from!"clang".TranslationUnit parseTU
         context.options.defines.map!(a => "-D" ~ a).array
         ;
 
-    if(context.options.parseAsCpp || language == Language.Cpp)
+    if(context.options.parseAsCpp || context.language == Language.Cpp)
         parseArgs ~= "-xc++";
     else
         parseArgs ~= "-xc";
@@ -148,8 +143,9 @@ private auto canonicalCursors(from!"clang".TranslationUnit translationUnit) @saf
 }
 
 
-bool isCppHeader(in string headerFileName) @safe pure {
+bool isCppHeader(in from!"dpp.runtime.options".Options options, in string headerFileName) @safe pure {
     import std.path: extension;
+    if(options.parseAsCpp) return true;
     return headerFileName.extension != ".h";
 }
 
