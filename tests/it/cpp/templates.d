@@ -523,3 +523,30 @@ import it;
         ),
     );
 }
+
+
+// as seen in type traits
+@("typename")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<typename T>
+                struct TheType {
+                    using Type = T;
+                };
+
+                template<typename T>
+                struct Struct {
+                    using AlsoType = typename TheType<T>::Type;
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(is(Struct!int.AlsoType == int));
+                static assert(is(Struct!double.AlsoType == double));
+            }
+        ),
+    );
+}

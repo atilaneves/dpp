@@ -309,6 +309,8 @@ private string translateUnexposed(in from!"clang".Type type,
         .replace(">", ")")
         .replace("-", "_")
         .replace("decltype", "typeof")
+        .replace("typename ", "")
+        .replace("::", ".")
         ;
 }
 
