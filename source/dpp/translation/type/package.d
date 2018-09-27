@@ -311,6 +311,7 @@ private string translateUnexposed(in from!"clang".Type type,
         .replace("decltype", "typeof")
         .replace("typename ", "")
         .replace("::", ".")
+        .replace("volatile ", "")
         ;
 }
 

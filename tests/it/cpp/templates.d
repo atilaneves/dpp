@@ -550,3 +550,23 @@ import it;
         ),
     );
 }
+
+
+// as seen in type traits
+@("add_volatile")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<typename T>
+                struct add_volatile { using Type = volatile T; };
+            }
+        ),
+        D(
+            q{
+                static assert(is(add_volatile!int.Type == int));
+                static assert(is(add_volatile!double.Type == double));
+            }
+        ),
+    );
+}
