@@ -46,6 +46,8 @@ struct Namespace {
         import std.array: join;
         if(symbol != "")
             _symbols ~= Symbol(_nestedNamespaces.join("."), symbol);
+        import unit_threaded;
+        writelnUt("*** Added symbol ", symbol);
     }
 
     private string[] finish() @safe pure {
@@ -62,6 +64,8 @@ struct Namespace {
             return text("alias ", s.name, " = ", varName, ".", s.namespace, ".", s.name, `;`);
         }
 
+        import unit_threaded;
+        writelnUt("\n\nsymbols: ", _symbols, "\n\n");
         lines ~= _symbols
             .uniq!((a, b) => a.name == b.name)
             .map!(s => `static if(is(typeof({ ` ~ aliasText(s) ~ ` }))) ` ~ aliasText(s) ~ `;`)

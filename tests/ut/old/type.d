@@ -64,7 +64,7 @@ string translate(in from!"clang".Type type) @safe pure {
 
 @("uint128")
 @safe pure unittest {
-    Type(Type.Kind.UInt128).translate.shouldEqual("ucent");
+    Type(Type.Kind.UInt128).translate.shouldEqual("UInt128");
 }
 
 @("char_s")
@@ -104,7 +104,7 @@ string translate(in from!"clang".Type type) @safe pure {
 
 @("int128")
 @safe pure unittest {
-    Type(Type.Kind.Int128).translate.shouldEqual("cent");
+    Type(Type.Kind.Int128).translate.shouldEqual("Int128");
 }
 
 @("float")

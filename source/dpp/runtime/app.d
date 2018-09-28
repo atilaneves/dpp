@@ -180,7 +180,7 @@ private string preamble() @safe pure {
         static import core.simd;
 
         struct Int128 { long lower; long upper; }
-        struct Uint128 { ulong lower; ulong upper; }
+        struct UInt128 { ulong lower; ulong upper; }
 
         struct __locale_data { int dummy; }  // FIXME
     } ~

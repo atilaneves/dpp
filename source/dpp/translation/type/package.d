@@ -55,7 +55,7 @@ Translators translators() @safe pure {
             Char_U: &simple!"ubyte",
             Char_S: &simple!"char",
             Int128: &simple!"Int128",
-            UInt128: &simple!"Uint128",
+            UInt128: &simple!"UInt128",
             Float128: &simple!"real",
             Half: &simple!"float",
             LongDouble: &simple!"real",

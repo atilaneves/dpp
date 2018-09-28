@@ -29,7 +29,7 @@ string[] translateNamespace(in from!"clang".Cursor cursor,
             .array;
 
         if(child.kind != Cursor.Kind.Namespace &&
-           ignoredCppCursorSpellings.canFind(child.spelling))
+           !ignoredCppCursorSpellings.canFind(child.spelling))
         {
             context.addNamespaceSymbol(child.spelling);
         }
