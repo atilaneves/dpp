@@ -54,8 +54,8 @@ Translators translators() @safe pure {
             Double: &simple!"double",
             Char_U: &simple!"ubyte",
             Char_S: &simple!"char",
-            Int128: &simple!"cent",
-            UInt128: &simple!"ucent",
+            Int128: &simple!"Int128",
+            UInt128: &simple!"Uint128",
             Float128: &simple!"real",
             Half: &simple!"float",
             LongDouble: &simple!"real",
@@ -305,11 +305,25 @@ private string translateUnexposed(in from!"clang".Type type,
     import std.string: replace;
     // we might get template arguments here
     return type.spelling
-        .replace("<", "!(")
-        .replace(">", ")")
+        .translateString
         .replace("-", "_")
         ;
 }
+
+string translateString(in string spelling) @safe pure nothrow {
+    import std.string: replace;
+    return spelling
+        .replace("<", "!(")
+        .replace(">", ")")
+        .replace("decltype", "typeof")
+        .replace("typename ", "")
+        .replace("::", ".")
+        .replace("volatile ", "")
+        .replace("long long", "long")
+        .replace("unsigned ", "u")
+        ;
+}
+
 
 private string translateSimdVector(in from!"clang".Type type,
                                    ref from!"dpp.runtime.context".Context context,

@@ -9,10 +9,12 @@ string[] translateVariable(in from!"clang".Cursor cursor,
     import dpp.translation.dlang: maybePragma;
     import dpp.translation.translation: translateCursor = translate;
     import dpp.translation.type: translateType = translate;
+    import dpp.translation.tokens: translateTokens;
     import clang: Cursor, Type, Token;
     import std.conv: text;
     import std.typecons: No;
-    import std.algorithm: canFind;
+    import std.algorithm: canFind, find, map;
+    import std.array: empty, popFront, join;
 
     assert(cursor.kind == Cursor.Kind.VarDecl);
 
@@ -46,10 +48,18 @@ string[] translateVariable(in from!"clang".Cursor cursor,
         : "";
     const constexpr = cursor.tokens.canFind(Token(Token.Kind.Keyword, "constexpr"));
 
-    if(constexpr)
+    if(constexpr) {
         // e.g. enum foo = 42;
-        ret ~= text("enum ", spelling, " = ", cursor.tokens[$-1].spelling, ";");
-    else
+        auto tokens = cursor.tokens;
+        tokens = tokens.find!(a => a.kind == Token.Kind.Punctuation && a.spelling == "=");
+
+        if(tokens.empty)
+            throw new Exception(text("Could not find assignment in ", cursor.tokens));
+
+        tokens.popFront;
+
+        ret ~= text("enum ", spelling, " = ", translateTokens(tokens), ";");
+    } else
         ret ~=
             maybePragma(cursor, context) ~
             text("extern __gshared ", static_,

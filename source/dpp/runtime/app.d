@@ -74,25 +74,19 @@ private TranslationText translationText(File)(in from!"dpp.runtime.options".Opti
                                               in string inputFileName)
 {
 
-    import dpp.runtime.context: Context;
-    import dpp.expansion: expand, isCppHeader, getHeaderName, Language;
+    import dpp.runtime.context: Context, Language;
+    import dpp.expansion: expand, isCppHeader, getHeaderName;
     import std.algorithm: map, filter;
     import std.string: fromStringz;
     import std.path: dirName;
     import std.array: array, join;
     import core.stdc.stdio: tmpnam;
 
-    /**
-       We remember the cursors already seen so as to not try and define
-       something twice (legal in C, illegal in D).
-    */
-    auto context = Context(options.indent);
-
     auto inputFile = File(inputFileName);
     const lines = () @trusted { return inputFile.byLine.map!(a => a.idup).array; }();
     auto moduleLines = () @trusted { return lines.filter!isModuleLine.array; }();
     auto nonModuleLines = lines.filter!(a => !isModuleLine(a));
-    const includePaths = context.options.includePaths ~ inputFileName.dirName;
+    const includePaths = options.includePaths ~ inputFileName.dirName;
     auto includes = nonModuleLines.map!(a => getHeaderName(a, includePaths)).filter!(a => a != "");
     char[1024] tmpnamBuf;
     const includesFileName = () @trusted { return cast(string) tmpnam(&tmpnamBuf[0]).fromStringz; }();
@@ -102,13 +96,19 @@ private TranslationText translationText(File)(in from!"dpp.runtime.options".Opti
         auto includesFile = File(includesFileName, "w");
         foreach(include; includes) {
             includesFile.writeln(`#include "`, include, `"`);
-            if(isCppHeader(include)) language = Language.Cpp;
+            if(isCppHeader(options, include)) language = Language.Cpp;
         }
     }();
 
+    /**
+       We remember the cursors already seen so as to not try and define
+       something twice (legal in C, illegal in D).
+    */
+    auto context = Context(options.indent, language);
+
     // parse all #includes at once and populate context with
     // D definitions
-    expand(includesFileName, context, language, includePaths);
+    expand(includesFileName, context, includePaths);
 
     context.fixNames;
 
@@ -178,6 +178,9 @@ private string preamble() @safe pure {
         import core.stdc.config;
         import core.stdc.stdarg: va_list;
         static import core.simd;
+
+        struct Int128 { long lower; long upper; }
+        struct Uint128 { ulong lower; ulong upper; }
 
         struct __locale_data { int dummy; }  // FIXME
     } ~

@@ -503,30 +503,116 @@ import it;
 
 
 // as seen in type traits
-@ShouldFail
-@("is_function")
+@("decltype")
 @safe unittest {
     shouldCompile(
         Cpp(
             q{
-                template<typename>
-                struct is_function {
-                    static constexpr bool value = false;
+                template<typename T>
+                struct Struct {
+                    T i;
+                    using Type = decltype(i);
                 };
-
-                template<typename Res, typename... Args>
-                    struct is_function<Res(Args...)> {
-                    static constexpr bool value = true;
-                };
-
             }
         ),
         D(
             q{
-                static int foo(short, double);
-                int i;
-                static assert( is_function!(typeof(foo)).value);
-                static assert(!is_function!(typeof(i)).value);
+                static assert(is(Struct!int.Type == int));
+                static assert(is(Struct!double.Type == double));
+            }
+        ),
+    );
+}
+
+
+// as seen in type traits
+@("typename")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<typename T>
+                struct TheType {
+                    using Type = T;
+                };
+
+                template<typename T>
+                struct Struct {
+                    using AlsoType = typename TheType<T>::Type;
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(is(Struct!int.AlsoType == int));
+                static assert(is(Struct!double.AlsoType == double));
+            }
+        ),
+    );
+}
+
+
+// as seen in type traits
+@("add_volatile")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<typename T>
+                struct add_volatile { using Type = volatile T; };
+            }
+        ),
+        D(
+            q{
+                static assert(is(add_volatile!int.Type == int));
+                static assert(is(add_volatile!double.Type == double));
+            }
+        ),
+    );
+}
+
+
+// as seen in type traits
+@("unsigned")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<bool C, typename T0, typename T1>
+                struct Helper {
+                    using Type = T1;
+                };
+
+                template<typename T>
+                struct Thingie {
+                    static const bool b0 = sizeof(T) < sizeof(unsigned short);
+                    using Type = typename Helper<b0, unsigned long, unsigned long long>::Type;
+                };
+            }
+        ),
+        D(
+            q{
+            }
+        ),
+    );
+}
+
+
+@("sizeof")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<typename T>
+                struct Thingie {
+                    static constexpr auto b0 = sizeof(T) < sizeof(unsigned short);
+                };
+            }
+        ),
+        D(
+            q{
+                static assert( Thingie!ubyte.b0);
+                static assert(!Thingie!int.b0);
             }
         ),
     );

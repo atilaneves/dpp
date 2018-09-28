@@ -11,6 +11,11 @@ struct Linkable {
     string mangling;
 }
 
+enum Language {
+    C,
+    Cpp,
+}
+
 
 /**
    Context for the current translation, to avoid global variables
@@ -85,7 +90,7 @@ struct Context {
     /**
        Deals with C++ namespaces
      */
-    /*private*/ Namespace _namespace;
+    private Namespace _namespace;
 
     /// Command-line options
     Options options;
@@ -103,8 +108,11 @@ struct Context {
     /// to generate unique names
     private int _anonymousIndex;
 
-    this(Options options) @safe pure {
+    const(Language) language;
+
+    this(Options options, in Language language) @safe pure {
         this.options = options;
+        this.language = language;
     }
 
     ref Context indent() @safe pure return {

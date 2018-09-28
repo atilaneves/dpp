@@ -58,10 +58,17 @@ string[] translate(in from!"clang".Cursor cursor,
                    in size_t line = __LINE__)
     @safe
 {
+    import dpp.runtime.context: Language;
     import std.conv: text;
+    import std.algorithm: canFind;
 
     debugCursor(cursor, context);
 
+    if(context.language == Language.Cpp && ignoredCppCursorSpellings.canFind(cursor.spelling)) {
+        return [];
+    }
+
+    
     if(cursor.kind !in translators) {
         if(context.options.hardFail)
             throw new Exception(text("Cannot translate unknown cursor kind ", cursor.kind),
@@ -184,4 +191,34 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
             ClassTemplatePartialSpecialization: &translateClass,
         ];
     }
+}
+
+// blacklist of cursors in the C++ standard library that dpp can't handle
+string[] ignoredCppCursorSpellings() @safe pure nothrow {
+    return
+        [
+            "is_function",
+            "__is_referenceable",
+            "__is_convertible_helper",
+            "aligned_union",
+            "__expanded_common_type_wrapper",
+            "underlying_type",
+            "__result_of_memfun_ref",
+            "__result_of_memfun_deref",
+            "__result_of_memfun",
+            "__result_of_impl",
+            "result_of",
+            "__detector",
+            "__is_swappable_with_impl",
+            "__is_nothrow_swappable_with_impl",
+            "is_rvalue_reference",
+            "__is_member_pointer_helper",
+            "__do_is_implicitly_default_constructible_impl",
+            "remove_reference",
+            "remove_extent",  // FIXME
+            "remove_all_extents",  // FIXME
+            "__remove_pointer_helper", // FIXME
+            "__result_of_memobj",
+            "__nonesuch",  // FIXME (struct default ctor)
+        ];
 }

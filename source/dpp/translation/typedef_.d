@@ -15,7 +15,7 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     import clang: Cursor, Type;
     import std.conv: text;
     import std.typecons: No;
-    import std.algorithm: filter, startsWith;
+    import std.algorithm: filter, canFind;
     import std.array: array;
 
     const children = () @trusted {
@@ -52,7 +52,7 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
         return translateTopLevelAnonymous(children[0], context);
 
     // See contract.typedef_.typedef to a template type parameter
-    const isTypeParameter = canonicalUnderlyingType.spelling.startsWith("type-");
+    const isTypeParameter = canonicalUnderlyingType.spelling.canFind("type-parameter-");
 
     // FIXME - still not sure I understand isOnlyAggregateChild here
     const underlyingSpelling = () {

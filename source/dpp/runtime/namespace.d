@@ -12,7 +12,7 @@ struct Namespace {
     enum indentationSpaces = "    ";
     private int _index;
     private string[] _nestedNamespaces;
-    /*private*/ Symbol[] _symbols;
+    private Symbol[] _symbols;
     private string _mixinName;
 
     string[] push(in string name) @safe pure {
@@ -50,7 +50,7 @@ struct Namespace {
 
     private string[] finish() @safe pure {
         import std.conv: text;
-        import std.algorithm: map;
+        import std.algorithm: map, uniq;
         import std.array: array;
 
         auto lines = ["}", ""];
@@ -58,8 +58,13 @@ struct Namespace {
         const varName = text("_cppNamespace_", _index);
         lines ~= text("mixin ", _mixinName, "!() ", varName, ";");
 
+        string aliasText(in Symbol s) {
+            return text("alias ", s.name, " = ", varName, ".", s.namespace, ".", s.name, `;`);
+        }
+
         lines ~= _symbols
-            .map!(s => text("alias ", s.name, " = ", varName, ".", s.namespace, ".", s.name, ";"))
+            .uniq!((a, b) => a.name == b.name)
+            .map!(s => `static if(is(typeof({ ` ~ aliasText(s) ~ ` }))) ` ~ aliasText(s) ~ `;`)
             .array
             ;
 
