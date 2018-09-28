@@ -83,19 +83,6 @@ private auto canonicalCursors(from!"clang".TranslationUnit translationUnit) @saf
     import std.array: array, join;
     import std.algorithm: sort, filter, map, chunkBy, all, partition;
 
-        {
-            import dpp.runtime.context: Context;
-            import dpp.translation.translation: debugCursor;
-            Context context;
-            context.log("");
-
-            foreach(cursor; translationUnit.cursor.children) {
-                debugCursor(cursor, context);
-            }
-            context.log("\n----------------------------------------\n\n");
-        }
-
-
     // In C there can be several declarations and one definition of a type.
     // In D we can have only ever one of either. There might be multiple
     // cursors in the translation unit that all refer to the same canonical type.
