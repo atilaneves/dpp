@@ -28,6 +28,7 @@ string translate(in from!"clang".Type type,
     return translators[type.kind](type, context, translatingFunction);
 }
 
+
 Translators translators() @safe pure {
     import clang: Type;
 
@@ -73,8 +74,18 @@ Translators translators() @safe pure {
             Unexposed: &translateUnexposed,
             DependentSizedArray: &translateDependentSizedArray,
             Vector: &translateSimdVector,
+            MemberPointer: &translatePointer, // FIXME #83
+            Invalid: &ignore, // FIXME C++ stdlib <type_traits>
         ];
     }
+}
+
+private string ignore(in from!"clang".Type type,
+                      ref from!"dpp.runtime.context".Context context,
+                      in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
+@safe pure
+{
+    return "";
 }
 
 
@@ -123,7 +134,11 @@ private string translateAggregate(in from!"clang".Type type,
 
     return addModifiers(type, spelling)
         // "struct Foo" -> Foo, "union Foo" -> Foo, "enum Foo" -> Foo
-        .replace("struct ", "").replace("union ", "").replace("enum ", "")
+        .replace("struct ", "")
+        .replace("union ", "")
+        .replace("enum ", "")
+        .replace("<", "!(")
+        .replace(">", ")")
         ;
 }
 
@@ -177,9 +192,10 @@ private string translateTypedef(in from!"clang".Type type,
                                 in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
 @safe pure
 {
+    import std.string: replace;
     // Here we may get a Typedef with a canonical type of Enum. It might be worth
     // translating to int for function parameters
-    return addModifiers(type, type.spelling);
+    return addModifiers(type, type.spelling.replace("::", "."));
 }
 
 private string translatePointer(in from!"clang".Type type,
@@ -190,7 +206,7 @@ private string translatePointer(in from!"clang".Type type,
     import clang: Type;
     import std.conv: text;
 
-    assert(type.kind == Type.Kind.Pointer, "type kind not Pointer");
+    assert(type.kind == Type.Kind.Pointer || type.kind == Type.Kind.MemberPointer, "type kind not Pointer");
     assert(!type.pointee.isInvalid, "pointee is invalid");
 
     const isFunction =
@@ -256,7 +272,10 @@ private string translateLvalueRef(in from!"clang".Type type,
                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
     @safe pure
 {
-    return "ref " ~ translate(type.canonical.pointee, context, translatingFunction);
+    const pointeeTranslation = translate(type.canonical.pointee, context, translatingFunction);
+    return translatingFunction
+        ? "ref " ~ pointeeTranslation
+        : pointeeTranslation ~ "*";
 }
 
 // we cheat and pretend it's a value
@@ -283,7 +302,13 @@ private string translateUnexposed(in from!"clang".Type type,
                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
     @safe pure
 {
-    return type.spelling;
+    import std.string: replace;
+    // we might get template arguments here
+    return type.spelling
+        .replace("<", "!(")
+        .replace(">", ")")
+        .replace("-", "_")
+        ;
 }
 
 private string translateSimdVector(in from!"clang".Type type,

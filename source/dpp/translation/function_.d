@@ -47,6 +47,9 @@ string[] translateFunction(in from!"clang".Cursor cursor,
         maybePragma(cursor, context) ~ functionDecl(cursor, context, spelling)
     ];
 
+
+    context.log("");
+
     return lines;
 }
 
@@ -113,7 +116,7 @@ private string[] maybeOperator(in from!"clang".Cursor cursor,
         // remove semicolon from the end with [0..$-1]
         `extern(D) ` ~ functionDecl(cursor, context, operatorSpellingD(cursor, context), Yes.names)[0..$-1],
         `{`,
-        `    return ` ~ operatorSpellingCpp(cursor) ~ `(` ~ params.length.iota.map!(a => text("arg", a)).join(", ") ~ `);`,
+        `    return ` ~ operatorSpellingCpp(cursor, context) ~ `(` ~ params.length.iota.map!(a => text("arg", a)).join(", ") ~ `);`,
         `}`,
     ];
 }
@@ -152,7 +155,7 @@ private string functionSpelling(in from!"clang".Cursor cursor,
     if(cursor.kind == Cursor.Kind.Constructor) return "this";
     if(cursor.kind == Cursor.Kind.Destructor) return "~this";
 
-    if(cursor.spelling.startsWith(OPERATOR_PREFIX)) return operatorSpellingCpp(cursor);
+    if(cursor.spelling.startsWith(OPERATOR_PREFIX)) return operatorSpellingCpp(cursor, context);
 
     // if no special case
     return context.rememberLinkable(cursor);
@@ -200,16 +203,18 @@ private bool isBinaryOperator(in from!"clang".Cursor cursor) @safe nothrow {
 }
 
 
-private string operatorSpellingCpp(in from!"clang".Cursor cursor)
+private string operatorSpellingCpp(in from!"clang".Cursor cursor,
+                                   ref from!"dpp.runtime.context".Context context)
     @safe
 {
+    import dpp.translation.type: translate;
     import clang: Cursor;
+    import std.string: replace;
 
     const operator = cursor.spelling[OPERATOR_PREFIX.length .. $];
 
     if(cursor.kind == Cursor.Kind.ConversionFunction) {
-        // the first character will be a space
-        return "oppCppCast_" ~ operator[1..$];
+        return "opCppCast_" ~ translate(cursor.returnType, context).replace(".", "_");
     }
 
     switch(operator) {

@@ -142,9 +142,9 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
 
         final switch(cursor.accessSpecifier) with(AccessSpecifier) {
             case InvalidAccessSpecifier: assert(0);
-            case Public: return ["public:"];
-            case Protected: return ["protected:"];
-            case Private: return ["private:"];
+            case Public: return ["    public:"];
+            case Protected: return ["    protected:"];
+            case Private: return ["    private:"];
         }
 
         assert(0);
@@ -184,6 +184,7 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
             CXXBaseSpecifier:                   &ignore, // FIXME #74
             StaticAssert:                       &ignore, // FIXME #75
             ClassTemplatePartialSpecialization: &translateClass,
+            ParmDecl:                           &ignore, // FIXME #76
         ];
     }
 }

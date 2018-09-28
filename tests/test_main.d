@@ -19,6 +19,10 @@ int main(string[] args) {
         "contract.templates",
         "contract.namespace",
         "contract.macro_",
+        "contract.constexpr",
+        "contract.typedef_",
+        "contract.operators",
+        "contract.member",
 
         "it.issues",
 

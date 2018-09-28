@@ -72,8 +72,8 @@ private string[] translateStrass(in from!"clang".Cursor cursor,
 
 // Deal with full and partial template specialisations
 // returns a range of string
-private auto translateSpecialisedTemplateParams(in from!"clang".Cursor cursor,
-                                                ref from!"dpp.runtime.context".Context context)
+private string[] translateSpecialisedTemplateParams(in from!"clang".Cursor cursor,
+                                                    ref from!"dpp.runtime.context".Context context)
     @safe
 {
     import dpp.translation.type: translate;
@@ -84,9 +84,15 @@ private auto translateSpecialisedTemplateParams(in from!"clang".Cursor cursor,
 
     assert(cursor.type.numTemplateArguments != -1);
 
+    if(isFromVariadicTemplate(cursor))
+        return translateSpecialisedTemplateParamsVariadic(cursor, context);
+
     // get the original list of template parameters and translate them
     // e.g. template<bool, bool, typename> -> (bool V0, bool V1, T)
-    const translatedTemplateParams = translateTemplateParams(cursor.specializedCursorTemplate, context).array;
+    const translatedTemplateParams = () @trusted {
+        return translateTemplateParams(cursor, context)
+        .array;
+    }();
 
     // e.g. template<> struct foo<false, true, int32_t> -> 0:false, 1:true, 2: int
     string translateTemplateParamSpecialisation(in Type type, in int index) {
@@ -118,10 +124,33 @@ private auto translateSpecialisedTemplateParams(in from!"clang".Cursor cursor,
         return ret;
     }
 
-    return cursor.type.numTemplateArguments
-        .iota
-        .map!(i => element(cursor.type.typeTemplateArgument(i), i))
-        ;
+    return () @trusted {
+        return
+            cursor.type.numTemplateArguments
+            .iota
+            .map!(i => element(cursor.type.typeTemplateArgument(i), i))
+            .array
+            ;
+    }();
+}
+
+// FIXME: refactor
+private auto translateSpecialisedTemplateParamsVariadic(in from!"clang".Cursor cursor,
+                                                        ref from!"dpp.runtime.context".Context context)
+    @safe
+{
+    import dpp.translation.type: translate;
+
+    assert(isFromVariadicTemplate(cursor));
+    assert(cursor.type.numTemplateArguments != -1);
+
+    string[] ret;
+
+    foreach(i; 0 .. cursor.type.numTemplateArguments) {
+        ret ~= translate(cursor.type.typeTemplateArgument(i), context);
+    }
+
+    return ret;
 }
 
 // In the case cursor is a partial or full template specialisation,
@@ -187,42 +216,63 @@ private string templateParameterSpelling(in from!"clang".Cursor cursor, int inde
     return templateParams[index].text;
 }
 
-// Translates a C++ template parameter (value, type) to a D declaration
+// Translates a C++ template parameter (value or type) to a D declaration
 // e.g. template<typename, bool, typename> -> ["T0", "bool V0", "T1"]
 // Returns a range of string
 private auto translateTemplateParams(in from!"clang".Cursor cursor,
                                      ref from!"dpp.runtime.context".Context context)
     @safe
 {
-
+    import dpp.translation.type: translate;
     import clang: Cursor;
     import std.conv: text;
     import std.algorithm: map, filter;
-
-    assert(cursor.kind == Cursor.Kind.ClassTemplate);
+    import std.array: array;
+    import std.range: enumerate;
 
     int templateParamIndex;  // used to generate names when there are none
 
     string newTemplateParamName() {
-        return text("_TemplateParam_", templateParamIndex++);
+        // FIXME
+        // the naming convention is to match what libclang gives, but there's no
+        // guarantee that it'll always match.
+        return text("type_parameter_0_", templateParamIndex++);
     }
 
     string translateTemplateParam(in Cursor cursor) {
         import dpp.translation.type: translate;
 
-        // The template parameter might be a value (bool, int, ...)
+        // The template parameter might be a value (bool, int, etc.)
         // or a type. If it's a value we get its type here.
         const maybeType = cursor.kind == Cursor.Kind.TemplateTypeParameter
-            ? ""  // a type doens't have a type
+            ? ""  // a type doesn't have a type
             : translate(cursor.type, context) ~ " ";
 
         // D requires template parameters to have names
         const spelling = cursor.spelling == "" ? newTemplateParamName : cursor.spelling;
 
+        // e.g. "bool param", "T0"
         return maybeType ~ spelling;
     }
 
-    return templateParams(cursor).map!translateTemplateParam;
+    auto templateParams = templateParams(cursor);
+    auto translated = templateParams.map!translateTemplateParam.array;
+
+    // might need to be a variadic parameter
+    string maybeVariadic(in long index, in string name) {
+        return cursor.isVariadicTemplate && index == translated.length -1
+            // If it's variadic, come up with a new name in case it's variadic
+            // values. D doesn't really care.
+            ? newTemplateParamName ~ "..."
+            : name;
+    }
+
+    return () @trusted {
+        return translated
+            .enumerate
+            .map!(a => maybeVariadic(a[0], a[1]))
+        ;
+    }();
 }
 
 // returns a range of cursors
@@ -233,11 +283,36 @@ private auto templateParams(in from!"clang".Cursor cursor)
     import clang: Cursor;
     import std.algorithm: filter;
 
-    return cursor
+    const templateCursor = cursor.kind == Cursor.Kind.ClassTemplate
+        ? cursor
+        : cursor.specializedCursorTemplate;
+
+    return templateCursor
         .children
         .filter!(a => a.kind == Cursor.Kind.TemplateTypeParameter || a.kind == Cursor.Kind.NonTypeTemplateParameter)
         ;
 }
+
+// If the original template is variadic
+private bool isFromVariadicTemplate(in from!"clang".Cursor cursor) @safe {
+    return isVariadicTemplate(cursor.specializedCursorTemplate);
+}
+
+private bool isVariadicTemplate(in from!"clang".Cursor cursor) @safe {
+    import clang: Cursor, Token;
+    import std.array: array;
+    import std.algorithm: canFind;
+
+    const templateParamChildren = () @trusted { return templateParams(cursor).array; }();
+
+    return
+        templateParamChildren.length > 0 &&
+        (templateParamChildren[$-1].kind == Cursor.Kind.TemplateTypeParameter ||
+         templateParamChildren[$-1].kind == Cursor.Kind.NonTypeTemplateParameter) &&
+        cursor.tokens.canFind(Token(Token.Kind.Punctuation, "..."));
+}
+
+
 
 string[] translateUnion(in from!"clang".Cursor cursor,
                         ref from!"dpp.runtime.context".Context context)
