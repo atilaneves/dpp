@@ -30,6 +30,11 @@ string[] translateFunction(in from!"clang".Cursor cursor,
         cursor.kind == Cursor.Kind.ConversionFunction
     );
 
+    // FIXME - no default contructors for structs in D
+    // We're not even checking if it's a struct here, so classes are being
+    // affected for no reason.
+    if(cursor.kind == Cursor.Kind.Constructor && numParams(cursor) == 0) return [];
+
     // FIXME - stop special casing the move ctor
     auto moveCtorLines = maybeMoveCtor(cursor, context);
     if(moveCtorLines) return moveCtorLines;
@@ -134,6 +139,7 @@ private bool isSupportedOperatorInD(in from!"clang".Cursor cursor) @safe nothrow
     if(unsupportedSpellings.canFind(cppOperator)) return false;
 
     if(isUnaryOperator(cursor) && cppOperator == "&") return false;
+    if(!isUnaryOperator(cursor) && !isBinaryOperator(cursor)) return false;
 
      return true;
 }
@@ -195,15 +201,17 @@ private string operatorSpellingD(in from!"clang".Cursor cursor,
 }
 
 private bool isUnaryOperator(in from!"clang".Cursor cursor) @safe nothrow {
-    import std.range: walkLength;
-    return isOperator(cursor) && paramTypes(cursor).walkLength == 0;
+    return isOperator(cursor) && numParams(cursor) == 0;
 }
 
 private bool isBinaryOperator(in from!"clang".Cursor cursor) @safe nothrow {
-    import std.range: walkLength;
-    return isOperator(cursor) && paramTypes(cursor).walkLength == 1;
+    return isOperator(cursor) && numParams(cursor) == 1;
 }
 
+private long numParams(in from!"clang".Cursor cursor) @safe nothrow {
+    import std.range: walkLength;
+    return paramTypes(cursor).walkLength;
+}
 
 private string operatorSpellingCpp(in from!"clang".Cursor cursor,
                                    ref from!"dpp.runtime.context".Context context)
