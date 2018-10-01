@@ -9,7 +9,7 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
                           ref from!"dpp.runtime.context".Context context)
     @safe
 {
-    import dpp.translation.type: translate;
+    import dpp.translation.type: translate, isTypeParameter;
     import dpp.translation.aggregate: isAggregateC;
     import dpp.translation.dlang: maybeRename;
     import clang: Cursor, Type;
@@ -51,13 +51,12 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     if(isTopLevelAnonymous && children[0].kind != Cursor.Kind.EnumDecl)
         return translateTopLevelAnonymous(children[0], context);
 
-    // See contract.typedef_.typedef to a template type parameter
-    const isTypeParameter = canonicalUnderlyingType.spelling.canFind("type-parameter-");
-
     // FIXME - still not sure I understand isOnlyAggregateChild here
     const underlyingSpelling = () {
         if(isOnlyAggregateChild) return context.spellingOrNickname(children[0]);
-        const typeToUse = isTypeParameter ? nonCanonicalUnderlyingType : canonicalUnderlyingType;
+        const typeToUse = isTypeParameter(canonicalUnderlyingType)
+            ? nonCanonicalUnderlyingType
+            : canonicalUnderlyingType;
         return translate(typeToUse, context, No.translatingFunction);
     }();
 

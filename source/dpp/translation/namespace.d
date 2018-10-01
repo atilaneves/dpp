@@ -9,7 +9,7 @@ string[] translateNamespace(in from!"clang".Cursor cursor,
     import dpp.translation.translation: translate, ignoredCppCursorSpellings;
     import clang: Cursor;
     import std.conv: text;
-    import std.algorithm: map, canFind;
+    import std.algorithm: map, canFind, startsWith;
     import std.array: array;
 
     assert(cursor.kind == Cursor.Kind.Namespace);
@@ -29,6 +29,7 @@ string[] translateNamespace(in from!"clang".Cursor cursor,
             .array;
 
         if(child.kind != Cursor.Kind.Namespace &&
+           !child.spelling.startsWith("operator") &&
            !ignoredCppCursorSpellings.canFind(child.spelling))
         {
             context.addNamespaceSymbol(child.spelling);
