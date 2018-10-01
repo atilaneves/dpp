@@ -220,6 +220,23 @@ string[] ignoredCppCursorSpellings() @safe pure nothrow {
             "__remove_pointer_helper", // FIXME
             "__result_of_memobj",
             "__nonesuch",  // FIXME (struct default ctor)
+            "__nonesuch_no_braces",  // FIXME (struct default ctor)
+            "piecewise_construct_t",  // FIXME (struct default ctor)
+            "piecewise_construct",  // FIXME (struct default ctor)
+
+            "_Iter_less_val",  // FIXME (struct default ctor)
+            "_Iter_less_iter", // FIXME (_Iter_less_val)
+            "__iter_less_iter", // FIXME (_Iter_less_iter)
+            "__iter_less_val",  // FIXME
+            "__iter_comp_val", // FIXME
+            "__val_comp_iter", // FIXME
+            "_Val_less_iter",  // FIXME
+            "__val_less_iter",  // FIXME
+
             "move_iterator",  // FIXME (extra type parameters)
+            "__replace_first_arg", // FIXME
+            "pointer_traits", // FIXME
+            "pair",  // FIXME
+            "iterator_traits",  // FIXME
         ];
 }
