@@ -617,3 +617,27 @@ import it;
         ),
     );
 }
+
+
+
+@("__normal_iterator.base")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<typename I>
+                struct Struct {
+                    I i;
+                    const I& base() const { return i; }
+                };
+            }
+        ),
+        D(
+            q{
+                struct Int { int value; }
+                Struct!Int s;
+                Int i = s.base();
+            }
+        ),
+   );
+}

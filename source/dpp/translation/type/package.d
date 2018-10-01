@@ -272,7 +272,9 @@ private string translateLvalueRef(in from!"clang".Type type,
                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
     @safe pure
 {
-    const pointeeTranslation = translate(type.canonical.pointee, context, translatingFunction);
+    const typeToUse = type.canonical.isTypeParameter ? type : type.canonical;
+
+    const pointeeTranslation = translate(typeToUse.pointee, context, translatingFunction);
     return translatingFunction
         ? "ref " ~ pointeeTranslation
         : pointeeTranslation ~ "*";
@@ -304,10 +306,11 @@ private string translateUnexposed(in from!"clang".Type type,
 {
     import std.string: replace;
     // we might get template arguments here
-    return type.spelling
+    const translation =  type.spelling
         .translateString
         .replace("-", "_")
         ;
+    return addModifiers(type, translation);
 }
 
 string translateString(in string spelling) @safe pure nothrow {
@@ -359,4 +362,11 @@ private string addModifiers(in from!"clang".Type type, in string translation) @s
 bool hasAnonymousSpelling(in from!"clang".Type type) @safe pure nothrow {
     import std.algorithm: canFind;
     return type.spelling.canFind("(anonymous");
+}
+
+
+bool isTypeParameter(in from!"clang".Type type) @safe pure nothrow {
+    import std.algorithm: canFind;
+    // See contract.typedef_.typedef to a template type parameter
+    return type.spelling.canFind("type-parameter-");
 }
