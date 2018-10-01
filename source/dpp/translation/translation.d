@@ -68,7 +68,7 @@ string[] translate(in from!"clang".Cursor cursor,
         return [];
     }
 
-    
+
     if(cursor.kind !in translators) {
         if(context.options.hardFail)
             throw new Exception(text("Cannot translate unknown cursor kind ", cursor.kind),
@@ -220,5 +220,6 @@ string[] ignoredCppCursorSpellings() @safe pure nothrow {
             "__remove_pointer_helper", // FIXME
             "__result_of_memobj",
             "__nonesuch",  // FIXME (struct default ctor)
+            "move_iterator",  // FIXME (extra type parameters)
         ];
 }

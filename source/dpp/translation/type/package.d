@@ -324,6 +324,7 @@ string translateString(in string spelling) @safe pure nothrow {
         .replace("volatile ", "")
         .replace("long long", "long")
         .replace("unsigned ", "u")
+        .replace("&&", "")
         ;
 }
 

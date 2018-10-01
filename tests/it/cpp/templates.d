@@ -641,3 +641,41 @@ import it;
         ),
    );
 }
+
+
+@ShouldFail("need to fix declaration of new template parameters in specialisations")
+@("move_iterator.reference")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<bool _Cond, typename _Iftrue, typename _Iffalse>
+                struct conditional
+                { typedef _Iftrue type; };
+
+                template<typename _Iftrue, typename _Iffalse>
+                struct conditional<false, _Iftrue, _Iffalse>
+                { typedef _Iffalse type; };
+
+                template<typename T> struct remove_reference      { using type = T; };
+                template<typename T> struct remove_reference<T&>  { using type = T; };
+                template<typename T> struct remove_reference<T&&> { using type = T; };
+
+                template<typename T> struct is_reference      { enum { value = false }; };
+                template<typename T> struct is_reference<T&>  { enum { value = true  }; };
+                template<typename T> struct is_reference<T&&> { enum { value = true  }; };
+
+                template<typename T>
+                struct Iterator {
+                    using reference = typename conditional<is_reference<T>::value,
+                                                           typename remove_reference<T>::type&&,
+                                                           T>::type;
+                };
+            }
+        ),
+        D(
+            q{
+            }
+        ),
+   );
+}
