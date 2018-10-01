@@ -30,13 +30,13 @@ struct Namespace {
         return lines;
     }
 
-    string[] pop() @safe pure {
+    string[] pop(ref bool[string] globalAliases) @safe pure {
 
         _nestedNamespaces = _nestedNamespaces[0 .. $-1];
         auto lines = [indentationSpaces ~ "}"];
 
         if(_nestedNamespaces.length == 0) {
-            lines ~= finish;
+            lines ~= finish(globalAliases);
         }
 
         return lines;
@@ -48,9 +48,9 @@ struct Namespace {
             _symbols ~= Symbol(_nestedNamespaces.join("."), symbol);
     }
 
-    private string[] finish() @safe pure {
+    private string[] finish(ref bool[string] globalAliases) @safe pure {
         import std.conv: text;
-        import std.algorithm: map, uniq;
+        import std.algorithm: map, uniq, filter;
         import std.array: array;
 
         auto lines = ["}", ""];
@@ -64,9 +64,12 @@ struct Namespace {
 
         lines ~= _symbols
             .uniq!((a, b) => a.name == b.name)
+            .filter!(a => a.name !in globalAliases)
             .map!(s => `static if(is(typeof({ ` ~ aliasText(s) ~ ` }))) ` ~ aliasText(s) ~ `;`)
             .array
             ;
+
+        foreach(symbol; _symbols) globalAliases[symbol.name] = true;
 
         reset;
 

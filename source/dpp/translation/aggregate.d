@@ -301,15 +301,21 @@ private bool isFromVariadicTemplate(in from!"clang".Cursor cursor) @safe {
 private bool isVariadicTemplate(in from!"clang".Cursor cursor) @safe {
     import clang: Cursor, Token;
     import std.array: array;
-    import std.algorithm: canFind;
+    import std.algorithm: canFind, countUntil;
 
     const templateParamChildren = () @trusted { return templateParams(cursor).array; }();
+
+    // There might be a "..." token inside the body of the struct/class, and we don't want to
+    // look at that. So instead we stop looking at tokens when the struct/class definition begins.
+    const openCurlyBracketIndex = cursor.tokens.countUntil!(a => a.kind ==
+                                                            Token.Kind.Punctuation && a.spelling == "{");
+    const tokens = openCurlyBracketIndex == -1 ? cursor.tokens : cursor.tokens[0 .. openCurlyBracketIndex];
 
     return
         templateParamChildren.length > 0 &&
         (templateParamChildren[$-1].kind == Cursor.Kind.TemplateTypeParameter ||
          templateParamChildren[$-1].kind == Cursor.Kind.NonTypeTemplateParameter) &&
-        cursor.tokens.canFind(Token(Token.Kind.Punctuation, "..."));
+        tokens.canFind(Token(Token.Kind.Punctuation, "..."));
 }
 
 

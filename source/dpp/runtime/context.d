@@ -110,6 +110,10 @@ struct Context {
 
     const(Language) language;
 
+    // Since we have to do a hack to get namespace symbols in the global scope,
+    // we remember the ones already aliased to not repeat them
+    private bool[string] _alreadyAliasedNamespaceSymbols;
+
     this(Options options, in Language language) @safe pure {
         this.options = options;
         this.language = language;
@@ -335,7 +339,7 @@ struct Context {
     }
 
     string[] popNamespace() @safe pure {
-        return _namespace.pop;
+        return _namespace.pop(_alreadyAliasedNamespaceSymbols);
     }
 
     void addNamespaceSymbol(in string symbol) @safe pure {
