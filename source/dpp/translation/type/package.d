@@ -192,10 +192,8 @@ private string translateTypedef(in from!"clang".Type type,
                                 in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
 @safe pure
 {
-    import std.string: replace;
-    // Here we may get a Typedef with a canonical type of Enum. It might be worth
-    // translating to int for function parameters
-    return addModifiers(type, type.spelling.replace("::", "."));
+    const translation = translate(type.declaration.underlyingType, context, translatingFunction);
+    return addModifiers(type, translation);
 }
 
 private string translatePointer(in from!"clang".Type type,
@@ -320,6 +318,7 @@ string translateString(in string spelling) @safe pure nothrow {
         .replace(">", ")")
         .replace("decltype", "typeof")
         .replace("typename ", "")
+        .replace("template ", "")
         .replace("::", ".")
         .replace("volatile ", "")
         .replace("long long", "long")

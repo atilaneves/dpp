@@ -168,6 +168,7 @@ private string operatorSpellingD(in from!"clang".Cursor cursor,
     import clang: Cursor;
     import std.range: walkLength;
     import std.algorithm: canFind;
+    import std.conv: text;
 
     const cppOperator = cursor.spelling[OPERATOR_PREFIX.length .. $];
 
@@ -180,7 +181,8 @@ private string operatorSpellingD(in from!"clang".Cursor cursor,
        (cppOperator.length != 2 || !['=', '!', '<', '>'].canFind(cppOperator[0])))
         return `opOpAssign(string op: "` ~ cppOperator[0 .. $-1] ~ `")`;
 
-    assert(isUnaryOperator(cursor) || isBinaryOperator(cursor));
+    assert(isUnaryOperator(cursor) || isBinaryOperator(cursor),
+           text("Cursor is neither a unary or binary operator: ", cursor, "@", cursor.sourceRange.start));
     const dFunction = isBinaryOperator(cursor) ? "opBinary" : "opUnary";
 
     switch(cppOperator) {
