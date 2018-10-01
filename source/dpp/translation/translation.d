@@ -238,5 +238,8 @@ string[] ignoredCppCursorSpellings() @safe pure nothrow {
             "pointer_traits", // FIXME
             "pair",  // FIXME
             "iterator_traits",  // FIXME
+
+            "_Hash_bytes",  // FIXME (std.size_t)
+            "_Fnv_hash_bytes", // FIXME (std.size_t)
         ];
 }
