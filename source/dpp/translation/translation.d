@@ -241,5 +241,7 @@ string[] ignoredCppCursorSpellings() @safe pure nothrow {
 
             "_Hash_bytes",  // FIXME (std.size_t)
             "_Fnv_hash_bytes", // FIXME (std.size_t)
+            "allocator_traits",  // FIXME
+            "__allocator_traits_base",  // FIXME
         ];
 }
