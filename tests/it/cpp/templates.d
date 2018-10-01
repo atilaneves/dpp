@@ -679,3 +679,24 @@ import it;
         ),
    );
 }
+
+
+@("allocator")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template <typename> class allocator;
+                template <> class allocator<void>;
+                template <> class allocator<void> {
+                    template<typename Up, typename... Args>
+                    void construct(Up* p, Args&&... args);
+                };
+            }
+        ),
+        D(
+            q{
+            }
+        ),
+   );
+}

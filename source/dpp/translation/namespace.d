@@ -14,8 +14,6 @@ string[] translateNamespace(in from!"clang".Cursor cursor,
 
     assert(cursor.kind == Cursor.Kind.Namespace);
 
-    context.log("    Namespace children: ", cursor.children);
-
     string[] lines;
 
     lines ~= context.pushNamespace(cursor.spelling);
