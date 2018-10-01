@@ -219,19 +219,8 @@ string[] ignoredCppCursorSpellings() @safe pure nothrow {
             "remove_all_extents",  // FIXME
             "__remove_pointer_helper", // FIXME
             "__result_of_memobj",
-            "__nonesuch",  // FIXME (struct default ctor)
-            "__nonesuch_no_braces",  // FIXME (struct default ctor)
-            "piecewise_construct_t",  // FIXME (struct default ctor)
-            "piecewise_construct",  // FIXME (struct default ctor)
-
-            "_Iter_less_val",  // FIXME (struct default ctor)
-            "_Iter_less_iter", // FIXME (_Iter_less_val)
-            "__iter_less_iter", // FIXME (_Iter_less_iter)
-            "__iter_less_val",  // FIXME
-            "__iter_comp_val", // FIXME
-            "__val_comp_iter", // FIXME
-            "_Val_less_iter",  // FIXME
-            "__val_less_iter",  // FIXME
+            "piecewise_construct_t",  // FIXME (@disable ctor)
+            "piecewise_construct",  // FIXME (piecewise_construct_t)
 
             "hash", // FIXME (stl_bvector.h partial template specialisation)
             "__is_fast_hash",  // FIXME (hash)
