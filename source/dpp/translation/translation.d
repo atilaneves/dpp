@@ -233,6 +233,9 @@ string[] ignoredCppCursorSpellings() @safe pure nothrow {
             "_Val_less_iter",  // FIXME
             "__val_less_iter",  // FIXME
 
+            "hash", // FIXME (stl_bvector.h partial template specialisation)
+            "__is_fast_hash",  // FIXME (hash)
+
             "move_iterator",  // FIXME (extra type parameters)
             "__replace_first_arg", // FIXME
             "pointer_traits", // FIXME

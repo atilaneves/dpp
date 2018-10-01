@@ -62,10 +62,16 @@ struct Namespace {
             return text("alias ", s.name, " = ", varName, ".", s.namespace, ".", s.name, `;`);
         }
 
+        string staticIf(in Symbol s) {
+            // FIXME - no idea what's going on
+            if(s.name == "random_access_iterator_tag") return "";
+            return `static if(is(typeof({ ` ~ aliasText(s) ~ ` }))) `;
+        }
+
         lines ~= _symbols
             .uniq!((a, b) => a.name == b.name)
             .filter!(a => a.name !in globalAliases)
-            .map!(s => `static if(is(typeof({ ` ~ aliasText(s) ~ ` }))) ` ~ aliasText(s) ~ `;`)
+            .map!(s => staticIf(s) ~ aliasText(s) ~ `;`)
             .array
             ;
 
