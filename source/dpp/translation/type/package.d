@@ -208,9 +208,8 @@ private string translatePointer(in from!"clang".Type type,
     assert(!type.pointee.isInvalid, "pointee is invalid");
 
     const isFunction =
-        type.pointee.kind == Type.Kind.Unexposed &&
-        (type.pointee.canonical.kind == Type.Kind.FunctionProto ||
-         type.pointee.canonical.kind == Type.Kind.FunctionNoProto);
+        type.pointee.canonical.kind == Type.Kind.FunctionProto ||
+        type.pointee.canonical.kind == Type.Kind.FunctionNoProto;
 
     // usually "*" but sometimes not needed if already a reference type
     const maybeStar = isFunction ? "" : "*";
