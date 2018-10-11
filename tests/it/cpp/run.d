@@ -100,6 +100,10 @@ import it;
                     Struct(int i);
                     ~Struct();
                 };
+
+                struct DeletedDtor {
+                    ~DeletedDtor() = delete;
+                };
             }
         ),
         Cpp(

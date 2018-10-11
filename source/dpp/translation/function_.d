@@ -16,10 +16,10 @@ string[] translateFunction(in from!"clang".Cursor cursor,
     import dpp.translation.dlang: maybeRename, maybePragma;
     import dpp.translation.aggregate: maybeRememberStructs;
     import dpp.translation.type: translate;
-    import clang: Cursor, Type, Language;
+    import clang: Cursor, Type, Language, Token;
     import std.array: join, array;
     import std.conv: text;
-    import std.algorithm: any, endsWith;
+    import std.algorithm: any, endsWith, canFind;
     import std.typecons: Yes;
 
     assert(
@@ -29,6 +29,9 @@ string[] translateFunction(in from!"clang".Cursor cursor,
         cursor.kind == Cursor.Kind.Destructor ||
         cursor.kind == Cursor.Kind.ConversionFunction
     );
+
+    // C++ deleted functions
+    if(cursor.tokens.canFind(Token(Token.Kind.Keyword, "delete"))) return [];
 
     // FIXME - no default contructors for structs in D
     // We're not even checking if it's a struct here, so classes are being
