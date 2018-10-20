@@ -30,13 +30,7 @@ string[] translateFunction(in from!"clang".Cursor cursor,
         cursor.kind == Cursor.Kind.ConversionFunction
     );
 
-    // C++ deleted functions
-    if(cursor.tokens.canFind(Token(Token.Kind.Keyword, "delete"))) return [];
-
-    // FIXME - no default contructors for structs in D
-    // We're not even checking if it's a struct here, so classes are being
-    // affected for no reason.
-    if(cursor.kind == Cursor.Kind.Constructor && numParams(cursor) == 0) return [];
+    if(ignoreFunction(cursor)) return [];
 
     // FIXME - stop special casing the move ctor
     auto moveCtorLines = maybeMoveCtor(cursor, context);
@@ -55,10 +49,35 @@ string[] translateFunction(in from!"clang".Cursor cursor,
         maybePragma(cursor, context) ~ functionDecl(cursor, context, spelling)
     ];
 
-
     context.log("");
 
     return lines;
+}
+
+private bool ignoreFunction(in from!"clang".Cursor cursor) @safe {
+    import clang: Cursor, Type, Token;
+    import std.algorithm: canFind;
+
+    // C++ partial specialisation function bodies
+    if(cursor.semanticParent.kind == Cursor.Kind.ClassTemplatePartialSpecialization &&
+       cursor.semanticParent.type.kind == Type.Kind.Unexposed)
+        return true;
+
+    // FIXME
+    if(cursor.semanticParent.kind == Cursor.Kind.ClassTemplate &&
+       cursor.semanticParent.spelling == "vector")
+        return true;
+
+
+    // C++ deleted functions
+    if(cursor.tokens.canFind(Token(Token.Kind.Keyword, "delete"))) return true;
+
+    // FIXME - no default contructors for structs in D
+    // We're not even checking if it's a struct here, so classes are being
+    // affected for no reason.
+    if(cursor.kind == Cursor.Kind.Constructor && numParams(cursor) == 0) return true;
+
+    return false;
 }
 
 private string functionDecl(
