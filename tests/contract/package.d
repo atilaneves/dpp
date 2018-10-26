@@ -34,7 +34,10 @@ auto parse(T)
         const fileName = "code." ~ extension;
         writeFile(fileName, code.value);
 
-        auto tu = parse_(inSandboxPath(fileName), tuFlags).cursor;
+        auto tu = parse_(inSandboxPath(fileName),
+                         isCpp ? ["-std=c++14"] : [],
+                         tuFlags)
+            .cursor;
         printChildren(tu);
         return tu;
     }
