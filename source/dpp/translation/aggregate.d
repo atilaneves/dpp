@@ -194,7 +194,7 @@ private bool isValueOfType(
         case "int":    tryConvert!int;    break;
         case "uint":   tryConvert!uint;   break;
         case "long":   tryConvert!long;   break;
-        case "ulong":  tryConvert!long;   break;
+        case "ulong":  tryConvert!ulong;  break;
     }
 
     return conversionException is null;
