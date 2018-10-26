@@ -62,7 +62,7 @@ private string translateToD(in string line, in from!"dpp.runtime.context".Contex
     return line
         .replace("->", ".")
         .replaceNull
-        .replaceAll(sizeofRegex, "$1.sizeof")
+        .replaceAll(sizeofRegex, "($1).sizeof")
         .replaceAll(context.castRegex, "cast($1)")
         ;
 }
