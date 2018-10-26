@@ -781,3 +781,38 @@ unittest {
         run("-c", inSandboxPath("app.dpp"));
     }
 }
+
+
+@Tags("issue")
+@("90.0")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                #define TEST(_ARR) ((int)(sizeof(_ARR)/sizeof(*_ARR)))
+            `
+        ),
+        D(
+            q{
+            }
+        ),
+    );
+}
+
+@Tags("issue")
+@("90.1")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                #define TEST(_ARR) ((int)(sizeof(_ARR)/sizeof(_ARR[0])))
+            `
+        ),
+        D(
+            q{
+                int[8] ints;
+                static assert(TEST(ints) == 8);
+            }
+        ),
+    );
+}
