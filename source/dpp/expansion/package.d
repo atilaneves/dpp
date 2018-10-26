@@ -66,7 +66,7 @@ private from!"clang".TranslationUnit parseTU
         ;
 
     if(context.options.parseAsCpp || context.language == Language.Cpp)
-        parseArgs ~= "-xc++";
+        parseArgs ~= ["-xc++", "-std=c++17"];
     else
         parseArgs ~= "-xc";
 
