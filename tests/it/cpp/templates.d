@@ -700,3 +700,20 @@ import it;
         ),
    );
 }
+
+@ShouldFail
+@("value full specialisation")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template <unsigned long A, int B> class C{};
+                template<> class C<3, 4> {};
+            }
+        ),
+        D(
+            q{
+            }
+        ),
+   );
+}

@@ -250,6 +250,7 @@ import it;
 }
 
 
+@ShouldFail
 @Tags("run")
 @("operators")
 @safe unittest {
@@ -479,6 +480,7 @@ import it;
     );
 }
 
+@ShouldFail
 @Tags("run")
 @("templates")
 @safe unittest {
