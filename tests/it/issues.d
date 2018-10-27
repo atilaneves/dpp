@@ -822,12 +822,13 @@ unittest {
 @safe unittest {
     shouldCompile(
         Cpp(
-            `
+            q{
                 constexpr int x = sizeof(int) + (1) + sizeof(int);
-            `
+            }
         ),
         D(
             q{
+                static assert(x == 9);
             }
         ),
     );
