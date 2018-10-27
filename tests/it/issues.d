@@ -817,3 +817,18 @@ unittest {
         ),
     );
 }
+
+@("93")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            `
+                constexpr int x = sizeof(int) + (1) + sizeof(int);
+            `
+        ),
+        D(
+            q{
+            }
+        ),
+    );
+}
