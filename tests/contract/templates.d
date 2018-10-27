@@ -239,7 +239,7 @@ import contract;
 
 
 
-@Tags("contract")
+@Tags("contract", "notravis")
 @("variadic.specialization")
 @safe unittest {
     import clang: Token;
