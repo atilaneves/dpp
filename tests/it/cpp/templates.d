@@ -372,6 +372,7 @@ import it;
 
 
 
+@Tags("notravis")
 @("variadic.specialized")
 @safe unittest {
     shouldCompile(

@@ -225,6 +225,7 @@ import it;
     );
 }
 
+@ShouldFail
 @Tags("issue", "preprocessor")
 @("22.3")
 @safe unittest {
