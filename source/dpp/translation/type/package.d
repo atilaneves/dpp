@@ -104,6 +104,7 @@ private string translateRecord(in from!"clang".Type type,
                                in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
 @safe pure
 {
+
     // see it.compile.projects.va_list
     return type.spelling == "struct __va_list_tag"
         ? "va_list"
@@ -115,8 +116,9 @@ private string translateAggregate(in from!"clang".Type type,
                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
     @safe pure
 {
-    import std.array: replace;
-    import std.algorithm: canFind;
+    import std.array: replace, join;
+    import std.algorithm: canFind, countUntil, map;
+    import std.range: iota;
 
     // if it's anonymous, find the nickname, otherwise return the spelling
     string spelling() {
@@ -129,7 +131,32 @@ private string translateAggregate(in from!"clang".Type type,
         // itself has only the name (e.g. random_access_iterator_tag), so we get
         // the spelling from the type's declaration instead of from the type itself.
         // See it.cpp.templates.__copy_move and contract.namespace.struct.
-        return type.spelling.canFind(":") ? type.declaration.spelling : type.spelling;
+        if(type.spelling.canFind(":")) return type.declaration.spelling;
+
+        // Clang template types have a spelling such as `Foo<unsigned int, unsigned short>`.
+        // We need to extract the "base" name (e.g. Foo above) then translate each type
+        // template argument (`unsigned long` is not a D type)
+        if(type.numTemplateArguments > 0) {
+            const openAngleBracketIndex = type.spelling.countUntil("<");
+            const baseName = type.spelling[0 .. openAngleBracketIndex];
+            const templateArgsTranslation = type
+                .numTemplateArguments
+                .iota
+                .map!((i) {
+                    const kind = templateArgumentKind(type.typeTemplateArgument(i));
+                    final switch(kind) with(TemplateArgumentKind) {
+                        case GenericType:
+                        case SpecialisedType:
+                            return translate(type.typeTemplateArgument(i), context, translatingFunction);
+                        case Value:
+                            return templateParameterSpelling(type, i);
+                    }
+                 })
+                .join(", ");
+            return baseName ~ "!(" ~ templateArgsTranslation ~ ")";
+        }
+
+        return type.spelling;
     }
 
     return addModifiers(type, spelling)
@@ -302,11 +329,13 @@ private string translateUnexposed(in from!"clang".Type type,
     @safe pure
 {
     import std.string: replace;
-    // we might get template arguments here
+
     const translation =  type.spelling
         .translateString
+        // we might get template arguments here
         .replace("-", "_")
         ;
+
     return addModifiers(type, translation);
 }
 
@@ -368,4 +397,51 @@ bool isTypeParameter(in from!"clang".Type type) @safe pure nothrow {
     import std.algorithm: canFind;
     // See contract.typedef_.typedef to a template type parameter
     return type.spelling.canFind("type-parameter-");
+}
+
+/**
+   libclang doesn't offer a lot of functionality when it comes to extracting
+   template arguments from structs - this enum is the best we can do.
+ */
+enum TemplateArgumentKind {
+    GenericType,
+    SpecialisedType,
+    Value,  // could be specialised or not
+}
+
+TemplateArgumentKind templateArgumentKind(in from!"clang".Type type) @safe pure nothrow {
+    import clang: Type;
+    if(type.kind == Type.Kind.Invalid) return TemplateArgumentKind.Value;
+    if(type.kind == Type.Kind.Unexposed) return TemplateArgumentKind.GenericType;
+    return TemplateArgumentKind.SpecialisedType;
+}
+
+
+// e.g. template<> struct foo<false, true, int32_t>  ->  0: false, 1: true, 2: int
+private string translateTemplateParamSpecialisation(
+    in from!"clang".Type type,
+    in int index,
+    ref from!"dpp.runtime.context".Context context) @safe pure
+{
+    import clang: Type;
+    return type.kind == Type.Kind.Invalid
+        ? templateParameterSpelling(type, index)
+        : translate(type, context);
+}
+
+
+// returns the indexth template parameter value from a specialised
+// template struct/class cursor (full or partial)
+// e.g. template<> struct Foo<int, 42, double> -> 1: 42
+private string templateParameterSpelling(in from!"clang".Type type, int index) @safe pure {
+    import std.algorithm: findSkip, until, OpenRight;
+    import std.array: empty, save, split, array;
+    import std.conv: text;
+
+    auto spelling = type.spelling.dup;
+    if(!spelling.findSkip("<")) return "";
+
+    auto templateParams = spelling.until(">", OpenRight.yes).array.split(", ");
+
+    return templateParams[index].text;
 }
