@@ -75,20 +75,25 @@ private bool isRecordWithoutDefinition(
     ref from!"dpp.runtime.context".Context context)
     @safe
 {
-    import clang: Type;
+    import clang: Cursor, Type;
 
     const canonicalType = cursor.type.canonical;
 
     if(canonicalType.kind != Type.Kind.Record)
         return false;
 
-
     const declaration = canonicalType.declaration;
     const definition = declaration.definition;
+    const specializedTemplate = declaration.specializedCursorTemplate;
 
     context.log("canonicalType: ", canonicalType);
     context.log("declaration: ", declaration);
     context.log("definition: ", definition);
+    context.log("specialised cursor template: ", specializedTemplate);
 
-    return definition.isInvalid;
+    return
+        definition.isInvalid &&
+        // See #97
+        specializedTemplate.kind != Cursor.Kind.ClassTemplate
+        ;
 }
