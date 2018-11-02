@@ -233,7 +233,7 @@ private auto translateTemplateParams(in from!"clang".Cursor cursor,
         return maybeType ~ spelling;
     }
 
-    auto templateParams = templateParams(cursor);
+    auto templateParams = cursor.templateParams;
     auto translated = templateParams.map!translateTemplateParam.array;
 
     // might need to be a variadic parameter
@@ -253,24 +253,6 @@ private auto translateTemplateParams(in from!"clang".Cursor cursor,
     }();
 }
 
-// returns a range of cursors
-private auto templateParams(in from!"clang".Cursor cursor)
-    @safe
-{
-
-    import clang: Cursor;
-    import std.algorithm: filter;
-
-    const templateCursor = cursor.kind == Cursor.Kind.ClassTemplate
-        ? cursor
-        : cursor.specializedCursorTemplate;
-
-    return templateCursor
-        .children
-        .filter!(a => a.kind == Cursor.Kind.TemplateTypeParameter || a.kind == Cursor.Kind.NonTypeTemplateParameter)
-        ;
-}
-
 // If the original template is variadic
 private bool isFromVariadicTemplate(in from!"clang".Cursor cursor) @safe {
     return isVariadicTemplate(cursor.specializedCursorTemplate);
@@ -281,7 +263,7 @@ private bool isVariadicTemplate(in from!"clang".Cursor cursor) @safe {
     import std.array: array;
     import std.algorithm: canFind, countUntil;
 
-    const templateParamChildren = () @trusted { return templateParams(cursor).array; }();
+    const templateParamChildren = () @trusted { return cursor.templateParams.array; }();
 
     // There might be a "..." token inside the body of the struct/class, and we don't want to
     // look at that. So instead we stop looking at tokens when the struct/class definition begins.

@@ -416,7 +416,6 @@ TemplateArgumentKind templateArgumentKind(in from!"clang".Type type) @safe pure 
     return TemplateArgumentKind.SpecialisedType;
 }
 
-
 // e.g. template<> struct foo<false, true, int32_t>  ->  0: false, 1: true, 2: int
 string translateTemplateParamSpecialisation(
     in from!"clang".Type templateType,
