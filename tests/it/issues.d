@@ -855,7 +855,6 @@ unittest {
 }
 
 
-
 @Tags("issue")
 @("93")
 @safe unittest {
@@ -872,6 +871,25 @@ unittest {
         ),
     );
 }
+
+
+@Tags("issue")
+@("95")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                constexpr int x = sizeof(int) + alignof(int) + sizeof(int);
+            }
+        ),
+        D(
+            q{
+                static assert(x == 12);
+            }
+        ),
+    );
+}
+
 
 @Tags("issue")
 @("96")
