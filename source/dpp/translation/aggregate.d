@@ -159,6 +159,7 @@ private bool isValueOfType(
     import std.array: array;
     import std.exception: collectException;
     import std.conv: to;
+    import core.stdc.config: c_long, c_ulong;
 
     // the original template cursor (no specialisations)
     const templateCursor = cursor.specializedCursorTemplate;
@@ -175,16 +176,18 @@ private bool isValueOfType(
 
     switch(dtype) {
         default: throw new Exception("isValueOfType cannot handle type `" ~ dtype ~ "`");
-        case "bool":   tryConvert!bool;   break;
-        case "char":   tryConvert!char;   break;
-        case "wchar":  tryConvert!wchar;  break;
-        case "dchar":  tryConvert!dchar;  break;
-        case "short":  tryConvert!short;  break;
-        case "ushort": tryConvert!ushort; break;
-        case "int":    tryConvert!int;    break;
-        case "uint":   tryConvert!uint;   break;
-        case "long":   tryConvert!long;   break;
-        case "ulong":  tryConvert!ulong;  break;
+        case "bool":    tryConvert!bool;    break;
+        case "char":    tryConvert!char;    break;
+        case "wchar":   tryConvert!wchar;   break;
+        case "dchar":   tryConvert!dchar;   break;
+        case "short":   tryConvert!short;   break;
+        case "ushort":  tryConvert!ushort;  break;
+        case "int":     tryConvert!int;     break;
+        case "uint":    tryConvert!uint;    break;
+        case "long":    tryConvert!long;    break;
+        case "ulong":   tryConvert!ulong;   break;
+        case "c_ulong": tryConvert!c_ulong; break;
+        case "c_long":  tryConvert!c_long;  break;
     }
 
     return conversionException is null;

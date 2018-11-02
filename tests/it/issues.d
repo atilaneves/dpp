@@ -873,7 +873,6 @@ unittest {
     );
 }
 
-@ShouldFail
 @Tags("issue")
 @("96")
 @safe unittest {
