@@ -10,59 +10,33 @@ string translateTokens(in from!"clang".Token[] tokens) @safe pure {
     import std.array: array, join;
 
     return tokens
-        .translateSizeof
-        .translateAlignof
+        .translateProperty("sizeof")
+        .translateProperty("alignof")
         .map!(a => a.spelling.translateString)
         .join;
 }
 
 
-// sizeof(foo) -> foo.sizeof
-private auto translateSizeof(const(from!"clang".Token)[] tokens) @safe pure {
+// sizeof(foo) -> foo.sizeof, alignof(foo) -> foo.alignof
+private auto translateProperty(const(from!"clang".Token)[] tokens, in string property) @safe pure {
     import dpp.translation.type: translateString;
     import clang: Token;
     import std.algorithm: countUntil, map;
     import std.array: join, replace;
 
     for(;;) {
-        const indexSizeof = tokens.countUntil!(a => a.kind == Token.Kind.Keyword && a.spelling == "sizeof");
-        if(indexSizeof == -1) return tokens;
-        const indexCloseParen = indexSizeof + tokens[indexSizeof..$].countUntil!(a => a.kind == Token.Kind.Punctuation && a.spelling == ")");
+        const indexProperty = tokens.countUntil!(a => a.kind == Token.Kind.Keyword && a.spelling == property);
+        if(indexProperty == -1) return tokens;
+        const indexCloseParen = indexProperty + tokens[indexProperty..$].countUntil!(a => a.kind == Token.Kind.Punctuation && a.spelling == ")");
         const newTokenSpelling =
-            "(" ~ tokens[indexSizeof + 2 .. indexCloseParen]
+            "(" ~ tokens[indexProperty + 2 .. indexCloseParen]
             .map!(a => a.spelling)
             .join(" ")
-            ~ ").sizeof"
+            ~ ")." ~ property
             ;
 
         tokens =
-            tokens[0 .. indexSizeof] ~
-            Token(Token.Kind.Literal, newTokenSpelling.translateString) ~
-            tokens[indexCloseParen + 1 .. $];
-    }
-}
-
-
-// alignof(foo) -> foo.alignof
-private auto translateAlignof(const(from!"clang".Token)[] tokens) @safe pure {
-    import dpp.translation.type: translateString;
-    import clang: Token;
-    import std.algorithm: countUntil, map;
-    import std.array: join, replace;
-
-    for(;;) {
-        const indexAlignof = tokens.countUntil!(a => a.kind == Token.Kind.Keyword && a.spelling == "alignof");
-        if(indexAlignof == -1) return tokens;
-        const indexCloseParen = indexAlignof + tokens[indexAlignof..$].countUntil!(a => a.kind == Token.Kind.Punctuation && a.spelling == ")");
-        const newTokenSpelling =
-            "(" ~ tokens[indexAlignof + 2 .. indexCloseParen]
-            .map!(a => a.spelling)
-            .join(" ")
-            ~ ").alignof"
-            ;
-
-        tokens =
-            tokens[0 .. indexAlignof] ~
+            tokens[0 .. indexProperty] ~
             Token(Token.Kind.Literal, newTokenSpelling.translateString) ~
             tokens[indexCloseParen + 1 .. $];
     }
