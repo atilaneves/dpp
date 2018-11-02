@@ -929,6 +929,29 @@ unittest {
 }
 
 
+@Tags("issue")
+@("99")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                class A {
+                    constexpr static int i = 0;
+                    constexpr static int j = A::i;
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(A.i == 0);
+                static assert(A.j == 0);
+            }
+        ),
+    );
+}
+
+
+
 @ShouldFail("cursor.enumConstantValue returning 0 for `value = I`")
 @Tags("issue")
 @("100")

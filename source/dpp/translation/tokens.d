@@ -5,12 +5,13 @@ import dpp.from;
 
 
 string translateTokens(in from!"clang".Token[] tokens) @safe pure {
+    import dpp.translation.type: translateString;
     import std.algorithm: map;
     import std.array: array, join;
 
     return tokens
         .translateSizeof
-        .map!(a => a.spelling)
+        .map!(a => a.spelling.translateString)
         .join;
 }
 
