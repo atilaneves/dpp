@@ -907,13 +907,11 @@ unittest {
         Cpp(
             q{
                 class T1 {
-                    enum { value = 42 };
                     int i;
                 };
 
                 template<int I>
                 class T2 {
-                    enum { value = I };
                     double d;
                 };
 
@@ -925,6 +923,34 @@ unittest {
             q{
                 a.i = 33;
                 b.d = 33.3;
+            }
+        ),
+    );
+}
+
+
+@ShouldFail("cursor.enumConstantValue returning 0 for `value = I`")
+@Tags("issue")
+@("100")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                class T1 {
+                    enum { value = 42 };
+                };
+
+                template<int I>
+                class T2 {
+                    enum { value = I };
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(T1.value == 42);
+                static assert(T2!2.value == 2);
+                static assert(T2!3.value == 3);
             }
         ),
     );
