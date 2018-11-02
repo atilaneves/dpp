@@ -1,5 +1,6 @@
 module ut.old.type;
 
+import dpp.from;
 import dpp.test;
 import dpp.translation.type;
 import clang: Type;
