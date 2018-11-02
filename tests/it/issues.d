@@ -856,6 +856,7 @@ unittest {
 
 
 
+@Tags("issue")
 @("93")
 @safe unittest {
     shouldCompile(
@@ -867,6 +868,33 @@ unittest {
         D(
             q{
                 static assert(x == 9);
+            }
+        ),
+    );
+}
+
+@ShouldFail
+@Tags("issue")
+@("96")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<unsigned long A, int B> class C{
+                    enum { value = 0 };
+                };
+                template<> class C<3,4> {
+                    enum { value = 1 };
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(C!(0, 0).value == 0);
+                static assert(C!(0, 1).value == 0);
+                static assert(C!(1, 0).value == 0);
+
+                static assert(C!(3, 4).value == 1);
             }
         ),
     );
