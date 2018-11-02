@@ -4,9 +4,9 @@ sudo: false
 matrix:
   include:
     - d: dmd-nightly
+    - d: dmd-2.082.1
     - d: dmd-2.081.2
     - d: dmd-2.080.1
-    - d: dmd-2.079.1
   allow_failures:
     - d: dmd-nightly
 
