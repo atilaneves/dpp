@@ -818,6 +818,44 @@ unittest {
     );
 }
 
+@Tags("issue")
+@("91.0")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template <typename T, typename U> class Test {};
+                void test(Test<unsigned short, unsigned int> a);
+            }
+        ),
+        D(
+            q{
+                test(Test!(ushort, uint)());
+            }
+        ),
+    );
+}
+
+@Tags("issue")
+@("91.1")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template <typename T, int> class Test {};
+                void test(Test<unsigned short, 42> a);
+            }
+        ),
+        D(
+            q{
+                test(Test!(ushort, 42)());
+            }
+        ),
+    );
+}
+
+
+
 @("93")
 @safe unittest {
     shouldCompile(

@@ -72,11 +72,13 @@ private string[] translateStrass(in from!"clang".Cursor cursor,
 
 // Deal with full and partial template specialisations
 // returns a range of string
-private string[] translateSpecialisedTemplateParams(in from!"clang".Cursor cursor,
-                                                    ref from!"dpp.runtime.context".Context context)
+private string[] translateSpecialisedTemplateParams(
+    in from!"clang".Cursor cursor,
+    ref from!"dpp.runtime.context".Context context)
     @safe
 {
-    import dpp.translation.type: translate;
+    import dpp.translation.type: translate, templateArgumentKind, TemplateArgumentKind,
+        translateTemplateParamSpecialisation;
     import clang: Type;
     import std.algorithm: map;
     import std.range: iota;
@@ -94,32 +96,20 @@ private string[] translateSpecialisedTemplateParams(in from!"clang".Cursor curso
         .array;
     }();
 
-    // e.g. template<> struct foo<false, true, int32_t> -> 0:false, 1:true, 2: int
-    string translateTemplateParamSpecialisation(in Type type, in int index) {
-        return type.kind == Type.Kind.Invalid
-            ? templateParameterSpelling(cursor, index)
-            : translate(type, context);
-    }
-
     // e.g. for template<> struct foo<false, true, int32_t>
-    // 0 -> bool V0: false, 1 -> bool V1: true, 2 -> T0: int
-    string element(in Type type, in int index) {
+    // 0 -> `bool V0: false`, 1 -> `bool V1: true`, 2 -> `T0: int`
+    string element(in Type templateArgType, in int index) {
         string ret = translatedTemplateParams[index];  // e.g. `T`,  `bool V0`
-        const maybeSpecialisation = translateTemplateParamSpecialisation(type, index);
+        const maybeSpecialisation = translateTemplateParamSpecialisation(cursor.type, templateArgType, index, context);
+        const templateArgKind = templateArgumentKind(templateArgType);
 
-        // type template arguments may be:
-        // Invalid - value (could be specialised or not)
-        // Unexposed - non-specialised type or
-        // anything else - specialised type
-        // The trick is figuring out if a value is specialised or not
-        const isValue = type.kind == Type.Kind.Invalid;
-        const isType = !isValue;
-        const isSpecialised =
-            (isValue && isValueOfType(cursor, context, index, maybeSpecialisation))
-            ||
-            (isType && type.kind != Type.Kind.Unexposed);
+        with(TemplateArgumentKind) {
+            const isSpecialised =
+                templateArgKind == SpecialisedType ||
+                (templateArgKind == Value && isValueOfType(cursor, context, index, maybeSpecialisation));
 
-        if(isSpecialised) ret ~= ": " ~ maybeSpecialisation;
+            if(isSpecialised) ret ~= ": " ~ maybeSpecialisation;
+        }
 
         return ret;
     }
@@ -200,21 +190,6 @@ private bool isValueOfType(
     return conversionException is null;
 }
 
-// returns the indexth template parameter value from a specialised
-// template struct/class cursor (full or partial)
-// e.g. template<> struct Foo<int, 42, double> -> 1: 42
-private string templateParameterSpelling(in from!"clang".Cursor cursor, int index) {
-    import std.algorithm: findSkip, until, OpenRight;
-    import std.array: empty, save, split, array;
-    import std.conv: text;
-
-    auto spelling = cursor.type.spelling.dup;
-    if(!spelling.findSkip("<")) return "";
-
-    auto templateParams = spelling.until(">", OpenRight.yes).array.split(", ");
-
-    return templateParams[index].text;
-}
 
 // Translates a C++ template parameter (value or type) to a D declaration
 // e.g. template<typename, bool, typename> -> ["T0", "bool V0", "T1"]
@@ -255,7 +230,7 @@ private auto translateTemplateParams(in from!"clang".Cursor cursor,
         return maybeType ~ spelling;
     }
 
-    auto templateParams = templateParams(cursor);
+    auto templateParams = cursor.templateParams;
     auto translated = templateParams.map!translateTemplateParam.array;
 
     // might need to be a variadic parameter
@@ -275,24 +250,6 @@ private auto translateTemplateParams(in from!"clang".Cursor cursor,
     }();
 }
 
-// returns a range of cursors
-private auto templateParams(in from!"clang".Cursor cursor)
-    @safe
-{
-
-    import clang: Cursor;
-    import std.algorithm: filter;
-
-    const templateCursor = cursor.kind == Cursor.Kind.ClassTemplate
-        ? cursor
-        : cursor.specializedCursorTemplate;
-
-    return templateCursor
-        .children
-        .filter!(a => a.kind == Cursor.Kind.TemplateTypeParameter || a.kind == Cursor.Kind.NonTypeTemplateParameter)
-        ;
-}
-
 // If the original template is variadic
 private bool isFromVariadicTemplate(in from!"clang".Cursor cursor) @safe {
     return isVariadicTemplate(cursor.specializedCursorTemplate);
@@ -303,7 +260,7 @@ private bool isVariadicTemplate(in from!"clang".Cursor cursor) @safe {
     import std.array: array;
     import std.algorithm: canFind, countUntil;
 
-    const templateParamChildren = () @trusted { return templateParams(cursor).array; }();
+    const templateParamChildren = () @trusted { return cursor.templateParams.array; }();
 
     // There might be a "..." token inside the body of the struct/class, and we don't want to
     // look at that. So instead we stop looking at tokens when the struct/class definition begins.
