@@ -900,7 +900,6 @@ unittest {
 }
 
 
-@ShouldFail
 @Tags("issue")
 @("97")
 @safe unittest {
@@ -915,7 +914,7 @@ unittest {
                 template<int I>
                 class T2 {
                     enum { value = I };
-                    double i;
+                    double d;
                 };
 
                 extern T1 a;
@@ -924,10 +923,6 @@ unittest {
         ),
         D(
             q{
-                static assert(T1.value == 42);
-                static assert(T2!2.value == 2);
-                static assert(T2!3.value == 3);
-
                 a.i = 33;
                 b.d = 33.3;
             }
