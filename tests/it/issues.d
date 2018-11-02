@@ -898,3 +898,39 @@ unittest {
         ),
     );
 }
+
+
+@ShouldFail
+@Tags("issue")
+@("97")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                class T1 {
+                    enum { value = 42 };
+                    int i;
+                };
+
+                template<int I>
+                class T2 {
+                    enum { value = I };
+                    double i;
+                };
+
+                extern T1 a;
+                extern T2<3> b;
+            }
+        ),
+        D(
+            q{
+                static assert(T1.value == 42);
+                static assert(T2!2.value == 2);
+                static assert(T2!3.value == 3);
+
+                a.i = 33;
+                b.d = 33.3;
+            }
+        ),
+    );
+}
