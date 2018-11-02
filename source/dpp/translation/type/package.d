@@ -339,11 +339,21 @@ private string translateUnexposed(in from!"clang".Type type,
     return addModifiers(type, translation);
 }
 
+/**
+   Translate possibly problematic C++ spellings
+ */
 string translateString(in string spelling) @safe pure nothrow {
     import std.string: replace;
-    return spelling
-        .replace("<", "!(")
-        .replace(">", ")")
+    import std.algorithm: canFind;
+
+    string maybeTranslateTemplateBrackets(in string str) {
+        return str.canFind("<") && str.canFind(">")
+            ? str.replace("<", "!(").replace(">", ")")
+            : str;
+    }
+
+    return
+        maybeTranslateTemplateBrackets(spelling)
         .replace("decltype", "typeof")
         .replace("typename ", "")
         .replace("template ", "")

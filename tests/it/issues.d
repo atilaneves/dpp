@@ -929,7 +929,6 @@ unittest {
 }
 
 
-@ShouldFail
 @Tags("issue")
 @("99")
 @safe unittest {
