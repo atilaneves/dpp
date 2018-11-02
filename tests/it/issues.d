@@ -818,6 +818,25 @@ unittest {
     );
 }
 
+@ShouldFail
+@("91")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template <typename T, typename U> class Test {};
+                void test(Test<unsigned short, unsigned int> a);
+            }
+        ),
+        D(
+            q{
+
+            }
+        ),
+    );
+}
+
+
 @("93")
 @safe unittest {
     shouldCompile(
