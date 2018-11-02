@@ -418,14 +418,25 @@ TemplateArgumentKind templateArgumentKind(in from!"clang".Type type) @safe pure 
 
 
 // e.g. template<> struct foo<false, true, int32_t>  ->  0: false, 1: true, 2: int
-private string translateTemplateParamSpecialisation(
+string translateTemplateParamSpecialisation(
+    in from!"clang".Type templateType,
+    in int index,
+    ref from!"dpp.runtime.context".Context context) @safe pure
+{
+    return translateTemplateParamSpecialisation(templateType, templateType, index, context);
+}
+
+
+// e.g. template<> struct foo<false, true, int32_t>  ->  0: false, 1: true, 2: int
+string translateTemplateParamSpecialisation(
+    in from!"clang".Type cursorType,
     in from!"clang".Type type,
     in int index,
     ref from!"dpp.runtime.context".Context context) @safe pure
 {
     import clang: Type;
     return type.kind == Type.Kind.Invalid
-        ? templateParameterSpelling(type, index)
+        ? templateParameterSpelling(cursorType, index)
         : translate(type, context);
 }
 
@@ -433,12 +444,12 @@ private string translateTemplateParamSpecialisation(
 // returns the indexth template parameter value from a specialised
 // template struct/class cursor (full or partial)
 // e.g. template<> struct Foo<int, 42, double> -> 1: 42
-private string templateParameterSpelling(in from!"clang".Type type, int index) @safe pure {
+string templateParameterSpelling(in from!"clang".Type cursorType, int index) @safe pure {
     import std.algorithm: findSkip, until, OpenRight;
     import std.array: empty, save, split, array;
     import std.conv: text;
 
-    auto spelling = type.spelling.dup;
+    auto spelling = cursorType.spelling.dup;
     if(!spelling.findSkip("<")) return "";
 
     auto templateParams = spelling.until(">", OpenRight.yes).array.split(", ");

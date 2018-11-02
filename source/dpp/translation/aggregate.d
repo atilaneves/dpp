@@ -76,7 +76,7 @@ private string[] translateSpecialisedTemplateParams(in from!"clang".Cursor curso
                                                     ref from!"dpp.runtime.context".Context context)
     @safe
 {
-    import dpp.translation.type: translate;
+    import dpp.translation.type: translate, translateTemplateParamSpecialisation;
     import clang: Type;
     import std.algorithm: map;
     import std.range: iota;
@@ -94,18 +94,11 @@ private string[] translateSpecialisedTemplateParams(in from!"clang".Cursor curso
         .array;
     }();
 
-    // e.g. template<> struct foo<false, true, int32_t> -> 0:false, 1:true, 2: int
-    string translateTemplateParamSpecialisation(in Type type, in int index) {
-        return type.kind == Type.Kind.Invalid
-            ? templateParameterSpelling(cursor, index)
-            : translate(type, context);
-    }
-
     // e.g. for template<> struct foo<false, true, int32_t>
     // 0 -> `bool V0: false`, 1 -> `bool V1: true`, 2 -> `T0: int`
     string element(in Type type, in int index) {
         string ret = translatedTemplateParams[index];  // e.g. `T`,  `bool V0`
-        const maybeSpecialisation = translateTemplateParamSpecialisation(type, index);
+        const maybeSpecialisation = translateTemplateParamSpecialisation(cursor.type, type, index, context);
 
         // type template arguments may be:
         // Invalid - value (could be specialised or not)
@@ -200,21 +193,6 @@ private bool isValueOfType(
     return conversionException is null;
 }
 
-// returns the indexth template parameter value from a specialised
-// template struct/class cursor (full or partial)
-// e.g. template<> struct Foo<int, 42, double> -> 1: 42
-private string templateParameterSpelling(in from!"clang".Cursor cursor, int index) {
-    import std.algorithm: findSkip, until, OpenRight;
-    import std.array: empty, save, split, array;
-    import std.conv: text;
-
-    auto spelling = cursor.type.spelling.dup;
-    if(!spelling.findSkip("<")) return "";
-
-    auto templateParams = spelling.until(">", OpenRight.yes).array.split(", ");
-
-    return templateParams[index].text;
-}
 
 // Translates a C++ template parameter (value or type) to a D declaration
 // e.g. template<typename, bool, typename> -> ["T0", "bool V0", "T1"]
