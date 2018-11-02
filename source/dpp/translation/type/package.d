@@ -409,6 +409,11 @@ enum TemplateArgumentKind {
     Value,  // could be specialised or not
 }
 
+// type template arguments may be:
+// Invalid - value (could be specialised or not)
+// Unexposed - non-specialised type or
+// anything else - specialised type
+// The trick is figuring out if a value is specialised or not
 TemplateArgumentKind templateArgumentKind(in from!"clang".Type type) @safe pure nothrow {
     import clang: Type;
     if(type.kind == Type.Kind.Invalid) return TemplateArgumentKind.Value;

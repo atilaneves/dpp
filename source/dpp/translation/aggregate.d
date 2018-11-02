@@ -72,11 +72,13 @@ private string[] translateStrass(in from!"clang".Cursor cursor,
 
 // Deal with full and partial template specialisations
 // returns a range of string
-private string[] translateSpecialisedTemplateParams(in from!"clang".Cursor cursor,
-                                                    ref from!"dpp.runtime.context".Context context)
+private string[] translateSpecialisedTemplateParams(
+    in from!"clang".Cursor cursor,
+    ref from!"dpp.runtime.context".Context context)
     @safe
 {
-    import dpp.translation.type: translate, translateTemplateParamSpecialisation;
+    import dpp.translation.type: translate, templateArgumentKind, TemplateArgumentKind,
+        translateTemplateParamSpecialisation;
     import clang: Type;
     import std.algorithm: map;
     import std.range: iota;
@@ -96,23 +98,18 @@ private string[] translateSpecialisedTemplateParams(in from!"clang".Cursor curso
 
     // e.g. for template<> struct foo<false, true, int32_t>
     // 0 -> `bool V0: false`, 1 -> `bool V1: true`, 2 -> `T0: int`
-    string element(in Type type, in int index) {
+    string element(in Type templateArgType, in int index) {
         string ret = translatedTemplateParams[index];  // e.g. `T`,  `bool V0`
-        const maybeSpecialisation = translateTemplateParamSpecialisation(cursor.type, type, index, context);
+        const maybeSpecialisation = translateTemplateParamSpecialisation(cursor.type, templateArgType, index, context);
+        const templateArgKind = templateArgumentKind(templateArgType);
 
-        // type template arguments may be:
-        // Invalid - value (could be specialised or not)
-        // Unexposed - non-specialised type or
-        // anything else - specialised type
-        // The trick is figuring out if a value is specialised or not
-        const isValue = type.kind == Type.Kind.Invalid;
-        const isType = !isValue;
-        const isSpecialised =
-            (isValue && isValueOfType(cursor, context, index, maybeSpecialisation))
-            ||
-            (isType && type.kind != Type.Kind.Unexposed);
+        with(TemplateArgumentKind) {
+            const isSpecialised =
+                templateArgKind == SpecialisedType ||
+                (templateArgKind == Value && isValueOfType(cursor, context, index, maybeSpecialisation));
 
-        if(isSpecialised) ret ~= ": " ~ maybeSpecialisation;
+            if(isSpecialised) ret ~= ": " ~ maybeSpecialisation;
+        }
 
         return ret;
     }
