@@ -1,12 +1,11 @@
 language: d
 sudo: false
 
+
 matrix:
   include:
     - d: dmd-nightly
-    - d: dmd-2.082.1
-    - d: dmd-2.081.2
-    - d: dmd-2.080.1
+    - d: dmd-2.083.0
   allow_failures:
     - d: dmd-nightly
 
@@ -19,6 +18,7 @@ addons:
       - libclang-3.9-dev
       - g++-7
 
+
 install:
   - gem install bundler
   - bundle install
@@ -26,6 +26,7 @@ install:
 
 script:
   - ./ci.sh
+
 
 after_success:
  - bash <(curl -s https://codecov.io/bash)
