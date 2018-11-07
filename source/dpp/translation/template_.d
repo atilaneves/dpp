@@ -43,6 +43,15 @@ package string[] translateSpecialisedTemplateParams(
     // e.g. for template<> struct foo<false, true, int32_t>
     // 0 -> `bool V0: false`, 1 -> `bool V1: true`, 2 -> `T0: int`
     string element(in Type templateArgType, in int index) {
+
+        import dpp.translation.exception: UntranslatableException;
+
+        if(templateArgType.isConstQualified)
+            throw new UntranslatableException("Cannot translate const template type parameter specialisation");
+
+        if(templateArgType.isVolatileQualified)
+            throw new UntranslatableException("Cannot translate volatile template type parameter specialisation");
+
         string ret = translatedTemplateParams[index];  // e.g. `T`,  `bool V0`
         const maybeSpecialisation = translateTemplateParamSpecialisation(cursor.type, templateArgType, index, context);
         const templateArgKind = templateArgumentKind(templateArgType);
@@ -172,7 +181,6 @@ package auto translateTemplateParams(in from!"clang".Cursor cursor,
 
         // D requires template parameters to have names
         const spelling = cursor.spelling == "" ? newTemplateParamName : cursor.spelling;
-        context.log("   *** ", cursor.tokens);
 
         // There's no direct way to extract default template parameters from libclang
         // so we search for something like `T = Foo` in the tokens

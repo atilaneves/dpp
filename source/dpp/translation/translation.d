@@ -59,6 +59,7 @@ string[] translate(in from!"clang".Cursor cursor,
     @safe
 {
     import dpp.runtime.context: Language;
+    import dpp.translation.exception: UntranslatableException;
     import std.conv: text;
     import std.algorithm: canFind;
 
@@ -67,7 +68,6 @@ string[] translate(in from!"clang".Cursor cursor,
     if(context.language == Language.Cpp && ignoredCppCursorSpellings.canFind(cursor.spelling)) {
         return [];
     }
-
 
     if(cursor.kind !in translators) {
         if(context.options.hardFail)
@@ -84,15 +84,33 @@ string[] translate(in from!"clang".Cursor cursor,
 
     try
         return translators[cursor.kind](cursor, context);
-    catch(Exception e) {
-        import std.stdio: stderr;
+    catch(UntranslatableException e) {
+
         debug {
+            import std.stdio: stderr;
+            () @trusted {
+                stderr.writeln("\nUntranslatable cursor ", cursor,
+                               " sourceRange: ", cursor.sourceRange,
+                               " children: ", cursor.children, "\n");
+            }();
+        }
+
+        if(context.options.hardFail)
+            throw e;
+        else
+            return [];
+
+    } catch(Exception e) {
+
+        debug {
+            import std.stdio: stderr;
             () @trusted {
                 stderr.writeln("\nCould not translate cursor ", cursor,
                                " sourceRange: ", cursor.sourceRange,
                                " children: ", cursor.children, "\n");
             }();
         }
+
         throw e;
     }
 }

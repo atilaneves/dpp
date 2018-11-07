@@ -724,3 +724,35 @@ import it;
         ),
    );
 }
+
+@("specialisation for cv")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template <typename T>
+                struct Allocator {
+                    using Type = void;
+                    enum { value = 0 };
+                };
+
+                template <typename T>
+                struct Allocator<const T> {
+                    using Type = short;
+                };
+
+                template <typename T>
+                struct Allocator<volatile T> {
+                    using Type = float;
+                };
+            }
+        ),
+        D(
+            q{
+                // we can't specialise on const
+                static assert(is(Allocator!int.Type == void), Allocator!int.Type.stringof);
+                static assert(is(Allocator!(const int).Type == void), Allocator!(const int).Type.stringof);
+            }
+        ),
+   );
+}
