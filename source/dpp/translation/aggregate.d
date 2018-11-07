@@ -685,7 +685,7 @@ private string[] maybeOperators(in from!"clang".Cursor cursor, in string name)
 
     if(hasOperator(">") && hasOperator("<") && hasOperator("==")) {
         lines ~=  [
-            `int opCmp(` ~ name ~ ` other) const`,
+            `int opCmp()(` ~ name ~ ` other) const`,
             `{`,
             `    if(this.opCppLess(other)) return -1;`,
             `    if(this.opCppMore(other)) return  1;`,

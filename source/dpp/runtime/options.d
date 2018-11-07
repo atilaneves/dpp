@@ -28,6 +28,7 @@ struct Options {
     string[] defines;
     bool earlyExit;
     bool hardFail;
+    bool cppStdLib;
 
     this(string[] args) {
 
@@ -67,6 +68,13 @@ struct Options {
                 .stripExtension
                 ~ exeExtension;
 
+        version(Windows)
+            assert(!cppStdLib, "C++ std lib functionality not implemented yet for Windows");
+
+        if(cppStdLib) {
+            dlangCompilerArgs ~= "-L-lstdc++";
+        }
+
         includePaths = systemPaths ~ includePaths;
     }
 
@@ -96,6 +104,7 @@ struct Options {
                 "parse-as-cpp", "Parse header as C++", &parseAsCpp,
                 "define", "C Preprocessor macro", &defines,
                 "hard-fail", "Translate nothing if any part fails", &hardFail,
+                "c++-std-lib", "Link to the C++ standard library", &cppStdLib,
             );
 
         if(helpInfo.helpWanted) {

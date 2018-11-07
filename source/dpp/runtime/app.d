@@ -20,7 +20,12 @@ void run(in from!"dpp.runtime.options".Options options) @safe {
 
     if(options.preprocessOnly) return;
 
-    const args = options.dlangCompiler ~ options.dlangCompilerArgs;
+    // See #102. We need some C++ boilerplate to link to the application.
+    scope(exit) if(options.cppStdLib) remove(CppBoilerplateCode.objFileName);
+    if(options.cppStdLib) CppBoilerplateCode.generate;
+    const cppExtraArgs = options.cppStdLib ? [CppBoilerplateCode.objFileName] : [];
+
+    const args = options.dlangCompiler ~ options.dlangCompilerArgs ~ cppExtraArgs;
     const res = execute(args);
     enforce(res.status == 0, "Could not execute `" ~ args.join(" ") ~ "`:\n" ~ res.output);
 
@@ -29,6 +34,65 @@ void run(in from!"dpp.runtime.options".Options options) @safe {
             remove(fileName);
     }
 }
+
+
+// See #102. We need some C++ boilerplate to link to the application.
+private struct CppBoilerplateCode {
+
+    enum baseFileName = "cpp_boilerplate";
+    enum srcFileName = baseFileName ~ ".cpp";
+    version(Windows)
+        enum objFileName = baseFileName ~ ".obj";
+    else
+        enum objFileName = baseFileName ~ ".o";
+
+
+    static void generate() @safe {
+
+        import std.stdio: File;
+        import std.file: remove;
+
+        writeSrcFile;
+        scope(exit) remove(srcFileName);
+        compileSrcFile;
+    }
+
+    ~this() @safe {
+        import std.file: remove;
+        remove(objFileName);
+    }
+
+    static void writeSrcFile() @safe {
+        import std.stdio: File;
+
+        auto file = File(srcFileName, "w");
+        file.writeln(`#include <vector>`);
+        file.writeln(`void cpp_stdlib_boilerplate_dpp() {`);
+        file.writeln(`    std::vector<bool> v;`);
+        file.writeln(`    (void) (v[0] == v[0]);`);
+        file.writeln(`    (void) (v.begin() == v.begin());`);
+        file.writeln(`}`);
+    }
+
+    static void compileSrcFile() @safe {
+        import std.process: execute;
+        import std.file: exists;
+
+        const args = ["-c", srcFileName];
+        const gccArgs = "g++" ~ args;
+        const clangArgs = "clang++" ~ args;
+
+        scope(success) assert(exists(objFileName), objFileName ~ " was expected to exist but did not");
+
+        const gccRet = execute(gccArgs);
+        if(gccRet.status == 0) return;
+
+        const clangRet = execute(clangArgs);
+        if(clangRet.status != 0)
+            throw new Exception("Could not compile C++ boilerplate with either gcc or clang");
+    }
+}
+
 
 /**
    Preprocesses a quasi-D file, expanding #include directives inline while

@@ -213,12 +213,14 @@ private string operatorSpellingD(in from!"clang".Cursor cursor,
            text("Cursor is neither a unary or binary operator: ", cursor, "@", cursor.sourceRange.start));
     const dFunction = isBinaryOperator(cursor) ? "opBinary" : "opUnary";
 
+    // Some of the operators here have empty parentheses around them. This is to
+    // to make them templates and only be instantiated if needed. See #102.
     switch(cppOperator) {
         default: return dFunction ~ `(string op: "` ~ cppOperator ~ `")`;
-        case "=": return `opAssign`;
-        case "()": return `opCall`;
-        case "[]": return `opIndex`;
-        case "==": return `opEquals`;
+        case "=": return `opAssign()`;
+        case "()": return `opCall()`;
+        case "[]": return `opIndex()`;
+        case "==": return `opEquals()`;
     }
 }
 
