@@ -703,6 +703,7 @@ import it;
 }
 
 @("default template type parameter")
+@Tags("notravis")
 @safe unittest {
     shouldCompile(
         Cpp(
