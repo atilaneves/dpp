@@ -13,8 +13,4 @@ struct Namespace {
     string[] pop(ref bool[string] globalAliases) @safe pure {
         return [`}`];
     }
-
-    void addSymbol(in string symbol) @safe pure {
-
-    }
 }

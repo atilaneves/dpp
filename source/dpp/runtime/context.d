@@ -341,10 +341,6 @@ struct Context {
     string[] popNamespace() @safe pure {
         return _namespace.pop(_alreadyAliasedNamespaceSymbols);
     }
-
-    void addNamespaceSymbol(in string symbol) @safe pure {
-        _namespace.addSymbol(symbol);
-    }
 }
 
 
