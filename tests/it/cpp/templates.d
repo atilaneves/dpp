@@ -725,8 +725,7 @@ import it;
    );
 }
 
-@ShouldFail
-@("specialisation for const")
+@("specialisation for cv")
 @safe unittest {
     shouldCompile(
         Cpp(
@@ -741,12 +740,18 @@ import it;
                 struct Allocator<const T> {
                     using Type = short;
                 };
+
+                template <typename T>
+                struct Allocator<volatile T> {
+                    using Type = float;
+                };
             }
         ),
         D(
             q{
+                // we can't specialise on const
                 static assert(is(Allocator!int.Type == void), Allocator!int.Type.stringof);
-                static assert(is(Allocator!(const int).Type == short), Allocator!(const int).Type.stringof);
+                static assert(is(Allocator!(const int).Type == void), Allocator!(const int).Type.stringof);
             }
         ),
    );
