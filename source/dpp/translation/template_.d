@@ -172,7 +172,6 @@ package auto translateTemplateParams(in from!"clang".Cursor cursor,
 
         // D requires template parameters to have names
         const spelling = cursor.spelling == "" ? newTemplateParamName : cursor.spelling;
-        context.log("   *** ", cursor.tokens);
 
         // There's no direct way to extract default template parameters from libclang
         // so we search for something like `T = Foo` in the tokens
