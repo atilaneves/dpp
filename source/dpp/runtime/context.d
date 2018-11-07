@@ -23,7 +23,6 @@ enum Language {
 struct Context {
 
     import dpp.runtime.options: Options;
-    import dpp.runtime.namespace: Namespace;
     import clang: Cursor;
 
     alias SeenCursors = bool[CursorId];
@@ -87,11 +86,6 @@ struct Context {
      */
     private SeenCursors seenCursors;
 
-    /**
-       Deals with C++ namespaces
-     */
-    private Namespace _namespace;
-
     /// Command-line options
     Options options;
 
@@ -109,10 +103,6 @@ struct Context {
     private int _anonymousIndex;
 
     const(Language) language;
-
-    // Since we have to do a hack to get namespace symbols in the global scope,
-    // we remember the ones already aliased to not repeat them
-    private bool[string] _alreadyAliasedNamespaceSymbols;
 
     this(Options options, in Language language) @safe pure {
         this.options = options;
@@ -332,18 +322,6 @@ struct Context {
 
     bool macroAlreadyDefined(in Cursor cursor) @safe pure const {
         return cast(bool) (cursor.spelling in macros);
-    }
-
-    string[] pushNamespace(in string name) @safe pure {
-        return _namespace.push(name);
-    }
-
-    string[] popNamespace() @safe pure {
-        return _namespace.pop(_alreadyAliasedNamespaceSymbols);
-    }
-
-    void addNamespaceSymbol(in string symbol) @safe pure {
-        _namespace.addSymbol(symbol);
     }
 }
 

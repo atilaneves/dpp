@@ -16,7 +16,10 @@ string[] translateNamespace(in from!"clang".Cursor cursor,
 
     string[] lines;
 
-    lines ~= context.pushNamespace(cursor.spelling);
+    lines ~= [
+            `extern(C++, "` ~ cursor.spelling ~ `")`,
+            `{`,
+    ];
 
     foreach(child; cursor.children) {
 
@@ -25,16 +28,9 @@ string[] translateNamespace(in from!"clang".Cursor cursor,
         lines ~= translate(child, context)
             .map!(a => (child.kind == Cursor.Kind.Namespace ? "    " : "        ") ~ a)
             .array;
-
-        if(child.kind != Cursor.Kind.Namespace &&
-           !child.spelling.startsWith("operator") &&
-           !ignoredCppCursorSpellings.canFind(child.spelling))
-        {
-            context.addNamespaceSymbol(child.spelling);
-        }
     }
 
-    lines ~= context.popNamespace();
+    lines ~= `}`;
 
     return lines;
 }
