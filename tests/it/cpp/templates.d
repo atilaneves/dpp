@@ -724,3 +724,30 @@ import it;
         ),
    );
 }
+
+@ShouldFail
+@("specialisation for const")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template <typename T>
+                struct Allocator {
+                    using Type = void;
+                    enum { value = 0 };
+                };
+
+                template <typename T>
+                struct Allocator<const T> {
+                    using Type = short;
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(is(Allocator!int.Type == void), Allocator!int.Type.stringof);
+                static assert(is(Allocator!(const int).Type == short), Allocator!(const int).Type.stringof);
+            }
+        ),
+   );
+}
