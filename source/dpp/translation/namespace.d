@@ -16,7 +16,10 @@ string[] translateNamespace(in from!"clang".Cursor cursor,
 
     string[] lines;
 
-    lines ~= context.pushNamespace(cursor.spelling);
+    lines ~= [
+            `extern(C++, "` ~ cursor.spelling ~ `")`,
+            `{`,
+    ];
 
     foreach(child; cursor.children) {
 
@@ -27,7 +30,7 @@ string[] translateNamespace(in from!"clang".Cursor cursor,
             .array;
     }
 
-    lines ~= context.popNamespace();
+    lines ~= `}`;
 
     return lines;
 }
