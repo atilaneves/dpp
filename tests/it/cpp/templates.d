@@ -682,7 +682,7 @@ import it;
 }
 
 
-@("allocator")
+@("allocator.simple")
 @safe unittest {
     shouldCompile(
         Cpp(
@@ -697,6 +697,29 @@ import it;
         ),
         D(
             q{
+            }
+        ),
+   );
+}
+
+@("default template type parameter")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template <typename T>
+                struct Allocator {
+                };
+
+                template <typename T, typename A = Allocator<T>>
+                struct Vector {
+
+                };
+            }
+        ),
+        D(
+            q{
+                Vector!int ints;
             }
         ),
    );
