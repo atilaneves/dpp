@@ -201,11 +201,11 @@ private auto translateTemplateParams(in from!"clang".Cursor cursor,
                                      ref from!"dpp.runtime.context".Context context)
     @safe
 {
-    import dpp.translation.type: translate;
-    import clang: Cursor;
+    import dpp.translation.type: translate, translateString;
+    import clang: Cursor, Token;
     import std.conv: text;
-    import std.algorithm: map, filter;
-    import std.array: array;
+    import std.algorithm: map, filter, countUntil;
+    import std.array: array, join, replace;
     import std.range: enumerate;
 
     int templateParamIndex;  // used to generate names when there are none
@@ -228,9 +228,20 @@ private auto translateTemplateParams(in from!"clang".Cursor cursor,
 
         // D requires template parameters to have names
         const spelling = cursor.spelling == "" ? newTemplateParamName : cursor.spelling;
+        context.log("   *** ", cursor.tokens);
+
+        // There's no direct way to extract default template parameters from libclang
+        // so we search for something like `T = Foo` in the tokens
+        const equalIndex = cursor.tokens.countUntil!(t => t.kind == Token.Kind.Punctuation && t.spelling == "=");
+        const maybeDefault = equalIndex == -1
+            ? ""
+            : cursor.tokens[equalIndex .. $]
+                  .map!(a => a.spelling.replace(">>", ">"))
+                  .join
+                  .translateString;
 
         // e.g. "bool param", "T0"
-        return maybeType ~ spelling;
+        return maybeType ~ spelling ~ maybeDefault;
     }
 
     auto templateParams = cursor.templateParams;

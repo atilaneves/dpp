@@ -702,7 +702,6 @@ import it;
    );
 }
 
-@ShouldFail
 @("default template type parameter")
 @safe unittest {
     shouldCompile(
