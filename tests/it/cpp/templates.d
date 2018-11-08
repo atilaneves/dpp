@@ -872,3 +872,30 @@ import it;
         ),
    );
 }
+
+
+@ShouldFail
+@("declaration and definitions with different template argument names")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                namespace std {
+                    template <typename> class allocator;
+                }
+
+
+                namespace std {
+                    template <typename _Tp> class allocator {
+                        static constexpr auto value = 42;
+                    };
+                }
+            }
+        ),
+        D(
+            q{
+                allocator!int foo;
+            }
+        ),
+   );
+}
