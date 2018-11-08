@@ -12,10 +12,18 @@ dflags "-dip25"
 dependency "libclang" version="~>0.0.12"
 dependency "sumtype" version="~>0.4.0"
 
+
 configuration "executable" {
     dflags "-dip1000" platform="dmd"
     mainSourceFile "source/main.d"
 }
+
+
+configuration "library" {
+    targetType "library"
+    excludedSourceFiles "source/main.d"
+}
+
 
 configuration "unittest" {
     targetName "ut"
