@@ -44,7 +44,7 @@ import it;
    );
 }
 
-@("template nameless type")
+@("nameless type")
 @safe unittest {
     shouldCompile(
         Cpp(
@@ -701,6 +701,28 @@ import it;
         ),
    );
 }
+
+@ShouldFail
+@("refer to type template argument in another argument")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<typename T, int S = sizeof(T)>
+                struct Foo {
+                    static constexpr auto Size = S;
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(Foo!int.Size == 4);
+                static assert(Foo!long.Size == 8);
+            }
+        ),
+    );
+}
+
 
 @("default template type parameter")
 @Tags("notravis")
