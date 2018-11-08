@@ -243,7 +243,9 @@ private string translatePointer(in from!"clang".Type type,
     context.log("Pointee:           ", type.pointee);
     context.log("Pointee canonical: ", type.pointee.canonical);
 
-    const translateCanonical = type.pointee.kind == Type.Kind.Unexposed;
+    const translateCanonical =
+        type.pointee.kind == Type.Kind.Unexposed && !isTypeParameter(type.pointee.canonical)
+        ;
     context.log("Translate canonical? ", translateCanonical);
 
     const indentation = context.indentation;

@@ -702,7 +702,6 @@ import it;
    );
 }
 
-@ShouldFail
 @("allocator.pointer")
 @safe unittest {
     shouldCompile(
