@@ -6,13 +6,33 @@ import dpp.from;
 
 string translateTokens(in from!"clang".Token[] tokens) @safe pure {
     import dpp.translation.type: translateString;
-    import std.algorithm: map;
-    import std.array: array, join;
+    import clang: Token;
+    import std.algorithm: map, canFind;
+    import std.array: array, join, replace;
 
-    return tokens
+    const translatedPropertyTokens = tokens
         .translateProperty("sizeof")
         .translateProperty("alignof")
-        .map!(a => a.spelling.translateString)
+        ;
+
+    // we can't rely on `translateString` for angle brackets here since it
+    // checks if there are matching pairs in the string to translate.
+    // Since we have an array of tokens, the matching pair might be in a different position
+
+    const canFindOpeningAngle = translatedPropertyTokens
+        .canFind!(t => t.kind == Token.Kind.Punctuation && t.spelling == "<");
+    const canFindClosingAngle = translatedPropertyTokens
+        .canFind!(t => t.kind == Token.Kind.Punctuation && t.spelling == ">");
+
+    const translatedAngleBracketTokens = canFindOpeningAngle && canFindClosingAngle
+        ? translatedPropertyTokens
+            .map!(t => Token(t.kind, t.spelling.replace("<", "!(").replace(">", ")")))
+            .array
+        : translatedPropertyTokens;
+
+
+    return translatedAngleBracketTokens
+        .map!(t => t.spelling.translateString)
         .join;
 }
 

@@ -702,7 +702,6 @@ import it;
    );
 }
 
-@ShouldFail
 @("refer to type template argument in another argument")
 @safe unittest {
     shouldCompile(
