@@ -702,6 +702,27 @@ import it;
    );
 }
 
+@ShouldFail
+@("allocator.pointer")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template <typename T>
+                class Allocator {
+                    typedef T* pointer;
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(is(Allocator!int.pointer == int*));
+                static assert(is(Allocator!double.pointer == double*));
+            }
+        ),
+   );
+}
+
 
 @("refer to type template argument in another argument")
 @safe unittest {
