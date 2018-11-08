@@ -702,6 +702,7 @@ import it;
    );
 }
 
+
 @("refer to type template argument in another argument")
 @safe unittest {
     shouldCompile(
@@ -721,6 +722,39 @@ import it;
         ),
     );
 }
+
+@("__is_empty.specialisation")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<typename T, bool = __is_empty(T)>
+                struct Foo {
+                    static constexpr auto value = 1;
+                };
+
+                template<typename T>
+                struct Foo<T, false> {
+                    static constexpr auto value = 2;
+                };
+            }
+        ),
+        D(
+            q{
+                struct Empty{}
+                struct Int { int i; }
+
+                static assert(Foo!Empty.value == 1);
+                // In C++ the assertion below would pass. In D it doesn't
+                // due to different semantics, but explicitly picking the
+                // specialisation works.
+                // static assert(Foo!Int.value == 2);
+                static assert(Foo!(Int, false).value == 2);
+            }
+        ),
+   );
+}
+
 
 
 @("default template type parameter")

@@ -27,6 +27,7 @@ package string[] translateSpecialisedTemplateParams(
     import std.algorithm: map;
     import std.range: iota;
     import std.array: array, join;
+    import std.typecons: No;
 
     assert(cursor.type.numTemplateArguments != -1);
 
@@ -36,7 +37,7 @@ package string[] translateSpecialisedTemplateParams(
     // get the original list of template parameters and translate them
     // e.g. template<bool, bool, typename> -> (bool V0, bool V1, T)
     const translatedTemplateParams = () @trusted {
-        return translateTemplateParams(cursor, context)
+        return translateTemplateParams(cursor, context, No.defaults)
         .array;
     }();
 
@@ -148,15 +149,16 @@ private bool isValueOfType(
 
 
 // Translates a C++ template parameter (value or type) to a D declaration
-// e.g. template<typename, bool, typename> -> ["T0", "bool V0", "T1"]
+// e.g. `template<typename, bool, typename>` -> ["T0", "bool V0", "T1"]
 // Returns a range of string
-package auto translateTemplateParams(in from!"clang".Cursor cursor,
-                                     ref from!"dpp.runtime.context".Context context)
-    @safe
+package auto translateTemplateParams(
+    in from!"clang".Cursor cursor,
+    ref from!"dpp.runtime.context".Context context,
+    from!"std.typecons".Flag!"defaults" defaults = from!"std.typecons".Yes.defaults,
+    ) @safe
 {
     import dpp.translation.type: translate, translateString;
-    import dpp.translation.tokens: translateTokens;
-    import clang: Cursor, Token;
+    import clang: Cursor;
     import std.conv: text;
     import std.algorithm: map, filter, countUntil;
     import std.array: array;
@@ -173,6 +175,8 @@ package auto translateTemplateParams(in from!"clang".Cursor cursor,
 
     string translateTemplateParam(in Cursor cursor) {
         import dpp.translation.type: translate;
+        import dpp.translation.tokens: translateTokens;
+        import clang: Token;
 
         // The template parameter might be a value (bool, int, etc.)
         // or a type. If it's a value we get its type here.
@@ -192,7 +196,7 @@ package auto translateTemplateParams(in from!"clang".Cursor cursor,
             return t.spelling == ">>" ? Token(t.kind, ">") : t;
         }
 
-        const maybeDefault = equalIndex == -1
+        const maybeDefault = equalIndex == -1 || !defaults
             ? ""
             : cursor.tokens[equalIndex .. $]
                 .map!fixToken
