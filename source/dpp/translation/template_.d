@@ -191,15 +191,9 @@ package auto translateTemplateParams(
         // so we search for something like `T = Foo` in the tokens
         const equalIndex = cursor.tokens.countUntil!(t => t.kind == Token.Kind.Punctuation && t.spelling == "=");
 
-        // See it.cpp.templates.default template type parameter
-        static auto fixToken(in Token t) {
-            return t.spelling == ">>" ? Token(t.kind, ">") : t;
-        }
-
         const maybeDefault = equalIndex == -1 || !defaults
             ? ""
             : cursor.tokens[equalIndex .. $]
-                .map!fixToken
                 .array
                 .translateTokens
             ;

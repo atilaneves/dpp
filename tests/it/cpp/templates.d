@@ -462,6 +462,46 @@ import it;
     );
 }
 
+@("__or_.binary")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template <typename...> struct __or_;
+                template <typename B0, typename B1>
+                struct __or_<B0, B1> {
+                    static constexpr auto value = true;
+                };
+
+                template <typename T>
+                struct is_copy_constructible {
+                    static constexpr auto value = true;
+                };
+
+                template <typename T>
+                struct is_nothrow_move_constructible {
+                    static constexpr auto value = true;
+                };
+
+                template <typename T, bool B
+                    = __or_<is_copy_constructible<typename T::value_type>,
+                    is_nothrow_move_constructible<typename T::value_type>>::value>
+                struct Oops {
+                    static constexpr auto value = B;
+                };
+            }
+        ),
+        D(
+            q{
+                struct Foo {
+                    alias value_type = int;
+                }
+                static assert(Oops!Foo.value);
+            }
+        ),
+    );
+}
+
 
 // as seen in type traits
 @("is_lvalue_reference")
