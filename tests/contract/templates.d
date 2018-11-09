@@ -348,23 +348,17 @@ import contract;
     const tu = parse(
         Cpp(
             q{
-                namespace ns {
-                    template<typename T>
-                        struct Struct{
-                        Struct(const Struct& other) {}
-                    };
-                }
+                template<typename T>
+                struct Struct{
+                    Struct(const Struct& other) {}
+                };
             }
         )
     );
 
     tu.children.length.should == 1;
 
-    const ns0 = tu.children[0];
-    printChildren(ns0);
-    ns0.kind.should == Cursor.Kind.Namespace;
-
-    const struct0 = ns0.children[0];
+    const struct0 = tu.children[0];
     struct0.kind.should == Cursor.Kind.ClassTemplate;
     printChildren(struct0);
     struct0.children.length.should == 2;
@@ -394,26 +388,19 @@ import contract;
     const tu = parse(
         Cpp(
             q{
-                namespace ns {
-                    template <typename> struct Struct;
-                }
+                template <typename> struct Struct;
 
-                namespace ns {
-                    template<typename T>
-                        struct Struct{
-                        Struct(const Struct& other) {}
-                    };
-                }
+                template<typename T>
+                struct Struct{
+                    Struct(const Struct& other) {}
+                };
             }
         )
     );
 
     tu.children.length.should == 2;
-    const ns0 = tu.children[0];
-    printChildren(ns0);
-    ns0.kind.should == Cursor.Kind.Namespace;
 
-    const struct0 = ns0.children[0];
+    const struct0 = tu.children[0];
     struct0.kind.should == Cursor.Kind.ClassTemplate;
     printChildren(struct0);
     struct0.children.length.should == 1;
@@ -422,11 +409,7 @@ import contract;
     templateParam0.kind.should == Cursor.Kind.TemplateTypeParameter;
     templateParam0.type.spelling.should == "type-parameter-0-0";
 
-    const ns1 = tu.children[1];
-    printChildren(ns1);
-    ns1.kind.should == Cursor.Kind.Namespace;
-
-    const struct1 = ns1.children[0];
+    const struct1 = tu.children[1];
     struct1.kind.should == Cursor.Kind.ClassTemplate;
     printChildren(struct1);
     struct1.children.length.should == 2;
