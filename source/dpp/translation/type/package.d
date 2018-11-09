@@ -298,8 +298,9 @@ private string translateLvalueRef(in from!"clang".Type type,
                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
     @safe pure
 {
-    const typeToUse = type.canonical.isTypeParameter ? type : type.canonical;
 
+    // See it.cpp.templates.__normal_iterator.base
+    const typeToUse = type.canonical.isTypeParameter ? type : type.canonical;
     const pointeeTranslation = translate(typeToUse.pointee, context, translatingFunction);
     return translatingFunction
         ? "ref " ~ pointeeTranslation
@@ -334,7 +335,7 @@ private string translateUnexposed(in from!"clang".Type type,
 
     const translation =  type.spelling
         .translateString
-        // we might get template arguments here
+        // we might get template arguments here (e.g. `type-parameter-0-0`)
         .replace("-", "_")
         ;
 

@@ -1,3 +1,6 @@
+/**
+   C++ template translations
+ */
 module dpp.translation.template_;
 
 

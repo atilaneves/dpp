@@ -878,7 +878,6 @@ import it;
 }
 
 
-@ShouldFail
 @("declaration and definitions with different template argument names")
 @safe unittest {
     shouldCompile(
@@ -898,7 +897,8 @@ import it;
         ),
         D(
             q{
-                allocator!int foo;
+                allocator!int foo = void;
+                static assert(foo.value == 42);
             }
         ),
    );
