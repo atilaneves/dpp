@@ -878,7 +878,6 @@ import it;
 }
 
 
-@ShouldFail
 @("declaration and definitions with different template argument names")
 @safe unittest {
     shouldCompile(

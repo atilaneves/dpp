@@ -88,8 +88,9 @@ private from!"clang".TranslationUnit parseTU
 private auto canonicalCursors(from!"clang".TranslationUnit translationUnit) @safe {
 
     import clang: Cursor;
-    import std.array: join;
-    import std.algorithm: sort, map, chunkBy, partition;
+    import std.array: array, join;
+    import std.algorithm: sort, map, filter, chunkBy, partition;
+    import std.typecons: tuple, Tuple;
 
     // filter out "ghosts" (useless repeated cursors)
     static Cursor[] trueCursors(R)(R cursors) {
@@ -112,9 +113,37 @@ private auto canonicalCursors(from!"clang".TranslationUnit translationUnit) @saf
     }
 
     auto topLevelCursors = translationUnit.cursor.children;
+    auto nsCursors = topLevelCursors.filter!(c => c.kind == Cursor.Kind.Namespace);
+    auto nonNsCursors = topLevelCursors.filter!(c => c.kind != Cursor.Kind.Namespace);
+
+    auto trueNsCursors =() @trusted {
+        return nsCursors
+        .array
+        // each chunk is a range of NS cursors with the same name
+        .chunkBy!((a, b) => a.spelling == b.spelling)
+        .array
+        // a range of ("namespace", childrenCursors) tuples
+        .map!(nsChunk => tuple(nsChunk.front.spelling, nsChunk.map!(ns => ns.children).join))
+        .map!(t => tuple(t[0],  // namespace spelling
+                         t[1]   // child cursors
+                             .array  // needed by sort
+                             // sort them by canonical cursor
+                             .sort!((a, b) => a.canonical.sourceRange.start <
+                                              b.canonical.sourceRange.start)
+                             // each chunk is a range of cursors representing the same canonical entity
+                             .chunkBy!((a, b) => a.canonical == b.canonical)
+                             // for each chunk, extract the one cursor we want
+                             .map!trueCursors
+                             .join  // flatten (range of chunks of cursors -> range of cursors)
+                  ))
+        .map!((t) { auto c = Cursor(Cursor.Kind.Namespace, t[0]); c.children = t[1]; return c; })
+        .array
+        ;
+    }();
 
     auto cursors = () @trusted {
-        return topLevelCursors
+        return nonNsCursors
+        .array  // needed by sort
         // sort them by canonical cursor
         .sort!((a, b) => a.canonical.sourceRange.start <
                          b.canonical.sourceRange.start)
@@ -124,7 +153,7 @@ private auto canonicalCursors(from!"clang".TranslationUnit translationUnit) @saf
         .map!trueCursors
         .join  // flatten (range of chunks of cursors -> range of cursors)
         ;
-    }();
+    }() ~ trueNsCursors;
 
     // put the macros at the end
     cursors.partition!(a => a.kind != Cursor.Kind.MacroDefinition);
