@@ -75,21 +75,27 @@ private from!"clang".TranslationUnit parseTU
                  TranslationUnitFlags.DetailedPreprocessingRecord);
 }
 
-// returns a range of Cursor
+/**
+   In C there can be several declarations and one definition of a type.
+   In D we can have only ever one of either. There might be multiple
+   cursors in the translation unit that all refer to the same canonical type.
+   Unfortunately, the canonical type is orthogonal to which cursor is the actual
+   definition, so we prefer to find the definition if it exists, and if not, we
+   take the canonical declaration so as to not repeat ourselves in D.
+
+   Returns: range of clang.Cursor
+*/
 private auto canonicalCursors(from!"clang".TranslationUnit translationUnit) @safe {
 
-    import dpp.translation.translation: translateTopLevelCursor;
     import clang: Cursor;
-    import std.array: array, join;
-    import std.algorithm: sort, filter, map, chunkBy, all, partition;
+    import std.array: join;
+    import std.algorithm: sort, map, chunkBy, partition;
 
-    // In C there can be several declarations and one definition of a type.
-    // In D we can have only ever one of either. There might be multiple
-    // cursors in the translation unit that all refer to the same canonical type.
-    // Unfortunately, the canonical type is orthogonal to which cursor is the actual
-    // definition, so we prefer to find the definition if it exists, and if not, we
-    // take the canonical declaration so as to not repeat ourselves in D.
+    // filter out "ghosts" (useless repeated cursors)
     static Cursor[] trueCursors(R)(R cursors) {
+
+        import std.algorithm: all, filter;
+        import std.array: array;
 
         // we always accept multiple namespaces
         if(cursors.save.all!(a => a.kind == Cursor.Kind.Namespace))
@@ -105,14 +111,10 @@ private auto canonicalCursors(from!"clang".TranslationUnit translationUnit) @saf
         return [cursors.front];
     }
 
-    static bool goodCursor(in Cursor cursor) {
-        return cursor.isCanonical || cursor.isDefinition;
-    }
+    auto topLevelCursors = translationUnit.cursor.children;
 
     auto cursors = () @trusted {
-        return translationUnit
-        .cursor
-        .children
+        return topLevelCursors
         // sort them by canonical cursor
         .sort!((a, b) => a.canonical.sourceRange.start <
                          b.canonical.sourceRange.start)
@@ -120,10 +122,11 @@ private auto canonicalCursors(from!"clang".TranslationUnit translationUnit) @saf
         .chunkBy!((a, b) => a.canonical == b.canonical)
         // for each chunk, extract the one cursor we want
         .map!trueCursors
-        .join  // flatten
+        .join  // flatten (range of chunks of cursors -> range of cursors)
         ;
     }();
 
+    // put the macros at the end
     cursors.partition!(a => a.kind != Cursor.Kind.MacroDefinition);
 
     return cursors;
