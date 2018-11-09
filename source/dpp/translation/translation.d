@@ -215,7 +215,7 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
 string[] ignoredCppCursorSpellings() @safe pure nothrow {
     return
         [
-            "is_function",
+            "is_function",  // dmd bug
             "__is_referenceable",
             "__is_convertible_helper",
             "aligned_union",

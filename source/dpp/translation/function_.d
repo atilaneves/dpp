@@ -97,7 +97,7 @@ private string functionDecl(
     context.log("Function return type (translated): ", returnType);
 
     const params = translateAllParamTypes(cursor, context, names).join(", ");
-    context.log("params: ", params);
+    context.log("Translated parameters: '", params, "'");
     // const C++ method?
     const const_ = cursor.isConstCppMethod ? " const" : "";
 
@@ -120,9 +120,9 @@ private string returnType(in from!"clang".Cursor cursor,
 
     context.setIndentation(indentation);
 
-    const static_ = cursor.storageClass == Cursor.StorageClass.Static ? "static " : "";
+    const maybeStatic = cursor.storageClass == Cursor.StorageClass.Static ? "static " : "";
 
-    return static_ ~ dType;
+    return maybeStatic ~ dType;
 }
 
 private string[] maybeOperator(in from!"clang".Cursor cursor,
@@ -314,9 +314,9 @@ private string[] maybeCopyCtor(in from!"clang".Cursor cursor,
 
     if(!cursor.isCopyConstructor) return [];
 
-    const paramType = () @trusted {  return paramTypes(cursor).front; }();
-    const pointee = translate(paramType.pointee, context);
-    const dType = pointee["const(".length .. $ - 1]; // remove the constness
+    const param = params(cursor).front;
+    const translated = translateFunctionParam(cursor, param, context);
+    const dType = translated["ref const(".length .. $ - 1];  // remove the constness
 
     return [
         `this(ref ` ~ dType ~ ` other)`,
@@ -325,6 +325,7 @@ private string[] maybeCopyCtor(in from!"clang".Cursor cursor,
         `}`,
     ];
 }
+
 
 private string[] maybeMoveCtor(in from!"clang".Cursor cursor,
                                ref from!"dpp.runtime.context".Context context)
@@ -385,34 +386,66 @@ auto translateParamTypes(in from!"clang".Cursor cursor,
                          ref from!"dpp.runtime.context".Context context)
     @safe
 {
+    import std.algorithm: map;
+    import std.range: tee, enumerate;
+
+    return params(cursor)
+        .enumerate
+        .tee!((a) { context.log("    Function param #", a[0], " type: ", a[1].type, "  canonical ", a[1].type.canonical); })
+        .map!(t => translateFunctionParam(cursor, t[1], context))
+        ;
+}
+
+
+// translate a ParmDecl
+private string translateFunctionParam(in from!"clang".Cursor function_,
+                                      in from!"clang".Cursor param,
+                                      ref from!"dpp.runtime.context".Context context)
+    @safe
+{
+
     import dpp.translation.type: translate;
     import clang: Type, Language;
-    import std.algorithm: map;
-    import std.range: tee;
     import std.typecons: Yes;
+    import std.array: replace;
 
     // See #43
     const(Type) deunexpose(in Type type) {
-        return type.kind == Type.Kind.Unexposed && cursor.language != Language.CPlusPlus
+        return type.kind == Type.Kind.Unexposed && function_.language != Language.CPlusPlus
             ? type.canonical
             : type;
     }
 
-    return paramTypes(cursor)
-        .tee!((a) { context.log("    Function param type: ", a, "  canonical ", a.canonical); })
-        .map!(a => translate(deunexpose(a), context, Yes.translatingFunction))
-        ;
+    // See contract.ctor.copy.definition.declartion for libclang silliness leading to this.
+    // If the enclosing struct/class is templated and the function isn't, then we might
+    // get "type-parameter-0-0" spellings even when the actual name is e.g. `T`.
+    const numAggTemplateParams = function_.semanticParent.templateParams.length;
+    const numFunTemplateParams = function_.templateParams.length;
+
+    // HACK
+    // FIXME: not sure what to do if the numbers aren't exactly 1 and 0
+    const useAggTemplateParamSpelling = numAggTemplateParams == 1 && numFunTemplateParams == 0;
+    const aggTemplateParamSpelling = useAggTemplateParamSpelling
+        ? function_.semanticParent.templateParams[0].spelling
+        : "";
+    const translation = translate(deunexpose(param.type), context, Yes.translatingFunction);
+
+    return useAggTemplateParamSpelling
+        ? translation.replace("type_parameter_0_0", aggTemplateParamSpelling)
+        : translation;
 }
 
-private auto paramTypes(in from!"clang".Cursor cursor)
-    @safe
-{
+private auto paramTypes(in from!"clang".Cursor cursor) @safe {
+    import std.algorithm: map;
+    return params(cursor).map!(a => a.type) ;
+}
+
+private auto params(in from!"clang".Cursor cursor) @safe {
     import clang: Cursor;
-    import std.algorithm: map, filter;
+    import std.algorithm: filter;
 
     return cursor
         .children
         .filter!(a => a.kind == Cursor.Kind.ParmDecl)
-        .map!(a => a.type)
         ;
 }

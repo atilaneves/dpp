@@ -341,3 +341,137 @@ import contract;
     parmDecl.type.kind.should == Type.Kind.Unexposed;
     parmDecl.type.spelling.should == "A...";
 }
+
+@Tags("contract")
+@("ctor.copy.definition.only")
+@safe unittest {
+    const tu = parse(
+        Cpp(
+            q{
+                template<typename T>
+                struct Struct{
+                    Struct(const Struct& other) {}
+                };
+            }
+        )
+    );
+
+    tu.children.length.should == 1;
+
+    const struct0 = tu.children[0];
+    struct0.kind.should == Cursor.Kind.ClassTemplate;
+    printChildren(struct0);
+    struct0.children.length.should == 2;
+
+    const templateParam0 = struct0.children[0];
+    printChildren(templateParam0);
+    templateParam0.kind.should == Cursor.Kind.TemplateTypeParameter;
+    // We named it so it shows up as T, not as type-parameter-0-0
+    templateParam0.type.spelling.should == "T";
+
+    const ctor = struct0.children[1];
+    printChildren(ctor);
+    ctor.kind.should == Cursor.Kind.Constructor;
+
+    ctor.children.length.should == 2;
+    const ctorParam = ctor.children[0];
+    ctorParam.kind.should == Cursor.Kind.ParmDecl;
+    ctorParam.type.kind.should == Type.Kind.LValueReference;
+    // The spelling here is different from the other test below
+    ctorParam.type.spelling.should == "const Struct<T> &";
+}
+
+
+@Tags("contract")
+@("ctor.copy.definition.declaration")
+@safe unittest {
+    const tu = parse(
+        Cpp(
+            q{
+                template <typename> struct Struct;
+
+                template<typename T>
+                struct Struct{
+                    Struct(const Struct& other) {}
+                };
+            }
+        )
+    );
+
+    tu.children.length.should == 2;
+
+    const struct0 = tu.children[0];
+    struct0.kind.should == Cursor.Kind.ClassTemplate;
+    printChildren(struct0);
+    struct0.children.length.should == 1;
+
+    const templateParam0 = struct0.children[0];
+    templateParam0.kind.should == Cursor.Kind.TemplateTypeParameter;
+    templateParam0.type.spelling.should == "type-parameter-0-0";
+
+    const struct1 = tu.children[1];
+    struct1.kind.should == Cursor.Kind.ClassTemplate;
+    printChildren(struct1);
+    struct1.children.length.should == 2;
+
+    const templateParam1 = struct1.children[0];
+    printChildren(templateParam1);
+    templateParam1.kind.should == Cursor.Kind.TemplateTypeParameter;
+    templateParam1.type.spelling.should == "T";
+
+    const ctor = struct1.children[1];
+    printChildren(ctor);
+    ctor.kind.should == Cursor.Kind.Constructor;
+    ctor.templateParams.length.should == 0;  // not a template function
+    ctor.semanticParent.templateParams.length.should == 1;  // the `T`
+    ctor.semanticParent.templateParams[0].spelling.should == "T";
+
+    ctor.children.length.should == 2;
+    const ctorParam = ctor.children[0];
+    ctorParam.kind.should == Cursor.Kind.ParmDecl;
+    ctorParam.type.kind.should == Type.Kind.LValueReference;
+
+    // The spelling here is different from the other test above.
+    // The class template type paramater is spelled "T" but the _same_
+    // generic type as a part of a function parameter list gets spelled
+    // "type-parameter-0-0" just because the original definition left out
+    // the type parameter name.
+
+    ctorParam.type.spelling.should == "const Struct<type-parameter-0-0> &";
+    ctorParam.type.canonical.spelling.should == "const Struct<type-parameter-0-0> &";
+}
+
+
+@Tags("contract")
+@("pointer to T")
+@safe unittest {
+    const tu = parse(
+        Cpp(
+            q{
+                template<typename T>
+                struct Struct {
+                    T* data;
+                };
+            }
+        )
+    );
+
+    tu.children.length.should == 1;
+    const struct_ = tu.children[0];
+    printChildren(struct_);
+
+    struct_.kind.should == Cursor.Kind.ClassTemplate;
+    struct_.spelling.should == "Struct";
+    struct_.children.length.should == 2;
+
+    struct_.children[0].kind.should == Cursor.Kind.TemplateTypeParameter;
+    struct_.children[0].spelling.should == "T";
+
+    const data = struct_.children[1];
+    data.kind.should == Cursor.Kind.FieldDecl;
+    data.spelling.should == "data";
+    data.type.kind.should == Type.Kind.Pointer;
+    data.type.spelling.should == "T *";
+    data.type.pointee.kind.should == Type.Kind.Unexposed;
+    data.type.pointee.spelling.should == "T";
+}

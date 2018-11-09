@@ -6,14 +6,39 @@ import dpp.from;
 
 string translateTokens(in from!"clang".Token[] tokens) @safe pure {
     import dpp.translation.type: translateString;
-    import std.algorithm: map;
-    import std.array: array, join;
+    import clang: Token;
+    import std.algorithm: map, filter, canFind, endsWith;
+    import std.array: array, join, replace;
 
-    return tokens
+    const translatedPropertyTokens = tokens
         .translateProperty("sizeof")
         .translateProperty("alignof")
-        .map!(a => a.spelling.translateString)
+        ;
+
+    // we can't rely on `translateString` for angle brackets here since it
+    // checks if there are matching pairs in the string to translate.
+    // Since we have an array of tokens, the matching pair might be in a different position
+
+    const canFindOpeningAngle = translatedPropertyTokens
+        .canFind!(t => t.kind == Token.Kind.Punctuation && t.spelling == "<");
+    const canFindClosingAngle = translatedPropertyTokens
+        .canFind!(t => t.kind == Token.Kind.Punctuation && (t.spelling == ">" || t.spelling == ">>"));
+
+    const translatedAngleBracketTokens = canFindOpeningAngle && canFindClosingAngle
+        ? translatedPropertyTokens
+            .map!(t => Token(t.kind, t.spelling.replace("<", "!(").replace(">>", "))").replace(">", ")")))
+            .array
+        : translatedPropertyTokens;
+
+    auto ret = translatedAngleBracketTokens
+        .filter!(t => t.kind != Token.Kind.Keyword || t.spelling != "typename")
+        .map!(t => t.spelling.translateString)
         .join;
+
+    // this can happen because of ending with ">>"
+    if(ret.endsWith("))")) ret = ret[0 .. $-1];
+
+    return ret;
 }
 
 

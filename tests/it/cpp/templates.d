@@ -44,7 +44,7 @@ import it;
    );
 }
 
-@("template nameless type")
+@("nameless type")
 @safe unittest {
     shouldCompile(
         Cpp(
@@ -463,6 +463,48 @@ import it;
 }
 
 
+@Tags("notravis")
+@("__or_.binary")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template <typename...> struct __or_;
+                template <typename B0, typename B1>
+                struct __or_<B0, B1> {
+                    static constexpr auto value = true;
+                };
+
+                template <typename T>
+                struct is_copy_constructible {
+                    static constexpr auto value = true;
+                };
+
+                template <typename T>
+                struct is_nothrow_move_constructible {
+                    static constexpr auto value = true;
+                };
+
+                template <typename T, bool B
+                    = __or_<is_copy_constructible<typename T::value_type>,
+                    is_nothrow_move_constructible<typename T::value_type>>::value>
+                struct Oops {
+                    static constexpr auto value = B;
+                };
+            }
+        ),
+        D(
+            q{
+                struct Foo {
+                    alias value_type = int;
+                }
+                static assert(Oops!Foo.value);
+            }
+        ),
+    );
+}
+
+
 // as seen in type traits
 @("is_lvalue_reference")
 @safe unittest {
@@ -702,6 +744,83 @@ import it;
    );
 }
 
+@("allocator.pointer")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template <typename T>
+                class Allocator {
+                    typedef T* pointer;
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(is(Allocator!int.pointer == int*));
+                static assert(is(Allocator!double.pointer == double*));
+            }
+        ),
+   );
+}
+
+
+@Tags("notravis")
+@("refer to type template argument in another argument")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<typename T, int S = sizeof(T)>
+                struct Foo {
+                    static constexpr auto Size = S;
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(Foo!int.Size == 4);
+                static assert(Foo!long.Size == 8);
+            }
+        ),
+    );
+}
+
+@Tags("notravis")
+@("__is_empty.specialisation")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<typename T, bool = __is_empty(T)>
+                struct Foo {
+                    static constexpr auto value = 1;
+                };
+
+                template<typename T>
+                struct Foo<T, false> {
+                    static constexpr auto value = 2;
+                };
+            }
+        ),
+        D(
+            q{
+                struct Empty{}
+                struct Int { int i; }
+
+                static assert(Foo!Empty.value == 1);
+                // In C++ the assertion below would pass. In D it doesn't
+                // due to different semantics, but explicitly picking the
+                // specialisation works.
+                // static assert(Foo!Int.value == 2);
+                static assert(Foo!(Int, false).value == 2);
+            }
+        ),
+   );
+}
+
+
+
 @("default template type parameter")
 @Tags("notravis")
 @safe unittest {
@@ -753,6 +872,33 @@ import it;
                 // we can't specialise on const
                 static assert(is(Allocator!int.Type == void), Allocator!int.Type.stringof);
                 static assert(is(Allocator!(const int).Type == void), Allocator!(const int).Type.stringof);
+            }
+        ),
+   );
+}
+
+
+@("declaration and definitions with different template argument names")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                namespace std {
+                    template <typename> class allocator;
+                }
+
+                namespace std {
+                    template <typename T> class allocator {
+                        static constexpr auto value = 42;
+                        allocator(const allocator& other) throw() {}
+                    };
+                }
+            }
+        ),
+        D(
+            q{
+                allocator!int foo = void;
+                static assert(foo.value == 42);
             }
         ),
    );

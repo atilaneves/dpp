@@ -232,7 +232,7 @@ private void runCPreProcessor(in string tmpFileName, in string outputFileName) @
 }
 
 
-private string preamble() @safe pure {
+string preamble() @safe pure {
     import std.array: replace, join;
     import std.algorithm: map, filter;
     import std.string: splitLines;
@@ -248,12 +248,18 @@ private string preamble() @safe pure {
 
         struct __locale_data { int dummy; }  // FIXME
     } ~
-        `    #define __gnuc_va_list va_list` ~ "\n" ~
+          "    #define __gnuc_va_list va_list\n" ~
+          "    #define __is_empty(_Type) dpp.isEmpty!(_Type)\n" ~
 
           q{
         alias _Bool = bool;
 
         struct dpp {
+
+            // Replacement for the gcc/clang intrinsic
+            static bool isEmpty(T)() {
+                return T.tupleof.length == 0;
+            }
 
             static struct Move(T) {
                 T* ptr;
