@@ -878,6 +878,7 @@ import it;
 }
 
 
+@ShouldFail
 @("declaration and definitions with different template argument names")
 @safe unittest {
     shouldCompile(
@@ -890,6 +891,7 @@ import it;
                 namespace std {
                     template <typename T> class allocator {
                         static constexpr auto value = 42;
+                        allocator(const allocator& other) throw() {}
                     };
                 }
             }
