@@ -462,6 +462,8 @@ import it;
     );
 }
 
+
+@Tags("notravis")
 @("__or_.binary")
 @safe unittest {
     shouldCompile(
@@ -763,6 +765,7 @@ import it;
 }
 
 
+@Tags("notravis")
 @("refer to type template argument in another argument")
 @safe unittest {
     shouldCompile(
@@ -783,6 +786,7 @@ import it;
     );
 }
 
+@Tags("notravis")
 @("__is_empty.specialisation")
 @safe unittest {
     shouldCompile(
@@ -884,9 +888,8 @@ import it;
                     template <typename> class allocator;
                 }
 
-
                 namespace std {
-                    template <typename _Tp> class allocator {
+                    template <typename T> class allocator {
                         static constexpr auto value = 42;
                     };
                 }
