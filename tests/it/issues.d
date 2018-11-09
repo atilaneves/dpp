@@ -996,3 +996,26 @@ unittest {
         ),
     );
 }
+
+
+@ShouldFail
+@Tags("issue")
+@("103")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        writeFile("hdr.h",
+                  "#define CONSTANT 42\n");
+        writeFile("hdr.dpp",
+                  `
+                      #include "hdr.h"
+                  `);
+        writeFile("app.d",
+                  q{
+                      import hdr;
+                      static assert(CONSTANT == 42);
+                  });
+
+        runPreprocessOnly("hdr.dpp");
+        shouldCompile("app.d");
+    }
+}
