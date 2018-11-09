@@ -13,7 +13,9 @@ string[] translateMacro(in from!"clang".Cursor cursor,
     import std.file: exists;
     import std.stdio: File;
     import std.algorithm: startsWith;
-    import std.conv: text;
+    import std.conv: text, to;
+    import std.exception: collectException;
+    import std.string: strip;
 
     assert(cursor.kind == Cursor.Kind.MacroDefinition);
 
@@ -47,8 +49,24 @@ string[] translateMacro(in from!"clang".Cursor cursor,
     context.rememberMacro(cursor);
     const spelling = maybeRename(cursor, context);
     const body_ = chars.text[cursor.spelling.length .. $];
+    const dbody = translateToD(body_, context);
 
-    return [maybeUndef ~ "#define " ~ spelling ~ translateToD(body_, context) ~ "\n"];
+    const isBodyString = dbody.strip.length >=2 && dbody[0] == '"' && dbody.strip[$-1] == '"';
+    long dummyLong;
+    const isBodyInteger = dbody.strip.to!long.collectException(dummyLong) is null;
+    double dummyDouble;
+    const isBodyFloating = dbody.strip.to!double.collectException(dummyDouble) is null;
+
+    // See #103 for check to where it's a macro function or not
+    const redefineOnly =
+        cursor.isMacroFunction || (!isBodyString && !isBodyInteger && !isBodyFloating);
+
+    auto redefinition = [maybeUndef ~ "#define " ~ spelling ~ dbody ~ "\n"];
+
+    // Always redefine the macro, but sometimes also add a D enum
+    return redefineOnly
+        ? redefinition
+        : redefinition ~ [`enum DPP_ENUM_` ~ spelling ~ ` = ` ~ dbody ~ `;`];
 }
 
 

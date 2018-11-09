@@ -998,7 +998,6 @@ unittest {
 }
 
 
-@ShouldFail
 @Tags("issue")
 @("103")
 @safe unittest {
@@ -1012,7 +1011,7 @@ unittest {
         writeFile("app.d",
                   q{
                       import hdr;
-                      static assert(CONSTANT == 42);
+                      static assert(DPP_ENUM_CONSTANT == 42);
                   });
 
         runPreprocessOnly("hdr.dpp");

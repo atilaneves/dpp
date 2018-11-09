@@ -125,6 +125,13 @@ C API requires the preprocessor to use properly. It is possible to mimic this us
 with enums and CTFE, but the result is not guaranteed to be the same. The only way to use a
 C or C++ API as it was intended is by leveraging the preprocessor.
 
+This means that only the #including .dpp file has access to constant
+macros, and any D module importing the .d file resulting from said
+.dpp file won't see those constants (e.g. `#define THE_ANSWER 42`).
+To mitigate this, dpp will introduce an `enum` for any macros that are
+string or integer constants but with the `DPP_ENUM_` prefix. To see why,
+please consult [github issue 103](https://github.com/atilaneves/dpp/issues/103).
+
 As a final pass before writing the output D file, d++ will run the C
 preprocessor (currently the cpp binary installed on the system) on the
 intermediary result of expanding all the `#include` directives so that
