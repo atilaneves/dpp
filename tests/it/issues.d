@@ -996,7 +996,7 @@ unittest {
     );
 }
 
-@ShouldFail
+
 @Tags("issue")
 @("101")
 @safe unittest {
@@ -1004,7 +1004,7 @@ unittest {
         Cpp(
             q{
                 // normally without the underscore
-                int operator""_s(const wchar_t* __str, unsigned long __len);
+                int operator "" _s(const wchar_t* __str, unsigned long __len);
             }
         ),
         D(
