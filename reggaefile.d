@@ -6,6 +6,11 @@ enum debugFlags = ["-w", "-g", "-debug"];
 
 alias exe = dubDefaultTarget!(CompilerFlags(debugFlags));
 alias ut = dubTestTarget!(CompilerFlags(debugFlags), LinkerFlags(), CompilationMode.package_);
+
+alias dpp2 = dubTarget!(TargetName("dpp2"),
+                        Configuration("dpp2"),
+                        CompilerFlags(debugFlags ~ "-unittest"));
+
 // unitThreadedLight, compiles the whole project per D package
 alias utlPerPackage = dubTarget!(TargetName("utl_per_package"),
                                  Configuration("unittest"),
@@ -57,4 +62,5 @@ mixin build!(
     optional!ut,  // investigate UT failures
     optional!utl,  // fast development
     optional!utlPerPackage,  // for benchmarking
+    optional!dpp2,
 );

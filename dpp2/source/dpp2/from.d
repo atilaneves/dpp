@@ -1,7 +1,7 @@
 /**
    Utility to avoid top-level imports
  */
-module dpp.from;
+module dpp2.from;
 
 /**
    Local imports everywhere.

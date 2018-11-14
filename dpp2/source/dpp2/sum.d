@@ -1,4 +1,4 @@
-module dpp.sum;
+module dpp2.sum;
 
 
 struct Sum(T...) {

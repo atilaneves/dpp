@@ -31,5 +31,14 @@ configuration "unittest" {
     sourcePaths "source" "tests"
     importPaths "source" "tests"
     excludedSourceFiles "source/main.d"
-    dependency "unit-threaded" version="~>0.7.0"
+    dependency "unit-threaded" version="*"
+}
+
+configuration "dpp2" {
+    targetNAme "dpp2"
+    mainSourceFile "tests/test_main.d"
+    sourcePaths "dpp2/source" "dpp2/tests"
+    importPaths "dpp2/source" "dpp2/tests"
+    dependency "unit-threaded" version="*"
+    versions "dpp2"
 }
