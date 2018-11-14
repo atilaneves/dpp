@@ -1,6 +1,8 @@
-module dpp2.type;
+module dpp2.sea.type;
+
 
 import dpp2.from;
+
 
 alias Type = from!"dpp2.sum".Sum!(
     Void, NullPointerT,
