@@ -997,7 +997,25 @@ unittest {
 }
 
 
-@ShouldFail()
+@Tags("issue")
+@("101")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                // normally without the underscore
+                int operator "" _s(const wchar_t* __str, unsigned long __len);
+            }
+        ),
+        D(
+            q{
+            }
+        ),
+    );
+}
+
+
+@ShouldFail
 @Tags("issue")
 @("104")
 @safe unittest {

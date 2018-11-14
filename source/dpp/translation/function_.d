@@ -242,8 +242,10 @@ private string operatorSpellingCpp(in from!"clang".Cursor cursor,
     @safe
 {
     import dpp.translation.type: translate;
+    import dpp.translation.exception: UntranslatableException;
     import clang: Cursor;
     import std.string: replace;
+    import std.algorithm: startsWith;
 
     const operator = cursor.spelling[OPERATOR_PREFIX.length .. $];
 
@@ -252,48 +254,53 @@ private string operatorSpellingCpp(in from!"clang".Cursor cursor,
     }
 
     switch(operator) {
-        default: throw new Exception("Unknown C++ spelling for operator '" ~ operator ~ "'");
-        case   "+":  return `opCppPlus`;
-        case   "-":  return `opCppMinus`;
-        case  "++":  return `opCppIncrement`;
-        case  "--":  return `opCppDecrement`;
-        case   "*":  return `opCppMul`;
-        case   "/":  return `opCppDiv`;
-        case   "&":  return `opCppAmpersand`;
-        case   "~":  return `opCppTilde`;
-        case   "%":  return `opCppMod`;
-        case   "^":  return `opCppCaret`;
-        case   "|":  return `opCppPipe`;
-        case   "=":  return `opCppAssign`;
-        case  ">>":  return `opCppRShift`;
-        case  "<<":  return `opCppLShift`;
-        case  "->":  return `opCppArrow`;
-        case   "!":  return `opCppBang`;
-        case  "&&":  return `opCppAnd`;
-        case  "||":  return `opCppOr`;
-        case   ",":  return `opCppComma`;
-        case "->*":  return `opCppArrowStar`;
-        case  "+=":  return `opCppPlusAssign`;
-        case  "-=":  return `opCppMinusAssign`;
-        case  "*=":  return `opCppMulAssign`;
-        case  "/=":  return `opCppDivAssign`;
-        case  "%=":  return `opCppModAssign`;
-        case  "^=":  return `opCppCaretAssign`;
-        case  "&=":  return `opCppAmpersandAssign`;
-        case  "|=":  return `opCppPipeAssign`;
-        case ">>=":  return `opCppRShiftAssign`;
-        case "<<=":  return `opCppLShiftAssign`;
-        case "()":   return `opCppCall`;
-        case "[]":   return `opCppIndex`;
-        case "==":   return `opCppEquals`;
-        case "!=":   return `opCppNotEquals`;
-        case "<=":   return `opCppLessEquals`;
-        case ">=":   return `opCppMoreEquals`;
-        case  "<":   return `opCppLess`;
-        case  ">":   return `opCppMore`;
-        case " new": return `opCppNew`;
-        case " new[]": return `opCppNewArray`;
-        case " delete": return `opCppDelete`;
+        default:
+            if(operator.startsWith(`""`))  // user-defined string literal
+                throw new UntranslatableException("Cannot translate user-defined literals");
+
+            throw new Exception("Unknown C++ spelling for operator '" ~ operator ~ "'");
+
+        case        "+":  return `opCppPlus`;
+        case        "-":  return `opCppMinus`;
+        case       "++":  return `opCppIncrement`;
+        case       "--":  return `opCppDecrement`;
+        case        "*":  return `opCppMul`;
+        case        "/":  return `opCppDiv`;
+        case        "&":  return `opCppAmpersand`;
+        case        "~":  return `opCppTilde`;
+        case        "%":  return `opCppMod`;
+        case        "^":  return `opCppCaret`;
+        case        "|":  return `opCppPipe`;
+        case        "=":  return `opCppAssign`;
+        case       ">>":  return `opCppRShift`;
+        case       "<<":  return `opCppLShift`;
+        case       "->":  return `opCppArrow`;
+        case        "!":  return `opCppBang`;
+        case       "&&":  return `opCppAnd`;
+        case       "||":  return `opCppOr`;
+        case        ",":  return `opCppComma`;
+        case      "->*":  return `opCppArrowStar`;
+        case       "+=":  return `opCppPlusAssign`;
+        case       "-=":  return `opCppMinusAssign`;
+        case       "*=":  return `opCppMulAssign`;
+        case       "/=":  return `opCppDivAssign`;
+        case       "%=":  return `opCppModAssign`;
+        case       "^=":  return `opCppCaretAssign`;
+        case       "&=":  return `opCppAmpersandAssign`;
+        case       "|=":  return `opCppPipeAssign`;
+        case      ">>=":  return `opCppRShiftAssign`;
+        case      "<<=":  return `opCppLShiftAssign`;
+        case       "()":  return `opCppCall`;
+        case       "[]":  return `opCppIndex`;
+        case       "==":  return `opCppEquals`;
+        case       "!=":  return `opCppNotEquals`;
+        case       "<=":  return `opCppLessEquals`;
+        case       ">=":  return `opCppMoreEquals`;
+        case        "<":  return `opCppLess`;
+        case        ">":  return `opCppMore`;
+        case      " new": return `opCppNew`;
+        case    " new[]": return `opCppNewArray`;
+        case   " delete": return `opCppDelete`;
         case " delete[]": return `opCppDeleteArray`;
     }
 
