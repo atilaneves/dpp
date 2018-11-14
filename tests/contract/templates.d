@@ -508,7 +508,7 @@ import contract;
 }
 
 
-@Tags("contract")
+@Tags("contract", "notravis")
 @("value template argument specialisation")
 @safe unittest {
 
