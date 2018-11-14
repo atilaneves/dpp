@@ -16,7 +16,7 @@ string[] translateFunction(in from!"clang".Cursor cursor,
     import dpp.translation.dlang: maybeRename, maybePragma;
     import dpp.translation.aggregate: maybeRememberStructs;
     import dpp.translation.type: translate;
-    import clang: Cursor, Type, Language, Token;
+    import clang: Cursor, Type;
     import std.array: join, array;
     import std.conv: text;
     import std.algorithm: any, endsWith, canFind;
