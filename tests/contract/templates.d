@@ -475,3 +475,65 @@ import contract;
     data.type.pointee.kind.should == Type.Kind.Unexposed;
     data.type.pointee.spelling.should == "T";
 }
+
+@Tags("contract")
+@("enum")
+@safe unittest {
+    const tu = parse(
+        Cpp(
+            q{
+                template<int I> struct Struct { enum { value = I }; };
+            }
+        )
+    );
+
+    tu.children.length.should == 1;
+    const template_ = tu.children[0];
+    printChildren(template_);
+
+    template_.kind.should == Cursor.Kind.ClassTemplate;
+    template_.children.length.should == 2;
+    template_.children[0].kind.should == Cursor.Kind.NonTypeTemplateParameter;
+
+    const enumDecl = template_.children[1];
+    enumDecl.kind.should == Cursor.Kind.EnumDecl;
+    printChildren(enumDecl);
+
+    enumDecl.children.length.should == 1;
+    const enumConstantDecl = enumDecl.children[0];
+    enumConstantDecl.kind.should == Cursor.Kind.EnumConstantDecl;
+    enumConstantDecl.spelling.should == "value";
+    enumConstantDecl.enumConstantValue.should == 0;  // it's a template
+    writelnUt(enumConstantDecl.tokens);
+}
+
+
+@Tags("contract")
+@("value template argument specialisation")
+@safe unittest {
+
+    import clang: Token;
+
+    const tu = parse(
+        Cpp(
+            q{
+                template<int I> struct Struct { enum { value = I }; };
+                template<> struct Struct<42> { using Type = void; };
+            }
+        )
+    );
+
+    tu.children.length.should == 2;
+    const template_ = tu.children[0];
+    template_.kind.should == Cursor.Kind.ClassTemplate;
+    const struct_ = tu.children[1];
+    struct_.kind.should == Cursor.Kind.StructDecl;
+    printChildren(struct_);
+
+    struct_.children.length.should == 2;
+    const integerLiteral = struct_.children[0];
+    integerLiteral.kind.should == Cursor.Kind.IntegerLiteral;
+    integerLiteral.spelling.should == "";
+
+    integerLiteral.tokens.should == [Token(Token.Kind.Literal, "42")];
+}
