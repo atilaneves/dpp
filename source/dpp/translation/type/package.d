@@ -34,31 +34,36 @@ Translators translators() @safe pure {
 
     with(Type.Kind) {
         return [
-            Long: &simple!"c_long",
-            ULong: &simple!"c_ulong",
             Void: &simple!"void",
             NullPtr: &simple!"void*",
+
             Bool: &simple!"bool",
+
             WChar: &simple!"wchar",
             SChar: &simple!"byte",
             Char16: &simple!"wchar",
             Char32: &simple!"dchar",
             UChar: &simple!"ubyte",
+            Char_U: &simple!"ubyte",
+            Char_S: &simple!"char",
+
             UShort: &simple!"ushort",
             Short: &simple!"short",
             Int: &simple!"int",
             UInt: &simple!"uint",
+            Long: &simple!"c_long",
+            ULong: &simple!"c_ulong",
             LongLong: &simple!"long",
             ULongLong: &simple!"ulong",
-            Float: &simple!"float",
-            Double: &simple!"double",
-            Char_U: &simple!"ubyte",
-            Char_S: &simple!"char",
             Int128: &simple!"Int128",
             UInt128: &simple!"UInt128",
+
+            Float: &simple!"float",
+            Double: &simple!"double",
             Float128: &simple!"real",
             Half: &simple!"float",
             LongDouble: &simple!"real",
+
             Enum: &translateAggregate,
             Pointer: &translatePointer,
             FunctionProto: &translateFunctionProto,
@@ -71,11 +76,11 @@ Translators translators() @safe pure {
             LValueReference: &translateLvalueRef,
             RValueReference: &translateRvalueRef,
             Complex: &translateComplex,
-            Unexposed: &translateUnexposed,
             DependentSizedArray: &translateDependentSizedArray,
             Vector: &translateSimdVector,
             MemberPointer: &translatePointer, // FIXME #83
             Invalid: &ignore, // FIXME C++ stdlib <type_traits>
+            Unexposed: &translateUnexposed,
         ];
     }
 }

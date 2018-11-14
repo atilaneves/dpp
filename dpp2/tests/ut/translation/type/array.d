@@ -1,7 +1,7 @@
-module ut.type.array;
+module ut.translation.type.array;
 
 
-import ut.type;
+import ut.translation.type;
 
 
 @("constant int array 4")
@@ -11,12 +11,14 @@ import ut.type;
     static assert(is(typeof(arr) == int[4]), typeof(arr).stringof);
 }
 
+
 @("constant int array 5")
 @safe pure unittest {
     enum translation = translate(Type(ConstantArray(new Type(Int()), 5)));
     mixin(translation ~ " arr;");
     static assert(is(typeof(arr) == int[5]), typeof(arr).stringof);
 }
+
 
 @("constant long array 6")
 @safe pure unittest {

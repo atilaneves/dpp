@@ -2,9 +2,20 @@ import unit_threaded.runner.runner;
 
 version(dpp2) {
     mixin runTestsMain!(
-        "ut.type.primitives",
-        "ut.type.array",
-        "ut.type.pointer",
+        // unit tests
+
+        "ut.translation.type.primitives",
+        "ut.translation.type.array",
+        "ut.translation.type.pointer",
+
+        "ut.translation.node.structs",
+
+        "ut.transform.clang",
+        "ut.transform.cursor",
+        "ut.transform.type",
+
+        // integration tests
+        "it.c.compile.struct_",
     );
 } else {
     mixin runTestsMain!(
@@ -25,6 +36,7 @@ version(dpp2) {
         "contract.typedef_",
         "contract.operators",
         "contract.member",
+        "contract.aggregates",
 
         "it.issues",
 

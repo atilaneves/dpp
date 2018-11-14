@@ -1,7 +1,7 @@
 module dpp2.translation.type;
 
 
-import dpp2.from;
+import dpp.from;
 
 
 string translate(from!"dpp2.sea.type".Type type) @safe pure {
@@ -27,6 +27,9 @@ string translate(from!"dpp2.sea.type".Type type) @safe pure {
         (UnsignedLong _) => "c_ulong",
         (LongLong _) => "long",
         (UnsignedLongLong _) => "ulong",
+        (Int128 _) => "Int128",
+        (UnsignedInt128 _) => "UInt128",
+        (Half _) => "float",
         (Float _) => "float",
         (Double _) => "double",
         (LongDouble _) => "real",
