@@ -1,9 +1,9 @@
-module dpp2.translation.type;
+module dpp.translation.type;
 
 import dpp.from;
 
 string translate(from!"dpp2.type".Type type) @safe pure {
-    import dpp2.type;
+    import dpp.type;
     import sumtype: match;
     import std.conv: text;
 

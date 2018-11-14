@@ -1,4 +1,4 @@
-module dpp2.type;
+module dpp.type;
 
 import dpp.from;
 
