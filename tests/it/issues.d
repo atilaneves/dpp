@@ -969,7 +969,6 @@ unittest {
 }
 
 
-
 @ShouldFail("cursor.enumConstantValue returning 0 for `value = I`")
 @Tags("issue")
 @("100")
@@ -995,4 +994,27 @@ unittest {
             }
         ),
     );
+}
+
+
+@ShouldFail()
+@Tags("issue")
+@("104")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template <int> struct Struct{};
+                template<>
+                struct Struct<1 + 1> {
+                    static constexpr auto value = 42;
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(Struct!2.value == 42);
+            }
+        ),
+   );
 }
