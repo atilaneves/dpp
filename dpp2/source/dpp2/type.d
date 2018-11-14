@@ -1,6 +1,6 @@
 module dpp2.type;
 
-import dpp.from;
+import dpp2.from;
 
 alias Type = from!"dpp2.sum".Sum!(
     Void, NullPointerT,

@@ -1,8 +1,13 @@
-import unit_threaded;
+import unit_threaded.runner.runner;
 
-int main(string[] args) {
-    return args.runTests!(
-
+version(dpp2) {
+    mixin runTestsMain!(
+        "ut.type.primitives",
+        "ut.type.array",
+        "ut.type.pointer",
+    );
+} else {
+    mixin runTestsMain!(
         // in-file
         "dpp.runtime",
         "dpp.translation",
@@ -10,9 +15,6 @@ int main(string[] args) {
 
         // unit tests
         "ut.old.type",
-        "ut.type.primitives",
-        "ut.type.array",
-        "ut.type.pointer",
 
         // contract tests
         "contract.array",
