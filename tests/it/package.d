@@ -4,15 +4,8 @@
 module it;
 
 public import unit_threaded;
-public import unit_threaded.integration;
+import unit_threaded.integration;
 
-struct In {
-    string value;
-}
-
-struct Out {
-    string value;
-}
 
 /// C code
 struct C {
@@ -47,7 +40,7 @@ struct IncludeSandbox {
 
     void run(string[] args...) @safe const {
         import dpp.runtime.options: Options;
-        import dpp.runtime.app: realRun = run;
+        import dpp.runtime.app: dppRun = run;
         import std.algorithm: map;
         import std.array: array;
 
@@ -59,7 +52,7 @@ struct IncludeSandbox {
         auto options = Options(baseLineArgs ~ args);
         options.dppFileNames[] = options.dppFileNames.map!(a => sandbox.inSandboxPath(a)).array;
 
-        realRun(options);
+        dppRun(options);
     }
 
     void runPreprocessOnly(string[] args...) @safe const {
