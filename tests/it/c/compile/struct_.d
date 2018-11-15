@@ -67,8 +67,7 @@ import it;
 }
 
 
-@WIP2
-@("Outer struct with Inner")
+@("nested")
 @safe unittest {
     shouldCompile(
         C(

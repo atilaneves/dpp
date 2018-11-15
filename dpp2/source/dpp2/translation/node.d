@@ -37,6 +37,13 @@ string[] translateStruct(from!"dpp2.sea.node".Struct struct_)
         .join
         ;
 
+    // FIXME
+    lines ~= struct_
+        .structs
+        .map!(a => "    static" ~ translateStruct(a).map!(l => "    " ~ l).array)
+        .join("\n")
+        ;
+
     lines ~= "}";
 
     return lines;
@@ -47,5 +54,5 @@ string[] translateField(from!"dpp2.sea.node".Field field)
     @safe pure
 {
     import dpp2.translation.type: translate;
-    return [translate(field.type) ~ " " ~ field.spelling ~ ";"];
+    return ["    " ~ translate(field.type) ~ " " ~ field.spelling ~ ";"];
 }

@@ -10,14 +10,32 @@ import dpp.from;
 from!"dpp2.sea.node".Node toNode(in from!"clang".Cursor cursor) @safe {
     import dpp2.sea.node;
     import dpp2.sea.type;
-    static import clang;
-    import std.algorithm: map;
+    import dpp.runtime.context: Context;
+    import dpp.translation.translation: debugCursor;
+    import clang: Cursor;
+    import std.algorithm: map, filter;
     import std.array: array;
 
     return Node(
         Struct(
             cursor.spelling,
-            cursor.children.map!(c => Field(toType(c.type), c.spelling)).array
+            cursor
+                .children
+                .filter!(c => c.kind == Cursor.Kind.FieldDecl)
+                .map!(c => Field(toType(c.type), c.spelling))
+                .array,
+            cursor
+                .children
+                .filter!(c => c.kind == Cursor.Kind.StructDecl)
+            // FIXME
+            .map!(cursor => Struct(cursor.spelling,
+                                   cursor
+                                       .children
+                                       .filter!(c => c.kind == Cursor.Kind.FieldDecl)
+                                       .map!(c => Field(toType(c.type), c.spelling))
+                                       .array,
+                      ))
+                .array
         )
     );
 }
@@ -25,9 +43,7 @@ from!"dpp2.sea.node".Node toNode(in from!"clang".Cursor cursor) @safe {
 
 from!"dpp2.sea.type".Type toType(in from!"clang".Type clangType) @safe pure {
     import dpp2.sea.type;
-    static import clang;
     import std.conv: text;
-    import std.array: replace;
 
     alias Kind = clangType.Kind;
 
@@ -65,11 +81,18 @@ from!"dpp2.sea.type".Type toType(in from!"clang".Type clangType) @safe pure {
         case Kind.LongDouble: return Type(LongDouble());
         case Kind.Float128: return Type(LongDouble());
 
-        case Kind.Record: return Type(UserDefinedType(clangType.spelling));
+        case Kind.Record:
         case Kind.Elaborated:
-            return Type(UserDefinedType(clangType.spelling
-                                        .replace("struct ", "")
-                                        .replace("union ", "")
-                                        .replace("enum ", "")));
+            return Type(UserDefinedType(clangType.spelling.unelaborate));
     }
+}
+
+
+private string unelaborate(in string spelling) @safe pure {
+    import std.array: replace;
+    return spelling
+        .replace("struct ", "")
+        .replace("union ", "")
+        .replace("enum ", "")
+        ;
 }

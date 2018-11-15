@@ -15,6 +15,8 @@ alias Node = from!"dpp2.sum".Sum!(
 struct Struct {
     string spelling;
     Field[] fields;
+    // FIXME
+    Struct[] structs;
 }
 
 
