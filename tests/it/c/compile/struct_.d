@@ -67,6 +67,7 @@ import it;
 }
 
 
+@WIP2
 @("Outer struct with Inner")
 @safe unittest {
     shouldCompile(
@@ -88,6 +89,8 @@ import it;
     );
 }
 
+
+@WIP2
 @("typedef.name")
 @safe unittest {
     shouldCompile(
@@ -114,6 +117,8 @@ import it;
     );
 }
 
+
+@WIP2
 @("typedef.anon")
 @safe unittest {
     shouldCompile(
@@ -140,6 +145,8 @@ import it;
     );
 }
 
+
+@WIP2
 @("typedef.before")
 @safe unittest {
     shouldCompile(
@@ -158,6 +165,8 @@ import it;
     );
 }
 
+
+@WIP2
 @("fsid_t")
 @safe unittest {
     shouldCompile(
@@ -179,6 +188,7 @@ import it;
 }
 
 
+@WIP2
 @("fd_set")
 @safe unittest {
 
@@ -224,6 +234,8 @@ import it;
     }
 }
 
+
+@WIP2
 @("multiple declarations")
 @safe unittest {
     shouldCompile(
@@ -247,6 +259,8 @@ import it;
     );
 }
 
+
+@WIP2
 @("var.anonymous")
 @safe unittest {
     shouldCompile(
@@ -259,6 +273,8 @@ import it;
     );
 }
 
+
+@WIP2
 @("var.anonymous.typedef")
 @safe unittest {
     shouldCompile(
