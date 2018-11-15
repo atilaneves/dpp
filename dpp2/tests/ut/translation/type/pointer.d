@@ -1,7 +1,7 @@
-module ut.type.pointer;
+module ut.translation.type.pointer;
 
 
-import ut.type;
+import ut.translation.type;
 
 
 @("int*")

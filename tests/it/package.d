@@ -7,6 +7,11 @@ public import unit_threaded;
 import unit_threaded.integration;
 
 
+version(dpp2)
+    alias WIP2 = ShouldFail;
+else
+    enum WIP2;
+
 /// C code
 struct C {
     string code;

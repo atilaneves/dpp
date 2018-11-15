@@ -1,8 +1,10 @@
 module it.c.compile.struct_;
 
+
 import it;
 
-@("simple int struct")
+
+@("onefield.int")
 @safe unittest {
     shouldCompile(
         C(
@@ -19,7 +21,7 @@ import it;
     );
 }
 
-@("simple double struct")
+@("onefield.double")
 @safe unittest {
     shouldCompile(
         C(
@@ -38,12 +40,40 @@ import it;
 }
 
 
-@("Outer struct with Inner")
+@("threefields")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                struct Baz {
+                    int i;
+                    int j;
+                    double d;
+                };
+            }
+        ),
+
+        D(
+            q{
+                import std.conv: text;
+                auto b = Baz(42, 7, 33.3);
+                static assert(is(typeof(b.i) == int));
+                static assert(is(typeof(b.j) == int));
+                static assert(is(typeof(b.d) == double));
+                static assert(b.sizeof == 16, text("Wrong sizeof for Baz: ", b.sizeof));
+            }
+        )
+    );
+}
+
+
+@("nested")
 @safe unittest {
     shouldCompile(
         C(
             q{
                 struct Outer {
+                    int i;
                     struct Inner {
                         int x;
                     } inner;
@@ -52,14 +82,16 @@ import it;
         ),
         D(
             q{
-                auto o = Outer(Outer.Inner(42));
-                static assert(o.sizeof == 4, "Wrong sizeof for Outer");
+                auto o = Outer(77, Outer.Inner(42));
+                static assert(o.sizeof == 8, "Wrong sizeof for Outer");
             }
         )
     );
 }
 
-@("typedef struct with name")
+
+@WIP2
+@("typedef.name")
 @safe unittest {
     shouldCompile(
         C(
@@ -85,7 +117,9 @@ import it;
     );
 }
 
-@("typedef struct with no name")
+
+@WIP2
+@("typedef.anon")
 @safe unittest {
     shouldCompile(
         C(
@@ -111,7 +145,9 @@ import it;
     );
 }
 
-@("typedef before struct declaration")
+
+@WIP2
+@("typedef.before")
 @safe unittest {
     shouldCompile(
         C(
@@ -129,6 +165,8 @@ import it;
     );
 }
 
+
+@WIP2
 @("fsid_t")
 @safe unittest {
     shouldCompile(
@@ -150,6 +188,7 @@ import it;
 }
 
 
+@WIP2
 @("fd_set")
 @safe unittest {
 
@@ -195,6 +234,8 @@ import it;
     }
 }
 
+
+@WIP2
 @("multiple declarations")
 @safe unittest {
     shouldCompile(
@@ -218,7 +259,9 @@ import it;
     );
 }
 
-@("anonymous struct var")
+
+@WIP2
+@("var.anonymous")
 @safe unittest {
     shouldCompile(
         C(`struct { int i; } var;`),
@@ -230,7 +273,9 @@ import it;
     );
 }
 
-@("typedef anonymous struct var")
+
+@WIP2
+@("var.anonymous.typedef")
 @safe unittest {
     shouldCompile(
         C(`

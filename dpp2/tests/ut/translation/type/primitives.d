@@ -1,6 +1,8 @@
-module ut.type.primitives;
+module ut.translation.type.primitives;
 
-import ut.type;
+
+import ut.translation.type;
+
 
 @("void")
 @safe pure unittest {

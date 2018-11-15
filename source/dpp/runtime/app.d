@@ -139,7 +139,11 @@ private TranslationText translationText(File)(in from!"dpp.runtime.options".Opti
 {
 
     import dpp.runtime.context: Context, Language;
-    import dpp.expansion: expand, isCppHeader, getHeaderName;
+    version(dpp2)
+        import dpp2.expansion: expand, isCppHeader, getHeaderName;
+    else
+        import dpp.expansion: expand, isCppHeader, getHeaderName;
+
     import std.algorithm: map, filter;
     import std.string: fromStringz;
     import std.path: dirName;

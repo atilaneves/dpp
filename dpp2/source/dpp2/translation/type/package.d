@@ -1,9 +1,12 @@
 module dpp2.translation.type;
 
 
-import dpp2.from;
+import dpp.from;
 
 
+/**
+   Translate a C/C++ type to D.
+ */
 string translate(from!"dpp2.sea.type".Type type) @safe pure {
     import dpp2.sea.type;  // too many to list for the pattern match
     import sumtype: match;
@@ -27,11 +30,15 @@ string translate(from!"dpp2.sea.type".Type type) @safe pure {
         (UnsignedLong _) => "c_ulong",
         (LongLong _) => "long",
         (UnsignedLongLong _) => "ulong",
+        (Int128 _) => "Int128",
+        (UnsignedInt128 _) => "UInt128",
+        (Half _) => "float",
         (Float _) => "float",
         (Double _) => "double",
         (LongDouble _) => "real",
         (Pointer ptr) => text(translate(*ptr.pointeeType), "*"),
         (ConstantArray arr) => text(translate(*arr.elementType), "[", arr.length, "]"),
+        (UserDefinedType t) => t.spelling,
     );
 }
 

@@ -102,7 +102,7 @@ struct Context {
     /// to generate unique names
     private int _anonymousIndex;
 
-    const(Language) language;
+    Language language;
 
     this(Options options, in Language language) @safe pure {
         this.options = options;
