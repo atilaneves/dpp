@@ -74,6 +74,7 @@ import it;
         C(
             q{
                 struct Outer {
+                    int i;
                     struct Inner {
                         int x;
                     } inner;
@@ -82,8 +83,8 @@ import it;
         ),
         D(
             q{
-                auto o = Outer(Outer.Inner(42));
-                static assert(o.sizeof == 4, "Wrong sizeof for Outer");
+                auto o = Outer(77, Outer.Inner(42));
+                static assert(o.sizeof == 8, "Wrong sizeof for Outer");
             }
         )
     );

@@ -156,3 +156,9 @@ alias Kind = ClangType.Kind;
 @safe pure unittest {
     ClangType(Kind.LongDouble).toType.should == Type(LongDouble());
 }
+
+
+@("record")
+@safe pure unittest {
+    ClangType(Kind.Record, "mytype").toType.should == Type(UserDefinedType("mytype"));
+}

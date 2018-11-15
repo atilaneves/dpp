@@ -38,6 +38,7 @@ string translate(from!"dpp2.sea.type".Type type) @safe pure {
         (LongDouble _) => "real",
         (Pointer ptr) => text(translate(*ptr.pointeeType), "*"),
         (ConstantArray arr) => text(translate(*arr.elementType), "[", arr.length, "]"),
+        (UserDefinedType _) => text("foobarbaz"),
     );
 }
 

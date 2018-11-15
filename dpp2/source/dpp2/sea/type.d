@@ -12,6 +12,7 @@ alias Type = from!"dpp2.sum".Sum!(
     Half, Float, Double, LongDouble,
     Pointer,
     ConstantArray,
+    UserDefinedType,
 );
 
 
@@ -52,4 +53,8 @@ struct Pointer {
 struct ConstantArray {
     Type* elementType;
     int length;
+}
+
+struct UserDefinedType {
+    string spelling;
 }

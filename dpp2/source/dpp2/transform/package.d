@@ -27,6 +27,7 @@ from!"dpp2.sea.type".Type toType(in from!"clang".Type clangType) @safe pure {
     import dpp2.sea.type;
     static import clang;
     import std.conv: text;
+    import std.array: replace;
 
     alias Kind = clangType.Kind;
 
@@ -63,5 +64,12 @@ from!"dpp2.sea.type".Type toType(in from!"clang".Type clangType) @safe pure {
         case Kind.Double: return Type(Double());
         case Kind.LongDouble: return Type(LongDouble());
         case Kind.Float128: return Type(LongDouble());
+
+        case Kind.Record: return Type(UserDefinedType(clangType.spelling));
+        case Kind.Elaborated:
+            return Type(UserDefinedType(clangType.spelling
+                                        .replace("struct ", "")
+                                        .replace("union ", "")
+                                        .replace("enum ", "")));
     }
 }

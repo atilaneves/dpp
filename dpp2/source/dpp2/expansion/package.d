@@ -22,7 +22,7 @@ void expand(in string translUnitFileName,
     @safe
 {
     import dpp.runtime.context: Language;
-    import dpp2.translation.translation: translate;
+    import dpp2.translation.node: translate;
     import clang: parse;
 
     const extern_ = context.language == Language.Cpp ? "extern(C++)" : "extern(C)";
