@@ -30,3 +30,46 @@ import contract;
     member.type.kind.should == Type.Kind.Int;
     member.type.spelling.should == "int";
 }
+
+
+@("struct.nested")
+@safe unittest {
+    const tu = parse(
+        Cpp(
+            q{
+                struct Outer {
+                    int integer;
+                    struct Inner {
+                        int x;
+                    } inner;
+                };
+            }
+        )
+    );
+
+    const struct_ = tu.children[0];
+    printChildren(struct_);
+    struct_.children.length.should == 3;
+
+    const integer = struct_.children[0];
+    integer.kind.should == Cursor.Kind.FieldDecl;
+    integer.spelling.should == "integer";
+    integer.type.kind.should == Type.Kind.Int;
+    integer.type.spelling.should == "int";
+
+    const innerStruct = struct_.children[1];
+    innerStruct.kind.should == Cursor.Kind.StructDecl;
+    innerStruct.spelling.should == "Inner";
+    innerStruct.type.kind.should == Type.Kind.Record;
+    innerStruct.type.spelling.should == "Outer::Inner";
+    innerStruct.type.canonical.kind.should == Type.Kind.Record;
+    innerStruct.type.canonical.spelling.should == "Outer::Inner";
+
+    const innerField = struct_.children[2];
+    innerField.kind.should == Cursor.Kind.FieldDecl;
+    innerField.spelling.should == "inner";
+    innerField.type.kind.should == Type.Kind.Elaborated;
+    innerField.type.spelling.should == "struct Inner";
+    innerField.type.canonical.kind.should == Type.Kind.Record;
+    innerField.type.canonical.spelling.should == "Outer::Inner";
+}
