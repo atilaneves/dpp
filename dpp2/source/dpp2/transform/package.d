@@ -17,6 +17,11 @@ from!"dpp2.sea.node".Node toNode(in from!"clang".Cursor cursor) @safe {
     import std.array: array;
     import std.conv: text;
 
+    version(unittest) {
+        import unit_threaded;
+        writelnUt(cursor);
+    }
+
     switch(cursor.kind) with(cursor.Kind) {
         default:
             throw new Exception(text("Unknown cursor kind: ", cursor));
@@ -34,6 +39,9 @@ from!"dpp2.sea.node".Node toNode(in from!"clang".Cursor cursor) @safe {
 
         case FieldDecl:
             return Node(Field(toType(cursor.type), cursor.spelling));
+
+        case TypedefDecl:
+            return Node(Typedef(cursor.spelling, cursor.underlyingType.spelling.unelaborate));
     }
 }
 

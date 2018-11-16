@@ -90,7 +90,6 @@ import it;
 }
 
 
-@WIP2
 @("typedef.name")
 @safe unittest {
     shouldCompile(

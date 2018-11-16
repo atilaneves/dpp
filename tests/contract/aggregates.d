@@ -109,6 +109,8 @@ import contract;
     const struct_ = tu.children[0];
     struct_.kind.should == Cursor.Kind.StructDecl;
     struct_.spelling.should == "TypeDefd_";
+    struct_.type.kind.should == Type.Kind.Record;
+    struct_.type.spelling.should == "TypeDefd_";
 
     const typedef_ = tu.children[1];
     typedef_.kind.should == Cursor.Kind.TypedefDecl;
@@ -145,6 +147,8 @@ import contract;
     const struct_ = tu.children[0];
     struct_.kind.should == Cursor.Kind.StructDecl;
     struct_.spelling.should == "";
+    struct_.type.kind.should == Type.Kind.Record;
+    struct_.type.spelling.should == "TypeDefd";
 
     const typedef_ = tu.children[1];
     typedef_.kind.should == Cursor.Kind.TypedefDecl;

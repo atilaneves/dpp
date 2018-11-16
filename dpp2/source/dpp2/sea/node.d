@@ -10,6 +10,7 @@ import dpp.from;
 alias Node = from!"sumtype".SumType!(
     Struct,
     Field,
+    Typedef,
 );
 
 
@@ -23,4 +24,10 @@ struct Field {
     import dpp2.sea.type: Type;
     Type type;
     string spelling;
+}
+
+
+struct Typedef {
+    string spelling;
+    string underlying;
 }

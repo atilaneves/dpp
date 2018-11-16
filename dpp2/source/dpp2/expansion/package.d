@@ -51,7 +51,7 @@ private auto cursorsToNodes(in from!"clang".Cursor[] cursors) @safe {
     import std.algorithm: map, filter;
 
     return cursors
-        .filter!(c => c.kind == Cursor.Kind.StructDecl)
+        .filter!(c => c.kind != Cursor.Kind.MacroDefinition && c.kind != Cursor.Kind.InclusionDirective)
         .map!toNode
         ;
 }

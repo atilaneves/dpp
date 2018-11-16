@@ -13,6 +13,7 @@ string[] translate(in from!"dpp2.sea.node".Node node)
     return node.match!(
         translateStruct,
         translateField,
+        translateTypedef,
     );
 }
 
@@ -46,4 +47,11 @@ string[] translateField(in from!"dpp2.sea.node".Field field)
 {
     import dpp2.translation.type: translate;
     return ["    " ~ translate(field.type) ~ " " ~ field.spelling ~ ";"];
+}
+
+
+string[] translateTypedef(in from!"dpp2.sea.node".Typedef typedef_)
+    @safe pure
+{
+    return ["alias " ~ typedef_.spelling ~ " = " ~ typedef_.underlying ~ ";"];
 }

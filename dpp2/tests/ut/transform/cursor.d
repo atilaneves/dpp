@@ -109,3 +109,23 @@ import dpp2.transform: toNode;
             );
     }();
 }
+
+
+@("struct.typedef.name")
+@safe unittest {
+    auto intField = Cursor(Cursor.Kind.FieldDecl, "i");
+    intField.type = ClangType(ClangType.Kind.Int, "int");
+
+    auto struct_ = Cursor(Cursor.Kind.StructDecl, "Struct_");
+    struct_.type = ClangType(ClangType.Kind.Record, "Struct_");
+    struct_.children = [intField];
+
+    auto typedef_ = Cursor(Cursor.Kind.TypedefDecl, "Struct");
+    typedef_.type = ClangType(ClangType.Kind.Typedef, "Struct");
+    typedef_.underlyingType = ClangType(ClangType.Kind.Elaborated, "struct Struct_");
+    typedef_.children = [struct_];
+
+    () @trusted {
+        typedef_.toNode.should == Node(Typedef("Struct", "Struct_"));
+    }();
+}
