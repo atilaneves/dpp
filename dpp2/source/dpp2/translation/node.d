@@ -4,10 +4,7 @@ module dpp2.translation.node;
 import dpp.from;
 
 
-// FIXME - all of the parameters should be const but `match` won't have it
-
-
-string[] translate(from!"dpp2.sea.node".Node node)
+string[] translate(in from!"dpp2.sea.node".Node node)
     @safe pure
 {
     import dpp2.sea.node;
@@ -20,7 +17,7 @@ string[] translate(from!"dpp2.sea.node".Node node)
 }
 
 
-string[] translateStruct(from!"dpp2.sea.node".Struct struct_)
+string[] translateStruct(in from!"dpp2.sea.node".Struct struct_)
     @safe pure
 {
     import dpp2.sea.node: Node;
@@ -44,7 +41,7 @@ string[] translateStruct(from!"dpp2.sea.node".Struct struct_)
 }
 
 
-string[] translateField(from!"dpp2.sea.node".Field field)
+string[] translateField(in from!"dpp2.sea.node".Field field)
     @safe pure
 {
     import dpp2.translation.type: translate;

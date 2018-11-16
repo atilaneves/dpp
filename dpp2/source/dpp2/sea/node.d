@@ -7,7 +7,7 @@ module dpp2.sea.node;
 import dpp.from;
 
 
-alias Node = from!"dpp2.sum".Sum!(
+alias Node = from!"sumtype".SumType!(
     Struct,
     Field,
 );
