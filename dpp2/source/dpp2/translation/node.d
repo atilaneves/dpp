@@ -15,6 +15,7 @@ string[] translate(from!"dpp2.sea.node".Node node)
 
     return node.match!(
         translateStruct,
+        translateField,
     );
 }
 
@@ -32,16 +33,9 @@ string[] translateStruct(from!"dpp2.sea.node".Struct struct_)
     lines ~= "{";
 
     lines ~= struct_
-        .fields
-        .map!translateField
+        .nodes
+        .map!translate
         .join
-        ;
-
-    // FIXME
-    lines ~= struct_
-        .structs
-        .map!(a => "    static" ~ translateStruct(a).map!(l => "    " ~ l).array)
-        .join("\n")
         ;
 
     lines ~= "}";

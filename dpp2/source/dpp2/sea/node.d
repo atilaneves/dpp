@@ -9,14 +9,13 @@ import dpp.from;
 
 alias Node = from!"dpp2.sum".Sum!(
     Struct,
+    Field,
 );
 
 
 struct Struct {
     string spelling;
-    Field[] fields;
-    // FIXME
-    Struct[] structs;
+    Node[] nodes;
 }
 
 

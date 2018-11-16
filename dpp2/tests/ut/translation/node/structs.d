@@ -11,10 +11,7 @@ import std.array: join;
         Struct(
             "Foo",
             [
-                Field(
-                    Type(Int()),
-                    "i",
-                ),
+                Node(Field(Type(Int()), "i")),
             ]
         )
     );
@@ -34,10 +31,7 @@ import std.array: join;
         Struct(
             "Bar",
             [
-                Field(
-                    Type(Double()),
-                    "d",
-                ),
+                Node(Field(Type(Double()), "d")),
             ]
         )
     );
@@ -57,14 +51,8 @@ import std.array: join;
         Struct(
             "Baz",
             [
-                Field(
-                    Type(Int()),
-                    "i",
-                ),
-                Field(
-                    Type(Double()),
-                    "d",
-                ),
+                Node(Field(Type(Int()), "i",)),
+                Node(Field(Type(Double()), "d",)),
             ]
         )
     );

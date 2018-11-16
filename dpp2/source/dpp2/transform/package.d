@@ -13,31 +13,28 @@ from!"dpp2.sea.node".Node toNode(in from!"clang".Cursor cursor) @safe {
     import dpp.runtime.context: Context;
     import dpp.translation.translation: debugCursor;
     import clang: Cursor;
-    import std.algorithm: map, filter;
+    import std.algorithm: map;
     import std.array: array;
+    import std.conv: text;
 
-    return Node(
-        Struct(
-            cursor.spelling,
-            cursor
-                .children
-                .filter!(c => c.kind == Cursor.Kind.FieldDecl)
-                .map!(c => Field(toType(c.type), c.spelling))
-                .array,
-            cursor
-                .children
-                .filter!(c => c.kind == Cursor.Kind.StructDecl)
-            // FIXME
-            .map!(cursor => Struct(cursor.spelling,
-                                   cursor
-                                       .children
-                                       .filter!(c => c.kind == Cursor.Kind.FieldDecl)
-                                       .map!(c => Field(toType(c.type), c.spelling))
-                                       .array,
-                      ))
-                .array
-        )
-    );
+    switch(cursor.kind) with(cursor.Kind) {
+        default:
+            throw new Exception(text("Unknown cursor kind: ", cursor));
+
+        case StructDecl:
+            return Node(
+                Struct(
+                    cursor.spelling,
+                    cursor
+                    .children
+                    .map!toNode
+                    .array,
+                )
+            );
+
+        case FieldDecl:
+            return Node(Field(toType(cursor.type), cursor.spelling));
+    }
 }
 
 

@@ -18,15 +18,17 @@ import dpp2.transform: toNode;
     auto struct_ = Cursor(Cursor.Kind.StructDecl, "Foo");
     struct_.children = [intField];
 
-    struct_.toNode.should ==
-        Node(
-            Struct(
-                "Foo",
-                [
-                    Field(Type(Int()), "i"),
-                ]
-            )
-        );
+    () @trusted {
+        struct_.toNode.should ==
+            Node(
+                Struct(
+                    "Foo",
+                    [
+                        Node(Field(Type(Int()), "i")),
+                    ]
+                )
+            );
+    }();
 }
 
 
@@ -37,15 +39,17 @@ import dpp2.transform: toNode;
     auto struct_ = Cursor(Cursor.Kind.StructDecl, "Bar");
     struct_.children = [doubleField];
 
-    struct_.toNode.should ==
-        Node(
-            Struct(
-                "Bar",
-                [
-                    Field(Type(Double()), "d"),
-                ]
-            )
-        );
+    () @trusted {
+        struct_.toNode.should ==
+            Node(
+                Struct(
+                    "Bar",
+                    [
+                        Node(Field(Type(Double()), "d")),
+                    ]
+                )
+            );
+    }();
 }
 
 
@@ -60,20 +64,21 @@ import dpp2.transform: toNode;
     auto struct_ = Cursor(Cursor.Kind.StructDecl, "Baz");
     struct_.children = [intField, doubleField];
 
-    struct_.toNode.should ==
-        Node(
-            Struct(
-                "Baz",
-                [
-                    Field(Type(Int()), "i"),
-                    Field(Type(Double()), "d"),
-                ]
-            )
-        );
+    () @trusted {
+        struct_.toNode.should ==
+            Node(
+                Struct(
+                    "Baz",
+                    [
+                        Node(Field(Type(Int()), "i")),
+                        Node(Field(Type(Double()), "d")),
+                    ]
+                )
+            );
+    }();
 }
 
 
-// FIXME - `Field` should be an option for `Node`
 @("struct.nested")
 @safe unittest {
     auto xfield = Cursor(Cursor.Kind.FieldDecl, "x");
@@ -91,16 +96,16 @@ import dpp2.transform: toNode;
     outer.type = ClangType(ClangType.Kind.Record, "Outer");
     outer.children = [innerStruct, innerField];
 
-    outer.toNode.should ==
-        Node(
-            Struct(
-                "Outer",
-                [
-                    Field(Type(UserDefinedType("Inner")), "inner"),
-                ],
-                [
-                    Struct("Inner", [ Field(Type(Int()), "x") ]),
-                ],
-            )
-        );
+    () @trusted {
+        outer.toNode.should ==
+            Node(
+                Struct(
+                    "Outer",
+                    [
+                        Node(Struct("Inner", [ Node(Field(Type(Int()), "x")) ])),
+                        Node(Field(Type(UserDefinedType("Inner")), "inner")),
+                    ],
+                )
+            );
+    }();
 }
