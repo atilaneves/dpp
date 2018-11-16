@@ -74,7 +74,6 @@ import dpp2.transform: toNode;
 
 
 // FIXME - `Field` should be an option for `Node`
-@ShouldFail("Equal but not equal")
 @("struct.nested")
 @safe unittest {
     auto xfield = Cursor(Cursor.Kind.FieldDecl, "x");

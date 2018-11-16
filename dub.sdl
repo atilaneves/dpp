@@ -11,7 +11,7 @@ dflags "-dip25"
 lflags "-L/usr/lib/llvm-6.0/lib"  # for Travis CI
 
 dependency "libclang" version="~>0.0.12"
-dependency "sumtype" version="~>0.4.0"
+dependency "sumtype" path="~>0.7.1"
 
 
 configuration "executable" {
@@ -34,6 +34,7 @@ configuration "unittest" {
     excludedSourceFiles "source/main.d"
     dependency "unit-threaded" version="*"
 }
+
 
 configuration "dpp2" {
     targetNAme "dpp2"
