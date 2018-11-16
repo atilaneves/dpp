@@ -89,3 +89,75 @@ import contract;
 
     innerField.children[0].should == innerStruct;
 }
+
+
+@("struct.typedef.name")
+@safe unittest {
+    const tu = parse(
+        Cpp(
+            q{
+                typedef struct TypeDefd_ {
+                    int i;
+                    double d;
+                } TypeDefd;
+            }
+        )
+    );
+
+    tu.children.length.should == 2;
+
+    const struct_ = tu.children[0];
+    struct_.kind.should == Cursor.Kind.StructDecl;
+    struct_.spelling.should == "TypeDefd_";
+
+    const typedef_ = tu.children[1];
+    typedef_.kind.should == Cursor.Kind.TypedefDecl;
+    typedef_.spelling.should == "TypeDefd";
+    typedef_.type.kind.should == Type.Kind.Typedef;
+    typedef_.type.spelling.should == "TypeDefd";
+
+    typedef_.underlyingType.kind.should == Type.Kind.Elaborated;
+    typedef_.underlyingType.spelling.should == "struct TypeDefd_";
+    typedef_.underlyingType.canonical.kind.should == Type.Kind.Record;
+    typedef_.underlyingType.canonical.spelling.should == "TypeDefd_";
+
+    printChildren(typedef_);
+    typedef_.children.length.should == 1;
+    typedef_.children[0].should == struct_;
+}
+
+
+@("struct.typedef.anon")
+@safe unittest {
+    const tu = parse(
+        Cpp(
+            q{
+                typedef struct {
+                    int i;
+                    double d;
+                } TypeDefd;
+            }
+        )
+    );
+
+    tu.children.length.should == 2;
+
+    const struct_ = tu.children[0];
+    struct_.kind.should == Cursor.Kind.StructDecl;
+    struct_.spelling.should == "";
+
+    const typedef_ = tu.children[1];
+    typedef_.kind.should == Cursor.Kind.TypedefDecl;
+    typedef_.spelling.should == "TypeDefd";
+    typedef_.type.kind.should == Type.Kind.Typedef;
+    typedef_.type.spelling.should == "TypeDefd";
+
+    typedef_.underlyingType.kind.should == Type.Kind.Elaborated;
+    typedef_.underlyingType.spelling.should == "struct TypeDefd";
+    typedef_.underlyingType.canonical.kind.should == Type.Kind.Record;
+    typedef_.underlyingType.canonical.spelling.should == "TypeDefd";
+
+    printChildren(typedef_);
+    typedef_.children.length.should == 1;
+    typedef_.children[0].should == struct_;
+}
