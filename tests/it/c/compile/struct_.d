@@ -5,18 +5,20 @@ import it;
 
 
 @("onefield.int")
+@C(
+    q{
+        struct Foo { int i; };
+    }
+)
 @safe unittest {
-    shouldCompile(
-        C(
-            q{
-                struct Foo { int i; };
-            }
-        ),
-        D(
-            q{
-                auto f = Foo(5);
-                static assert(f.sizeof == 4, "Wrong sizeof for Foo");
-            }
+    mixin(
+        shouldCompile(
+            D(
+                q{
+                    auto f = Foo(5);
+                    static assert(f.sizeof == 4, "Wrong sizeof for foo");
+                }
+            )
         )
     );
 }
@@ -68,23 +70,25 @@ import it;
 
 
 @("nested")
+@C(
+    q{
+        struct Outer {
+            int integer;
+            struct Inner {
+                int x;
+            } inner;
+        };
+    }
+)
 @safe unittest {
-    shouldCompile(
-        C(
-            q{
-                struct Outer {
-                    int i;
-                    struct Inner {
-                        int x;
-                    } inner;
-                };
-            }
-        ),
-        D(
-            q{
-                auto o = Outer(77, Outer.Inner(42));
-                static assert(o.sizeof == 8, "Wrong sizeof for Outer");
-            }
+    mixin(
+        shouldCompile(
+            D(
+                q{
+                    auto o = Outer(77, Outer.Inner(42));
+                    static assert(o.sizeof == 8, "Wrong sizeof for Outer");
+                }
+            )
         )
     );
 }

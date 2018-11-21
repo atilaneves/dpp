@@ -18,6 +18,16 @@ import dpp2.transform: toNode;
     auto struct_ = Cursor(Cursor.Kind.StructDecl, "Foo");
     struct_.children = [intField];
 
+    auto actual = struct_.toNode;
+    auto expected = Node(
+                Struct(
+                    "Foo",
+                    [
+                        Node(Field(Type(Int()), "i")),
+                    ]
+                )
+            );
+
     () @trusted {
         struct_.toNode.should ==
             Node(
