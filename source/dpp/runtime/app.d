@@ -246,6 +246,7 @@ string preamble() @safe pure {
         import core.stdc.config;
         import core.stdc.stdarg: va_list;
         static import core.simd;
+        static import std.conv;
 
         struct Int128 { long lower; long upper; }
         struct UInt128 { ulong lower; ulong upper; }

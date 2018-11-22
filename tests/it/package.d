@@ -97,12 +97,11 @@ struct IncludeSandbox {
     }
 
     private void adjustMessage(Exception e, in string[] srcFiles) @safe const {
-        import dpp.runtime.app: preamble;
         import std.algorithm: map;
         import std.array: join;
         import std.file: readText;
         import std.string: splitLines;
-        import std.range: enumerate, drop;
+        import std.range: enumerate;
         import std.format: format;
 
         throw new UnitTestException(
@@ -111,7 +110,7 @@ struct IncludeSandbox {
                   .splitLines
                   .enumerate(1)
                   .map!(b => format!"%5d:   %s"(b[0], b[1]))
-                  .drop(preamble.splitLines.length + 1)
+                  .dropPreamble
                   .join("\n")
                 )
             .join("\n\n"), e.file, e.line);
@@ -130,6 +129,18 @@ struct IncludeSandbox {
             `void main() {` ~ "\n" ~ app.code ~ "\n}\n";
         writeFile("app.dpp", dCode);
     }
+}
+
+private auto dropPreamble(R)(R lines) {
+    import dpp.runtime.app: preamble;
+    import std.array: array;
+    import std.range: walkLength, drop;
+    import std.string: splitLines;
+
+    const length = lines.save.walkLength;
+    const preambleLength = preamble.splitLines.length + 1;
+
+    return length > preambleLength ? lines.drop(preambleLength).array : lines.array;
 }
 
 /**
