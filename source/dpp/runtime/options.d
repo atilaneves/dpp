@@ -44,11 +44,7 @@ struct Options {
         if(earlyExit) return;
 
         if(preprocessOnly)
-            enforce(args.length == 2,
-                    text("Wrong argument length. Expected 2, got ", args.length,
-                         " for preprocessing only.\n", usage));
-        else
-            enforce(args.length >= 2, "Not enough arguments\n" ~ usage);
+            keepDlangFiles = true;
 
         dppFileNames = args.filter!(a => a.extension == ".dpp").array;
         enforce(dppFileNames.length != 0, "No .dpp input file specified\n" ~ usage);
