@@ -53,11 +53,20 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
 
     // FIXME - still not sure I understand isOnlyAggregateChild here
     const underlyingSpelling = () {
-        if(isOnlyAggregateChild) return context.spellingOrNickname(children[0]);
-        const typeToUse = isTypeParameter(canonicalUnderlyingType)
-            ? nonCanonicalUnderlyingType
-            : canonicalUnderlyingType;
-        return translate(typeToUse, context, No.translatingFunction);
+        switch(typedef_.spelling) {
+            default:
+                if(isOnlyAggregateChild) return context.spellingOrNickname(children[0]);
+                const typeToUse = isTypeParameter(canonicalUnderlyingType)
+                    ? nonCanonicalUnderlyingType
+                    : canonicalUnderlyingType;
+                return translate(typeToUse, context, No.translatingFunction);
+
+            // possible issues on 32-bit
+            case "int32_t":  return "int";
+            case "uint32_t": return "uint";
+            case "in64_t":   return "long";
+            case "uint64_t": return "ulong";
+        }
     }();
 
     context.rememberType(typedef_.spelling);
