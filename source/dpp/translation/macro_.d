@@ -9,7 +9,7 @@ string[] translateMacro(in from!"clang".Cursor cursor,
     import dpp.translation.dlang: maybeRename;
     import clang: Cursor;
     import std.file: exists;
-    import std.algorithm: startsWith;
+    import std.algorithm: startsWith, canFind;
     import std.conv: text;
 
     assert(cursor.kind == Cursor.Kind.MacroDefinition);
@@ -62,39 +62,68 @@ private auto chars(in from!"clang".SourceRange range) @safe {
 // whether the macro should only be re-#defined
 private bool onlyRedefine(in from!"clang".Cursor cursor, in string dbody) @safe pure {
     import std.string: strip;
-    import std.conv: to;
-    import std.exception: collectException;
+    import std.algorithm: canFind;
 
     const isBodyString = dbody.strip.length >=2 && dbody[0] == '"' && dbody.strip[$-1] == '"';
-    long dummyLong;
-    const isBodyInteger = dbody.strip.to!long.collectException(dummyLong) is null;
-    double dummyDouble;
-    const isBodyFloating = dbody.strip.to!double.collectException(dummyDouble) is null;
+    const isBodyInteger = dbody.isStringRepr!long;
+    const isBodyFloating = dbody.isStringRepr!double;
+    const isOctal = dbody.strip.canFind("octal!");
 
     // See #103 for check to where it's a macro function or not
     return
-        cursor.isMacroFunction || (!isBodyString && !isBodyInteger && !isBodyFloating);
-
+        cursor.isMacroFunction ||
+        (!isBodyString && !isBodyInteger && !isBodyFloating && !isOctal);
 }
 
+private bool isStringRepr(T)(in string str) @safe pure {
+    import std.conv: to;
+    import std.exception: collectException;
+    import std.string: strip;
+
+    T dummy;
+    return str.strip.to!T.collectException(dummy) is null;
+}
+
+
 // Some macros define snippets of C code that aren't valid D
-private string translateToD(in string line, in from!"dpp.runtime.context".Context context) @safe {
+// We attempt to translate them here.
+private string translateToD(in string line, in from!"dpp.runtime.context".Context context) @trusted {
     import std.array: replace;
     import std.regex: regex, replaceAll;
 
-    auto sizeofRegex = regex(`sizeof *?\(([^)]+)\)`);
+    static typeof(regex(``)) sizeofRegex = void;
+    static bool init;
+
+    if(!init) {
+        init = true;
+        sizeofRegex = regex(`sizeof *?\(([^)]+)\)`);
+    }
 
     return line
         .replace("->", ".")
         .replaceNull
         .replaceAll(sizeofRegex, "($1).sizeof")
         .replaceAll(context.castRegex, "cast($1)")
+        .fixOctal
         ;
 }
+
 
 private string replaceNull(in string str) @safe pure nothrow {
     import std.array: replace;
     import std.algorithm: startsWith;
     // we don't want to translate the definition of NULL itself
     return str.startsWith("NULL") ? str : str.replace("NULL", "null");
+}
+
+private string fixOctal(in string str) @safe pure {
+    import std.string: strip;
+
+    const stripped = str.strip;
+    const isOctal =
+        stripped.length > 1 &&
+        stripped[0] == '0' &&
+        stripped.isStringRepr!long;
+
+    return isOctal ? ` std.conv.octal!` ~ stripped[1..$] : str;
 }

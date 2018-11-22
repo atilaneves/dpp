@@ -999,7 +999,7 @@ unittest {
 
 
 @Tags("issue")
-@("103")
+@("103.0")
 @safe unittest {
     with(immutable IncludeSandbox()) {
         writeFile("hdr.h",
@@ -1012,6 +1012,29 @@ unittest {
                   q{
                       import hdr;
                       static assert(DPP_ENUM_CONSTANT == 42);
+                  });
+
+        runPreprocessOnly("hdr.dpp");
+        shouldCompile("app.d");
+    }
+}
+
+
+@Tags("issue")
+@("103.1")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        writeFile("hdr.h",
+                  "#define OCTAL 0177\n");
+        writeFile("hdr.dpp",
+                  `
+                      #include "hdr.h"
+                  `);
+        writeFile("app.d",
+                  q{
+                      import hdr;
+                      import std.conv: text;
+                      static assert(DPP_ENUM_OCTAL == 127);
                   });
 
         runPreprocessOnly("hdr.dpp");
