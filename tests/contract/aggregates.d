@@ -12,53 +12,44 @@ import contract;
         return MockCursor(
             Cursor.Kind.TranslationUnit,
             "",
+            MockType(),
             [
                 MockCursor(Cursor.Kind.StructDecl,
                            "Foo",
+                           MockType(Type.Kind.Record,
+                                    "struct Foo"),
                            [
                                MockCursor(Cursor.Kind.FieldDecl,
                                           "i",
-                                          [],
                                           MockType(Type.Kind.Int,
                                                    "int")),
                            ],
-                           MockType(Type.Kind.Record,
-                                    "struct Foo")),
+                    ),
             ],
         );
     }
 )
 @Types!(Cursor, MockCursor)
-@safe unittest {
-    import std.meta: AliasSeq;
-    foreach(T; AliasSeq!(Cursor, MockCursor)) {
+void testStructOneFieldInt(T)() {
 
-        static if(is(T == Cursor))
-            const tu = parse!("it.c.compile.struct_", "onefield.int");
-        else {
-            import std.traits: getUDAs;
-            alias tuUDAs = getUDAs!(__traits(parent, {}), MockTU);
-            static assert(tuUDAs.length == 1);
-            auto tu = tuUDAs[0].create();
-        }
+    mixin createTU!(T, "it.c.compile.struct_", "onefield.int");
 
-        tu.children.length.should == 1;
+    tu.children.length.should == 1;
 
-        const struct_ = tu.children[0];
-        struct_.kind.should == Cursor.Kind.StructDecl;
-        struct_.spelling.should == "Foo";
-        struct_.type.kind.should == Type.Kind.Record;
-        struct_.type.spelling.should == "struct Foo";
+    const struct_ = tu.children[0];
+    struct_.kind.should == Cursor.Kind.StructDecl;
+    struct_.spelling.should == "Foo";
+    struct_.type.kind.should == Type.Kind.Record;
+    struct_.type.spelling.should == "struct Foo";
 
-        printChildren(struct_);
-        struct_.children.length.should == 1;
-        const member = struct_.children[0];
-        member.kind.should == Cursor.Kind.FieldDecl;
-        member.spelling.should == "i";
+    printChildren(struct_);
+    struct_.children.length.should == 1;
+    const member = struct_.children[0];
+    member.kind.should == Cursor.Kind.FieldDecl;
+    member.spelling.should == "i";
 
-        member.type.kind.should == Type.Kind.Int;
-        member.type.spelling.should == "int";
-    }
+    member.type.kind.should == Type.Kind.Int;
+    member.type.spelling.should == "int";
 }
 
 

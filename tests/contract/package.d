@@ -103,23 +103,16 @@ void printChildren(T)(auto ref T cursorOrTU) {
     }
 }
 
-
-/// Walks like a clang.Cursor, quacks like a clang.Cursor
-struct MockCursor {
-    import clang: Cursor;
-
-    Cursor.Kind kind;
-    string spelling;
-    MockCursor[] children;
-    MockType type;
-}
-
-/// Walks like a clang.Type, quacks like a clang.Type
-struct MockType {
-    import clang: Type;
-
-    Type.Kind kind;
-    string spelling;
+/**
+   Create a variable called `tu` that is either a MockCursor or a real
+   clang one depending on the type T
+ */
+mixin template createTU(T, string moduleName, string testName) {
+    mixin(mockTuMixin);
+    static if(is(T == Cursor))
+        const tu = parse!(moduleName, testName);
+    else
+        auto tu = mockTU.create();
 }
 
 
@@ -130,4 +123,32 @@ struct MockType {
 */
 struct MockTU(alias F) {
     alias create = F;
+}
+
+string mockTuMixin(in string file = __FILE__, in size_t line = __LINE__) @safe pure {
+    import std.format: format;
+    return q{
+        import std.traits: getUDAs;
+        alias mockTuUdas = getUDAs!(__traits(parent, {}), MockTU);
+        static assert(mockTuUdas.length == 1, "%s:%s Only one @MockTU allowed");
+        alias mockTU = mockTuUdas[0];
+    }.format(file, line);
+}
+
+/// Walks like a clang.Cursor, quacks like a clang.Cursor
+struct MockCursor {
+    import clang: Cursor;
+
+    Cursor.Kind kind;
+    string spelling;
+    MockType type;
+    MockCursor[] children;
+}
+
+/// Walks like a clang.Type, quacks like a clang.Type
+struct MockType {
+    import clang: Type;
+
+    Type.Kind kind;
+    string spelling;
 }
