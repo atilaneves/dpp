@@ -4,8 +4,7 @@ module contract.aggregates;
 import contract;
 
 
-
-@("struct.onefield.int")
+@("struct.onefield.int.manual")
 @MockTU!(
     {
         import clang;
@@ -50,6 +49,35 @@ void testStructOneFieldInt(T)() {
 
     member.type.kind.should == Type.Kind.Int;
     member.type.spelling.should == "int";
+}
+
+
+mixin Contract!("struct.onefield.int.auto", "it.c.compile.struct_", "onefield.int", structOneFieldInt);
+
+auto structOneFieldInt(TestMode mode, T)(ref T tu)
+{
+    tu.kind.expect!mode == Cursor.Kind.TranslationUnit;
+    tu.children.expectLengthEqual!mode(1);
+
+    auto struct_ = tu.child(0);
+    struct_.kind.expect!mode == Cursor.Kind.StructDecl;
+    struct_.spelling.expect!mode == "Foo";
+    struct_.type.kind.expect!mode == Type.Kind.Record;
+    struct_.type.spelling.expect!mode == "struct Foo";
+
+    printChildren(struct_);
+    struct_.children.expectLengthEqual!mode(1);
+
+
+    auto member = struct_.child(0);
+
+    member.kind.expect!mode == Cursor.Kind.FieldDecl;
+    member.spelling.expect!mode == "i";
+
+    member.type.kind.expect!mode == Type.Kind.Int;
+    member.type.spelling.expect!mode == "int";
+
+    static if(is(T == MockCursor)) return tu;
 }
 
 

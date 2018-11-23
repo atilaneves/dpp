@@ -143,6 +143,15 @@ struct MockCursor {
     string spelling;
     MockType type;
     MockCursor[] children;
+
+    // Returns a pointer so that the child can be modified
+    MockCursor* child(this This)(int index) {
+        return &children[index];
+    }
+}
+
+const(Cursor) child(in Cursor cursor, int index) {
+    return cursor.children[index];
 }
 
 /// Walks like a clang.Type, quacks like a clang.Type
@@ -151,4 +160,102 @@ struct MockType {
 
     Type.Kind kind;
     string spelling;
+}
+
+
+/**
+   Defines a contract test by mixing in a new function.
+
+   This actually does two things:
+   1) Verify the contract that libclang returns what we expect it to.
+   2) Use the *same* code to construct a mock translation unit cursor
+      that also satisfies the contract.
+
+   Parameters:
+        testName = The name of the new test.
+        codeModuleName = The name of the IT module with the C code to parse
+        codeTestName = The name of the integration test with the C code to parse
+        contractFunction = The function that both checks the contract and constructs the mock
+ */
+mixin template Contract(string testName,  // the name for the new test
+                        string codeModuleName, // the name of the module with the C code
+                        string codeTestName,  // the name of the test with the C code
+                        alias contractFunction,  // the function to check contract / build mock
+                        size_t line = __LINE__)
+{
+    import unit_threaded: unittestFunctionName;
+    import std.format: format;
+
+    enum functionName = unittestFunctionName(line);
+
+    enum code = q{
+
+        @Name("%s")
+        @UnitTest
+        @Types!(Cursor, MockCursor)
+        void %s(T)()
+        {
+            static if(is(T == Cursor))
+                const tu = parse!("%s", "%s");
+            else {
+                MockCursor tu;
+                contractFunction!(TestMode.mock)(tu);
+            }
+
+            contractFunction!(TestMode.verify)(tu);
+        }
+    }.format(testName, functionName, codeModuleName, codeTestName);
+
+    pragma(msg, code);
+
+    mixin(code);
+}
+
+enum TestMode {
+    verify,  // check that the value is as expected (contract test)
+    mock,    // create a mock object that behaves like the real thing
+}
+
+
+/**
+   Depending the mode, either assign the given value to lhs
+   or assert that lhs == rhs.
+   Used in contract functions.
+ */
+void expectEqual(TestMode mode, L, R)
+                (ref L lhs, auto ref R rhs, in string file = __FILE__, in size_t line = __LINE__)
+{
+    static if(mode == TestMode.verify)
+        lhs.shouldEqual(rhs, file, line);
+    else static if(mode == TestMode.mock)
+        lhs = rhs;
+     else
+        static assert(false, "Unknown mode " ~ mode.stringof);
+}
+
+
+void expectLengthEqual(TestMode mode, R)
+                      (auto ref R range, in size_t length, in string file = __FILE__, in size_t line = __LINE__)
+{
+    static if(mode == TestMode.verify)
+        range.length.shouldEqual(length, file, line);
+    else static if(mode == TestMode.mock)
+        range.length = length;
+     else
+        static assert(false, "Unknown mode " ~ mode.stringof);
+}
+
+
+auto expect(TestMode mode, L)
+           (ref L lhs, in string file = __FILE__, in size_t line = __LINE__)
+{
+    struct Expect {
+
+        bool opEquals(R)(auto ref R rhs) {
+            expectEqual!mode(lhs, rhs, file, line);
+            return true;
+        }
+    }
+
+    return Expect();
 }
