@@ -1042,7 +1042,7 @@ unittest {
 @safe unittest {
     with(immutable IncludeSandbox()) {
         writeFile("hdr.h",
-                  "#define OCTAL 0177\n");
+                  "#define OCTAL 00177\n");
         writeFile("hdr.dpp",
                   `
                       #include "hdr.h"
