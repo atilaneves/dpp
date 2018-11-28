@@ -146,7 +146,7 @@ import it;
     );
 }
 
-@Tags("notravis")
+
 @("struct with union")
 @safe unittest {
     shouldCompile(

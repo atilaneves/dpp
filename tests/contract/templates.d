@@ -239,7 +239,7 @@ import contract;
 
 
 
-@Tags("contract", "notravis")
+@Tags("contract")
 @("variadic.specialization")
 @safe unittest {
     import clang: Token;
@@ -508,7 +508,7 @@ import contract;
 }
 
 
-@Tags("contract", "notravis")
+@Tags("contract")
 @("value template argument specialisation")
 @safe unittest {
 

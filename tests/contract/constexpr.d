@@ -4,7 +4,6 @@ module contract.constexpr;
 import contract;
 
 
-@Tags("notravis")
 @("static constexpr variable in struct")
 @safe unittest {
 
