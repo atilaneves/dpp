@@ -196,28 +196,37 @@ struct TestName { string value; }
 
 
 /**
-   Defines a contract test by mixing in a new function.
+   Defines a contract test by mixing in a new test function.
 
-   This actually does a few things:
+   The test function actually does a few things:
    * Verify the contract that libclang returns what we expect it to.
    * Use the *same* code to construct a mock translation unit cursor
      that also satisfies the contract.
    * Verifies the mock also passes the test.
 
+   Two functions are generated: the contract test, and a helper function
+   that does the heavy lifting. The separation is so the 2nd function can
+   be called from unit tests to generate the mock.
+
+   This 2nd function isn't supposed to be called directly, but is found
+   via compile-time reflection in mockTU.
+
    Parameters:
         testName = The name of the new test.
         codeURL = The URL for the C/C++ code snippet.
-        contractFunction = The function that both checks the contract and constructs the mock
+        contractBlock = A string containing D code to both check the contract
+                        and create an equivalent mock.
  */
-mixin template Contract(TestName testName,      // the name for the new test
-                        CodeURL codeURL,        // which C/C++ code?
-                        alias contractFunction, // the function to check contract / build mock
+mixin template Contract(TestName testName,    // the name for the new test
+                        CodeURL codeURL,      // which C/C++ code?
+                        string contractBlock, // the function to check contract / build mock
                         size_t line = __LINE__)
 {
     import unit_threaded: unittestFunctionName;
     import std.format: format;
 
     enum functionName = unittestFunctionName(line);
+    enum contractFunctionName = "contract_" ~ functionName;
 
     enum code = q{
 
@@ -230,18 +239,29 @@ mixin template Contract(TestName testName,      // the name for the new test
                 const tu = parse!("%s", "%s");
             else {
                 MockCursor tu;
-                contractFunction!(TestMode.mock)(tu);
+                %s!(TestMode.mock)(tu);
             }
 
-            contractFunction!(TestMode.verify)(tu);
+            %s!(TestMode.verify)(tu);
         }
-    }.format(testName.value, functionName, codeURL.module_, codeURL.test);
 
-    //pragma(msg, code);
+        @ContractFunction(CodeURL("%s", "%s"))
+        auto %s(TestMode mode, T)(ref T tu) {
+            %s
+            static if(is(T == MockCursor)) return tu;
+        }
+    }.format(testName.value,
+             functionName,
+             codeURL.module_, codeURL.test,
+             contractFunctionName, contractFunctionName,
+             codeURL.module_, codeURL.test,
+             contractFunctionName,
+             contractBlock);
+
+    // pragma(msg, code);
 
     mixin(code);
 }
-
 
 
 enum TestMode {
@@ -264,7 +284,7 @@ struct Module {
 }
 
 /**
-   Searches `module_` for a contract function that creates a mock
+   Searches `moduleName` for a contract function that creates a mock
    translation unit cursor, calls it, and returns the value
  */
 auto mockTU(Module moduleName, CodeURL codeURL)() {
@@ -288,8 +308,14 @@ auto mockTU(Module moduleName, CodeURL codeURL)() {
         && getUDAs!(F, ContractFunction)[0].codeURL == codeURL;
     alias contractFunctionsWithURL = Filter!(hasURL, contractFunctions);
 
-    static assert(contractFunctionsWithURL.length == 1,
+    static assert(contractFunctionsWithURL.length > 0,
                   text("Cannot find ", codeURL, " anywhere in module ", moduleName.name));
+
+    enum identifier(alias F) = __traits(identifier, F);
+    static assert(contractFunctionsWithURL.length == 1,
+                  text("Too many (", contractFunctionsWithURL.length,
+                       ") contract functions for ", codeURL, " in ", moduleName.name, ": ",
+                       staticMap!(identifier, contractFunctionsWithURL)));
 
     alias contractFunction = contractFunctionsWithURL[0];
 

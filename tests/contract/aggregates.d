@@ -52,38 +52,33 @@ void testStructOneFieldInt(T)() {
 }
 
 
+
 mixin Contract!(
     TestName("struct.onefield.int.auto"),
     CodeURL("it.c.compile.struct_", "onefield.int"),
-    contract_structOneFieldInt,
+    q{
+        tu.kind.expect!mode == Cursor.Kind.TranslationUnit;
+        tu.children.expectLengthEqual!mode(1);
+
+        auto struct_ = tu.child(0);
+        struct_.kind.expect!mode == Cursor.Kind.StructDecl;
+        struct_.spelling.expect!mode == "Foo";
+        struct_.type.kind.expect!mode == Type.Kind.Record;
+        struct_.type.spelling.expect!mode == "struct Foo";
+
+        printChildren(struct_);
+        struct_.children.expectLengthEqual!mode(1);
+
+        auto member = struct_.child(0);
+
+        member.kind.expect!mode == Cursor.Kind.FieldDecl;
+        member.spelling.expect!mode == "i";
+
+        member.type.kind.expect!mode == Type.Kind.Int;
+        member.type.spelling.expect!mode == "int";
+    }
 );
 
-
-@ContractFunction(CodeURL("it.c.compile.struct_", "onefield.int"))
-auto contract_structOneFieldInt(TestMode mode, T)(ref T tu)
-{
-    tu.kind.expect!mode == Cursor.Kind.TranslationUnit;
-    tu.children.expectLengthEqual!mode(1);
-
-    auto struct_ = tu.child(0);
-    struct_.kind.expect!mode == Cursor.Kind.StructDecl;
-    struct_.spelling.expect!mode == "Foo";
-    struct_.type.kind.expect!mode == Type.Kind.Record;
-    struct_.type.spelling.expect!mode == "struct Foo";
-
-    printChildren(struct_);
-    struct_.children.expectLengthEqual!mode(1);
-
-    auto member = struct_.child(0);
-
-    member.kind.expect!mode == Cursor.Kind.FieldDecl;
-    member.spelling.expect!mode == "i";
-
-    member.type.kind.expect!mode == Type.Kind.Int;
-    member.type.spelling.expect!mode == "int";
-
-    static if(is(T == MockCursor)) return tu;
-}
 
 
 @("struct.nested")
