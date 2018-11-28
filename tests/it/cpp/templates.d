@@ -373,8 +373,6 @@ import it;
 }
 
 
-
-@Tags("notravis")
 @("variadic.specialized")
 @safe unittest {
     shouldCompile(
@@ -465,7 +463,6 @@ import it;
 }
 
 
-@Tags("notravis")
 @("__or_.binary")
 @safe unittest {
     shouldCompile(
@@ -767,7 +764,6 @@ import it;
 }
 
 
-@Tags("notravis")
 @("refer to type template argument in another argument")
 @safe unittest {
     shouldCompile(
@@ -788,7 +784,7 @@ import it;
     );
 }
 
-@Tags("notravis")
+
 @("__is_empty.specialisation")
 @safe unittest {
     shouldCompile(
@@ -824,7 +820,6 @@ import it;
 
 
 @("default template type parameter")
-@Tags("notravis")
 @safe unittest {
     shouldCompile(
         Cpp(

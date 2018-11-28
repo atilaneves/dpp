@@ -1,6 +1,6 @@
 language: d
 sudo: false
-
+dist: xenial
 
 matrix:
   include:
@@ -15,7 +15,7 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - libclang-3.9-dev
+      - libclang-6.0-dev
       - g++-7
 
 
