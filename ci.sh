@@ -4,7 +4,7 @@ set -euo pipefail
 
 DC="${DC:-dmd}"
 
-dub test --build=unittest-cov --compiler="$DC" -- ~@notravis
+dub test --build=unittest-cov --compiler="$DC"
 dub run -c dpp2 --build=unittest-cov --compiler="$DC" -- ~@notravis
 dub build --compiler="$DC"
 
