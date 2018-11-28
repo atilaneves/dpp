@@ -7,7 +7,7 @@ module dpp2.transform;
 import dpp.from;
 
 
-from!"dpp2.sea.node".Node toNode(in from!"clang".Cursor cursor) @safe {
+from!"dpp2.sea.node".Node toNode(C)(in C cursor) @trusted {
     import dpp2.sea.node;
     import dpp2.sea.type;
     import dpp.runtime.context: Context;
@@ -19,7 +19,7 @@ from!"dpp2.sea.node".Node toNode(in from!"clang".Cursor cursor) @safe {
 
     version(unittest) {
         import unit_threaded;
-        writelnUt(cursor);
+        () @trusted { writelnUt(cursor); }();
     }
 
     switch(cursor.kind) with(cursor.Kind) {
@@ -27,15 +27,8 @@ from!"dpp2.sea.node".Node toNode(in from!"clang".Cursor cursor) @safe {
             throw new Exception(text("Unknown cursor kind: ", cursor));
 
         case StructDecl:
-            return Node(
-                Struct(
-                    cursor.spelling,
-                    cursor
-                    .children
-                    .map!toNode
-                    .array,
-                )
-            );
+            return Node(Struct(cursor.spelling,
+                               cursor.children.map!(c => toNode(c)).array));
 
         case FieldDecl:
             return Node(Field(toType(cursor.type), cursor.spelling));
@@ -46,7 +39,7 @@ from!"dpp2.sea.node".Node toNode(in from!"clang".Cursor cursor) @safe {
 }
 
 
-from!"dpp2.sea.type".Type toType(in from!"clang".Type clangType) @safe pure {
+from!"dpp2.sea.type".Type toType(T)(in T clangType) @safe {
     import dpp2.sea.type;
     import std.conv: text;
 

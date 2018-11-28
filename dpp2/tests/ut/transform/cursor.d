@@ -13,32 +13,23 @@ import dpp2.transform: toNode;
 
 @("struct.onefield.int")
 @safe unittest {
-    auto intField = Cursor(Cursor.Kind.FieldDecl, "i");
-    intField.type = ClangType(ClangType.Kind.Int, "int");
-    auto struct_ = Cursor(Cursor.Kind.StructDecl, "Foo");
-    struct_.children = [intField];
+    import contract.aggregates: structOneFieldInt;
+    import contract: TestMode, MockCursor;
 
-    auto actual = struct_.toNode;
-    auto expected = Node(
-                Struct(
-                    "Foo",
-                    [
-                        Node(Field(Type(Int()), "i")),
-                    ]
-                )
-            );
+    MockCursor tu;
+    structOneFieldInt!(TestMode.mock)(tu);
 
-    () @trusted {
-        struct_.toNode.should ==
-            Node(
-                Struct(
-                    "Foo",
-                    [
-                        Node(Field(Type(Int()), "i")),
-                    ]
-                )
-            );
-    }();
+    const actual = tu.child(0).toNode;
+    const expected = Node(
+        Struct(
+            "Foo",
+            [
+                Node(Field(Type(Int()), "i")),
+            ]
+        )
+    );
+
+    () @trusted { actual.should == expected; }();
 }
 
 

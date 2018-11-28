@@ -139,7 +139,9 @@ string mockTuMixin(in string file = __FILE__, in size_t line = __LINE__) @safe p
 struct MockCursor {
     import clang: Cursor;
 
-    Cursor.Kind kind;
+    alias Kind = Cursor.Kind;
+
+    Kind kind;
     string spelling;
     MockType type;
     MockCursor[] children;
@@ -147,6 +149,10 @@ struct MockCursor {
     // Returns a pointer so that the child can be modified
     MockCursor* child(this This)(int index) {
         return &children[index];
+    }
+
+    MockType underlyingType() @safe pure const {
+        return MockType();
     }
 }
 
@@ -158,7 +164,9 @@ const(Cursor) child(in Cursor cursor, int index) {
 struct MockType {
     import clang: Type;
 
-    Type.Kind kind;
+    alias Kind = Type.Kind;
+
+    Kind kind;
     string spelling;
 }
 
