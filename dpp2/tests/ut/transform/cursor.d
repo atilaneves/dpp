@@ -13,11 +13,8 @@ import dpp2.transform: toNode;
 
 @("struct.onefield.int")
 @safe unittest {
-    import contract.aggregates: structOneFieldInt;
-    import contract: TestMode, MockCursor;
-
-    MockCursor tu;
-    structOneFieldInt!(TestMode.mock)(tu);
+    const tu = mockTU!(Module("contract.aggregates"),
+                       CodeURL("it.c.compile.struct_", "onefield.int"));
 
     const actual = tu.child(0).toNode;
     const expected = Node(

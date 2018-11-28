@@ -19,7 +19,28 @@ struct Cpp {
     string value;
 }
 
+/**
+   A way to identify a snippet of C/C++ code for testing.
 
+   A test exists somewhere in the code base named `test` in a D module `module_`.
+   This test has an attached UDA with a code snippet.
+*/
+struct CodeURL {
+    string module_;
+    string test;
+}
+
+
+/// Parses C/C++ code located in a UDA on `codeURL`
+auto parse(CodeURL codeURL)() {
+    return parse!(codeURL.module_, codeURL.test);
+}
+
+
+/**
+   Parses C/C++ code located in a UDA on `testName`
+   which is in module `moduleName`
+ */
 auto parse(string moduleName, string testName)() {
     mixin(`static import ` ~ moduleName ~ ";");
     static import it;
@@ -147,7 +168,7 @@ struct MockCursor {
     MockCursor[] children;
 
     // Returns a pointer so that the child can be modified
-    MockCursor* child(this This)(int index) {
+    auto child(this This)(int index) {
         return &children[index];
     }
 
@@ -173,16 +194,6 @@ struct MockType {
 
 struct TestName { string value; }
 
-/**
-   A way to identify a snippet of C/C++ code for testing.
-
-   A test exists somewhere in the code base named `test` in a D module `module_`.
-   This test has an attached UDA with a code snippet.
-*/
-struct CodeURL {
-    string module_;
-    string test;
-}
 
 /**
    Defines a contract test by mixing in a new function.
@@ -198,9 +209,9 @@ struct CodeURL {
         codeURL = The URL for the C/C++ code snippet.
         contractFunction = The function that both checks the contract and constructs the mock
  */
-mixin template Contract(TestName testName,  // the name for the new test
-                        CodeURL codeURL,  // which C/C++ code?
-                        alias contractFunction,  // the function to check contract / build mock
+mixin template Contract(TestName testName,      // the name for the new test
+                        CodeURL codeURL,        // which C/C++ code?
+                        alias contractFunction, // the function to check contract / build mock
                         size_t line = __LINE__)
 {
     import unit_threaded: unittestFunctionName;
@@ -238,6 +249,54 @@ enum TestMode {
     mock,    // create a mock object that behaves like the real thing
 }
 
+
+/**
+   To be used as a UDA indicating a function that does double duty as:
+   * a contract test
+   * builds a mock to satisfy the same contract
+ */
+struct ContractFunction {
+    CodeURL codeURL;
+}
+
+struct Module {
+    string name;
+}
+
+/**
+   Searches `module_` for a contract function that creates a mock
+   translation unit cursor, calls it, and returns the value
+ */
+auto mockTU(Module moduleName, CodeURL codeURL)() {
+
+    mixin(`import `, moduleName.name, `;`);
+    import std.meta: Alias, AliasSeq, Filter, staticMap;
+    import std.traits: hasUDA, getUDAs;
+    import std.algorithm: startsWith;
+    import std.conv: text;
+
+    alias module_ = Alias!(mixin(moduleName.name));
+    alias memberNames = AliasSeq!(__traits(allMembers, module_));
+    enum hasContractName(string name) = name.startsWith("contract_");
+    alias contractNames = Filter!(hasContractName, memberNames);
+
+    alias Member(string name) = Alias!(mixin(name));
+    alias contractFunctions = staticMap!(Member, contractNames);
+    enum hasURL(alias F) =
+        hasUDA!(F, ContractFunction)
+        && getUDAs!(F, ContractFunction).length == 1
+        && getUDAs!(F, ContractFunction)[0].codeURL == codeURL;
+    alias contractFunctionsWithURL = Filter!(hasURL, contractFunctions);
+
+    static assert(contractFunctionsWithURL.length == 1,
+                  text("Cannot find ", codeURL, " anywhere in module ", moduleName.name));
+
+    alias contractFunction = contractFunctionsWithURL[0];
+
+    MockCursor cursor;
+    contractFunction!(TestMode.mock)(cursor);
+    return cursor;
+}
 
 /**
    Depending the mode, either assign the given value to lhs

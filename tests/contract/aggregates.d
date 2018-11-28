@@ -55,10 +55,12 @@ void testStructOneFieldInt(T)() {
 mixin Contract!(
     TestName("struct.onefield.int.auto"),
     CodeURL("it.c.compile.struct_", "onefield.int"),
-    structOneFieldInt,
+    contract_structOneFieldInt,
 );
 
-auto structOneFieldInt(TestMode mode, T)(ref T tu)
+
+@ContractFunction(CodeURL("it.c.compile.struct_", "onefield.int"))
+auto contract_structOneFieldInt(TestMode mode, T)(ref T tu)
 {
     tu.kind.expect!mode == Cursor.Kind.TranslationUnit;
     tu.children.expectLengthEqual!mode(1);
