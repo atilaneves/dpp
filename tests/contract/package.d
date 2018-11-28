@@ -163,6 +163,12 @@ struct MockType {
 }
 
 
+struct TestName { string value; }
+// The name of the module that contains the C/C++ code
+struct CodeModule { string value; }
+// The name of the test that has the C/C++ code UDA
+struct CodeTest { string value; }
+
 /**
    Defines a contract test by mixing in a new function.
 
@@ -177,9 +183,9 @@ struct MockType {
         codeTestName = The name of the integration test with the C code to parse
         contractFunction = The function that both checks the contract and constructs the mock
  */
-mixin template Contract(string testName,  // the name for the new test
-                        string codeModuleName, // the name of the module with the C code
-                        string codeTestName,  // the name of the test with the C code
+mixin template Contract(TestName testName,  // the name for the new test
+                        CodeModule codeModuleName, // the name of the module with the C code
+                        CodeTest codeTestName,  // the name of the test with the C code
                         alias contractFunction,  // the function to check contract / build mock
                         size_t line = __LINE__)
 {
@@ -204,12 +210,14 @@ mixin template Contract(string testName,  // the name for the new test
 
             contractFunction!(TestMode.verify)(tu);
         }
-    }.format(testName, functionName, codeModuleName, codeTestName);
+    }.format(testName.value, functionName, codeModuleName.value, codeTestName.value);
 
     pragma(msg, code);
 
     mixin(code);
 }
+
+
 
 enum TestMode {
     verify,  // check that the value is as expected (contract test)

@@ -52,7 +52,12 @@ void testStructOneFieldInt(T)() {
 }
 
 
-mixin Contract!("struct.onefield.int.auto", "it.c.compile.struct_", "onefield.int", structOneFieldInt);
+mixin Contract!(
+    TestName("struct.onefield.int.auto"),
+    CodeModule("it.c.compile.struct_"),
+    CodeTest("onefield.int"),
+    structOneFieldInt,
+);
 
 auto structOneFieldInt(TestMode mode, T)(ref T tu)
 {
