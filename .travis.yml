@@ -25,8 +25,6 @@ install:
 
 
 script:
-  - apt-cache search libclang
-  - find / -name 'libclang*so' 2> /dev/null
   - ./ci.sh
 
 
