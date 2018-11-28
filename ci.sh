@@ -9,5 +9,5 @@ dub run -c dpp2 --build=unittest-cov --compiler="$DC"
 dub build --compiler="$DC"
 
 if [[ "$DC" == "dmd" ]]; then
-    bundle exec cucumber --tags ~@wip --tags ~@notravis
+    bundle exec cucumber --tags ~@wip
 fi
