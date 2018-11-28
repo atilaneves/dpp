@@ -54,8 +54,7 @@ void testStructOneFieldInt(T)() {
 
 mixin Contract!(
     TestName("struct.onefield.int.auto"),
-    CodeModule("it.c.compile.struct_"),
-    CodeTest("onefield.int"),
+    CodeURL("it.c.compile.struct_", "onefield.int"),
     structOneFieldInt,
 );
 
@@ -72,7 +71,6 @@ auto structOneFieldInt(TestMode mode, T)(ref T tu)
 
     printChildren(struct_);
     struct_.children.expectLengthEqual!mode(1);
-
 
     auto member = struct_.child(0);
 

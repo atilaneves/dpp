@@ -172,28 +172,34 @@ struct MockType {
 
 
 struct TestName { string value; }
-// The name of the module that contains the C/C++ code
-struct CodeModule { string value; }
-// The name of the test that has the C/C++ code UDA
-struct CodeTest { string value; }
+
+/**
+   A way to identify a snippet of C/C++ code for testing.
+
+   A test exists somewhere in the code base named `test` in a D module `module_`.
+   This test has an attached UDA with a code snippet.
+*/
+struct CodeURL {
+    string module_;
+    string test;
+}
 
 /**
    Defines a contract test by mixing in a new function.
 
-   This actually does two things:
-   1) Verify the contract that libclang returns what we expect it to.
-   2) Use the *same* code to construct a mock translation unit cursor
-      that also satisfies the contract.
+   This actually does a few things:
+   * Verify the contract that libclang returns what we expect it to.
+   * Use the *same* code to construct a mock translation unit cursor
+     that also satisfies the contract.
+   * Verifies the mock also passes the test.
 
    Parameters:
         testName = The name of the new test.
-        codeModuleName = The name of the IT module with the C code to parse
-        codeTestName = The name of the integration test with the C code to parse
+        codeURL = The URL for the C/C++ code snippet.
         contractFunction = The function that both checks the contract and constructs the mock
  */
 mixin template Contract(TestName testName,  // the name for the new test
-                        CodeModule codeModuleName, // the name of the module with the C code
-                        CodeTest codeTestName,  // the name of the test with the C code
+                        CodeURL codeURL,  // which C/C++ code?
                         alias contractFunction,  // the function to check contract / build mock
                         size_t line = __LINE__)
 {
@@ -218,9 +224,9 @@ mixin template Contract(TestName testName,  // the name for the new test
 
             contractFunction!(TestMode.verify)(tu);
         }
-    }.format(testName.value, functionName, codeModuleName.value, codeTestName.value);
+    }.format(testName.value, functionName, codeURL.module_, codeURL.test);
 
-    pragma(msg, code);
+    //pragma(msg, code);
 
     mixin(code);
 }
