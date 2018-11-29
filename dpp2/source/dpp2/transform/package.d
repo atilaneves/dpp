@@ -16,15 +16,21 @@ from!"dpp2.sea.node".Node toNode(C)(in C cursor) @trusted {
     import std.algorithm: map;
     import std.array: array;
     import std.conv: text;
+    import std.traits: isPointer;
+
+    static if(isPointer!C)
+        const cursorText = text(*cursor);
+    else
+        const cursorText = text(cursor);
 
     version(unittest) {
         import unit_threaded;
-        () @trusted { writelnUt(cursor); }();
+        () @trusted { writelnUt("toNode cursor: ", cursorText); }();
     }
 
     switch(cursor.kind) with(cursor.Kind) {
         default:
-            throw new Exception(text("Unknown cursor kind: ", cursor));
+            throw new Exception("Unknown cursor kind: " ~ cursorText);
 
         case StructDecl:
             return Node(Struct(cursor.spelling,

@@ -79,33 +79,23 @@ import dpp2.transform: toNode;
 
 @("struct.nested")
 @safe unittest {
-    auto xfield = Cursor(Cursor.Kind.FieldDecl, "x");
-    xfield.type = ClangType(ClangType.Kind.Int, "int");
+    const tu = mockTU!(Module("contract.aggregates"),
+                       CodeURL("it.c.compile.struct_", "nested"));
 
-    auto innerStruct = Cursor(Cursor.Kind.StructDecl, "Inner");
-    innerStruct.type = ClangType(ClangType.Kind.Record, "Outer::Inner");
-    innerStruct.children = [xfield];
+    const actual = tu.child(0).toNode;
+    const expected = Node(
+        Struct(
+            "Outer",
+            [
+                Node(Field(Type(Int()), "integer")),
+                Node(Struct("Inner", [ Node(Field(Type(Int()), "x")) ])),
+                Node(Field(Type(UserDefinedType("Inner")), "inner")),
+            ],
+        )
+   );
 
-    auto innerField = Cursor(Cursor.Kind.FieldDecl, "inner");
-    innerField.type = ClangType(ClangType.Kind.Elaborated, "struct Inner");
-    innerField.children = [innerStruct];
 
-    auto outer = Cursor(Cursor.Kind.StructDecl, "Outer");
-    outer.type = ClangType(ClangType.Kind.Record, "Outer");
-    outer.children = [innerStruct, innerField];
-
-    () @trusted {
-        outer.toNode.should ==
-            Node(
-                Struct(
-                    "Outer",
-                    [
-                        Node(Struct("Inner", [ Node(Field(Type(Int()), "x")) ])),
-                        Node(Field(Type(UserDefinedType("Inner")), "inner")),
-                    ],
-                )
-            );
-    }();
+    () @trusted { actual.should == expected; }();
 }
 
 

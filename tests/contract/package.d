@@ -169,11 +169,22 @@ struct MockCursor {
 
     // Returns a pointer so that the child can be modified
     auto child(this This)(int index) {
-        return &children[index];
+
+        return index >= 0 && index < children.length
+            ? &children[index]
+            : null;
     }
 
     MockType underlyingType() @safe pure const {
         return MockType();
+    }
+
+    string toString() @safe pure const {
+        import std.conv: text;
+        const children = children.length
+            ? text(", ", children)
+            : "";
+        return text("MockCursor(", kind, `, "`, spelling, `"`, children, `)`);
     }
 }
 
@@ -189,6 +200,7 @@ struct MockType {
 
     Kind kind;
     string spelling;
+    MockType* canonical;
 }
 
 
@@ -247,6 +259,7 @@ mixin template Contract(TestName testName,    // the name for the new test
 
         @ContractFunction(CodeURL("%s", "%s"))
         auto %s(TestMode mode, T)(ref T tu) {
+            tu.kind.expect!mode == Cursor.Kind.TranslationUnit;
             %s
             static if(is(T == MockCursor)) return tu;
         }
@@ -332,11 +345,21 @@ auto mockTU(Module moduleName, CodeURL codeURL)() {
 void expectEqual(TestMode mode, L, R)
                 (ref L lhs, auto ref R rhs, in string file = __FILE__, in size_t line = __LINE__)
 {
-    static if(mode == TestMode.verify)
-        lhs.shouldEqual(rhs, file, line);
-    else static if(mode == TestMode.mock)
-        lhs = rhs;
-     else
+    import std.traits: isPointer;
+
+    enum bothPointers = isPointer!L && isPointer!R;
+
+    static if(mode == TestMode.verify) {
+        static if(bothPointers)
+            (*lhs).shouldEqual(*rhs, file, line);
+        else
+            lhs.shouldEqual(rhs, file, line);
+    } else static if(mode == TestMode.mock) {
+        static if(bothPointers)
+            *lhs = *rhs;
+        else
+            lhs = rhs;
+    } else
         static assert(false, "Unknown mode " ~ mode.stringof);
 }
 
