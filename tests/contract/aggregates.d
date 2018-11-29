@@ -107,9 +107,8 @@ mixin Contract!(
         innerStruct.spelling.expect!mode == "Inner";
         innerStruct.type.kind.expect!mode == Type.Kind.Record;
         innerStruct.type.spelling.expect!mode == "struct Inner";
-        // FIXME
-        // innerStruct.type.canonical.kind.expect!mode == Type.Kind.Record;
-        // innerStruct.type.canonical.spelling.expect!mode == "struct Inner";
+        innerStruct.type.canonical.kind.expect!mode == Type.Kind.Record;
+        innerStruct.type.canonical.spelling.expect!mode == "struct Inner";
 
         printChildren(innerStruct);
         innerStruct.children.expectLengthEqual!mode(1);  // the `x` field
@@ -128,9 +127,8 @@ mixin Contract!(
 
         innerField.type.kind.expect!mode == Type.Kind.Elaborated;
         innerField.type.spelling.expect!mode == "struct Inner";
-        // FIXME
-        // innerField.type.canonical.kind.expect!mode == Type.Kind.Record;
-        // innerField.type.canonical.spelling.expect!mode == "struct Inner";
+        innerField.type.canonical.kind.expect!mode == Type.Kind.Record;
+        innerField.type.canonical.spelling.expect!mode == "struct Inner";
 
         auto innerFieldChild = innerField.child(0);
         innerFieldChild.expect!mode == innerStruct;
@@ -217,11 +215,10 @@ mixin Contract!(
         typedef_.type.kind.expect!mode == Type.Kind.Typedef;
         typedef_.type.spelling.expect!mode == "TypeDefd";
 
-        // FIXME - null pointer
-        // typedef_.underlyingType.kind.expect!mode == Type.Kind.Elaborated;
-        // typedef_.underlyingType.spelling.expect!mode == "struct TypeDefd_";
-        // typedef_.underlyingType.canonical.kind.expect!mode == Type.Kind.Record;
-        // typedef_.underlyingType.canonical.spelling.expect!mode == "TypeDefd_";
+        typedef_.underlyingType.kind.expect!mode == Type.Kind.Elaborated;
+        typedef_.underlyingType.spelling.expect!mode == "struct TypeDefd_";
+        typedef_.underlyingType.canonical.kind.expect!mode == Type.Kind.Record;
+        typedef_.underlyingType.canonical.spelling.expect!mode == "struct TypeDefd_";
 
         printChildren(typedef_);
         typedef_.children.expectLengthEqual!mode(1);

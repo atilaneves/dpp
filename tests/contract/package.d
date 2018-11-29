@@ -168,6 +168,7 @@ struct MockCursor {
     string spelling;
     MockType type;
     MockCursor[] children;
+    private MockType _underlyingType;
 
     // Returns a pointer so that the child can be modified
     auto child(this This)(int index) {
@@ -177,8 +178,8 @@ struct MockCursor {
             : null;
     }
 
-    MockType underlyingType() @safe pure const {
-        return MockType();
+    auto underlyingType(this This)() return scope {
+        return &_underlyingType;
     }
 
     string toString() @safe pure const {
@@ -202,7 +203,12 @@ struct MockType {
 
     Kind kind;
     string spelling;
-    MockType* canonical;
+    private MockType* _canonical;
+
+    auto canonical(this This)() return scope {
+        if(_canonical is null) _canonical = new MockType;
+        return _canonical;
+    }
 }
 
 
@@ -347,7 +353,7 @@ auto mockTU(Module moduleName, CodeURL codeURL)() {
 void expectEqual(TestMode mode, L, R)
                 (ref L lhs, auto ref R rhs, in string file = __FILE__, in size_t line = __LINE__)
 {
-    import std.traits: isPointer;
+    import std.traits: isPointer, PointerTarget;
 
     enum bothPointers = isPointer!L && isPointer!R;
 
@@ -361,14 +367,16 @@ void expectEqual(TestMode mode, L, R)
         else
             lhs.shouldEqual(rhs, file, line);
     } else static if(mode == TestMode.mock) {
+
         static if(isPointer!L && isPointer!R)
             *lhs = *rhs;
         else static if(isPointer!L)
             *lhs = rhs;
         else static if(isPointer!R)
             lhs = *rhs;
-        else
+        else {
             lhs = rhs;
+        }
     } else
         static assert(false, "Unknown mode " ~ mode.stringof);
 }
