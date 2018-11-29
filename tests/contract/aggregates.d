@@ -138,6 +138,7 @@ mixin Contract!(
 );
 
 
+// Slightly different from the C version
 @Tags("cpp")
 @("struct.nested.cpp")
 @safe unittest {
@@ -198,9 +199,38 @@ mixin Contract!(
     innerField.children[0].should == innerStruct;
 }
 
+mixin Contract!(
+    TestName("struct.typedef.name"),
+    CodeURL("it.c.compile.struct_", "typedef.name"),
+    q{
+        tu.children.expectLengthEqual!mode(2);
+
+        auto struct_ = tu.child(0);
+        struct_.kind.expect!mode == Cursor.Kind.StructDecl;
+        struct_.spelling.expect!mode == "TypeDefd_";
+        struct_.type.kind.expect!mode == Type.Kind.Record;
+        struct_.type.spelling.expect!mode == "struct TypeDefd_";
+
+        auto typedef_ = tu.child(1);
+        typedef_.kind.expect!mode == Cursor.Kind.TypedefDecl;
+        typedef_.spelling.expect!mode == "TypeDefd";
+        typedef_.type.kind.expect!mode == Type.Kind.Typedef;
+        typedef_.type.spelling.expect!mode == "TypeDefd";
+
+        // FIXME - null pointer
+        // typedef_.underlyingType.kind.expect!mode == Type.Kind.Elaborated;
+        // typedef_.underlyingType.spelling.expect!mode == "struct TypeDefd_";
+        // typedef_.underlyingType.canonical.kind.expect!mode == Type.Kind.Record;
+        // typedef_.underlyingType.canonical.spelling.expect!mode == "TypeDefd_";
+
+        printChildren(typedef_);
+        typedef_.children.expectLengthEqual!mode(1);
+        typedef_.children[0].expect!mode == struct_;
+    }
+);
 
 @Tags("cpp")
-@("struct.typedef.name")
+@("struct.typedef.name0")
 @safe unittest {
     const tu = parse(
         Cpp(

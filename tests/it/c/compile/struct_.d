@@ -95,27 +95,29 @@ import it;
 
 
 @("typedef.name")
+@C(
+    q{
+        typedef struct TypeDefd_ {
+            int i;
+            double d;
+        } TypeDefd;
+    }
+)
 @safe unittest {
-    shouldCompile(
-        C(
-            q{
-                typedef struct TypeDefd_ {
-                    int i;
-                    double d;
-                } TypeDefd;
-            }
-        ),
-        D(
-            q{
-                {
-                    auto t = TypeDefd_(42, 33.3);
-                    static assert(t.sizeof == 16, "Wrong sizeof for TypeDefd_");
+    mixin(
+        shouldCompile(
+            D(
+                q{
+                    {
+                        auto t = TypeDefd_(42, 33.3);
+                        static assert(t.sizeof == 16, "Wrong sizeof for TypeDefd_");
+                    }
+                    {
+                        auto t = TypeDefd(42, 33.3);
+                        static assert(t.sizeof == 16, "Wrong sizeof for TypeDefd");
+                    }
                 }
-                {
-                    auto t = TypeDefd(42, 33.3);
-                    static assert(t.sizeof == 16, "Wrong sizeof for TypeDefd");
-                }
-            }
+            )
         )
     );
 }

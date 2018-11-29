@@ -67,6 +67,8 @@ auto parse(string moduleName, string testName)() {
     alias rightNameTests = Filter!(hasRightName, tests);
     static assert(rightNameTests.length == 1);
     alias test = rightNameTests[0];
+    static assert(getUDAs!(test, it.C).length == 1,
+                  "No `C` UDA on " ~ __traits(identifier, test));
     enum cCode = getUDAs!(test, it.C)[0];
 
     return .parse(C(cCode.code));
@@ -350,13 +352,21 @@ void expectEqual(TestMode mode, L, R)
     enum bothPointers = isPointer!L && isPointer!R;
 
     static if(mode == TestMode.verify) {
-        static if(bothPointers)
+        static if(isPointer!L && isPointer!R)
             (*lhs).shouldEqual(*rhs, file, line);
+        else static if(isPointer!L)
+            (*lhs).shouldEqual(rhs, file, line);
+        else static if(isPointer!R)
+            lhs.shouldEqual(*rhs, file, line);
         else
             lhs.shouldEqual(rhs, file, line);
     } else static if(mode == TestMode.mock) {
-        static if(bothPointers)
+        static if(isPointer!L && isPointer!R)
             *lhs = *rhs;
+        else static if(isPointer!L)
+            *lhs = rhs;
+        else static if(isPointer!R)
+            lhs = *rhs;
         else
             lhs = rhs;
     } else
