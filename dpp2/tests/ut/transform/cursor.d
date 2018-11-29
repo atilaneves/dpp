@@ -30,53 +30,6 @@ import dpp2.transform: toNode;
 }
 
 
-@("struct.onefield.double")
-@safe unittest {
-    auto doubleField = Cursor(Cursor.Kind.FieldDecl, "d");
-    doubleField.type = ClangType(ClangType.Kind.Double, "double");
-    auto struct_ = Cursor(Cursor.Kind.StructDecl, "Bar");
-    struct_.children = [doubleField];
-
-    () @trusted {
-        struct_.toNode.should ==
-            Node(
-                Struct(
-                    "Bar",
-                    [
-                        Node(Field(Type(Double()), "d")),
-                    ]
-                )
-            );
-    }();
-}
-
-
-@("struct.twofields")
-@safe unittest {
-    auto intField = Cursor(Cursor.Kind.FieldDecl, "i");
-    intField.type = ClangType(ClangType.Kind.Int, "int");
-
-    auto doubleField = Cursor(Cursor.Kind.FieldDecl, "d");
-    doubleField.type = ClangType(ClangType.Kind.Double, "double");
-
-    auto struct_ = Cursor(Cursor.Kind.StructDecl, "Baz");
-    struct_.children = [intField, doubleField];
-
-    () @trusted {
-        struct_.toNode.should ==
-            Node(
-                Struct(
-                    "Baz",
-                    [
-                        Node(Field(Type(Int()), "i")),
-                        Node(Field(Type(Double()), "d")),
-                    ]
-                )
-            );
-    }();
-}
-
-
 @("struct.nested")
 @safe unittest {
     const tu = mockTU!(Module("contract.aggregates"),
