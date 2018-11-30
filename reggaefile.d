@@ -1,6 +1,6 @@
 import reggae;
 import std.array: join;
-import std.typecons: No;
+import std.typecons: Yes, No;
 
 enum debugFlags = ["-w", "-g", "-debug"];
 
