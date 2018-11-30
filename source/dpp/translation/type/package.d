@@ -165,10 +165,7 @@ private string translateAggregate(in from!"clang".Type type,
     }
 
     return addModifiers(type, spelling)
-        // "struct Foo" -> Foo, "union Foo" -> Foo, "enum Foo" -> Foo
-        .replace("struct ", "")
-        .replace("union ", "")
-        .replace("enum ", "")
+        .translateElaborated
         .replace("<", "!(")
         .replace(">", ")")
         ;
@@ -373,6 +370,16 @@ string translateString(in string spelling) @safe pure nothrow {
         ;
 }
 
+
+// "struct Foo" -> Foo, "union Foo" -> Foo, "enum Foo" -> Foo
+string translateElaborated(in string spelling) @safe pure nothrow {
+    import std.array: replace;
+    return spelling
+        .replace("struct ", "")
+        .replace("union ", "")
+        .replace("enum ", "")
+    ;
+}
 
 private string translateSimdVector(in from!"clang".Type type,
                                    ref from!"dpp.runtime.context".Context context,

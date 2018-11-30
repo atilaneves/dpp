@@ -88,6 +88,7 @@ private bool isStringRepr(T)(in string str) @safe pure {
 // Some macros define snippets of C code that aren't valid D
 // We attempt to translate them here.
 private string translateToD(in string line, in from!"dpp.runtime.context".Context context) @trusted {
+    import dpp.translation.type: translateElaborated;
     import std.array: replace;
     import std.regex: regex, replaceAll;
 
@@ -105,6 +106,7 @@ private string translateToD(in string line, in from!"dpp.runtime.context".Contex
         .replaceAll(sizeofRegex, "($1).sizeof")
         .replaceAll(context.castRegex, "cast($1)")
         .fixOctal
+        .translateElaborated
         ;
 }
 
