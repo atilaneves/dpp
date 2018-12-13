@@ -215,6 +215,7 @@ struct MockType {
 struct TestName { string value; }
 
 
+
 /**
    Defines a contract test by mixing in a new test function.
 
@@ -233,21 +234,20 @@ struct TestName { string value; }
 
    Parameters:
         testName = The name of the new test.
-        codeURL = The URL for the C/C++ code snippet.
-        contractBlock = A string containing D code to both check the contract
-                        and create an equivalent mock.
+        contractFunction = The function that verifies the contract or creates the mock.
  */
-mixin template Contract(TestName testName,    // the name for the new test
-                        CodeURL codeURL,      // which C/C++ code?
-                        string contractBlock, // the function to check contract / build mock
-                        size_t line = __LINE__)
-{
+mixin template Contract(TestName testName, alias contractFunction, size_t line = __LINE__) {
     import unit_threaded: unittestFunctionName;
     import std.format: format;
+    import std.traits: getUDAs;
+
+    alias udas = getUDAs!(contractFunction, ContractFunction);
+    static assert(udas.length == 1,
+        "`" ~ __traits(identifier, contractFunction) ~
+                  "` is not a contract function without exactly one @ContractFunction`");
+    enum codeURL = udas[0].codeURL;
 
     enum testFunctionName = unittestFunctionName(line);
-    enum contractFunctionName = "contract_" ~ testFunctionName;
-
     enum code = q{
 
         // This is the test function that will be run by unit-threaded
@@ -256,31 +256,16 @@ mixin template Contract(TestName testName,    // the name for the new test
         @Types!(Cursor, MockCursor)
         void %s(CursorType)()
         {
-            auto tu = createTranslationUnit!(CursorType, CodeURL("%s", "%s"), %s);
-            %s!(TestMode.verify)(tu);
+            auto tu = createTranslationUnit!(CursorType, codeURL, contractFunction);
+            contractFunction!(TestMode.verify)(tu);
         }
+    }.format(testName.value, testFunctionName);
 
-        // This is a function that either checks a contract or creates a mock
-        @ContractFunction(CodeURL("%s", "%s"))
-        auto %s(TestMode mode, CursorType)(ref CursorType tu) {
-            tu.kind.expect!mode == Cursor.Kind.TranslationUnit;
-            %s
-            static if(is(CursorType == MockCursor)) return tu;
-        }
-    }.format(testName.value,
-             testFunctionName,
-             codeURL.module_, codeURL.test, // createRealTranslationUnit
-             contractFunctionName,
-             contractFunctionName,
-             codeURL.module_, codeURL.test,
-             contractFunctionName,
-             contractBlock);
-
-    // pragma(msg, code);
+    //pragma(msg, code);
 
     mixin(code);
-}
 
+}
 
 /**
    Creates a real or mock translation unit depending on the type
