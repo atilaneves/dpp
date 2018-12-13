@@ -245,36 +245,33 @@ mixin template Contract(TestName testName,    // the name for the new test
     import unit_threaded: unittestFunctionName;
     import std.format: format;
 
-    enum functionName = unittestFunctionName(line);
-    enum contractFunctionName = "contract_" ~ functionName;
+    enum testFunctionName = unittestFunctionName(line);
+    enum contractFunctionName = "contract_" ~ testFunctionName;
 
     enum code = q{
 
+        // This is the test function that will be run by unit-threaded
         @Name("%s")
         @UnitTest
         @Types!(Cursor, MockCursor)
-        void %s(T)()
+        void %s(CursorType)()
         {
-            static if(is(T == Cursor))
-                const tu = parse!("%s", "%s");
-            else {
-                MockCursor tu;
-                %s!(TestMode.mock)(tu);
-            }
-
+            auto tu = createTranslationUnit!(CursorType, CodeURL("%s", "%s"), %s);
             %s!(TestMode.verify)(tu);
         }
 
+        // This is a function that either checks a contract or creates a mock
         @ContractFunction(CodeURL("%s", "%s"))
-        auto %s(TestMode mode, T)(ref T tu) {
+        auto %s(TestMode mode, CursorType)(ref CursorType tu) {
             tu.kind.expect!mode == Cursor.Kind.TranslationUnit;
             %s
-            static if(is(T == MockCursor)) return tu;
+            static if(is(CursorType == MockCursor)) return tu;
         }
     }.format(testName.value,
-             functionName,
-             codeURL.module_, codeURL.test,
-             contractFunctionName, contractFunctionName,
+             testFunctionName,
+             codeURL.module_, codeURL.test, // createRealTranslationUnit
+             contractFunctionName,
+             contractFunctionName,
              codeURL.module_, codeURL.test,
              contractFunctionName,
              contractBlock);
@@ -284,6 +281,28 @@ mixin template Contract(TestName testName,    // the name for the new test
     mixin(code);
 }
 
+
+/**
+   Creates a real or mock translation unit depending on the type
+ */
+auto createTranslationUnit(CursorType, CodeURL codeURL, alias contractFunction)() {
+    static if(is(CursorType == Cursor))
+        return cast(const) createRealTranslationUnit!codeURL;
+    else
+        return createMockTranslationUnit!contractFunction;
+
+}
+
+auto createRealTranslationUnit(CodeURL codeURL)() {
+    return parse!(codeURL.module_, codeURL.test);
+}
+
+
+auto createMockTranslationUnit(alias contractFunction)() {
+    MockCursor tu;
+    contractFunction!(TestMode.mock)(tu);
+    return tu;
+}
 
 enum TestMode {
     verify,  // check that the value is as expected (contract test)

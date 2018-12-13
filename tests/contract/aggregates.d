@@ -52,7 +52,6 @@ void testStructOneFieldInt(T)() {
 }
 
 
-
 mixin Contract!(
     TestName("struct.onefield.int.auto"),
     CodeURL("it.c.compile.struct_", "onefield.int"),
