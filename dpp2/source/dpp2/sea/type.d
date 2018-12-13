@@ -46,11 +46,13 @@ struct LongDouble {}
 
 
 struct Pointer {
+    // has to be a pointer in order to have a recursive type
     Type* pointeeType;
 }
 
 
 struct ConstantArray {
+    // has to be a pointer in order to have a recursive type
     Type* elementType;
     int length;
 }

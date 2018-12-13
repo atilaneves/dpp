@@ -10,21 +10,21 @@ import clang: Cursor, ClangType = Type;
 import dpp2.transform: toNode;
 
 
-
 @("struct.onefield.int")
 @safe unittest {
     const tu = mockTU!(Module("contract.aggregates"),
                        CodeURL("it.c.compile.struct_", "onefield.int"));
 
-    const actual = tu.child(0).toNode;
-    const expected = Node(
+    const actual = tu.toNode;
+    const expected = [Node(
         Struct(
             "Foo",
             [
                 Node(Field(Type(Int()), "i")),
-            ]
+            ],
+            "struct Foo",
         )
-    );
+    )];
 
     () @trusted { actual.should == expected; }();
 }
@@ -35,18 +35,18 @@ import dpp2.transform: toNode;
     const tu = mockTU!(Module("contract.aggregates"),
                        CodeURL("it.c.compile.struct_", "nested"));
 
-    const actual = tu.child(0).toNode;
-    const expected = Node(
+    const actual = tu.toNode;
+    const expected = [Node(
         Struct(
             "Outer",
             [
                 Node(Field(Type(Int()), "integer")),
-                Node(Struct("Inner", [ Node(Field(Type(Int()), "x")) ])),
+                Node(Struct("Inner", [ Node(Field(Type(Int()), "x")) ], "struct Inner")),
                 Node(Field(Type(UserDefinedType("Inner")), "inner")),
             ],
+            "struct Outer",
         )
-   );
-
+    )];
 
     () @trusted { actual.should == expected; }();
 }
@@ -56,8 +56,48 @@ import dpp2.transform: toNode;
 @safe unittest {
     const tu = mockTU!(Module("contract.aggregates"),
                        CodeURL("it.c.compile.struct_", "typedef.name"));
-    const actual = tu.child(1).toNode;
-    const expected = Node(Typedef("TypeDefd", "TypeDefd_"));
+
+    const actual = tu.toNode;
+    const expected = [
+        Node(Struct("TypeDefd_", [], "struct TypeDefd_")),
+        Node(Typedef("TypeDefd", Type(UserDefinedType("TypeDefd_")))),
+    ];
+
+    () @trusted { actual.should == expected; }();
+}
+
+
+@("struct.typedef.anon")
+@safe unittest {
+    const tu = mockTU!(Module("contract.aggregates"),
+                       CodeURL("it.c.compile.struct_", "typedef.anon"));
+
+    const actual = tu.toNode;
+    const expected = [
+        Node(
+            Struct(
+                "",
+                [
+                    Node(Field(Type(Int()), "x")),
+                    Node(Field(Type(Int()), "y")),
+                    Node(Field(Type(Int()), "z")),
+                ],
+                "Nameless1",
+            ),
+        ),
+        Node(Typedef("Nameless1", Type(UserDefinedType("Nameless1")))),
+        Node(
+            Struct(
+                "",
+                [
+                    Node(Field(Type(Double()), "d")),
+                ],
+                "Nameless2",
+            ),
+        ),
+        Node(Typedef("Nameless2", Type(UserDefinedType("Nameless2")))),
+    ];
+
 
     () @trusted { actual.should == expected; }();
 }

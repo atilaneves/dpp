@@ -226,8 +226,9 @@ mixin Contract!(
     }
 );
 
+
 @Tags("cpp")
-@("struct.typedef.name0")
+@("struct.typedef.name.cpp")
 @safe unittest {
     const tu = parse(
         Cpp(
@@ -265,8 +266,76 @@ mixin Contract!(
 }
 
 
+mixin Contract!(
+    TestName("struct.typedef.anon"),
+    CodeURL("it.c.compile.struct_", "typedef.anon"),
+    q{
+        tu.children.expectLengthEqual!mode(4);
+
+        auto struct1 = tu.child(0);
+        struct1.kind.expect!mode == Cursor.Kind.StructDecl;
+        struct1.spelling.expect!mode == "";
+        struct1.type.kind.expect!mode == Type.Kind.Record;
+        // the cursor has no spelling but the type does
+        struct1.type.spelling.expect!mode == "Nameless1";
+
+        struct1.children.expectLengthEqual!mode(3);
+        struct1.child(0).kind.expect!mode == Cursor.Kind.FieldDecl;
+        struct1.child(0).spelling.expect!mode == "x";
+        struct1.child(0).type.kind.expect!mode == Type.Kind.Int;
+        struct1.child(1).kind.expect!mode == Cursor.Kind.FieldDecl;
+        struct1.child(1).spelling.expect!mode == "y";
+        struct1.child(1).type.kind.expect!mode == Type.Kind.Int;
+        struct1.child(2).kind.expect!mode == Cursor.Kind.FieldDecl;
+        struct1.child(2).spelling.expect!mode == "z";
+        struct1.child(2).type.kind.expect!mode == Type.Kind.Int;
+
+        auto typedef1 = tu.child(1);
+        typedef1.kind.expect!mode == Cursor.Kind.TypedefDecl;
+        typedef1.spelling.expect!mode == "Nameless1";
+        typedef1.type.kind.expect!mode == Type.Kind.Typedef;
+        typedef1.type.spelling.expect!mode == "Nameless1";
+
+        typedef1.underlyingType.kind.expect!mode == Type.Kind.Elaborated;
+        typedef1.underlyingType.spelling.expect!mode == "struct Nameless1";
+        typedef1.underlyingType.canonical.kind.expect!mode == Type.Kind.Record;
+        typedef1.underlyingType.canonical.spelling.expect!mode == "Nameless1";
+
+        printChildren(typedef1);
+        typedef1.children.expectLengthEqual!mode(1);
+        typedef1.children[0].expect!mode == struct1;
+
+        auto struct2 = tu.child(2);
+        struct2.kind.expect!mode == Cursor.Kind.StructDecl;
+        struct2.spelling.expect!mode == "";
+        struct2.type.kind.expect!mode == Type.Kind.Record;
+        struct2.type.spelling.expect!mode == "Nameless2";
+
+        struct2.children.expectLengthEqual!mode(1);
+        struct2.child(0).kind.expect!mode == Cursor.Kind.FieldDecl;
+        struct2.child(0).spelling.expect!mode == "d";
+        struct2.child(0).type.kind.expect!mode == Type.Kind.Double;
+
+        auto typedef2 = tu.child(3);
+        typedef2.kind.expect!mode == Cursor.Kind.TypedefDecl;
+        typedef2.spelling.expect!mode == "Nameless2";
+        typedef2.type.kind.expect!mode == Type.Kind.Typedef;
+        typedef2.type.spelling.expect!mode == "Nameless2";
+
+        typedef2.underlyingType.kind.expect!mode == Type.Kind.Elaborated;
+        typedef2.underlyingType.spelling.expect!mode == "struct Nameless2";
+        typedef2.underlyingType.canonical.kind.expect!mode == Type.Kind.Record;
+        typedef2.underlyingType.canonical.spelling.expect!mode == "Nameless2";
+
+        printChildren(typedef2);
+        typedef2.children.expectLengthEqual!mode(1);
+        typedef2.children[0].expect!mode == struct2;
+    }
+);
+
+
 @Tags("cpp")
-@("struct.typedef.anon")
+@("struct.typedef.anon.cpp")
 @safe unittest {
     const tu = parse(
         Cpp(

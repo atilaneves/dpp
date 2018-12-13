@@ -17,6 +17,8 @@ alias Node = from!"sumtype".SumType!(
 struct Struct {
     string spelling;
     Node[] nodes;
+    // Anonymous structs still have a type, and that type has a name
+    string typeSpelling;
 }
 
 
@@ -28,6 +30,7 @@ struct Field {
 
 
 struct Typedef {
+    import dpp2.sea.type: Type;
     string spelling;
-    string underlying;
+    Type underlying;
 }

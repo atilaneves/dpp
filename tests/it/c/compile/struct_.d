@@ -123,29 +123,34 @@ import it;
 }
 
 
-@WIP2
+@C(
+    q{
+        typedef struct {
+            int x, y, z;
+        } Nameless1;
+
+        typedef struct {
+            double d;
+        } Nameless2;
+    }
+)
 @("typedef.anon")
 @safe unittest {
-    shouldCompile(
-        C(
-            q{
-                typedef struct {
-                    int x, y, z;
-                } Nameless1;
+    mixin(
+        shouldCompile(
+            D(
+                q{
+                    auto n1 = Nameless1(2, 3, 4);
+                    static assert(n1.sizeof == 12, "Wrong sizeof for Nameless1");
+                    static assert(is(typeof(Nameless1.x) == int));
+                    static assert(is(typeof(Nameless1.y) == int));
+                    static assert(is(typeof(Nameless1.z) == int));
 
-                typedef struct {
-                    double d;
-                } Nameless2;
-            }
-        ),
-        D(
-            q{
-                auto n1 = Nameless1(2, 3, 4);
-                static assert(n1.sizeof == 12, "Wrong sizeof for Nameless1");
-
-                auto n2 = Nameless2(33.3);
-                static assert(n2.sizeof == 8, "Wrong sizeof for Nameless2");
-            }
+                    auto n2 = Nameless2(33.3);
+                    static assert(n2.sizeof == 8, "Wrong sizeof for Nameless2");
+                    static assert(is(typeof(Nameless2.d) == double));
+                }
+            )
         )
     );
 }

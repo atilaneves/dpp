@@ -7,14 +7,14 @@ module dpp2.transform;
 import dpp.from;
 
 
-from!"dpp2.sea.node".Node toNode(C)(in C cursor) @trusted {
+from!"dpp2.sea.node".Node[] toNode(C)(in C cursor) @trusted {
     import dpp2.sea.node;
     import dpp2.sea.type;
     import dpp.runtime.context: Context;
     import dpp.translation.translation: debugCursor;
     import clang: Cursor;
     import std.algorithm: map;
-    import std.array: array;
+    import std.array: array, join;
     import std.conv: text;
     import std.traits: isPointer;
 
@@ -32,18 +32,30 @@ from!"dpp2.sea.node".Node toNode(C)(in C cursor) @trusted {
         default:
             throw new Exception("Unknown cursor kind: " ~ cursorText);
 
+        case TranslationUnit:
+            return cursor.children.map!(c => toNode(c)).join;
+
         case StructDecl:
-            return Node(Struct(cursor.spelling,
-                               cursor.children.map!(c => toNode(c)).array));
+            return [
+                Node(
+                    Struct(cursor.spelling,
+                           cursor.children.map!(c => toNode(c)).join,
+                           cursor.type.spelling),
+                    )
+                ];
 
         case FieldDecl:
-            return Node(Field(toType(cursor.type), cursor.spelling));
+            return [Node(Field(toType(cursor.type), cursor.spelling))];
 
         case TypedefDecl:
-            return Node(Typedef(cursor.spelling, cursor.underlyingType.spelling.unelaborate));
+            return fromTypedef(cursor);
     }
 }
 
+from!"dpp2.sea.node".Node[] fromTypedef(C)(in C cursor) @trusted {
+    import dpp2.sea.node: Node, Typedef;
+    return [Node(Typedef(cursor.spelling, cursor.underlyingType.toType))];
+}
 
 from!"dpp2.sea.type".Type toType(T)(in T clangType) @safe {
     import dpp2.sea.type;
@@ -86,7 +98,7 @@ from!"dpp2.sea.type".Type toType(T)(in T clangType) @safe {
         case Kind.Float128: return Type(LongDouble());
 
         case Kind.Record:
-        case Kind.Elaborated:
+        case Kind.Elaborated:  // FIXME (could be enum or union)
             return Type(UserDefinedType(clangType.spelling.unelaborate));
     }
 }

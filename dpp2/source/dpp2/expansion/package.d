@@ -49,11 +49,13 @@ private auto cursorsToNodes(in from!"clang".Cursor[] cursors) @safe {
     import dpp2.transform: toNode;
     import clang: Cursor;
     import std.algorithm: map, filter;
+    import std.array: join;
 
-    return cursors
+    auto nested = cursors
         .filter!(c => c.kind != Cursor.Kind.MacroDefinition && c.kind != Cursor.Kind.InclusionDirective)
         .map!toNode
         ;
+    return () @trusted { return nested.join; }();
 }
 
 private from!"clang".TranslationUnit parseTU(

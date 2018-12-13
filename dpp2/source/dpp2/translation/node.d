@@ -4,6 +4,13 @@ module dpp2.translation.node;
 import dpp.from;
 
 
+string[] translate(in from!"dpp2.sea.node".Node[] nodes) {
+    import std.algorithm: map;
+    import std.array: join;
+    return nodes.map!translate.join;
+}
+
+
 string[] translate(in from!"dpp2.sea.node".Node node)
     @safe pure
 {
@@ -27,7 +34,11 @@ string[] translateStruct(in from!"dpp2.sea.node".Struct struct_)
 
     string[] lines;
 
-    lines ~= "struct " ~ struct_.spelling;
+    const spelling = struct_.spelling == ""
+        ? struct_.typeSpelling
+        : struct_.spelling;
+
+    lines ~= "struct " ~ spelling;
     lines ~= "{";
 
     lines ~= struct_
@@ -53,5 +64,9 @@ string[] translateField(in from!"dpp2.sea.node".Field field)
 string[] translateTypedef(in from!"dpp2.sea.node".Typedef typedef_)
     @safe pure
 {
-    return ["alias " ~ typedef_.spelling ~ " = " ~ typedef_.underlying ~ ";"];
+    import dpp2.translation.type: translate;
+    const underlyingTranslation = translate(typedef_.underlying);
+    return typedef_.spelling == underlyingTranslation
+        ? []
+        : ["alias " ~ typedef_.spelling ~ " = " ~  underlyingTranslation ~ ";"];
 }
