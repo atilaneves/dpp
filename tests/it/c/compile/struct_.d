@@ -157,20 +157,23 @@ import it;
 
 
 @WIP2
+@C(
+    q{
+        typedef struct A B;
+        struct A { int a; };
+    }
+)
 @("typedef.before")
 @safe unittest {
-    shouldCompile(
-        C(
-            q{
-                typedef struct A B;
-                struct A { int a; };
-            }
-        ),
-        D(
-            q{
-                auto a = A(42);
-                auto b = B(77);
-            }
+    mixin(
+        shouldCompile(
+            D(
+                q{
+                    auto a = A(42);
+                    auto b = B(77);
+                    static assert(is(A == B));
+                }
+            )
         )
     );
 }

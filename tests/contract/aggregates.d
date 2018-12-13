@@ -371,3 +371,47 @@ mixin Contract!(
     typedef_.children.length.should == 1;
     typedef_.children[0].should == struct_;
 }
+
+
+mixin Contract!(
+    TestName("struct.typedef.before"),
+    CodeURL("it.c.compile.struct_", "typedef.before"),
+    q{
+        tu.children.expectLengthEqual!mode(3);
+
+        auto struct1 = tu.child(0);
+        struct1.kind.expect!mode == Cursor.Kind.StructDecl;
+        struct1.spelling.expect!mode == "A";
+        struct1.type.kind.expect!mode == Type.Kind.Record;
+        struct1.type.spelling.expect!mode == "struct A";
+
+        // forward declaration has no children
+        struct1.children.expectLengthEqual!mode(0);
+
+        auto typedef_ = tu.child(1);
+        typedef_.kind.expect!mode == Cursor.Kind.TypedefDecl;
+        typedef_.spelling.expect!mode == "B";
+        typedef_.type.kind.expect!mode == Type.Kind.Typedef;
+        typedef_.type.spelling.expect!mode == "B";
+
+        typedef_.underlyingType.kind.expect!mode == Type.Kind.Elaborated;
+        typedef_.underlyingType.spelling.expect!mode == "struct A";
+        typedef_.underlyingType.canonical.kind.expect!mode == Type.Kind.Record;
+        typedef_.underlyingType.canonical.spelling.expect!mode == "struct A";
+
+        auto struct2 = tu.child(2);
+        struct2.kind.expect!mode == Cursor.Kind.StructDecl;
+        struct2.spelling.expect!mode == "A";
+        struct2.type.kind.expect!mode == Type.Kind.Record;
+        struct2.type.spelling.expect!mode == "struct A";
+
+        // definition has the child
+        struct2.children.expectLengthEqual!mode(1);
+        auto child = struct2.child(0);
+
+        child.kind.expect!mode == Cursor.Kind.FieldDecl;
+        child.spelling.expect!mode == "a";
+        child.type.kind.expect!mode == Type.Kind.Int;
+        child.type.spelling.expect!mode == "int";
+    }
+);
