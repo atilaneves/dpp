@@ -37,3 +37,26 @@ import it;
         )
     );
 }
+
+
+@("include guards")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        writeFile("hdr.h",
+                  `#ifndef HAHA
+                   #    define HAHA
+                   int inc(int);
+                   #endif`);
+        writeFile("foo.dpp",
+                  `#include "hdr.h"
+                   import bar;
+                   int func(int i) { return inc(i) * 2; }`);
+        writeFile("bar.dpp",
+                  `#include "hdr.h";
+                   int func(int i) { return inc(i) * 3; }`);
+
+        runPreprocessOnly("foo.dpp");
+        runPreprocessOnly("bar.dpp");
+        shouldCompile("foo.d");
+    }
+}
