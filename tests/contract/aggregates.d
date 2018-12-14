@@ -57,10 +57,12 @@ void testStructOneFieldInt(T)() {
 mixin Contract!(TestName("struct.onefield.int.auto"), contract_onefield_int);
 @ContractFunction(CodeURL("it.c.compile.struct_", "onefield.int"))
 auto contract_onefield_int(TestMode mode, CursorType)(ref CursorType tu) {
+
     tu.kind.expect!mode == Cursor.Kind.TranslationUnit;
     tu.children.expectLengthEqual!mode(1);
 
     auto struct_ = tu.child(0);
+    struct_.isDefinition.expect!mode == true;
     struct_.kind.expect!mode == Cursor.Kind.StructDecl;
     struct_.spelling.expect!mode == "Foo";
     struct_.type.kind.expect!mode == Type.Kind.Record;
@@ -90,6 +92,7 @@ auto contract_nested(TestMode mode, CursorType)(ref CursorType tu) {
     tu.children.expectLengthEqual!mode(1);
 
     auto outer = tu.child(0);
+    outer.isDefinition.expect!mode == true;
     outer.kind.expect!mode == Cursor.Kind.StructDecl;
     outer.spelling.expect!mode == "Outer";
     outer.type.kind.expect!mode == Type.Kind.Record;
@@ -211,12 +214,14 @@ auto contract_typedef_name(TestMode mode, CursorType)(ref CursorType tu) {
     tu.children.expectLengthEqual!mode(2);
 
     auto struct_ = tu.child(0);
+    struct_.isDefinition.expect!mode == true;
     struct_.kind.expect!mode == Cursor.Kind.StructDecl;
     struct_.spelling.expect!mode == "TypeDefd_";
     struct_.type.kind.expect!mode == Type.Kind.Record;
     struct_.type.spelling.expect!mode == "struct TypeDefd_";
 
     auto typedef_ = tu.child(1);
+    typedef_.isDefinition.expect!mode == true;
     typedef_.kind.expect!mode == Cursor.Kind.TypedefDecl;
     typedef_.spelling.expect!mode == "TypeDefd";
     typedef_.type.kind.expect!mode == Type.Kind.Typedef;
@@ -242,64 +247,72 @@ auto contract_typedef_anon(TestMode mode, CursorType)(ref CursorType tu) {
     tu.kind.expect!mode == Cursor.Kind.TranslationUnit;
     tu.children.expectLengthEqual!mode(4);
 
-    auto struct1 = tu.child(0);
-    struct1.kind.expect!mode == Cursor.Kind.StructDecl;
-    struct1.spelling.expect!mode == "";
-    struct1.type.kind.expect!mode == Type.Kind.Record;
-    // the cursor has no spelling but the type does
-    struct1.type.spelling.expect!mode == "Nameless1";
+    {
+        auto struct1 = tu.child(0);
+        struct1.isDefinition.expect!mode == true;
+        struct1.kind.expect!mode == Cursor.Kind.StructDecl;
+        struct1.spelling.expect!mode == "";
+        struct1.type.kind.expect!mode == Type.Kind.Record;
+        // the cursor has no spelling but the type does
+        struct1.type.spelling.expect!mode == "Nameless1";
 
-    struct1.children.expectLengthEqual!mode(3);
-    struct1.child(0).kind.expect!mode == Cursor.Kind.FieldDecl;
-    struct1.child(0).spelling.expect!mode == "x";
-    struct1.child(0).type.kind.expect!mode == Type.Kind.Int;
-    struct1.child(1).kind.expect!mode == Cursor.Kind.FieldDecl;
-    struct1.child(1).spelling.expect!mode == "y";
-    struct1.child(1).type.kind.expect!mode == Type.Kind.Int;
-    struct1.child(2).kind.expect!mode == Cursor.Kind.FieldDecl;
-    struct1.child(2).spelling.expect!mode == "z";
-    struct1.child(2).type.kind.expect!mode == Type.Kind.Int;
+        struct1.children.expectLengthEqual!mode(3);
+        struct1.child(0).kind.expect!mode == Cursor.Kind.FieldDecl;
+        struct1.child(0).spelling.expect!mode == "x";
+        struct1.child(0).type.kind.expect!mode == Type.Kind.Int;
+        struct1.child(1).kind.expect!mode == Cursor.Kind.FieldDecl;
+        struct1.child(1).spelling.expect!mode == "y";
+        struct1.child(1).type.kind.expect!mode == Type.Kind.Int;
+        struct1.child(2).kind.expect!mode == Cursor.Kind.FieldDecl;
+        struct1.child(2).spelling.expect!mode == "z";
+        struct1.child(2).type.kind.expect!mode == Type.Kind.Int;
 
-    auto typedef1 = tu.child(1);
-    typedef1.kind.expect!mode == Cursor.Kind.TypedefDecl;
-    typedef1.spelling.expect!mode == "Nameless1";
-    typedef1.type.kind.expect!mode == Type.Kind.Typedef;
-    typedef1.type.spelling.expect!mode == "Nameless1";
+        auto typedef1 = tu.child(1);
+        typedef1.isDefinition.expect!mode == true;
+        typedef1.kind.expect!mode == Cursor.Kind.TypedefDecl;
+        typedef1.spelling.expect!mode == "Nameless1";
+        typedef1.type.kind.expect!mode == Type.Kind.Typedef;
+        typedef1.type.spelling.expect!mode == "Nameless1";
 
-    typedef1.underlyingType.kind.expect!mode == Type.Kind.Elaborated;
-    typedef1.underlyingType.spelling.expect!mode == "struct Nameless1";
-    typedef1.underlyingType.canonical.kind.expect!mode == Type.Kind.Record;
-    typedef1.underlyingType.canonical.spelling.expect!mode == "Nameless1";
+        typedef1.underlyingType.kind.expect!mode == Type.Kind.Elaborated;
+        typedef1.underlyingType.spelling.expect!mode == "struct Nameless1";
+        typedef1.underlyingType.canonical.kind.expect!mode == Type.Kind.Record;
+        typedef1.underlyingType.canonical.spelling.expect!mode == "Nameless1";
 
-    printChildren(typedef1);
-    typedef1.children.expectLengthEqual!mode(1);
-    typedef1.children[0].expect!mode == struct1;
+        printChildren(typedef1);
+        typedef1.children.expectLengthEqual!mode(1);
+        typedef1.children[0].expect!mode == struct1;
+    }
 
-    auto struct2 = tu.child(2);
-    struct2.kind.expect!mode == Cursor.Kind.StructDecl;
-    struct2.spelling.expect!mode == "";
-    struct2.type.kind.expect!mode == Type.Kind.Record;
-    struct2.type.spelling.expect!mode == "Nameless2";
+    {
+        auto struct2 = tu.child(2);
+        struct2.isDefinition.expect!mode == true;
+        struct2.kind.expect!mode == Cursor.Kind.StructDecl;
+        struct2.spelling.expect!mode == "";
+        struct2.type.kind.expect!mode == Type.Kind.Record;
+        struct2.type.spelling.expect!mode == "Nameless2";
 
-    struct2.children.expectLengthEqual!mode(1);
-    struct2.child(0).kind.expect!mode == Cursor.Kind.FieldDecl;
-    struct2.child(0).spelling.expect!mode == "d";
-    struct2.child(0).type.kind.expect!mode == Type.Kind.Double;
+        struct2.children.expectLengthEqual!mode(1);
+        struct2.child(0).kind.expect!mode == Cursor.Kind.FieldDecl;
+        struct2.child(0).spelling.expect!mode == "d";
+        struct2.child(0).type.kind.expect!mode == Type.Kind.Double;
 
-    auto typedef2 = tu.child(3);
-    typedef2.kind.expect!mode == Cursor.Kind.TypedefDecl;
-    typedef2.spelling.expect!mode == "Nameless2";
-    typedef2.type.kind.expect!mode == Type.Kind.Typedef;
-    typedef2.type.spelling.expect!mode == "Nameless2";
+        auto typedef2 = tu.child(3);
+        typedef2.isDefinition.expect!mode == true;
+        typedef2.kind.expect!mode == Cursor.Kind.TypedefDecl;
+        typedef2.spelling.expect!mode == "Nameless2";
+        typedef2.type.kind.expect!mode == Type.Kind.Typedef;
+        typedef2.type.spelling.expect!mode == "Nameless2";
 
-    typedef2.underlyingType.kind.expect!mode == Type.Kind.Elaborated;
-    typedef2.underlyingType.spelling.expect!mode == "struct Nameless2";
-    typedef2.underlyingType.canonical.kind.expect!mode == Type.Kind.Record;
-    typedef2.underlyingType.canonical.spelling.expect!mode == "Nameless2";
+        typedef2.underlyingType.kind.expect!mode == Type.Kind.Elaborated;
+        typedef2.underlyingType.spelling.expect!mode == "struct Nameless2";
+        typedef2.underlyingType.canonical.kind.expect!mode == Type.Kind.Record;
+        typedef2.underlyingType.canonical.spelling.expect!mode == "Nameless2";
 
-    printChildren(typedef2);
-    typedef2.children.expectLengthEqual!mode(1);
-    typedef2.children[0].expect!mode == struct2;
+        printChildren(typedef2);
+        typedef2.children.expectLengthEqual!mode(1);
+        typedef2.children[0].expect!mode == struct2;
+    }
 
     static if(is(CursorType == MockCursor)) return tu;
 }
@@ -312,7 +325,9 @@ auto contract_typedef_before(TestMode mode, CursorType)(ref CursorType tu) {
     tu.kind.expect!mode == Cursor.Kind.TranslationUnit;
     tu.children.expectLengthEqual!mode(3);
 
+    // first, a struct declaration with no definition
     auto struct1 = tu.child(0);
+    struct1.isDefinition.expect!mode == false;
     struct1.kind.expect!mode == Cursor.Kind.StructDecl;
     struct1.spelling.expect!mode == "A";
     struct1.type.kind.expect!mode == Type.Kind.Record;
@@ -322,6 +337,7 @@ auto contract_typedef_before(TestMode mode, CursorType)(ref CursorType tu) {
     struct1.children.expectLengthEqual!mode(0);
 
     auto typedef_ = tu.child(1);
+    typedef_.isDefinition.expect!mode == true;
     typedef_.kind.expect!mode == Cursor.Kind.TypedefDecl;
     typedef_.spelling.expect!mode == "B";
     typedef_.type.kind.expect!mode == Type.Kind.Typedef;
@@ -332,7 +348,9 @@ auto contract_typedef_before(TestMode mode, CursorType)(ref CursorType tu) {
     typedef_.underlyingType.canonical.kind.expect!mode == Type.Kind.Record;
     typedef_.underlyingType.canonical.spelling.expect!mode == "struct A";
 
+    // then, a struct declaration that is a definition
     auto struct2 = tu.child(2);
+    struct2.isDefinition.expect!mode == true;
     struct2.kind.expect!mode == Cursor.Kind.StructDecl;
     struct2.spelling.expect!mode == "A";
     struct2.type.kind.expect!mode == Type.Kind.Record;
@@ -349,3 +367,6 @@ auto contract_typedef_before(TestMode mode, CursorType)(ref CursorType tu) {
 
     static if(is(CursorType == MockCursor)) return tu;
 }
+
+
+// TODO: multiple declarations test

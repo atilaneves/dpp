@@ -101,3 +101,17 @@ import dpp2.transform: toNode;
 
     () @trusted { actual.should == expected; }();
 }
+
+
+@("struct.typedef.before")
+@safe unittest {
+    const tu = mockTU!(Module("contract.aggregates"),
+                       CodeURL("it.c.compile.struct_", "typedef.before"));
+    const actual = tu.toNode;
+    const expected = [
+        Node(Typedef("B", Type(UserDefinedType("A")))),
+        Node(Struct("A", [Node(Field(Type(Int()), "a"))], "struct A")),
+    ];
+
+    () @trusted { actual.should == expected; }();
+}

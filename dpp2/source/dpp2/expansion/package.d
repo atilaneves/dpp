@@ -23,14 +23,14 @@ void expand(in string translUnitFileName,
 {
     import dpp.runtime.context: Language;
     import dpp2.translation.node: translate;
+    import dpp2.transform: toNode;
     import clang: parse;
 
     const extern_ = context.language == Language.Cpp ? "extern(C++)" : "extern(C)";
     context.writeln([extern_, "{"]);
 
     const translationUnit = parseTU(translUnitFileName, context);
-    const topLevelCursors = translationUnit.cursor.children;
-    auto nodes = cursorsToNodes(topLevelCursors);
+    auto nodes = translationUnit.cursor.toNode;
 
     foreach(node; nodes) {
         const indentation = context.indentation;

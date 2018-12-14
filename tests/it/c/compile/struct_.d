@@ -156,7 +156,6 @@ import it;
 }
 
 
-@WIP2
 @C(
     q{
         typedef struct A B;
@@ -248,7 +247,6 @@ import it;
 }
 
 
-@WIP2
 @("multiple declarations")
 @safe unittest {
     shouldCompile(

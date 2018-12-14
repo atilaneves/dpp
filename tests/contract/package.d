@@ -169,6 +169,8 @@ struct MockCursor {
     MockType type;
     MockCursor[] children;
     private MockType _underlyingType;
+    bool isDefinition;
+    bool isCanonical;
 
     // Returns a pointer so that the child can be modified
     auto child(this This)(int index) {
@@ -399,7 +401,7 @@ void expectLengthEqual(TestMode mode, R)
 
 
 auto expect(TestMode mode, L)
-           (ref L lhs, in string file = __FILE__, in size_t line = __LINE__)
+           (auto ref L lhs, in string file = __FILE__, in size_t line = __LINE__)
 {
     struct Expect {
 

@@ -121,3 +121,22 @@ import std.array: join;
     static assert(is(Nameless2), translation);
     static assert(is(typeof(Nameless2.d) == double), translation);
 }
+
+@("typedef.before")
+@safe pure unittest {
+
+    // unfortunately, order matters in unit test blocks
+    enum nodes = [
+        Node(Struct("A", [Node(Field(Type(Int()), "a"))], "struct A")),
+        Node(Typedef("B", Type(UserDefinedType("A")))),
+    ];
+
+    enum translation = "\n" ~ translate(nodes).join("\n");
+    writelnUt(translation);
+    mixin(translation);
+
+    static assert(is(A == B));
+    static assert(is(A == struct));
+    static assert(A.tupleof.length == 1);
+    static assert(is(typeof(A.a) == int));
+}
