@@ -4,6 +4,7 @@ module contract.aggregates;
 import contract;
 
 
+// This is only here to write a blog about it later
 @("struct.onefield.int.manual")
 @MockTU!(
     {
@@ -54,7 +55,6 @@ void testStructOneFieldInt(T)() {
 
 
 mixin Contract!(TestName("struct.onefield.int.auto"), contract_onefield_int);
-
 @ContractFunction(CodeURL("it.c.compile.struct_", "onefield.int"))
 auto contract_onefield_int(TestMode mode, CursorType)(ref CursorType tu) {
     tu.kind.expect!mode == Cursor.Kind.TranslationUnit;
@@ -235,45 +235,6 @@ auto contract_typedef_name(TestMode mode, CursorType)(ref CursorType tu) {
 }
 
 
-@Tags("cpp")
-@("struct.typedef.name.cpp")
-@safe unittest {
-    const tu = parse(
-        Cpp(
-            q{
-                typedef struct TypeDefd_ {
-                    int i;
-                    double d;
-                } TypeDefd;
-            }
-        )
-    );
-
-    tu.children.length.should == 2;
-
-    const struct_ = tu.children[0];
-    struct_.kind.should == Cursor.Kind.StructDecl;
-    struct_.spelling.should == "TypeDefd_";
-    struct_.type.kind.should == Type.Kind.Record;
-    struct_.type.spelling.should == "TypeDefd_";
-
-    const typedef_ = tu.children[1];
-    typedef_.kind.should == Cursor.Kind.TypedefDecl;
-    typedef_.spelling.should == "TypeDefd";
-    typedef_.type.kind.should == Type.Kind.Typedef;
-    typedef_.type.spelling.should == "TypeDefd";
-
-    typedef_.underlyingType.kind.should == Type.Kind.Elaborated;
-    typedef_.underlyingType.spelling.should == "struct TypeDefd_";
-    typedef_.underlyingType.canonical.kind.should == Type.Kind.Record;
-    typedef_.underlyingType.canonical.spelling.should == "TypeDefd_";
-
-    printChildren(typedef_);
-    typedef_.children.length.should == 1;
-    typedef_.children[0].should == struct_;
-}
-
-
 mixin Contract!(TestName("struct.typedef.anon"), contract_typedef_anon);
 @ContractFunction(CodeURL("it.c.compile.struct_", "typedef.anon"))
 auto contract_typedef_anon(TestMode mode, CursorType)(ref CursorType tu) {
@@ -341,45 +302,6 @@ auto contract_typedef_anon(TestMode mode, CursorType)(ref CursorType tu) {
     typedef2.children[0].expect!mode == struct2;
 
     static if(is(CursorType == MockCursor)) return tu;
-}
-
-
-@Tags("cpp")
-@("struct.typedef.anon.cpp")
-@safe unittest {
-    const tu = parse(
-        Cpp(
-            q{
-                typedef struct {
-                    int i;
-                    double d;
-                } TypeDefd;
-            }
-        )
-    );
-
-    tu.children.length.should == 2;
-
-    const struct_ = tu.children[0];
-    struct_.kind.should == Cursor.Kind.StructDecl;
-    struct_.spelling.should == "";
-    struct_.type.kind.should == Type.Kind.Record;
-    struct_.type.spelling.should == "TypeDefd";
-
-    const typedef_ = tu.children[1];
-    typedef_.kind.should == Cursor.Kind.TypedefDecl;
-    typedef_.spelling.should == "TypeDefd";
-    typedef_.type.kind.should == Type.Kind.Typedef;
-    typedef_.type.spelling.should == "TypeDefd";
-
-    typedef_.underlyingType.kind.should == Type.Kind.Elaborated;
-    typedef_.underlyingType.spelling.should == "struct TypeDefd";
-    typedef_.underlyingType.canonical.kind.should == Type.Kind.Record;
-    typedef_.underlyingType.canonical.spelling.should == "TypeDefd";
-
-    printChildren(typedef_);
-    typedef_.children.length.should == 1;
-    typedef_.children[0].should == struct_;
 }
 
 
