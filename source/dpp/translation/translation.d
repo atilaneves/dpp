@@ -128,6 +128,7 @@ void debugCursor(in from!"clang".Cursor cursor,
     const isMacro = cursor.kind == Cursor.Kind.MacroDefinition;
     const isOkMacro =
         !cursor.spelling.startsWith("__") &&
+        !cursor.spelling.startsWith("_GLIBCXX") &&
         !["_LP64", "unix", "linux"].canFind(cursor.spelling);
     const canonical = cursor.isCanonical ? " CAN" : "";
     const definition = cursor.isDefinition ? " DEF" : "";
