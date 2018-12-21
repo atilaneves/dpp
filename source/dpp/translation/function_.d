@@ -168,7 +168,11 @@ private bool isSupportedOperatorInD(in from!"clang".Cursor cursor) @safe nothrow
 
 private bool isOperator(in from!"clang".Cursor cursor) @safe pure nothrow {
     import std.algorithm: startsWith;
-    return cursor.spelling.startsWith(OPERATOR_PREFIX);
+    return
+        cursor.spelling.startsWith(OPERATOR_PREFIX)
+        && cursor.spelling.length > OPERATOR_PREFIX.length
+        && cursor.spelling[OPERATOR_PREFIX.length] != '_'
+        ;
 }
 
 
@@ -183,7 +187,7 @@ private string functionSpelling(in from!"clang".Cursor cursor,
     if(cursor.kind == Cursor.Kind.Constructor) return "this";
     if(cursor.kind == Cursor.Kind.Destructor) return "~this";
 
-    if(cursor.spelling.startsWith(OPERATOR_PREFIX)) return operatorSpellingCpp(cursor, context);
+    if(isOperator(cursor)) return operatorSpellingCpp(cursor, context);
 
     // if no special case
     return context.rememberLinkable(cursor);
@@ -240,6 +244,8 @@ private long numParams(in from!"clang".Cursor cursor) @safe nothrow {
 private string operatorSpellingCpp(in from!"clang".Cursor cursor,
                                    ref from!"dpp.runtime.context".Context context)
     @safe
+    in(isOperator(cursor))
+do
 {
     import dpp.translation.type: translate;
     import dpp.translation.exception: UntranslatableException;
