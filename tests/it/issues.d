@@ -1081,3 +1081,28 @@ unittest {
         ),
    );
 }
+
+
+@ShouldFail
+@Tags("issue")
+@("108")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<class T1, class T2, int I>
+                class A {};
+
+                template <typename CC> class C {};
+
+                template<class T, int I>
+                class A<C<int>, T*, I> {};
+            }
+        ),
+        D(
+            q{
+
+            }
+        ),
+    );
+}
