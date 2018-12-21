@@ -1133,3 +1133,25 @@ unittest {
         ),
     );
 }
+
+
+@ShouldFail
+@Tags("issue")
+@("110")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                class A {
+                    bool operator_a() const;
+                };
+            }
+        ),
+        D(
+            q{
+                auto a = new const A;
+                bool ret = a.operator_a();
+            }
+        ),
+    );
+}
