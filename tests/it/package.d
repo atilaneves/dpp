@@ -239,7 +239,12 @@ private void shouldCompileAndRun
         writeFile(cSourceFileName, includeLine(headerFileName) ~ cText);
 
         const isCpp = headerFileName == "hdr.hpp";
-        const compilerName = isCpp ? "g++" : "gcc";
+        const compilerName = () {
+            if(environment.get("TRAVIS", "") == "")
+                return isCpp ? "clang++" : "clang";
+            else
+                return isCpp ? "g++" : "gcc";
+        }();
         const compilerVersion = environment.get("TRAVIS", "") == "" ? "" : "-7";
         const compiler = compilerName ~ compilerVersion;
         const languageStandard =  isCpp ? "-std=c++17" : "-std=c11";

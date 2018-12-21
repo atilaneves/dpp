@@ -595,3 +595,72 @@ import it;
          ),
     );
 }
+
+
+@Tags("run")
+@ShouldFail("Passes with gcc but fails with clang due to destructor mangling")
+@("std.allocator")
+@safe unittest {
+    shouldRun(
+        Cpp(
+            q{
+                namespace impl_cpp {
+                    template <typename T>
+                    class new_allocator {
+                    public:
+                        new_allocator()  {}
+                        ~new_allocator() {}
+                        T* allocate(int size, const void* = static_cast<const void*>(0)) {
+                            return static_cast<T*>(::operator new(size * sizeof(T)));
+                        }
+                        void deallocate(T* ptr, int size) {
+                            ::operator delete(ptr);
+                        }
+                    };
+                }
+
+                namespace std {
+                    template <typename T>
+                    using allocator_base = impl_cpp::new_allocator<T>;
+                }
+
+                namespace std {
+                    template <typename T>
+                    class allocator: public allocator_base<T> {
+                    public:
+                        allocator() {}
+                        ~allocator() {}
+                    };
+                }
+            }
+        ),
+        Cpp(
+            `
+              #if __clang__
+                  [[clang::optnone]]
+              #elif __GNUC__
+                  __attribute__((optimize("O0")))
+              #endif
+              __attribute((used, noinline))
+              static void dummy() {
+                  {
+                      std::allocator<int> _;
+                      (void) std::allocator<int>(_);
+                  }
+              }
+            `
+        ),
+        D(
+            q{
+                // import std.conv: text;
+                allocator!int intAllocator = void;
+                // below can't work until `alias this` is implemented
+                // enum numInts = 1;
+                // int* i = intAllocator.allocate(numInts);
+                // intAllocator.construct(i, 42);
+                // assert(*i == 42, text("i was actually ", *i));
+                // intAllocator.deallocate(i, numInts);
+            }
+         ),
+    );
+}
