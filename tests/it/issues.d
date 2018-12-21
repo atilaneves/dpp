@@ -1106,3 +1106,30 @@ unittest {
         ),
     );
 }
+
+
+@ShouldFail
+@Tags("issue")
+@("109")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<typename C> class Test
+                {
+                    bool operator==(const Test<C>& x) { return 0; }
+                    bool operator<(const Test<C>& x) { return 0; }
+                    bool operator>(const Test<C>& x) { return 0; }
+                };
+            }
+        ),
+        D(
+            q{
+                auto t = Test!int();
+                const eq = t == t;
+                const lt = t < t;
+                const gt = t > t;
+            }
+        ),
+    );
+}
