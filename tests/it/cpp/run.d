@@ -597,8 +597,8 @@ import it;
 }
 
 
+@HiddenTest("Passes with gcc but fails with clang due to destructor mangling")
 @Tags("run")
-@ShouldFail("Passes with gcc but fails with clang due to destructor mangling")
 @("std.allocator")
 @safe unittest {
     shouldRun(
