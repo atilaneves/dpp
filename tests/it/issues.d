@@ -1083,7 +1083,7 @@ unittest {
 }
 
 
-@ShouldFail
+@ShouldFail("The template specialisation fails because it's a pointer to type-parameter-0-0")
 @Tags("issue")
 @("108")
 @safe unittest {

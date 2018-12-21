@@ -473,15 +473,20 @@ string translateTemplateParamSpecialisation(
 // returns the indexth template parameter value from a specialised
 // template struct/class cursor (full or partial)
 // e.g. template<> struct Foo<int, 42, double> -> 1: 42
-string templateParameterSpelling(in from!"clang".Type cursorType, int index) @safe pure {
-    import std.algorithm: findSkip, until, OpenRight;
-    import std.array: empty, save, split, array;
+string templateParameterSpelling(in from!"clang".Type cursorType,
+                                 int index)
+    @safe pure
+{
+    import std.algorithm: findSkip, startsWith;
+    import std.array: split;
     import std.conv: text;
 
     auto spelling = cursorType.spelling.dup;
+    // If we pass this spelling has had everyting leading up to the opening
+    // angle bracket removed.
     if(!spelling.findSkip("<")) return "";
+    assert(spelling[$-1] == '>');
 
-    auto templateParams = spelling.until(">", OpenRight.yes).array.split(", ");
-
+    const templateParams = spelling[0 .. $-1].split(", ");
     return templateParams[index].text;
 }
