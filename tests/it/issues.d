@@ -1108,7 +1108,6 @@ unittest {
 }
 
 
-@ShouldFail
 @Tags("issue")
 @("109")
 @safe unittest {
@@ -1117,15 +1116,15 @@ unittest {
             q{
                 template<typename C> class Test
                 {
-                    bool operator==(const Test<C>& x) { return 0; }
-                    bool operator<(const Test<C>& x) { return 0; }
-                    bool operator>(const Test<C>& x) { return 0; }
+                    bool operator==(const Test<C>& x) const { return 0; }
+                    bool operator<(const Test<C>& x)  const { return 0; }
+                    bool operator>(const Test<C>& x)  const { return 0; }
                 };
             }
         ),
         D(
             q{
-                auto t = Test!int();
+                const t = Test!int();
                 const eq = t == t;
                 const lt = t < t;
                 const gt = t > t;

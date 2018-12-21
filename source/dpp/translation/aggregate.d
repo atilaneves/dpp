@@ -462,7 +462,7 @@ private string[] maybeOperators(in from!"clang".Cursor cursor, in string name)
 {
     import dpp.translation.function_: OPERATOR_PREFIX;
     import std.algorithm: map, any;
-    import std.array: array;
+    import std.array: array, replace;
 
     string[] lines;
 
@@ -470,9 +470,13 @@ private string[] maybeOperators(in from!"clang".Cursor cursor, in string name)
         return cursor.children.any!(a => a.spelling == OPERATOR_PREFIX ~ op);
     }
 
+    // if the aggregate has a parenthesis in its name it's because it's a templated
+    // struct/class, in which case the parameter has to have an exclamation mark.
+    const typeName = name.replace("(", "!(");
+
     if(hasOperator(">") && hasOperator("<") && hasOperator("==")) {
         lines ~=  [
-            `int opCmp()(` ~ name ~ ` other) const`,
+            `int opCmp()(` ~ typeName ~ ` other) const`,
             `{`,
             `    if(this.opCppLess(other)) return -1;`,
             `    if(this.opCppMore(other)) return  1;`,
