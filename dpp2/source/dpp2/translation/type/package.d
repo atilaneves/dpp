@@ -7,6 +7,7 @@ import dpp.from;
 /**
    Translate a C/C++ type to D.
  */
+// FIXME - const parameter
 string translate(from!"dpp2.sea.type".Type type) @safe pure {
     import dpp2.sea.type;  // too many to list for the pattern match
     import sumtype: match;

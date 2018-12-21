@@ -10,98 +10,108 @@ import clang: Cursor, ClangType = Type;
 import dpp2.transform: toNode;
 
 
-
 @("struct.onefield.int")
 @safe unittest {
-    auto intField = Cursor(Cursor.Kind.FieldDecl, "i");
-    intField.type = ClangType(ClangType.Kind.Int, "int");
-    auto struct_ = Cursor(Cursor.Kind.StructDecl, "Foo");
-    struct_.children = [intField];
+    const tu = mockTU!(Module("contract.aggregates"),
+                       CodeURL("it.c.compile.struct_", "onefield.int"));
 
-    struct_.toNode.should ==
-        Node(
-            Struct(
-                "Foo",
-                [
-                    Field(Type(Int()), "i"),
-                ]
-            )
-        );
+    const actual = tu.toNode;
+    const expected = [Node(
+        Struct(
+            "Foo",
+            [
+                Node(Field(Type(Int()), "i")),
+            ],
+            "struct Foo",
+        )
+    )];
+
+    () @trusted { actual.should == expected; }();
 }
 
 
-@("struct.onefield.double")
-@safe unittest {
-    auto doubleField = Cursor(Cursor.Kind.FieldDecl, "d");
-    doubleField.type = ClangType(ClangType.Kind.Double, "double");
-    auto struct_ = Cursor(Cursor.Kind.StructDecl, "Bar");
-    struct_.children = [doubleField];
-
-    struct_.toNode.should ==
-        Node(
-            Struct(
-                "Bar",
-                [
-                    Field(Type(Double()), "d"),
-                ]
-            )
-        );
-}
-
-
-@("struct.twofields")
-@safe unittest {
-    auto intField = Cursor(Cursor.Kind.FieldDecl, "i");
-    intField.type = ClangType(ClangType.Kind.Int, "int");
-
-    auto doubleField = Cursor(Cursor.Kind.FieldDecl, "d");
-    doubleField.type = ClangType(ClangType.Kind.Double, "double");
-
-    auto struct_ = Cursor(Cursor.Kind.StructDecl, "Baz");
-    struct_.children = [intField, doubleField];
-
-    struct_.toNode.should ==
-        Node(
-            Struct(
-                "Baz",
-                [
-                    Field(Type(Int()), "i"),
-                    Field(Type(Double()), "d"),
-                ]
-            )
-        );
-}
-
-
-// FIXME - `Field` should be an option for `Node`
-@ShouldFail("Equal but not equal")
 @("struct.nested")
 @safe unittest {
-    auto xfield = Cursor(Cursor.Kind.FieldDecl, "x");
-    xfield.type = ClangType(ClangType.Kind.Int, "int");
+    const tu = mockTU!(Module("contract.aggregates"),
+                       CodeURL("it.c.compile.struct_", "nested"));
 
-    auto innerStruct = Cursor(Cursor.Kind.StructDecl, "Inner");
-    innerStruct.type = ClangType(ClangType.Kind.Record, "Outer::Inner");
-    innerStruct.children = [xfield];
+    const actual = tu.toNode;
+    const expected = [Node(
+        Struct(
+            "Outer",
+            [
+                Node(Field(Type(Int()), "integer")),
+                Node(Struct("Inner", [ Node(Field(Type(Int()), "x")) ], "struct Inner")),
+                Node(Field(Type(UserDefinedType("Inner")), "inner")),
+            ],
+            "struct Outer",
+        )
+    )];
 
-    auto innerField = Cursor(Cursor.Kind.FieldDecl, "inner");
-    innerField.type = ClangType(ClangType.Kind.Elaborated, "struct Inner");
-    innerField.children = [innerStruct];
+    () @trusted { actual.should == expected; }();
+}
 
-    auto outer = Cursor(Cursor.Kind.StructDecl, "Outer");
-    outer.type = ClangType(ClangType.Kind.Record, "Outer");
-    outer.children = [innerStruct, innerField];
 
-    outer.toNode.should ==
+@("struct.typedef.name")
+@safe unittest {
+    const tu = mockTU!(Module("contract.aggregates"),
+                       CodeURL("it.c.compile.struct_", "typedef.name"));
+
+    const actual = tu.toNode;
+    const expected = [
+        Node(Struct("TypeDefd_", [], "struct TypeDefd_")),
+        Node(Typedef("TypeDefd", Type(UserDefinedType("TypeDefd_")))),
+    ];
+
+    () @trusted { actual.should == expected; }();
+}
+
+
+@("struct.typedef.anon")
+@safe unittest {
+    const tu = mockTU!(Module("contract.aggregates"),
+                       CodeURL("it.c.compile.struct_", "typedef.anon"));
+
+    const actual = tu.toNode;
+    const expected = [
         Node(
             Struct(
-                "Outer",
+                "",
                 [
-                    Field(Type(UserDefinedType("Inner")), "inner"),
+                    Node(Field(Type(Int()), "x")),
+                    Node(Field(Type(Int()), "y")),
+                    Node(Field(Type(Int()), "z")),
                 ],
+                "Nameless1",
+            ),
+        ),
+        Node(Typedef("Nameless1", Type(UserDefinedType("Nameless1")))),
+        Node(
+            Struct(
+                "",
                 [
-                    Struct("Inner", [ Field(Type(Int()), "x") ]),
+                    Node(Field(Type(Double()), "d")),
                 ],
-            )
-        );
+                "Nameless2",
+            ),
+        ),
+        Node(Typedef("Nameless2", Type(UserDefinedType("Nameless2")))),
+    ];
+
+
+    () @trusted { actual.should == expected; }();
+}
+
+
+@("struct.typedef.before")
+@safe unittest {
+    const tu = mockTU!(Module("contract.aggregates"),
+                       CodeURL("it.c.compile.struct_", "typedef.before"));
+    const actual = tu.toNode;
+    const expected = [
+        Node(Typedef("B", Type(UserDefinedType("A")))),
+        Node(Struct("A", [Node(Field(Type(Int()), "a"))], "struct A")),
+    ];
+
+    () @trusted { actual.should == expected; }();
 }

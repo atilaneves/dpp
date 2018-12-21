@@ -1,3 +1,6 @@
+/**
+   Tests that we're using libclang properly.
+ */
 module ut.transform.clang;
 
 

@@ -7,41 +7,97 @@ module dpp2.transform;
 import dpp.from;
 
 
-from!"dpp2.sea.node".Node toNode(in from!"clang".Cursor cursor) @safe {
-    import dpp2.sea.node;
-    import dpp2.sea.type;
-    import dpp.runtime.context: Context;
-    import dpp.translation.translation: debugCursor;
-    import clang: Cursor;
-    import std.algorithm: map, filter;
-    import std.array: array;
+/**
+   Transforms a clang `Cursor` (or a mock) into a dpp `Node`
+ */
+from!"dpp2.sea.node".Node[] toNode(C)(in C cursor) @trusted {
 
-    return Node(
-        Struct(
-            cursor.spelling,
-            cursor
-                .children
-                .filter!(c => c.kind == Cursor.Kind.FieldDecl)
-                .map!(c => Field(toType(c.type), c.spelling))
-                .array,
-            cursor
-                .children
-                .filter!(c => c.kind == Cursor.Kind.StructDecl)
-            // FIXME
-            .map!(cursor => Struct(cursor.spelling,
-                                   cursor
-                                       .children
-                                       .filter!(c => c.kind == Cursor.Kind.FieldDecl)
-                                       .map!(c => Field(toType(c.type), c.spelling))
-                                       .array,
-                      ))
-                .array
-        )
-    );
+    import std.traits: isPointer;
+    import std.conv: text;
+
+    static if(isPointer!C)
+        const cursorText = text(*cursor, " def? ", cursor.isDefinition);
+    else
+        const cursorText = text( cursor, " def? ", cursor.isDefinition);
+
+    version(unittest) {
+        import unit_threaded;
+        () @trusted { writelnUt("toNode cursor: ", cursorText); }();
+    }
+
+    auto transform = cursor.kind in transformations!C;
+
+    if(transform is null)
+        throw new Exception("Unknown cursor kind: " ~ cursorText);
+
+    return (*transform)(cursor);
+}
+
+auto transformations(C)() {
+    import clang: Cursor;
+    with(Cursor.Kind) {
+        return [
+            TranslationUnit: &fromTranslationUnit!C,
+            StructDecl: &fromStruct!C,
+            FieldDecl: &fromField!C,
+            TypedefDecl: &fromTypedef!C,
+        ];
+    }
+}
+
+from!"dpp2.sea.node".Node[] fromTranslationUnit(C)(in C cursor) @trusted
+    in(cursor.kind == from!"clang".Cursor.Kind.TranslationUnit)
+do
+{
+    import std.algorithm: filter, map;
+    import std.array: join;
+
+    auto cursors = cursor.children
+        .filter!(a => a.isDefinition)
+        ;
+
+    return cursors.map!(c => toNode(c)).join;
 }
 
 
-from!"dpp2.sea.type".Type toType(in from!"clang".Type clangType) @safe pure {
+from!"dpp2.sea.node".Node[] fromStruct(C)(in C cursor) @trusted
+    in(cursor.kind == from!"clang".Cursor.Kind.StructDecl)
+do
+{
+    import dpp2.sea.node: Node, Struct;
+    import std.algorithm: map;
+    import std.array: join;
+
+    return [
+        Node(
+            Struct(cursor.spelling,
+                   cursor.children.map!(c => toNode(c)).join,
+                   cursor.type.spelling),
+        )
+    ];
+}
+
+
+
+from!"dpp2.sea.node".Node[] fromField(C)(in C cursor) @trusted
+    in(cursor.kind == from!"clang".Cursor.Kind.FieldDecl)
+do
+{
+    import dpp2.sea.node: Node, Field;
+    return [Node(Field(toType(cursor.type), cursor.spelling))];
+}
+
+
+from!"dpp2.sea.node".Node[] fromTypedef(C)(in C cursor) @trusted
+    in(cursor.kind == from!"clang".Cursor.Kind.TypedefDecl)
+do
+{
+    import dpp2.sea.node: Node, Typedef;
+    return [Node(Typedef(cursor.spelling, cursor.underlyingType.toType))];
+}
+
+
+from!"dpp2.sea.type".Type toType(T)(in T clangType) @safe {
     import dpp2.sea.type;
     import std.conv: text;
 
@@ -82,7 +138,7 @@ from!"dpp2.sea.type".Type toType(in from!"clang".Type clangType) @safe pure {
         case Kind.Float128: return Type(LongDouble());
 
         case Kind.Record:
-        case Kind.Elaborated:
+        case Kind.Elaborated:  // FIXME (could be enum or union)
             return Type(UserDefinedType(clangType.spelling.unelaborate));
     }
 }

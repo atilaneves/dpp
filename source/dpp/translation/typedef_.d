@@ -73,8 +73,10 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
 
     context.log("");
 
-    // If the two spellings are the same, it's a `typedef struct foo { } foo`
-    // situration, and there's no reason to alias to anything, so we return nothing.
+    // This used to be due to `typedef struct foo { } foo`, but now it's not.
+    // Changing this to always alias however breaks:
+    // it.c.compile.projects.const char* const
+    // it.c.compile.projects.struct with union
     return typedef_.spelling == underlyingSpelling
         ? []
         : [`alias ` ~ maybeRename(typedef_, context) ~ ` = ` ~ underlyingSpelling  ~ `;`];

@@ -4,10 +4,14 @@ module dpp2.translation.node;
 import dpp.from;
 
 
-// FIXME - all of the parameters should be const but `match` won't have it
+string[] translate(in from!"dpp2.sea.node".Node[] nodes) {
+    import std.algorithm: map;
+    import std.array: join;
+    return nodes.map!translate.join;
+}
 
 
-string[] translate(from!"dpp2.sea.node".Node node)
+string[] translate(in from!"dpp2.sea.node".Node node)
     @safe pure
 {
     import dpp2.sea.node;
@@ -15,11 +19,13 @@ string[] translate(from!"dpp2.sea.node".Node node)
 
     return node.match!(
         translateStruct,
+        translateField,
+        translateTypedef,
     );
 }
 
 
-string[] translateStruct(from!"dpp2.sea.node".Struct struct_)
+string[] translateStruct(in from!"dpp2.sea.node".Struct struct_)
     @safe pure
 {
     import dpp2.sea.node: Node;
@@ -28,20 +34,17 @@ string[] translateStruct(from!"dpp2.sea.node".Struct struct_)
 
     string[] lines;
 
-    lines ~= "struct " ~ struct_.spelling;
+    const spelling = struct_.spelling == ""
+        ? struct_.typeSpelling
+        : struct_.spelling;
+
+    lines ~= "struct " ~ spelling;
     lines ~= "{";
 
     lines ~= struct_
-        .fields
-        .map!translateField
+        .nodes
+        .map!translate
         .join
-        ;
-
-    // FIXME
-    lines ~= struct_
-        .structs
-        .map!(a => "    static" ~ translateStruct(a).map!(l => "    " ~ l).array)
-        .join("\n")
         ;
 
     lines ~= "}";
@@ -50,9 +53,20 @@ string[] translateStruct(from!"dpp2.sea.node".Struct struct_)
 }
 
 
-string[] translateField(from!"dpp2.sea.node".Field field)
+string[] translateField(in from!"dpp2.sea.node".Field field)
     @safe pure
 {
     import dpp2.translation.type: translate;
     return ["    " ~ translate(field.type) ~ " " ~ field.spelling ~ ";"];
+}
+
+
+string[] translateTypedef(in from!"dpp2.sea.node".Typedef typedef_)
+    @safe pure
+{
+    import dpp2.translation.type: translate;
+    const underlyingTranslation = translate(typedef_.underlying);
+    return typedef_.spelling == underlyingTranslation
+        ? []
+        : ["alias " ~ typedef_.spelling ~ " = " ~  underlyingTranslation ~ ";"];
 }

@@ -23,14 +23,14 @@ void expand(in string translUnitFileName,
 {
     import dpp.runtime.context: Language;
     import dpp2.translation.node: translate;
+    import dpp2.transform: toNode;
     import clang: parse;
 
     const extern_ = context.language == Language.Cpp ? "extern(C++)" : "extern(C)";
     context.writeln([extern_, "{"]);
 
     const translationUnit = parseTU(translUnitFileName, context);
-    const topLevelCursors = translationUnit.cursor.children;
-    auto nodes = cursorsToNodes(topLevelCursors);
+    auto nodes = translationUnit.cursor.toNode;
 
     foreach(node; nodes) {
         const indentation = context.indentation;
@@ -49,11 +49,13 @@ private auto cursorsToNodes(in from!"clang".Cursor[] cursors) @safe {
     import dpp2.transform: toNode;
     import clang: Cursor;
     import std.algorithm: map, filter;
+    import std.array: join;
 
-    return cursors
-        .filter!(c => c.kind == Cursor.Kind.StructDecl)
+    auto nested = cursors
+        .filter!(c => c.kind != Cursor.Kind.MacroDefinition && c.kind != Cursor.Kind.InclusionDirective)
         .map!toNode
         ;
+    return () @trusted { return nested.join; }();
 }
 
 private from!"clang".TranslationUnit parseTU(

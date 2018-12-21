@@ -5,18 +5,20 @@ import it;
 
 
 @("onefield.int")
+@C(
+    q{
+        struct Foo { int i; };
+    }
+)
 @safe unittest {
-    shouldCompile(
-        C(
-            q{
-                struct Foo { int i; };
-            }
-        ),
-        D(
-            q{
-                auto f = Foo(5);
-                static assert(f.sizeof == 4, "Wrong sizeof for Foo");
-            }
+    mixin(
+        shouldCompile(
+            D(
+                q{
+                    auto f = Foo(5);
+                    static assert(f.sizeof == 4, "Wrong sizeof for foo");
+                }
+            )
         )
     );
 }
@@ -68,99 +70,109 @@ import it;
 
 
 @("nested")
+@C(
+    q{
+        struct Outer {
+            int integer;
+            struct Inner {
+                int x;
+            } inner;
+        };
+    }
+)
 @safe unittest {
-    shouldCompile(
-        C(
-            q{
-                struct Outer {
-                    int i;
-                    struct Inner {
-                        int x;
-                    } inner;
-                };
-            }
-        ),
-        D(
-            q{
-                auto o = Outer(77, Outer.Inner(42));
-                static assert(o.sizeof == 8, "Wrong sizeof for Outer");
-            }
+    mixin(
+        shouldCompile(
+            D(
+                q{
+                    auto o = Outer(77, Outer.Inner(42));
+                    static assert(o.sizeof == 8, "Wrong sizeof for Outer");
+                }
+            )
         )
     );
 }
 
 
-@WIP2
 @("typedef.name")
+@C(
+    q{
+        typedef struct TypeDefd_ {
+            int i;
+            double d;
+        } TypeDefd;
+    }
+)
 @safe unittest {
-    shouldCompile(
-        C(
-            q{
-                typedef struct TypeDefd_ {
-                    int i;
-                    double d;
-                } TypeDefd;
-            }
-        ),
-        D(
-            q{
-                {
-                    auto t = TypeDefd_(42, 33.3);
-                    static assert(t.sizeof == 16, "Wrong sizeof for TypeDefd_");
+    mixin(
+        shouldCompile(
+            D(
+                q{
+                    {
+                        auto t = TypeDefd_(42, 33.3);
+                        static assert(t.sizeof == 16, "Wrong sizeof for TypeDefd_");
+                    }
+                    {
+                        auto t = TypeDefd(42, 33.3);
+                        static assert(t.sizeof == 16, "Wrong sizeof for TypeDefd");
+                    }
                 }
-                {
-                    auto t = TypeDefd(42, 33.3);
-                    static assert(t.sizeof == 16, "Wrong sizeof for TypeDefd");
-                }
-            }
+            )
         )
     );
 }
 
 
-@WIP2
+@C(
+    q{
+        typedef struct {
+            int x, y, z;
+        } Nameless1;
+
+        typedef struct {
+            double d;
+        } Nameless2;
+    }
+)
 @("typedef.anon")
 @safe unittest {
-    shouldCompile(
-        C(
-            q{
-                typedef struct {
-                    int x, y, z;
-                } Nameless1;
+    mixin(
+        shouldCompile(
+            D(
+                q{
+                    auto n1 = Nameless1(2, 3, 4);
+                    static assert(n1.sizeof == 12, "Wrong sizeof for Nameless1");
+                    static assert(is(typeof(Nameless1.x) == int));
+                    static assert(is(typeof(Nameless1.y) == int));
+                    static assert(is(typeof(Nameless1.z) == int));
 
-                typedef struct {
-                    double d;
-                } Nameless2;
-            }
-        ),
-        D(
-            q{
-                auto n1 = Nameless1(2, 3, 4);
-                static assert(n1.sizeof == 12, "Wrong sizeof for Nameless1");
-
-                auto n2 = Nameless2(33.3);
-                static assert(n2.sizeof == 8, "Wrong sizeof for Nameless2");
-            }
+                    auto n2 = Nameless2(33.3);
+                    static assert(n2.sizeof == 8, "Wrong sizeof for Nameless2");
+                    static assert(is(typeof(Nameless2.d) == double));
+                }
+            )
         )
     );
 }
 
 
-@WIP2
+@C(
+    q{
+        typedef struct A B;
+        struct A { int a; };
+    }
+)
 @("typedef.before")
 @safe unittest {
-    shouldCompile(
-        C(
-            q{
-                typedef struct A B;
-                struct A { int a; };
-            }
-        ),
-        D(
-            q{
-                auto a = A(42);
-                auto b = B(77);
-            }
+    mixin(
+        shouldCompile(
+            D(
+                q{
+                    auto a = A(42);
+                    auto b = B(77);
+                    static assert(is(A == B));
+                }
+            )
         )
     );
 }
@@ -235,7 +247,6 @@ import it;
 }
 
 
-@WIP2
 @("multiple declarations")
 @safe unittest {
     shouldCompile(

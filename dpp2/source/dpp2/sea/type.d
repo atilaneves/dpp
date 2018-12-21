@@ -4,7 +4,7 @@ module dpp2.sea.type;
 import dpp.from;
 
 
-alias Type = from!"dpp2.sum".Sum!(
+alias Type = from!"sumtype".SumType!(
     Void, NullPointerT,
     Bool,
     UnsignedChar, SignedChar, Char, Wchar, Char16, Char32,
@@ -46,11 +46,13 @@ struct LongDouble {}
 
 
 struct Pointer {
+    // has to be a pointer in order to have a recursive type
     Type* pointeeType;
 }
 
 
 struct ConstantArray {
+    // has to be a pointer in order to have a recursive type
     Type* elementType;
     int length;
 }

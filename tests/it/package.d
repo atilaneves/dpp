@@ -12,6 +12,20 @@ version(dpp2)
 else
     enum WIP2;
 
+
+mixin template shouldCompile(D dCode) {
+    import std.traits: getUDAs;
+    enum udasC = getUDAs!(__traits(parent, {}), C);
+    void verify() {
+        .shouldCompile(udasC[0], dCode);
+    }
+}
+
+string shouldCompile(in D dCode) {
+    return `mixin shouldCompile!(D(q{` ~ dCode.code ~ `})); verify;`;
+}
+
+
 /// C code
 struct C {
     string code;

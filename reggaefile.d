@@ -1,15 +1,23 @@
 import reggae;
 import std.array: join;
-import std.typecons: No;
+import std.typecons: Yes, No;
 
 enum debugFlags = ["-w", "-g", "-debug"];
 
 alias exe = dubDefaultTarget!(CompilerFlags(debugFlags));
-alias ut = dubTestTarget!(CompilerFlags(debugFlags), LinkerFlags(), CompilationMode.package_);
+alias ut = dubTestTarget!(
+    CompilerFlags(debugFlags),
+    LinkerFlags(),
+);
 
-alias dpp2 = dubTarget!(TargetName("dpp2"),
-                        Configuration("dpp2"),
-                        CompilerFlags(debugFlags ~ "-unittest"));
+alias dpp2 = dubTarget!(
+    TargetName("dpp2"),
+    Configuration("dpp2"),
+    CompilerFlags(debugFlags ~ "-unittest"),
+    LinkerFlags(),
+    Yes.main,
+    CompilationMode.all,
+);
 
 // unitThreadedLight, compiles the whole project per D package
 alias utlPerPackage = dubTarget!(TargetName("utl_per_package"),
@@ -31,7 +39,7 @@ alias prodObjs = dubObjects!(Configuration("default"),
 // The test code object files
 // We build the default configuration to avoid depencencies
 // or -unittest.
-alias testObjs = dlangObjectsPerModule!(
+alias testObjsPerPackage = dlangObjectsPerModule!(
     Sources!"tests",
     CompilerFlags(debugFlags ~ ["-unittest", "-version=unitThreadedLight"]),
     dubImportPaths!(Configuration("unittest"))
@@ -39,8 +47,8 @@ alias testObjs = dlangObjectsPerModule!(
 
 
 // The object file(s) for unit-threaded.
-// `dubDependencies` could give us this, but it'd include libclang etc. compile
-// with -unittest, which we'd rather avoid.
+// `dubDependencies` could give us this, but it'd include libclang and any other
+// dependencies compiled with `-unittest`, which we'd rather avoid.
 alias unitThreaded = dubPackageObjects!(
     DubPackageName("unit-threaded"),
     Configuration("unittest"),  // or else the dependency doesn't even exist
@@ -51,7 +59,7 @@ alias unitThreaded = dubPackageObjects!(
 alias utl = dubLink!(
     TargetName("utl"),
     Configuration("unittest"),
-    targetConcat!(prodObjs, testObjs, unitThreaded),
+    targetConcat!(prodObjs, testObjsPerPackage, unitThreaded),
     LinkerFlags("-main"),
 );
 

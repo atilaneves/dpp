@@ -11,10 +11,7 @@ import std.array: join;
         Struct(
             "Foo",
             [
-                Field(
-                    Type(Int()),
-                    "i",
-                ),
+                Node(Field(Type(Int()), "i")),
             ]
         )
     );
@@ -34,10 +31,7 @@ import std.array: join;
         Struct(
             "Bar",
             [
-                Field(
-                    Type(Double()),
-                    "d",
-                ),
+                Node(Field(Type(Double()), "d")),
             ]
         )
     );
@@ -57,14 +51,8 @@ import std.array: join;
         Struct(
             "Baz",
             [
-                Field(
-                    Type(Int()),
-                    "i",
-                ),
-                Field(
-                    Type(Double()),
-                    "d",
-                ),
+                Node(Field(Type(Int()), "i",)),
+                Node(Field(Type(Double()), "d",)),
             ]
         )
     );
@@ -76,4 +64,79 @@ import std.array: join;
     static assert(Baz.tupleof.length == 2);
     static assert(is(typeof(Baz.i) == int));
     static assert(is(typeof(Baz.d) == double));
+}
+
+
+@("typedef.name")
+@safe pure unittest {
+    enum nodes = [
+        Node(Struct("TypeDefd_", [])),
+        Node(Typedef("TypeDefd", Type(UserDefinedType("TypeDefd_")))),
+    ];
+    enum translation = translate(nodes);
+    writelnUt(translation);
+    mixin(translation.join("\n"));
+
+    static assert(is(TypeDefd));
+    static assert(is(TypeDefd_));
+}
+
+
+@("typedef.anon")
+@safe pure unittest {
+    enum nodes = [
+        Node(
+            Struct(
+                "",
+                [
+                    Node(Field(Type(Int()), "x")),
+                    Node(Field(Type(Int()), "y")),
+                    Node(Field(Type(Int()), "z")),
+                ],
+                "Nameless1", // type spelling
+            ),
+        ),
+        Node(Typedef("Nameless1", Type(UserDefinedType("Nameless1")))),
+        Node(
+            Struct(
+                "",
+                [
+                    Node(Field(Type(Double()), "d")),
+                ],
+                "Nameless2",  // type spelling
+            ),
+        ),
+        Node(Typedef("Nameless2", Type(UserDefinedType("Nameless2")))),
+    ];
+
+    enum translation = "\n" ~ translate(nodes).join("\n");
+    writelnUt(translation);
+    mixin(translation);
+
+    static assert(is(Nameless1), translation);
+    static assert(is(typeof(Nameless1.x) == int), translation);
+    static assert(is(typeof(Nameless1.y) == int), translation);
+    static assert(is(typeof(Nameless1.z) == int), translation);
+
+    static assert(is(Nameless2), translation);
+    static assert(is(typeof(Nameless2.d) == double), translation);
+}
+
+@("typedef.before")
+@safe pure unittest {
+
+    // unfortunately, order matters in unit test blocks
+    enum nodes = [
+        Node(Struct("A", [Node(Field(Type(Int()), "a"))], "struct A")),
+        Node(Typedef("B", Type(UserDefinedType("A")))),
+    ];
+
+    enum translation = "\n" ~ translate(nodes).join("\n");
+    writelnUt(translation);
+    mixin(translation);
+
+    static assert(is(A == B));
+    static assert(is(A == struct));
+    static assert(A.tupleof.length == 1);
+    static assert(is(typeof(A.a) == int));
 }

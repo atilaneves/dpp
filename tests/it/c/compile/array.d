@@ -15,6 +15,7 @@ unittest {
             q{
                 auto f = Foo();
                 static assert(f.sizeof == 16, "Wrong sizeof for Foo");
+                static assert(is(typeof(Foo.ints) == int[4]));
             }
         ),
     );
