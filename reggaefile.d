@@ -8,7 +8,6 @@ alias exe = dubDefaultTarget!(CompilerFlags(debugFlags));
 alias ut = dubTestTarget!(
     CompilerFlags(debugFlags),
     LinkerFlags(),
-    CompilationMode.all,  // template linkage weirdness with contract tests and lambdas
 );
 
 alias dpp2 = dubTarget!(
