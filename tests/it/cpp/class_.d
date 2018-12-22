@@ -157,7 +157,6 @@ import it;
 }
 
 
-@ShouldFail("not implemented yet")
 @("alias this")
 @safe unittest {
     shouldCompile(

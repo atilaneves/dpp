@@ -457,6 +457,7 @@ import it;
         ),
         D(
             q{
+                // TODO: actually assert on the types
             }
         ),
     );
@@ -896,6 +897,28 @@ import it;
             q{
                 allocator!int foo = void;
                 static assert(foo.value == 42);
+            }
+        ),
+   );
+}
+
+
+@("using")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<typename T>
+                    struct new_allocator {
+                };
+
+                template<typename _Tp>
+                using __allocator_base = new_allocator<_Tp>;
+            }
+        ),
+        D(
+            q{
+                static assert(is(__allocator_base!int == new_allocator!int));
             }
         ),
    );

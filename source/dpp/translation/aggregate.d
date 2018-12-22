@@ -510,3 +510,57 @@ private string[] maybeDisableDefaultCtor(in from!"clang".Cursor cursor, in strin
 
     return [];
 }
+
+
+string[] translateBase(in from!"clang".Cursor cursor,
+                       ref from!"dpp.runtime.context".Context context)
+    @safe
+    in(cursor.kind == from!"clang".Cursor.Kind.CXXBaseSpecifier)
+do
+{
+    import dpp.translation.type: translate;
+    import std.typecons: No;
+    import std.algorithm: canFind;
+
+    const type = translate(cursor.type, context, No.translatingFunction);
+
+    // FIXME - see it.cpp.templates.__or_
+    // Not only would that test fail if this weren't here, but the spelling of
+    // the type parameters would be completely wrong as well.
+    if(type.canFind("...")) return [];
+
+    // FIXME - type traits failures due to inheritance
+    if(type.canFind("&")) return [];
+
+    const fieldName = "__base";
+
+    return [
+        type ~ " " ~ fieldName ~ ";",
+        `alias ` ~ fieldName ~ ` this;`,
+    ];
+}
+
+
+string[] translateTypeAliasTemplate(in from!"clang".Cursor cursor,
+                                    ref from!"dpp.runtime.context".Context context)
+    @safe
+    in(cursor.kind == from!"clang".Cursor.Kind.TypeAliasTemplateDecl)
+do
+{
+    import clang: Cursor;
+    import std.conv: text;
+    import std.algorithm: countUntil;
+
+    // see contract.templates.using
+    const typeAliasIndex = cursor.children.countUntil!(c => c.kind == Cursor.Kind.TypeAliasDecl);
+    assert(typeAliasIndex != -1, text(cursor.children));
+    const typeAlias = cursor.children[typeAliasIndex];
+
+    const templateRefIndex = typeAlias.children.countUntil!(c => c.kind == Cursor.Kind.TemplateRef);
+    assert(templateRefIndex != -1, text(typeAlias.children));
+    const templateRef = typeAlias.children[templateRefIndex];
+
+    const underlying = templateRef.spelling;
+
+    return ["alias " ~ cursor.spelling ~ " = " ~ underlying ~ ";"];
+}

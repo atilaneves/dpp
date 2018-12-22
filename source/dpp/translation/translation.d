@@ -208,6 +208,8 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
             VisibilityAttr:                     &ignore, // ???
             FirstAttr:                          &ignore, // ???
             ClassTemplatePartialSpecialization: &translateClass,
+            CXXBaseSpecifier:                   &translateBase,
+            TypeAliasTemplateDecl:              &translateTypeAliasTemplate,
         ];
     }
 }
@@ -254,5 +256,14 @@ string[] ignoredCppCursorSpellings() @safe pure nothrow {
             "_Fnv_hash_bytes", // FIXME (std.size_t)
             "allocator_traits",  // FIXME
             "__allocator_traits_base",  // FIXME
+            "__is_signed_helper",  // FIXME - inheritance
+            "__is_array_known_bounds",  // FIXME - inheritance
+            "__is_copy_constructible_impl",  // FIXME - inheritance
+            "__is_nothrow_copy_constructible_impl",  // FIXME - inheritance
+            "__is_copy_assignable_impl",  // FIXME - inheritance
+            "__is_move_assignable_impl",  // FIXME - inheritance
+            "__is_nt_copy_assignable_impl",  // FIXME - inheritance
+            "__is_nt_move_assignable_impl",  // FIXME - inheritance
+            "extent",  // FIXME - inheritance
         ];
 }
