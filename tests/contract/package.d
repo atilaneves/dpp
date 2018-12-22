@@ -208,7 +208,8 @@ struct MockType {
     private MockType* _canonical;
 
     auto canonical(this This)() return scope {
-        if(_canonical is null) _canonical = new MockType;
+        static if(!is(This == const))
+            if(_canonical is null) _canonical = new MockType;
         return _canonical;
     }
 }
@@ -259,7 +260,7 @@ mixin template Contract(TestName testName, alias contractFunction, size_t line =
         void %s(CursorType)()
         {
             auto tu = createTranslationUnit!(CursorType, codeURL, contractFunction);
-            contractFunction!(TestMode.verify)(tu);
+            contractFunction!(TestMode.verify)(cast(const) tu);
         }
     }.format(testName.value, testFunctionName);
 
@@ -351,17 +352,51 @@ auto mockTU(Module moduleName, CodeURL codeURL)() {
     return cursor;
 }
 
+
+auto expect(TestMode mode, L)
+           (auto ref L lhs, in string file = __FILE__, in size_t line = __LINE__)
+{
+    struct Expect {
+
+        bool opEquals(R)(auto ref R rhs) {
+
+            import std.functional: forward;
+
+            template isConst(T) {
+                import std.traits: isPointer, PointerTarget;
+                static if(isPointer!T)
+                    enum isConst = isConst!(PointerTarget!T);
+                else
+                    enum isConst = is(T == const);
+            }
+
+            // hopefully this can replace manual mode selection
+            static if(!__traits(isRef, lhs))
+                enum mode2 = TestMode.verify;  // can't modify non-ref
+            else static if(isConst!L)
+                enum mode2 = TestMode.verify;  // can't modify const
+            else
+                enum mode2 = TestMode.mock;
+
+            expectEqual!mode(forward!lhs, forward!rhs, file, line);
+            return true;
+        }
+    }
+
+    return Expect();
+}
+
+
+
 /**
    Depending the mode, either assign the given value to lhs
    or assert that lhs == rhs.
    Used in contract functions.
  */
 void expectEqual(TestMode mode, L, R)
-                (ref L lhs, auto ref R rhs, in string file = __FILE__, in size_t line = __LINE__)
+                (auto ref L lhs, auto ref R rhs, in string file = __FILE__, in size_t line = __LINE__)
 {
     import std.traits: isPointer, PointerTarget;
-
-    enum bothPointers = isPointer!L && isPointer!R;
 
     static if(mode == TestMode.verify) {
         static if(isPointer!L && isPointer!R)
@@ -397,19 +432,4 @@ void expectLengthEqual(TestMode mode, R)
         range.length = length;
      else
         static assert(false, "Unknown mode " ~ mode.stringof);
-}
-
-
-auto expect(TestMode mode, L)
-           (auto ref L lhs, in string file = __FILE__, in size_t line = __LINE__)
-{
-    struct Expect {
-
-        bool opEquals(R)(auto ref R rhs) {
-            expectEqual!mode(lhs, rhs, file, line);
-            return true;
-        }
-    }
-
-    return Expect();
 }

@@ -56,7 +56,7 @@ void testStructOneFieldInt(T)() {
 
 mixin Contract!(TestName("struct.onefield.int.auto"), contract_onefield_int);
 @ContractFunction(CodeURL("it.c.compile.struct_", "onefield.int"))
-auto contract_onefield_int(TestMode mode, CursorType)(ref CursorType tu) {
+auto contract_onefield_int(TestMode mode, CursorType)(auto ref CursorType tu) {
 
     tu.kind.expect!mode == Cursor.Kind.TranslationUnit;
     tu.children.expectLengthEqual!mode(1);
@@ -86,7 +86,7 @@ auto contract_onefield_int(TestMode mode, CursorType)(ref CursorType tu) {
 
 mixin Contract!(TestName("struct.nested.c"), contract_nested);
 @ContractFunction(CodeURL("it.c.compile.struct_", "nested"))
-auto contract_nested(TestMode mode, CursorType)(ref CursorType tu) {
+auto contract_nested(TestMode mode, CursorType)(auto ref CursorType tu) {
 
     tu.kind.expect!mode == Cursor.Kind.TranslationUnit;
     tu.children.expectLengthEqual!mode(1);
@@ -208,7 +208,7 @@ auto contract_nested(TestMode mode, CursorType)(ref CursorType tu) {
 
 mixin Contract!(TestName("struct.typedef.name"), contract_typedef_name);
 @ContractFunction(CodeURL("it.c.compile.struct_", "typedef.name"))
-auto contract_typedef_name(TestMode mode, CursorType)(ref CursorType tu) {
+auto contract_typedef_name(TestMode mode, CursorType)(auto ref CursorType tu) {
 
     tu.kind.expect!mode == Cursor.Kind.TranslationUnit;
     tu.children.expectLengthEqual!mode(2);
@@ -242,7 +242,7 @@ auto contract_typedef_name(TestMode mode, CursorType)(ref CursorType tu) {
 
 mixin Contract!(TestName("struct.typedef.anon"), contract_typedef_anon);
 @ContractFunction(CodeURL("it.c.compile.struct_", "typedef.anon"))
-auto contract_typedef_anon(TestMode mode, CursorType)(ref CursorType tu) {
+auto contract_typedef_anon(TestMode mode, CursorType)(auto ref CursorType tu) {
 
     tu.kind.expect!mode == Cursor.Kind.TranslationUnit;
     tu.children.expectLengthEqual!mode(4);
@@ -320,7 +320,7 @@ auto contract_typedef_anon(TestMode mode, CursorType)(ref CursorType tu) {
 
 mixin Contract!(TestName("struct.typedef.before"), contract_typedef_before);
 @ContractFunction(CodeURL("it.c.compile.struct_", "typedef.before"))
-auto contract_typedef_before(TestMode mode, CursorType)(ref CursorType tu) {
+auto contract_typedef_before(TestMode mode, CursorType)(auto ref CursorType tu) {
 
     tu.kind.expect!mode == Cursor.Kind.TranslationUnit;
     tu.children.expectLengthEqual!mode(3);
