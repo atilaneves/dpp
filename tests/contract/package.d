@@ -113,8 +113,9 @@ auto parse(T)
 
 void printChildren(T)(auto ref T cursorOrTU) {
     import clang: TranslationUnit, Cursor;
+    import std.traits: Unqual;
 
-    static if(is(T == TranslationUnit) || is(T == Cursor)) {
+    static if(is(Unqual!T == TranslationUnit) || is(Unqual!T == Cursor)) {
 
         import unit_threaded.io: writelnUt;
         import std.algorithm: map;
@@ -193,7 +194,7 @@ struct MockCursor {
     }
 }
 
-const(Cursor) child(in Cursor cursor, int index) {
+const(Cursor) child(in Cursor cursor, int index) @safe {
     return cursor.children[index];
 }
 

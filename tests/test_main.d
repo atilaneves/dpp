@@ -37,6 +37,7 @@ version(dpp2) {
         "contract.operators",
         "contract.member",
         "contract.aggregates",
+        "contract.inheritance",
 
         "it.issues",
 

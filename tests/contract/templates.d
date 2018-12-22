@@ -537,3 +537,66 @@ import contract;
 
     integerLiteral.tokens.should == [Token(Token.Kind.Literal, "42")];
 }
+
+
+@Tags("contract")
+@("using")
+@safe unittest {
+
+    const tu = parse(
+        Cpp(
+            q{
+                template<typename T>
+                struct new_allocator {
+                };
+
+                template<typename _Tp>
+                using __allocator_base = new_allocator<_Tp>;
+            }
+        )
+    );
+
+    tu.children.length.should == 2;
+
+    const using = tu.child(1);
+    using.kind.should == Cursor.Kind.TypeAliasTemplateDecl;
+    using.spelling.should == "__allocator_base";
+    using.type.kind.should == Type.Kind.Invalid;
+    using.type.spelling.should == "";
+
+    printChildren(using);
+    using.children.length.should == 2;
+
+    const typeParam = using.child(0);
+    typeParam.kind.should == Cursor.Kind.TemplateTypeParameter;
+    typeParam.spelling.should == "_Tp";
+    typeParam.type.kind.should == Type.Kind.Unexposed;
+    typeParam.spelling.should == "_Tp";
+    printChildren(typeParam);
+    typeParam.children.length.should == 0;
+
+    const typeAlias = using.child(1);
+    typeAlias.kind.should == Cursor.Kind.TypeAliasDecl;
+    typeAlias.spelling.should == "__allocator_base";
+    typeAlias.type.kind.should == Type.Kind.Typedef;
+    typeAlias.type.spelling.should == "__allocator_base";
+    typeAlias.underlyingType.kind.should == Type.Kind.Unexposed;
+    printChildren(typeAlias);
+    typeAlias.children.length.should == 2;
+
+    const templateRef = typeAlias.child(0);
+    templateRef.kind.should == Cursor.Kind.TemplateRef;
+    templateRef.spelling.should == "new_allocator";
+    templateRef.type.kind.should == Type.Kind.Invalid;
+    templateRef.type.spelling.should == "";
+    printChildren(templateRef);
+    templateRef.children.length.should == 0;
+
+    const typeRef = typeAlias.child(1);
+    typeRef.kind.should == Cursor.Kind.TypeRef;
+    typeRef.spelling.should == "_Tp";
+    typeRef.type.kind.should == Type.Kind.Unexposed;
+    typeRef.type.spelling.should == "_Tp";
+    printChildren(typeRef);
+    typeRef.children.length.should == 0;
+}

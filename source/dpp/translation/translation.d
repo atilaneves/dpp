@@ -208,6 +208,8 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
             VisibilityAttr:                     &ignore, // ???
             FirstAttr:                          &ignore, // ???
             ClassTemplatePartialSpecialization: &translateClass,
+            CXXBaseSpecifier:                   &translateBase,
+            TypeAliasTemplateDecl:              &translateTypeAliasTemplate,
         ];
     }
 }
@@ -220,22 +222,30 @@ string[] ignoredCppCursorSpellings() @safe pure nothrow {
             "__is_referenceable",
             "__is_convertible_helper",
             "aligned_union",
+            "aligned_union_t",
             "__expanded_common_type_wrapper",
             "underlying_type",
+            "underlying_type_t",
             "__result_of_memfun_ref",
             "__result_of_memfun_deref",
             "__result_of_memfun",
             "__result_of_impl",
             "result_of",
+            "result_of_t",
             "__detector",
+            "__detected_or",
+            "__detected_or_t",
             "__is_swappable_with_impl",
             "__is_nothrow_swappable_with_impl",
             "is_rvalue_reference",
             "__is_member_pointer_helper",
             "__do_is_implicitly_default_constructible_impl",
             "remove_reference",
+            "remove_reference_t",
             "remove_extent",  // FIXME
+            "remove_extent_t",  // FIXME
             "remove_all_extents",  // FIXME
+            "remove_all_extents_t",  // FIXME
             "__remove_pointer_helper", // FIXME
             "__result_of_memobj",
             "piecewise_construct_t",  // FIXME (@disable ctor)
@@ -254,5 +264,14 @@ string[] ignoredCppCursorSpellings() @safe pure nothrow {
             "_Fnv_hash_bytes", // FIXME (std.size_t)
             "allocator_traits",  // FIXME
             "__allocator_traits_base",  // FIXME
+            "__is_signed_helper",  // FIXME - inheritance
+            "__is_array_known_bounds",  // FIXME - inheritance
+            "__is_copy_constructible_impl",  // FIXME - inheritance
+            "__is_nothrow_copy_constructible_impl",  // FIXME - inheritance
+            "__is_copy_assignable_impl",  // FIXME - inheritance
+            "__is_move_assignable_impl",  // FIXME - inheritance
+            "__is_nt_copy_assignable_impl",  // FIXME - inheritance
+            "__is_nt_move_assignable_impl",  // FIXME - inheritance
+            "extent",  // FIXME - inheritance
         ];
 }
