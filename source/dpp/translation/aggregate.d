@@ -557,10 +557,16 @@ do
     const typeAlias = cursor.children[typeAliasIndex];
 
     const templateRefIndex = typeAlias.children.countUntil!(c => c.kind == Cursor.Kind.TemplateRef);
-    assert(templateRefIndex != -1, text(typeAlias.children));
-    const templateRef = typeAlias.children[templateRefIndex];
-
-    const underlying = templateRef.spelling;
+    const underlying = () {
+        // FIXME
+        if(templateRefIndex == -1) {
+            assert(cursor.spelling == "__void_t");
+            return "void";
+        } else {
+            const templateRef = typeAlias.children[templateRefIndex];
+            return templateRef.spelling;
+        }
+    }();
 
     return ["alias " ~ cursor.spelling ~ " = " ~ underlying ~ ";"];
 }
