@@ -155,3 +155,28 @@ import it;
         ),
    );
 }
+
+
+@ShouldFail("not implemented yet")
+@("alias this")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct Base {
+                    int i;
+                };
+
+                struct Derived: public Base {
+                    double d;
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(is(typeof(Derived.i) == int));
+                static assert(is(typeof(Derived.d) == double));
+            }
+        ),
+   );
+}
