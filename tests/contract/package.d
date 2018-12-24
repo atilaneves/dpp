@@ -434,3 +434,10 @@ void expectLengthEqual(TestMode mode, R)
      else
         static assert(false, "Unknown mode " ~ mode.stringof);
 }
+
+
+void shouldMatch(T, K)(T obj, in K kind, in string spelling, in string file = __FILE__, in size_t line = __LINE__) {
+    static assert(is(K == T.Kind));
+    obj.kind.shouldEqual(kind, file, line);
+    obj.spelling.shouldEqual(spelling, file, line);
+}

@@ -642,3 +642,61 @@ import contract;
     typeAlias.underlyingType.kind.should == Type.Kind.Void;
     typeAlias.underlyingType.spelling.should == "void";
 }
+
+
+@Tags("contract")
+@("function")
+@safe unittest {
+
+    const tu = parse(
+        Cpp(
+            q{
+                struct Foo {
+                    template<typename T0, typename T1>
+                    bool equals(T0 lhs, T1 rhs);
+                };
+            }
+        )
+    );
+
+    tu.children.length.should == 1;
+    const struct_ = tu.child(0);
+
+    struct_.shouldMatch(Cursor.Kind.StructDecl, "Foo");
+    printChildren(struct_);
+    struct_.children.length.should == 1;
+
+    const func = struct_.child(0);
+    func.shouldMatch(Cursor.Kind.FunctionTemplate, "equals");
+    func.type.shouldMatch(Type.Kind.FunctionProto, "bool (T0, T1)");
+    printChildren(func);
+    func.children.length.should == 4;
+
+    const t0 = func.child(0);
+    t0.shouldMatch(Cursor.Kind.TemplateTypeParameter, "T0");
+    t0.type.shouldMatch(Type.Kind.Unexposed, "T0");
+    t0.children.length.should == 0;
+
+    const t1 = func.child(1);
+    t1.shouldMatch(Cursor.Kind.TemplateTypeParameter, "T1");
+    t1.type.shouldMatch(Type.Kind.Unexposed, "T1");
+    t1.children.length.should == 0;
+
+    const lhs = func.child(2);
+    lhs.shouldMatch(Cursor.Kind.ParmDecl, "lhs");
+    lhs.type.shouldMatch(Type.Kind.Unexposed, "T0");
+    printChildren(lhs);
+    lhs.children.length.should == 1;
+    const typeRef0 = lhs.child(0);
+    typeRef0.shouldMatch(Cursor.Kind.TypeRef, "T0");
+    typeRef0.type.shouldMatch(Type.Kind.Unexposed,"T0");
+
+    const rhs = func.child(3);
+    rhs.shouldMatch(Cursor.Kind.ParmDecl, "rhs");
+    rhs.type.shouldMatch(Type.Kind.Unexposed, "T1");
+    printChildren(rhs);
+    rhs.children.length.should == 1;
+    const typeRef1 = rhs.child(0);
+    typeRef1.shouldMatch(Cursor.Kind.TypeRef, "T1");
+    typeRef1.type.shouldMatch(Type.Kind.Unexposed,"T1");
+}
