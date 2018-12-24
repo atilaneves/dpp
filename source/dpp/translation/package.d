@@ -17,3 +17,4 @@ public import dpp.translation.macro_;
 public import dpp.translation.enum_;
 public import dpp.translation.variable;
 public import dpp.translation.namespace;
+public import dpp.translation.template_;

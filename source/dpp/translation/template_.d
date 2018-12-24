@@ -239,13 +239,65 @@ private bool isVariadicTemplate(in from!"clang".Cursor cursor) @safe {
 
     // There might be a "..." token inside the body of the struct/class, and we don't want to
     // look at that. So instead we stop looking at tokens when the struct/class definition begins.
-    const openCurlyBracketIndex = cursor.tokens.countUntil!(a => a.kind ==
-                                                            Token.Kind.Punctuation && a.spelling == "{");
-    const tokens = openCurlyBracketIndex == -1 ? cursor.tokens : cursor.tokens[0 .. openCurlyBracketIndex];
+    const closeAngleIndex = cursor.tokens.countUntil!(a => a.kind ==
+                                                      Token.Kind.Punctuation &&
+                                                      (a.spelling == ">" || a.spelling == ">>"));
+    const tokens = closeAngleIndex == -1 ? cursor.tokens : cursor.tokens[0 .. closeAngleIndex];
 
-    return
-        templateParamChildren.length > 0 &&
-        (templateParamChildren[$-1].kind == Cursor.Kind.TemplateTypeParameter ||
-         templateParamChildren[$-1].kind == Cursor.Kind.NonTypeTemplateParameter) &&
-        tokens.canFind(Token(Token.Kind.Punctuation, "..."));
+    return tokens.canFind(Token(Token.Kind.Punctuation, "..."));
+}
+
+
+// e.g. `template <typename T> using foo = bar;`
+string[] translateTypeAliasTemplate(in from!"clang".Cursor cursor,
+                                    ref from!"dpp.runtime.context".Context context)
+    @safe
+    in(cursor.kind == from!"clang".Cursor.Kind.TypeAliasTemplateDecl)
+do
+{
+    import dpp.translation.type: translate;
+    import clang: Cursor, Type;
+    import std.conv: text;
+    import std.algorithm: countUntil;
+    import std.typecons: No;
+    import std.array: join, replace;
+
+    // see contract.templates.using
+    const typeAliasIndex = cursor.children.countUntil!(c => c.kind == Cursor.Kind.TypeAliasDecl);
+    assert(typeAliasIndex != -1, text(cursor.children));
+    const typeAlias = cursor.children[typeAliasIndex];
+
+    const underlying = () {
+        if(typeAlias.underlyingType.kind == Type.Kind.Unexposed) {
+
+            const templateRefIndex = typeAlias
+            .children
+            .countUntil!(c => c.kind == Cursor.Kind.TemplateRef);
+
+            const templateRef = typeAlias.children[templateRefIndex];
+            return templateRef.spelling;
+
+        } else
+            return translate(typeAlias.underlyingType, context, No.translatingFunction);
+    }();
+
+    // FIXME
+    // Not sure what to do here to be able to satisfy both:
+    // ----------
+    // template<typename T> struct bar;
+    // template<typename T> using foo = bar;
+    // ----------
+    // And:
+    // ----------
+    // template<typename...> using void_t = void;
+    // ----------
+    // The first one can be either `alias foo = bar` or `alias foo(T) = bar(T)`
+    // but the 2nd one has to be `alias void_t(T...) = void`.
+    // The first example has to have the same template arguments on both sides,
+    // the second needs it only on the left.
+    const templateParams = isVariadicTemplate(cursor)
+        ? "(" ~ translateTemplateParams(cursor, context).join(", ") ~ ")"
+        : "";
+
+    return [text("alias ", cursor.spelling, templateParams ~ " = ", underlying, ";")];
 }

@@ -540,7 +540,7 @@ import contract;
 
 
 @Tags("contract")
-@("using")
+@("using.partial")
 @safe unittest {
 
     const tu = parse(
@@ -581,6 +581,9 @@ import contract;
     typeAlias.type.kind.should == Type.Kind.Typedef;
     typeAlias.type.spelling.should == "__allocator_base";
     typeAlias.underlyingType.kind.should == Type.Kind.Unexposed;
+    typeAlias.underlyingType.spelling.should == "new_allocator<_Tp>";
+    typeAlias.underlyingType.canonical.kind.should == Type.Kind.Unexposed;
+    typeAlias.underlyingType.canonical.spelling.should == "new_allocator<type-parameter-0-0>";
     printChildren(typeAlias);
     typeAlias.children.length.should == 2;
 
@@ -599,4 +602,43 @@ import contract;
     typeRef.type.spelling.should == "_Tp";
     printChildren(typeRef);
     typeRef.children.length.should == 0;
+}
+
+
+@Tags("contract")
+@("using.complete")
+@safe unittest {
+
+    const tu = parse(
+        Cpp(
+            q{
+                template<typename...> using __void_t = void;
+            }
+        )
+    );
+
+    tu.children.length.should == 1;
+
+    const using = tu.child(0);
+    using.kind.should == Cursor.Kind.TypeAliasTemplateDecl;
+    using.spelling.should == "__void_t";
+    using.type.kind.should == Type.Kind.Invalid;
+    using.type.spelling.should == "";
+    using.underlyingType.kind.should == Type.Kind.Invalid;
+    printChildren(using);
+    using.children.length.should == 2;
+
+    const templateTypeParam = using.child(0);
+    templateTypeParam.kind.should == Cursor.Kind.TemplateTypeParameter;
+    templateTypeParam.spelling.should == "";
+    templateTypeParam.type.kind.should == Type.Kind.Unexposed;
+    templateTypeParam.type.spelling.should == "type-parameter-0-0";
+
+    const typeAlias = using.child(1);
+    typeAlias.kind.should == Cursor.Kind.TypeAliasDecl;
+    typeAlias.spelling.should == "__void_t";
+    typeAlias.type.kind.should == Type.Kind.Typedef;
+    typeAlias.type.spelling.should == "__void_t";
+    typeAlias.underlyingType.kind.should == Type.Kind.Void;
+    typeAlias.underlyingType.spelling.should == "void";
 }

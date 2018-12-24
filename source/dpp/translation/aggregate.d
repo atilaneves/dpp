@@ -539,34 +539,3 @@ do
         `alias ` ~ fieldName ~ ` this;`,
     ];
 }
-
-
-string[] translateTypeAliasTemplate(in from!"clang".Cursor cursor,
-                                    ref from!"dpp.runtime.context".Context context)
-    @safe
-    in(cursor.kind == from!"clang".Cursor.Kind.TypeAliasTemplateDecl)
-do
-{
-    import clang: Cursor;
-    import std.conv: text;
-    import std.algorithm: countUntil;
-
-    // see contract.templates.using
-    const typeAliasIndex = cursor.children.countUntil!(c => c.kind == Cursor.Kind.TypeAliasDecl);
-    assert(typeAliasIndex != -1, text(cursor.children));
-    const typeAlias = cursor.children[typeAliasIndex];
-
-    const templateRefIndex = typeAlias.children.countUntil!(c => c.kind == Cursor.Kind.TemplateRef);
-    const underlying = () {
-        // FIXME
-        if(templateRefIndex == -1) {
-            assert(cursor.spelling == "__void_t");
-            return "void";
-        } else {
-            const templateRef = typeAlias.children[templateRefIndex];
-            return templateRef.spelling;
-        }
-    }();
-
-    return ["alias " ~ cursor.spelling ~ " = " ~ underlying ~ ";"];
-}

@@ -903,7 +903,7 @@ import it;
 }
 
 
-@("using")
+@("using.partial")
 @safe unittest {
     shouldCompile(
         Cpp(
@@ -919,6 +919,24 @@ import it;
         D(
             q{
                 static assert(is(__allocator_base!int == new_allocator!int));
+            }
+        ),
+   );
+}
+
+
+@("using.complete")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                /// A metafunction that always yields void, used for detecting valid types.
+                template<typename...> using void_t = void;
+            }
+        ),
+        D(
+            q{
+                static assert(is(void_t!int == void), void_t!int.stringof);
             }
         ),
    );
