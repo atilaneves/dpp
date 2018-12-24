@@ -69,6 +69,7 @@ struct Options {
 
         if(cppStdLib) {
             dlangCompilerArgs ~= "-L-lstdc++";
+            parseAsCpp = true;
         }
 
         includePaths = systemPaths ~ includePaths;
