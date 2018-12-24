@@ -941,3 +941,25 @@ import it;
         ),
    );
 }
+
+
+@ShouldFail("Not implemented yet")
+@("function")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct Foo {
+                    template<typename T0, typename T1>
+                    bool equals(T0 lhs, T1 rhs);
+                };
+            }
+        ),
+        D(
+            q{
+                Foo foo0, foo1;
+                bool res = foo0.equals(foo0, foo1);
+            }
+        ),
+   );
+}
