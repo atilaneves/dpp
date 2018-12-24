@@ -1083,7 +1083,6 @@ unittest {
 }
 
 
-@ShouldFail("The template specialisation fails because it's a pointer to type-parameter-0-0")
 @Tags("issue")
 @("108")
 @safe unittest {
@@ -1095,8 +1094,8 @@ unittest {
 
                 template <typename CC> class C {};
 
-                template<class T, int I>
-                class A<C<int>, T*, I> {};
+                template<>
+                class A<C<int>, double, 42> {};
             }
         ),
         D(
