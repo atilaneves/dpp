@@ -943,7 +943,6 @@ import it;
 }
 
 
-@ShouldFail("Not implemented yet")
 @("function")
 @safe unittest {
     shouldCompile(

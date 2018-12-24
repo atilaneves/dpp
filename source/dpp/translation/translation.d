@@ -210,6 +210,7 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
             ClassTemplatePartialSpecialization: &translateClass,
             CXXBaseSpecifier:                   &translateBase,
             TypeAliasTemplateDecl:              &translateTypeAliasTemplate,
+            FunctionTemplate:                   &translateFunction,
         ];
     }
 }

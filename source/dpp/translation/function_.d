@@ -12,6 +12,15 @@ enum OPERATOR_PREFIX = "operator";
 string[] translateFunction(in from!"clang".Cursor cursor,
                            ref from!"dpp.runtime.context".Context context)
     @safe
+    in(
+        cursor.kind == from!"clang".Cursor.Kind.FunctionDecl ||
+        cursor.kind == from!"clang".Cursor.Kind.CXXMethod ||
+        cursor.kind == from!"clang".Cursor.Kind.Constructor ||
+        cursor.kind == from!"clang".Cursor.Kind.Destructor ||
+        cursor.kind == from!"clang".Cursor.Kind.ConversionFunction ||
+        cursor.kind == from!"clang".Cursor.Kind.FunctionTemplate
+    )
+    do
 {
     import dpp.translation.dlang: maybeRename, maybePragma;
     import dpp.translation.aggregate: maybeRememberStructs;
@@ -21,14 +30,6 @@ string[] translateFunction(in from!"clang".Cursor cursor,
     import std.conv: text;
     import std.algorithm: any, endsWith, canFind;
     import std.typecons: Yes;
-
-    assert(
-        cursor.kind == Cursor.Kind.FunctionDecl ||
-        cursor.kind == Cursor.Kind.CXXMethod ||
-        cursor.kind == Cursor.Kind.Constructor ||
-        cursor.kind == Cursor.Kind.Destructor ||
-        cursor.kind == Cursor.Kind.ConversionFunction
-    );
 
     if(ignoreFunction(cursor)) return [];
 
@@ -88,9 +89,10 @@ private string functionDecl(
 )
     @safe
 {
+    import dpp.translation.template_: translateTemplateParams;
     import std.conv: text;
     import std.algorithm: endsWith;
-    import std.array: join;
+    import std.array: join, array;
 
     context.log("Function return type (raw):        ", cursor.type.returnType);
     const returnType = returnType(cursor, context);
@@ -101,7 +103,12 @@ private string functionDecl(
     // const C++ method?
     const const_ = cursor.isConstCppMethod ? " const" : "";
 
-    return text(returnType, " ", spelling, "(", params, ") @nogc nothrow", const_, ";");
+    const templateParams = translateTemplateParams(cursor, context).array;
+    const ctParams = templateParams.length
+        ? "(" ~ templateParams.join(", ") ~ ")"
+        : "";
+
+    return text(returnType, " ", spelling, ctParams, "(", params, ") @nogc nothrow", const_, ";");
 }
 
 private string returnType(in from!"clang".Cursor cursor,
@@ -182,7 +189,6 @@ private string functionSpelling(in from!"clang".Cursor cursor,
 {
     import clang: Cursor;
     import std.algorithm: startsWith;
-
 
     if(cursor.kind == Cursor.Kind.Constructor) return "this";
     if(cursor.kind == Cursor.Kind.Destructor) return "~this";

@@ -66,6 +66,7 @@ struct IncludeSandbox {
         const baseLineArgs = [
             "d++",
             "--include-path",
+            "--hard-fail",
             sandboxPath
         ];
         auto options = Options(baseLineArgs ~ args);

@@ -164,10 +164,12 @@ struct Context {
     // remember a function or variable declaration
     string rememberLinkable(in Cursor cursor) @safe pure nothrow {
         import dpp.translation.dlang: maybeRename;
+
         const spelling = maybeRename(cursor, this);
         // since linkables produce one-line translations, the next
         // will be the linkable
         linkableDeclarations[spelling] = Linkable(lines.length, cursor.mangling);
+
         return spelling;
     }
 
