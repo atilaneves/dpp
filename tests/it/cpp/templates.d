@@ -947,7 +947,7 @@ import it;
 }
 
 
-@("function")
+@("function.equals")
 @safe unittest {
     shouldCompile(
         Cpp(
@@ -962,6 +962,28 @@ import it;
             q{
                 Foo foo0, foo1;
                 bool res = foo0.equals(foo0, foo1);
+            }
+        ),
+   );
+}
+
+
+@("function.ctor")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template <typename T>
+                struct Foo {
+                    template<typename U>
+                    Foo(const Foo<U>&);
+                };
+            }
+        ),
+        D(
+            q{
+                Foo!int fooInt;
+                auto fooDouble = Foo!double(fooInt);
             }
         ),
    );

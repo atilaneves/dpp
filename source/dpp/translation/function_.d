@@ -122,7 +122,11 @@ private string returnType(in from!"clang".Cursor cursor,
 
     const indentation = context.indentation;
 
-    const dType = cursor.kind == Cursor.Kind.Constructor || cursor.kind == Cursor.Kind.Destructor
+    const isCtorOrDtor =
+        isConstructor(cursor)
+        || cursor.kind == Cursor.Kind.Destructor
+        ;
+    const dType = isCtorOrDtor
         ? ""
         : translate(cursor.returnType, context, Yes.translatingFunction);
 
@@ -189,15 +193,24 @@ private string functionSpelling(in from!"clang".Cursor cursor,
     @safe
 {
     import clang: Cursor;
-    import std.algorithm: startsWith;
 
-    if(cursor.kind == Cursor.Kind.Constructor) return "this";
+    if(isConstructor(cursor)) return "this";
     if(cursor.kind == Cursor.Kind.Destructor) return "~this";
 
     if(isOperator(cursor)) return operatorSpellingCpp(cursor, context);
 
+
+
     // if no special case
     return context.rememberLinkable(cursor);
+}
+
+private bool isConstructor(in from!"clang".Cursor cursor) @safe nothrow {
+    import clang: Cursor;
+    import std.algorithm: startsWith;
+
+    return cursor.kind == Cursor.Kind.Constructor ||
+        cursor.spelling.startsWith(cursor.semanticParent.spelling ~ "<");
 }
 
 private string operatorSpellingD(in from!"clang".Cursor cursor,
