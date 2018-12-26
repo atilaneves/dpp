@@ -57,7 +57,7 @@ string[] translateFunction(in from!"clang".Cursor cursor,
 
 private bool ignoreFunction(in from!"clang".Cursor cursor) @safe {
     import clang: Cursor, Type, Token;
-    import std.algorithm: canFind;
+    import std.algorithm: countUntil;
 
     // C++ partial specialisation function bodies
     if(cursor.semanticParent.kind == Cursor.Kind.ClassTemplatePartialSpecialization &&
@@ -69,9 +69,12 @@ private bool ignoreFunction(in from!"clang".Cursor cursor) @safe {
        cursor.semanticParent.spelling == "vector")
         return true;
 
-
     // C++ deleted functions
-    if(cursor.tokens.canFind(Token(Token.Kind.Keyword, "delete"))) return true;
+    const deleteIndex = cursor.tokens.countUntil(Token(Token.Kind.Keyword, "delete"));
+    if(deleteIndex != -1 && deleteIndex > 1) {
+        if(cursor.tokens[deleteIndex - 1] == Token(Token.Kind.Punctuation, "="))
+            return true;
+    }
 
     // FIXME - no default contructors for structs in D
     // We're not even checking if it's a struct here, so classes are being
@@ -198,8 +201,6 @@ private string functionSpelling(in from!"clang".Cursor cursor,
     if(cursor.kind == Cursor.Kind.Destructor) return "~this";
 
     if(isOperator(cursor)) return operatorSpellingCpp(cursor, context);
-
-
 
     // if no special case
     return context.rememberLinkable(cursor);
@@ -407,6 +408,7 @@ private auto translateAllParamTypes(
     // doesn't compile, we compromise and assume the user meant (void)
 
     auto paramTypes = translateParamTypes(cursor, context);
+
     const isVariadic =
         cursor.type.spelling.endsWith("...)")
         && cursor.kind != Cursor.Kind.FunctionTemplate

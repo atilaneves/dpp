@@ -988,3 +988,26 @@ import it;
         ),
    );
 }
+
+
+@("function.body.delete")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template <typename T>
+                struct Allocator {
+                    void deallocate(T* ptr) {
+                        ::operator delete(ptr);
+                    }
+                };
+            }
+        ),
+        D(
+            q{
+                auto allocator = Allocator!int();
+                allocator.deallocate(new int);
+            }
+        ),
+   );
+}
