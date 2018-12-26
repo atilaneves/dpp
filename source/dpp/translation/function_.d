@@ -64,11 +64,6 @@ private bool ignoreFunction(in from!"clang".Cursor cursor) @safe {
        cursor.semanticParent.type.kind == Type.Kind.Unexposed)
         return true;
 
-    // FIXME
-    if(cursor.semanticParent.kind == Cursor.Kind.ClassTemplate &&
-       cursor.semanticParent.spelling == "vector")
-        return true;
-
     // C++ deleted functions
     const deleteIndex = cursor.tokens.countUntil(Token(Token.Kind.Keyword, "delete"));
     if(deleteIndex != -1 && deleteIndex > 1) {

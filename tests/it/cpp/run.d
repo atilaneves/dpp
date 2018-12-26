@@ -480,7 +480,6 @@ import it;
     );
 }
 
-@ShouldFail
 @Tags("run")
 @("templates")
 @safe unittest {
