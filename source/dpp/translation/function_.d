@@ -92,7 +92,7 @@ private string functionDecl(
     import dpp.translation.template_: translateTemplateParams;
     import std.conv: text;
     import std.algorithm: endsWith;
-    import std.array: join, array;
+    import std.array: join;
 
     context.log("Function return type (raw):        ", cursor.type.returnType);
     const returnType = returnType(cursor, context);
@@ -103,10 +103,11 @@ private string functionDecl(
     // const C++ method?
     const const_ = cursor.isConstCppMethod ? " const" : "";
 
-    const templateParams = translateTemplateParams(cursor, context).array;
-    const ctParams = templateParams.length
-        ? "(" ~ templateParams.join(", ") ~ ")"
-        : "";
+    auto templateParams = translateTemplateParams(cursor, context);
+    const ctParams = templateParams.empty
+        ? ""
+        : "(" ~ templateParams.join(", ") ~ ")"
+        ;
 
     return text(returnType, " ", spelling, ctParams, "(", params, ") @nogc nothrow", const_, ";");
 }
@@ -137,14 +138,14 @@ private string[] maybeOperator(in from!"clang".Cursor cursor,
     @safe
 {
     import std.algorithm: map;
-    import std.array: join;
+    import std.array: join, array;
     import std.typecons: Yes;
     import std.range: iota;
     import std.conv: text;
 
     if(!isSupportedOperatorInD(cursor)) return [];
 
-    const params = translateAllParamTypes(cursor, context);
+    const params = translateAllParamTypes(cursor, context).array;
 
     return [
         // remove semicolon from the end with [0..$-1]
@@ -373,7 +374,7 @@ private string[] maybeMoveCtor(in from!"clang".Cursor cursor,
     ];
 }
 
-// includes variadic params
+// includes C variadic params
 private auto translateAllParamTypes(
     in from!"clang".Cursor cursor,
     ref from!"dpp.runtime.context".Context context,
@@ -381,9 +382,9 @@ private auto translateAllParamTypes(
 )
     @safe
 {
+    import clang: Cursor;
     import std.algorithm: endsWith, map;
-    import std.array: array;
-    import std.range: enumerate;
+    import std.range: enumerate, chain;
     import std.conv: text;
 
     // Here we used to check that if there were no parameters and the language is C,
@@ -392,15 +393,19 @@ private auto translateAllParamTypes(
     // exists that doesn't bother with (void), so instead of producing something that
     // doesn't compile, we compromise and assume the user meant (void)
 
-    const paramTypes = translateParamTypes(cursor, context).array;
-    const isVariadic = cursor.type.spelling.endsWith("...)");
+    auto paramTypes = translateParamTypes(cursor, context);
+    const isVariadic =
+        cursor.type.spelling.endsWith("...)")
+        && cursor.kind != Cursor.Kind.FunctionTemplate
+        ;
     const variadicParams = isVariadic ? ["..."] : [];
 
-    return enumerate(paramTypes ~ variadicParams)
+    return enumerate(chain(paramTypes, variadicParams))
         .map!(a => names ? a[1] ~ text(" arg", a[0]) : a[1])
-        .array;
+        ;
 }
 
+// does not include C variadic params
 auto translateParamTypes(in from!"clang".Cursor cursor,
                          ref from!"dpp.runtime.context".Context context)
     @safe
