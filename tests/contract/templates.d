@@ -645,7 +645,7 @@ import contract;
 
 
 @Tags("contract")
-@("function")
+@("function.equals")
 @safe unittest {
 
     const tu = parse(
@@ -699,4 +699,54 @@ import contract;
     const typeRef1 = rhs.child(0);
     typeRef1.shouldMatch(Cursor.Kind.TypeRef, "T1");
     typeRef1.type.shouldMatch(Type.Kind.Unexposed,"T1");
+}
+
+
+@Tags("contract")
+@("function.ctor")
+@safe unittest {
+
+    const tu = parse(
+        Cpp(
+            q{
+                template<typename T>
+                struct Foo {
+                    template<typename U>
+                    Foo(const Foo<U>& other);
+                };
+            }
+        )
+    );
+
+    tu.children.length.should == 1;
+    const struct_ = tu.child(0);
+
+    struct_.shouldMatch(Cursor.Kind.ClassTemplate, "Foo");
+    printChildren(struct_);
+    struct_.children.length.should == 2;
+
+    const T = struct_.child(0);
+    T.shouldMatch(Cursor.Kind.TemplateTypeParameter, "T");
+    printChildren(T);
+    T.children.length.should == 0;
+
+    const ctor = struct_.child(1);
+    // being a template makes it not be a Cursor.Kind.Constructor
+    ctor.shouldMatch(Cursor.Kind.FunctionTemplate, "Foo<T>");
+    ctor.type.shouldMatch(Type.Kind.FunctionProto, "void (const Foo<U> &)");
+    printChildren(ctor);
+    ctor.children.length.should == 2;
+
+    const U = ctor.child(0);
+    U.shouldMatch(Cursor.Kind.TemplateTypeParameter, "U");
+    U.type.shouldMatch(Type.Kind.Unexposed, "U");
+    printChildren(U);
+    U.children.length.should == 0;
+
+    const other = ctor.child(1);
+    other.shouldMatch(Cursor.Kind.ParmDecl, "other");
+    other.type.shouldMatch(Type.Kind.LValueReference, "const Foo<U> &");
+    other.type.isConstQualified.should == false;
+    other.type.pointee.shouldMatch(Type.Kind.Unexposed, "const Foo<U>");
+    other.type.pointee.isConstQualified.should == true;
 }
