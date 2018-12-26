@@ -739,6 +739,10 @@ import it;
         ),
         D(
             q{
+                auto a = allocator!void();
+                static struct Foo { int i; double d; }
+                Foo* foo;
+                a.construct(foo, 42, 33.3);
             }
         ),
    );

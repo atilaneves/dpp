@@ -176,27 +176,39 @@ package auto translateTemplateParams(
         return text("type_parameter_0_", templateParamIndex++);
     }
 
-    string translateTemplateParam(in Cursor cursor) {
+    // translate a template parameter cursor
+    string translateTemplateParam(in long index, in Cursor templateParam) {
         import dpp.translation.type: translate;
         import dpp.translation.tokens: translateTokens;
         import clang: Token;
 
         // The template parameter might be a value (bool, int, etc.)
         // or a type. If it's a value we get its type here.
-        const maybeType = cursor.kind == Cursor.Kind.TemplateTypeParameter
-            ? ""  // a type doesn't have a type
-            : translate(cursor.type, context) ~ " ";
+        const maybeType =
+            // a type doesn't have a type
+            templateParam.kind == Cursor.Kind.TemplateTypeParameter
+            // In C++, variadic templates can be values of a type, e.g.
+            // `template<int...>`
+            // The only way to declare this in D would be using a template contraint,
+            // but the main declaration just needs a name and the ellipsis - in D variadic
+            // templates can be types, values, or symbols. To prevent us from trying to
+            // declare in D `int param...`, which isn't valid, we don't use the type of
+            // a value parameter if it's variadic
+            || (cursor.isVariadicTemplate && index == cursor.templateParams.length - 1)
+            ? ""
+            : translate(templateParam.type, context) ~ " ";
 
         // D requires template parameters to have names
-        const spelling = cursor.spelling == "" ? newTemplateParamName : cursor.spelling;
+        const spelling = templateParam.spelling == "" ? newTemplateParamName : templateParam.spelling;
 
         // There's no direct way to extract default template parameters from libclang
         // so we search for something like `T = Foo` in the tokens
-        const equalIndex = cursor.tokens.countUntil!(t => t.kind == Token.Kind.Punctuation && t.spelling == "=");
+        const equalIndex = templateParam.tokens.countUntil!(t => t.kind == Token.Kind.Punctuation &&
+                                                                 t.spelling == "=");
 
         const maybeDefault = equalIndex == -1 || !defaults
             ? ""
-            : cursor.tokens[equalIndex .. $]
+            : templateParam.tokens[equalIndex .. $]
                 .array
                 .translateTokens
             ;
@@ -206,14 +218,18 @@ package auto translateTemplateParams(
     }
 
     auto templateParams = cursor.templateParams;
-    auto translated = templateParams.map!translateTemplateParam.array;
+    context.log("Template Params: ", templateParams);
+    auto translated = templateParams
+        .enumerate
+        .map!(a => translateTemplateParam(a[0], a[1]))
+        ;
 
     // might need to be a variadic parameter
     string maybeVariadic(in long index, in string name) {
-        return cursor.isVariadicTemplate && index == translated.length -1
+        return cursor.isVariadicTemplate && index == translated.length - 1
             // If it's variadic, come up with a new name in case it's variadic
             // values. D doesn't really care.
-            ? newTemplateParamName ~ "..."
+            ? name ~ "..."
             : name;
     }
 
