@@ -274,5 +274,16 @@ string[] ignoredCppCursorSpellings() @safe pure nothrow {
             "__is_nt_copy_assignable_impl",  // FIXME - inheritance
             "__is_nt_move_assignable_impl",  // FIXME - inheritance
             "extent",  // FIXME - inheritance
+            "move_if_noexcept",
+            "__do_is_destructible_impl",  // FIXME
+            "__do_is_nt_destructible_impl",  // FIXME
+            "__do_is_default_constructible_impl",  // FIXME
+            "__result_of_memfun_ref_impl",  // FIXME
+            "__result_of_memfun_deref_impl",   // FIXME
+            "__result_of_memobj_ref_impl",
+            "__result_of_memobj_deref_impl",
+            "__result_of_other_impl",
+            "__do_is_swappable_impl",
+            "__do_is_nothrow_swappable_impl",
         ];
 }
