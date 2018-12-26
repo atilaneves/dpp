@@ -739,6 +739,10 @@ import it;
         ),
         D(
             q{
+                auto a = allocator!void();
+                static struct Foo { int i; double d; }
+                Foo* foo;
+                a.construct(foo, 42, 33.3);
             }
         ),
    );
@@ -937,6 +941,72 @@ import it;
         D(
             q{
                 static assert(is(void_t!int == void), void_t!int.stringof);
+            }
+        ),
+   );
+}
+
+
+@("function.equals")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct Foo {
+                    template<typename T0, typename T1>
+                    bool equals(T0 lhs, T1 rhs);
+                };
+            }
+        ),
+        D(
+            q{
+                Foo foo0, foo1;
+                bool res = foo0.equals(foo0, foo1);
+            }
+        ),
+   );
+}
+
+
+@("function.ctor")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template <typename T>
+                struct Foo {
+                    template<typename U>
+                    Foo(const Foo<U>&);
+                };
+            }
+        ),
+        D(
+            q{
+                Foo!int fooInt;
+                auto fooDouble = Foo!double(fooInt);
+            }
+        ),
+   );
+}
+
+
+@("function.body.delete")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template <typename T>
+                struct Allocator {
+                    void deallocate(T* ptr) {
+                        ::operator delete(ptr);
+                    }
+                };
+            }
+        ),
+        D(
+            q{
+                auto allocator = Allocator!int();
+                allocator.deallocate(new int);
             }
         ),
    );

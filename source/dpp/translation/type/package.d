@@ -334,8 +334,13 @@ private string translateUnexposed(in from!"clang".Type type,
     @safe pure
 {
     import std.string: replace;
+    import std.algorithm: canFind;
 
-    const translation =  type.spelling
+    const spelling = type.spelling.canFind(" &&...")
+        ? "auto ref " ~ type.spelling.replace(" &&...", "")
+        : type.spelling;
+
+    const translation =  spelling
         .translateString
         // we might get template arguments here (e.g. `type-parameter-0-0`)
         .replace("-", "_")

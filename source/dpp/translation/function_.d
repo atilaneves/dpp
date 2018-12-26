@@ -12,6 +12,15 @@ enum OPERATOR_PREFIX = "operator";
 string[] translateFunction(in from!"clang".Cursor cursor,
                            ref from!"dpp.runtime.context".Context context)
     @safe
+    in(
+        cursor.kind == from!"clang".Cursor.Kind.FunctionDecl ||
+        cursor.kind == from!"clang".Cursor.Kind.CXXMethod ||
+        cursor.kind == from!"clang".Cursor.Kind.Constructor ||
+        cursor.kind == from!"clang".Cursor.Kind.Destructor ||
+        cursor.kind == from!"clang".Cursor.Kind.ConversionFunction ||
+        cursor.kind == from!"clang".Cursor.Kind.FunctionTemplate
+    )
+    do
 {
     import dpp.translation.dlang: maybeRename, maybePragma;
     import dpp.translation.aggregate: maybeRememberStructs;
@@ -21,14 +30,6 @@ string[] translateFunction(in from!"clang".Cursor cursor,
     import std.conv: text;
     import std.algorithm: any, endsWith, canFind;
     import std.typecons: Yes;
-
-    assert(
-        cursor.kind == Cursor.Kind.FunctionDecl ||
-        cursor.kind == Cursor.Kind.CXXMethod ||
-        cursor.kind == Cursor.Kind.Constructor ||
-        cursor.kind == Cursor.Kind.Destructor ||
-        cursor.kind == Cursor.Kind.ConversionFunction
-    );
 
     if(ignoreFunction(cursor)) return [];
 
@@ -56,21 +57,19 @@ string[] translateFunction(in from!"clang".Cursor cursor,
 
 private bool ignoreFunction(in from!"clang".Cursor cursor) @safe {
     import clang: Cursor, Type, Token;
-    import std.algorithm: canFind;
+    import std.algorithm: countUntil;
 
     // C++ partial specialisation function bodies
     if(cursor.semanticParent.kind == Cursor.Kind.ClassTemplatePartialSpecialization &&
        cursor.semanticParent.type.kind == Type.Kind.Unexposed)
         return true;
 
-    // FIXME
-    if(cursor.semanticParent.kind == Cursor.Kind.ClassTemplate &&
-       cursor.semanticParent.spelling == "vector")
-        return true;
-
-
     // C++ deleted functions
-    if(cursor.tokens.canFind(Token(Token.Kind.Keyword, "delete"))) return true;
+    const deleteIndex = cursor.tokens.countUntil(Token(Token.Kind.Keyword, "delete"));
+    if(deleteIndex != -1 && deleteIndex > 1) {
+        if(cursor.tokens[deleteIndex - 1] == Token(Token.Kind.Punctuation, "="))
+            return true;
+    }
 
     // FIXME - no default contructors for structs in D
     // We're not even checking if it's a struct here, so classes are being
@@ -88,6 +87,7 @@ private string functionDecl(
 )
     @safe
 {
+    import dpp.translation.template_: translateTemplateParams;
     import std.conv: text;
     import std.algorithm: endsWith;
     import std.array: join;
@@ -101,7 +101,13 @@ private string functionDecl(
     // const C++ method?
     const const_ = cursor.isConstCppMethod ? " const" : "";
 
-    return text(returnType, " ", spelling, "(", params, ") @nogc nothrow", const_, ";");
+    auto templateParams = translateTemplateParams(cursor, context);
+    const ctParams = templateParams.empty
+        ? ""
+        : "(" ~ templateParams.join(", ") ~ ")"
+        ;
+
+    return text(returnType, " ", spelling, ctParams, "(", params, ") @nogc nothrow", const_, ";");
 }
 
 private string returnType(in from!"clang".Cursor cursor,
@@ -114,7 +120,11 @@ private string returnType(in from!"clang".Cursor cursor,
 
     const indentation = context.indentation;
 
-    const dType = cursor.kind == Cursor.Kind.Constructor || cursor.kind == Cursor.Kind.Destructor
+    const isCtorOrDtor =
+        isConstructor(cursor)
+        || cursor.kind == Cursor.Kind.Destructor
+        ;
+    const dType = isCtorOrDtor
         ? ""
         : translate(cursor.returnType, context, Yes.translatingFunction);
 
@@ -130,14 +140,14 @@ private string[] maybeOperator(in from!"clang".Cursor cursor,
     @safe
 {
     import std.algorithm: map;
-    import std.array: join;
+    import std.array: join, array;
     import std.typecons: Yes;
     import std.range: iota;
     import std.conv: text;
 
     if(!isSupportedOperatorInD(cursor)) return [];
 
-    const params = translateAllParamTypes(cursor, context);
+    const params = translateAllParamTypes(cursor, context).array;
 
     return [
         // remove semicolon from the end with [0..$-1]
@@ -181,16 +191,22 @@ private string functionSpelling(in from!"clang".Cursor cursor,
     @safe
 {
     import clang: Cursor;
-    import std.algorithm: startsWith;
 
-
-    if(cursor.kind == Cursor.Kind.Constructor) return "this";
+    if(isConstructor(cursor)) return "this";
     if(cursor.kind == Cursor.Kind.Destructor) return "~this";
 
     if(isOperator(cursor)) return operatorSpellingCpp(cursor, context);
 
     // if no special case
     return context.rememberLinkable(cursor);
+}
+
+private bool isConstructor(in from!"clang".Cursor cursor) @safe nothrow {
+    import clang: Cursor;
+    import std.algorithm: startsWith;
+
+    return cursor.kind == Cursor.Kind.Constructor ||
+        cursor.spelling.startsWith(cursor.semanticParent.spelling ~ "<");
 }
 
 private string operatorSpellingD(in from!"clang".Cursor cursor,
@@ -367,7 +383,7 @@ private string[] maybeMoveCtor(in from!"clang".Cursor cursor,
     ];
 }
 
-// includes variadic params
+// includes C variadic params
 private auto translateAllParamTypes(
     in from!"clang".Cursor cursor,
     ref from!"dpp.runtime.context".Context context,
@@ -375,9 +391,9 @@ private auto translateAllParamTypes(
 )
     @safe
 {
+    import clang: Cursor;
     import std.algorithm: endsWith, map;
-    import std.array: array;
-    import std.range: enumerate;
+    import std.range: enumerate, chain;
     import std.conv: text;
 
     // Here we used to check that if there were no parameters and the language is C,
@@ -386,15 +402,20 @@ private auto translateAllParamTypes(
     // exists that doesn't bother with (void), so instead of producing something that
     // doesn't compile, we compromise and assume the user meant (void)
 
-    const paramTypes = translateParamTypes(cursor, context).array;
-    const isVariadic = cursor.type.spelling.endsWith("...)");
+    auto paramTypes = translateParamTypes(cursor, context);
+
+    const isVariadic =
+        cursor.type.spelling.endsWith("...)")
+        && cursor.kind != Cursor.Kind.FunctionTemplate
+        ;
     const variadicParams = isVariadic ? ["..."] : [];
 
-    return enumerate(paramTypes ~ variadicParams)
+    return enumerate(chain(paramTypes, variadicParams))
         .map!(a => names ? a[1] ~ text(" arg", a[0]) : a[1])
-        .array;
+        ;
 }
 
+// does not include C variadic params
 auto translateParamTypes(in from!"clang".Cursor cursor,
                          ref from!"dpp.runtime.context".Context context)
     @safe

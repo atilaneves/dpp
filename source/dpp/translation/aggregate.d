@@ -280,6 +280,7 @@ private bool skipMember(in from!"clang".Cursor member) @safe @nogc pure nothrow 
         && member.kind != Cursor.Kind.VarDecl
         && member.kind != Cursor.Kind.CXXBaseSpecifier
         && member.kind != Cursor.Kind.ConversionFunction
+        && member.kind != Cursor.Kind.FunctionTemplate
     ;
 }
 
