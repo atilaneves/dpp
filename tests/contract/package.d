@@ -355,13 +355,14 @@ auto mockTU(Module moduleName, CodeURL codeURL)() {
 }
 
 
-auto expect(TestMode mode, L)
+auto expect(L)
            (auto ref L lhs, in string file = __FILE__, in size_t line = __LINE__)
 {
     struct Expect {
 
         bool opEquals(R)(auto ref R rhs) {
             import std.functional: forward;
+            enum mode = InferTestMode!lhs;
             expectEqualImpl!mode(forward!lhs, forward!rhs, file, line);
             return true;
         }
@@ -375,7 +376,19 @@ auto expect(TestMode mode, L)
 auto expectEqual(L, K)
                 (auto ref L lhs, in K kind, in string spelling, in string file = __FILE__, in size_t line = __LINE__)
 {
+    enum mode = InferTestMode!lhs;
+    expectEqualImpl!mode(lhs.kind, kind, file, line);
+    expectEqualImpl!mode(lhs.spelling, spelling, file, line);
+}
+
+
+/**
+   Calculate if we're in mocking or verifying mode using reflection
+ */
+template InferTestMode(alias lhs) {
     import std.traits: isPointer;
+
+    alias L = typeof(lhs);
 
     template isConst(T) {
         import std.traits: isPointer, PointerTarget;
@@ -387,17 +400,12 @@ auto expectEqual(L, K)
 
     // hopefully this can replace manual mode selection
     static if(!__traits(isRef, lhs) && !isPointer!L)
-        enum mode = TestMode.verify;  // can't modify non-ref
+        enum InferTestMode = TestMode.verify;  // can't modify non-ref
     else static if(isConst!L)
-        enum mode = TestMode.verify;  // can't modify const
+        enum InferTestMode = TestMode.verify;  // can't modify const
     else
-        enum mode = TestMode.mock;
-
-    expectEqualImpl!mode(lhs.kind, kind, file, line);
-    expectEqualImpl!mode(lhs.spelling, spelling, file, line);
+        enum InferTestMode = TestMode.mock;
 }
-
-
 
 /**
    Depending the mode, either assign the given value to lhs
