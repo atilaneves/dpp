@@ -63,21 +63,15 @@ auto contract_onefield_int(TestMode mode, CursorType)(auto ref CursorType tu) {
 
     auto struct_ = tu.child(0);
     struct_.isDefinition.expect!mode == true;
-    struct_.kind.expect!mode == Cursor.Kind.StructDecl;
-    struct_.spelling.expect!mode == "Foo";
-    struct_.type.kind.expect!mode == Type.Kind.Record;
-    struct_.type.spelling.expect!mode == "struct Foo";
+    struct_.expectEqual(Cursor.Kind.StructDecl, "Foo");
+    struct_.type.expectEqual(Type.Kind.Record, "struct Foo");
 
     printChildren(struct_);
     struct_.children.expectLengthEqual!mode(1);
 
     auto member = struct_.child(0);
-
-    member.kind.expect!mode == Cursor.Kind.FieldDecl;
-    member.spelling.expect!mode == "i";
-
-    member.type.kind.expect!mode == Type.Kind.Int;
-    member.type.spelling.expect!mode == "int";
+    member.expectEqual(Cursor.Kind.FieldDecl,"i");
+    member.type.expectEqual(Type.Kind.Int, "int");
 
     static if(is(CursorType == MockCursor)) return tu;
 }
@@ -87,6 +81,8 @@ auto contract_onefield_int(TestMode mode, CursorType)(auto ref CursorType tu) {
 mixin Contract!(TestName("struct.nested.c"), contract_nested);
 @ContractFunction(CodeURL("it.c.compile.struct_", "nested"))
 auto contract_nested(TestMode mode, CursorType)(auto ref CursorType tu) {
+
+    pragma(msg, "Mode: ", mode, " CursorType: ", CursorType);
 
     tu.kind.expect!mode == Cursor.Kind.TranslationUnit;
     tu.children.expectLengthEqual!mode(1);
@@ -112,10 +108,8 @@ auto contract_nested(TestMode mode, CursorType)(auto ref CursorType tu) {
     auto innerStruct = outer.child(1);
     innerStruct.kind.expect!mode == Cursor.Kind.StructDecl;
     innerStruct.spelling.expect!mode == "Inner";
-    innerStruct.type.kind.expect!mode == Type.Kind.Record;
-    innerStruct.type.spelling.expect!mode == "struct Inner";
-    innerStruct.type.canonical.kind.expect!mode == Type.Kind.Record;
-    innerStruct.type.canonical.spelling.expect!mode == "struct Inner";
+    innerStruct.type.expectEqual(Type.Kind.Record, "struct Inner");
+    innerStruct.type.canonical.expectEqual(Type.Kind.Record, "struct Inner");
 
     printChildren(innerStruct);
     innerStruct.children.expectLengthEqual!mode(1);  // the `x` field
@@ -132,10 +126,8 @@ auto contract_nested(TestMode mode, CursorType)(auto ref CursorType tu) {
     printChildren(innerField);
     innerField.children.expectLengthEqual!mode(1);  // the Inner StructDecl
 
-    innerField.type.kind.expect!mode == Type.Kind.Elaborated;
-    innerField.type.spelling.expect!mode == "struct Inner";
-    innerField.type.canonical.kind.expect!mode == Type.Kind.Record;
-    innerField.type.canonical.spelling.expect!mode == "struct Inner";
+    innerField.type.expectEqual(Type.Kind.Elaborated, "struct Inner");
+    innerField.type.canonical.expectEqual(Type.Kind.Record, "struct Inner");
 
     auto innerFieldChild = innerField.child(0);
     innerFieldChild.expect!mode == innerStruct;

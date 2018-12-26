@@ -275,7 +275,8 @@ mixin template Contract(TestName testName, alias contractFunction, size_t line =
    Creates a real or mock translation unit depending on the type
  */
 auto createTranslationUnit(CursorType, CodeURL codeURL, alias contractFunction)() {
-    static if(is(CursorType == Cursor))
+    import std.traits: Unqual;
+    static if(is(Unqual!CursorType == Cursor))
         return cast(const) createRealTranslationUnit!codeURL;
     else
         return createMockTranslationUnit!contractFunction;
@@ -360,31 +361,40 @@ auto expect(TestMode mode, L)
     struct Expect {
 
         bool opEquals(R)(auto ref R rhs) {
-
             import std.functional: forward;
-
-            template isConst(T) {
-                import std.traits: isPointer, PointerTarget;
-                static if(isPointer!T)
-                    enum isConst = isConst!(PointerTarget!T);
-                else
-                    enum isConst = is(T == const);
-            }
-
-            // hopefully this can replace manual mode selection
-            static if(!__traits(isRef, lhs))
-                enum mode2 = TestMode.verify;  // can't modify non-ref
-            else static if(isConst!L)
-                enum mode2 = TestMode.verify;  // can't modify const
-            else
-                enum mode2 = TestMode.mock;
-
-            expectEqual!mode(forward!lhs, forward!rhs, file, line);
+            expectEqualImpl!mode(forward!lhs, forward!rhs, file, line);
             return true;
         }
     }
 
     return Expect();
+}
+
+// Used with Cursor and Type objects, simultaneously assert the kind and spelling
+// of the passed in object, or actually set those values when mocking
+auto expectEqual(L, K)
+                (auto ref L lhs, in K kind, in string spelling, in string file = __FILE__, in size_t line = __LINE__)
+{
+    import std.traits: isPointer;
+
+    template isConst(T) {
+        import std.traits: isPointer, PointerTarget;
+        static if(isPointer!T)
+            enum isConst = isConst!(PointerTarget!T);
+        else
+            enum isConst = is(T == const);
+    }
+
+    // hopefully this can replace manual mode selection
+    static if(!__traits(isRef, lhs) && !isPointer!L)
+        enum mode = TestMode.verify;  // can't modify non-ref
+    else static if(isConst!L)
+        enum mode = TestMode.verify;  // can't modify const
+    else
+        enum mode = TestMode.mock;
+
+    expectEqualImpl!mode(lhs.kind, kind, file, line);
+    expectEqualImpl!mode(lhs.spelling, spelling, file, line);
 }
 
 
@@ -394,8 +404,9 @@ auto expect(TestMode mode, L)
    or assert that lhs == rhs.
    Used in contract functions.
  */
-void expectEqual(TestMode mode, L, R)
-                (auto ref L lhs, auto ref R rhs, in string file = __FILE__, in size_t line = __LINE__)
+private void expectEqualImpl(TestMode mode, L, R)
+                            (auto ref L lhs, auto ref R rhs, in string file = __FILE__, in size_t line = __LINE__)
+    if(is(typeof(lhs == rhs) == bool) || is(R == L*))
 {
     import std.traits: isPointer, PointerTarget;
 
