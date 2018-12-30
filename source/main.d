@@ -9,7 +9,7 @@ int main(string[] args) {
         run(options);
         return 0;
     } catch(Exception ex) {
-        stderr.writeln("Error: ", ex.msg);
+        stderr.writeln(ex);
         return 1;
     } catch(Throwable t) {
         stderr.writeln("Fatal error: ", t);

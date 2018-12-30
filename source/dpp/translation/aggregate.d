@@ -307,8 +307,8 @@ string[] translateField(in from!"clang".Cursor field,
 
     // Remember the field name in case it ends up clashing with a type.
     context.rememberField(field.spelling);
-
-    const type = translate(field.type, context, No.translatingFunction);
+    auto maybeRenamedFieldType = maybeRenameType(field,context).type;
+    const type = translate(maybeRenamedFieldType, context, No.translatingFunction);
 
     return field.isBitField
         ? translateBitField(field, context, type)
@@ -541,3 +541,48 @@ do
         `alias ` ~ fieldName ~ ` this;`,
     ];
 }
+
+string renameTypeToBlob(string spelling, size_t size)
+{
+	import std.format:format;
+	return format!`@DppBlob("%s") ubyte[%s]`(spelling,size);
+}
+
+from!"clang".Type maybeRenameTypeToBlob(const from!"clang".Type type, in from!"clang".Cursor cursor,
+                       ref from!"dpp.runtime.context".Context context) @trusted
+//    in(cursor.kind == from!"clang".Cursor.Kind.CXXBaseSpecifier)
+{
+	import clang:Cursor,Type;
+	import std.traits:Unqual;
+	auto ret = cast(Unqual!Type) type;
+	ret.spelling = context.isTypeBlobSubstituted(type.spelling) ? 
+			renameTypeToBlob(type.spelling,getSizeOf(type)) :
+			type.spelling;
+	return cast(Type) ret;
+}
+private auto getSizeOf(const from!"clang".Type type) pure
+{
+	import clang.c.index:clang_Type_getSizeOf;
+	return clang_Type_getSizeOf(type.cx);
+}
+
+private auto mutableCursor(const from!"clang".Cursor cursor) @trusted
+{
+	import std.traits:Unqual;
+	auto ret = cast(Unqual!(from!"clang".Cursor)) cursor;
+	return ret;
+}
+
+from!"clang".Cursor maybeRenameType(in from!"clang".Cursor cursor,
+                       ref from!"dpp.runtime.context".Context context) @safe
+//    in(cursor.kind == from!"clang".Cursor.Kind.CXXBaseSpecifier)
+{
+	import clang:Cursor,Type;
+	import std.stdio:writefln;
+
+	auto ret = mutableCursor(cursor);
+	debug writefln("// %s",cursor.type.spelling);
+	ret.type= maybeRenameTypeToBlob(ret.type,cursor,context);
+	return cast(Cursor)ret;
+}
+

@@ -37,6 +37,17 @@ private bool skipTopLevel(in from!"clang".Cursor cursor,
     if(cursor.spelling == "" && cursor.kind == Cursor.Kind.EnumDecl)
         return false;
 
+    if(context.isPathBlackListed(cursor.sourceRange.path))
+    {
+	    import std.stdio;
+	    //debug writeln("skipping %s",cursor.sourceRange);
+	    return true;
+    }
+    else
+    {
+	    import std.stdio;
+	    //debug writeln("not skipping %s",cursor.sourceRange);
+    }
     // don't bother translating top-level anonymous aggregates
     if(isAggregateC(cursor) && cursor.spelling == "")
         return true;
@@ -70,6 +81,12 @@ string[] translate(in from!"clang".Cursor cursor,
     import std.algorithm: canFind, any;
     import std.array: join;
 
+    if(context.isPathBlackListed(cursor.sourceRange.path))
+    {
+	    import std.stdio;
+	    //debug writeln("skipping %s",cursor.sourceRange);
+	    return [];
+    }
     debugCursor(cursor, context);
 
     if(context.language == Language.Cpp && ignoredCppCursorSpellings.canFind(cursor.spelling)) {

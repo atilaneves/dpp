@@ -10,8 +10,8 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     @safe
 {
     import dpp.translation.type: translate, isTypeParameter;
-    import dpp.translation.aggregate: isAggregateC;
-    import dpp.translation.dlang: maybeRename;
+    import dpp.translation.aggregate: isAggregateC,maybeRenameTypeToBlob;
+    import dpp.translation.dlang:maybeRename;
     import clang: Cursor, Type;
     import std.conv: text;
     import std.typecons: No;
@@ -26,7 +26,7 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
         .array;
     }();
 
-    const nonCanonicalUnderlyingType = typedef_.underlyingType;
+    const nonCanonicalUnderlyingType = maybeRenameTypeToBlob(typedef_.underlyingType,typedef_,context);
     const canonicalUnderlyingType = nonCanonicalUnderlyingType.canonical;
 
     context.log("Children: ", children);
