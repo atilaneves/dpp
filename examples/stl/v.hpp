@@ -15,7 +15,7 @@ using std::pair;
 struct Problem
 {
 	vector<double> values;
-	//map<std::string,std::string> stringStringMap2;
+	map<std::string,std::string> stringStringMap2;
 	// MapStringString stringStringMap; typedef dont work yet
 	// PairStringString pairStringString;
 };
