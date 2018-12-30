@@ -1,6 +1,9 @@
-struct DppBlob
+struct Opaque(string TypeName,size_t BlobSize)
 {
-	string typeName;
+	ubyte[BlobSize] blob;
+	alias blob this;
+	enum blobSize = BlobSize;
+	enum typeName = TypeName;
 }
 //#define Dlang
 #include "v.hpp"
@@ -28,14 +31,22 @@ void main()
 	//printVector!double(cast(void*)v2.getBlob());
 	writefln("v2.values= %s",v2.values);
 
+	auto v3 = vector(v.values);
+	writefln("v3.values = %s",v3.values);
 }
 
+alias VectorDouble = Opaque!("vector!(double)",24);
+auto vector(VectorDouble opaque)
+{
+	return Vector!(double,opaque.blobSize).fromBlob(opaque.blob);
+}
 struct Vector(T,size_t size)
 {
-	static Vector!(T,size) fromBlob(T,size_t size)(ubyte[size] blob)
+	static Vector!(T,size) fromBlob(ubyte[size] blob)
 	{
 		Vector!(T,size) ret;
 		ret.values_ = blob;
+		return ret;
 	}
 	this(T[] values)
 	{
