@@ -86,6 +86,31 @@ struct Context {
      */
     private SeenCursors seenCursors;
 
+    string[] blobTypes = ["vector","map","string","pair"];
+    string[] blackListedPaths = ["vector","string","map"];
+
+    bool isTypeBlobSubstituted(string typeName)
+    {
+	    import std.algorithm:canFind;
+	    foreach(blobType;blobTypes)
+	    {
+		import std.stdio:writefln,stderr;
+	    	debug stderr.writefln("// typename %s: blob %s",typeName,typeName.canFind(blobType));
+		if (typeName.canFind(blobType))
+			return true;
+	    }
+	    return false;
+    }
+    bool isPathBlackListed(string path) @safe pure
+    {
+	    import std.algorithm:canFind;
+	    foreach(blackListedPath;blackListedPaths)
+	    {
+		    if(path.canFind(blackListedPath) || path.canFind("c++"))
+			    return true;
+	    }
+	    return false;
+    }
     /// Command-line options
     Options options;
 

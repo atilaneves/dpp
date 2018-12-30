@@ -20,12 +20,13 @@ string translateTopLevelCursor(in from!"clang".Cursor cursor,
     import std.array: join;
     import std.algorithm: map;
 
-    return cursor.skipTopLevel
+    return cursor.skipTopLevel(context)
         ? ""
         : translate(cursor, context, file, line).map!(a => "    " ~ a).join("\n");
 }
 
-private bool skipTopLevel(in from!"clang".Cursor cursor) @safe pure {
+private bool skipTopLevel(in from!"clang".Cursor cursor,
+			ref from!"dpp.runtime.context".Context context) @safe pure {
     import dpp.translation.aggregate: isAggregateC;
     import clang: Cursor;
     import std.algorithm: startsWith, canFind;
@@ -34,6 +35,17 @@ private bool skipTopLevel(in from!"clang".Cursor cursor) @safe pure {
     if(cursor.spelling == "" && cursor.kind == Cursor.Kind.EnumDecl)
         return false;
 
+    if(context.isPathBlackListed(cursor.sourceRange.path))
+    {
+	    import std.stdio;
+	    //debug writeln("skipping %s",cursor.sourceRange);
+	    return true;
+    }
+    else
+    {
+	    import std.stdio;
+	    //debug writeln("not skipping %s",cursor.sourceRange);
+    }
     // don't bother translating top-level anonymous aggregates
     if(isAggregateC(cursor) && cursor.spelling == "")
         return true;
@@ -63,6 +75,12 @@ string[] translate(in from!"clang".Cursor cursor,
     import std.conv: text;
     import std.algorithm: canFind;
 
+    if(context.isPathBlackListed(cursor.sourceRange.path))
+    {
+	    import std.stdio;
+	    //debug writeln("skipping %s",cursor.sourceRange);
+	    return [];
+    }
     debugCursor(cursor, context);
 
     if(context.language == Language.Cpp && ignoredCppCursorSpellings.canFind(cursor.spelling)) {
