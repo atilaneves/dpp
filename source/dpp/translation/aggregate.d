@@ -544,7 +544,7 @@ do
 string renameTypeToBlob(string spelling, size_t size)
 {
 	import std.format:format;
-	return format!`@DppBlob("%s") ubyte[%s]`(spelling,size);
+	return format!`Opaque!("%s",%s)`(spelling,size);
 }
 
 from!"clang".Type maybeRenameTypeToBlob(const from!"clang".Type type, in from!"clang".Cursor cursor,
