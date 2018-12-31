@@ -21,8 +21,6 @@ Problem problem(double* values, size_t numValues)
 	Problem ret;
 	for(ulong i=0;i<numValues;++i)
 		ret.values.push_back(values[i]);
-	printf("problem: %ld\n",numValues);
-	printf("problem values.back: %f\n",values[numValues-1]);
 	return ret;
 }
 

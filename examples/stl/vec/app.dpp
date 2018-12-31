@@ -1,11 +1,6 @@
-struct Opaque(string TypeName,size_t BlobSize)
-{
-	ubyte[BlobSize] blob;
-	alias blob this;
-	enum blobSize = BlobSize;
-	enum typeName = TypeName;
-}
-//#define Dlang
+import opaque;
+enum VectorSize = Problem.values.sizeof;
+
 #include "v.hpp"
 import std.stdio;
 void main()
@@ -26,25 +21,26 @@ void main()
 	writeln(results);
 
 	auto values2 = iota(10).map!(v=>v.to!double*v.to!double).array;
-	auto v2 = Vector!(double,24)(values2);
+	writefln("original values2: %s",values2);
+	auto v2 = Vector!double(values2);
 	writefln("v2.length = %s",v2.length);
-	//printVector!double(cast(void*)v2.getBlob());
+	printVector!double(cast(void*)v2.getBlob());
 	writefln("v2.values= %s",v2.values);
 
 	auto v3 = vector(v.values);
 	writefln("v3.values = %s",v3.values);
 }
 
-alias VectorDouble = Opaque!("vector!(double)",24);
+alias VectorDouble = Opaque!("vector!(double)",VectorSize);
 auto vector(VectorDouble opaque)
 {
 	return Vector!(double,opaque.blobSize).fromBlob(opaque.blob);
 }
-struct Vector(T,size_t size)
+struct Vector(T,size_t Size=VectorSize)
 {
-	static Vector!(T,size) fromBlob(ubyte[size] blob)
+	static Vector!(T,Size) fromBlob(ubyte[Size] blob)
 	{
-		Vector!(T,size) ret;
+		Vector!(T,Size) ret;
 		ret.values_ = blob;
 		return ret;
 	}
@@ -81,7 +77,7 @@ struct Vector(T,size_t size)
 	{
 		return this.values_;
 	}	
-	private ubyte[size] values_;
+	private ubyte[Size] values_;
 }
 
 T[] getVector(T)(ubyte[] blob)
