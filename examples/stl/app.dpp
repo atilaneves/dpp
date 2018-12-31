@@ -5,7 +5,6 @@ struct Opaque(string TypeName,size_t BlobSize)
 	enum blobSize = BlobSize;
 	enum typeName = TypeName;
 }
-//#define Dlang
 #include "v.hpp"
 import std.stdio;
 void main()
@@ -16,19 +15,12 @@ void main()
 	import std.conv:to;
 	auto values = iota(100).map!(v=>v.to!double).array;
 	auto v = problem(values.ptr,values.length);
-	/+auto size = getVectorSize!double(v.values.ptr);
-	auto bytes = getVectorDataDouble(v.values.ptr);
-	auto test = getVectorFoo(&v);
-	writeln(size);
-	writeln(test);
-	+/
 	auto results = getVector!double(v.values);
 	writeln(results);
 
 	auto values2 = iota(10).map!(v=>v.to!double*v.to!double).array;
 	auto v2 = Vector!(double,24)(values2);
 	writefln("v2.length = %s",v2.length);
-	//printVector!double(cast(void*)v2.getBlob());
 	writefln("v2.values= %s",v2.values);
 
 	auto v3 = vector(v.values);
@@ -87,7 +79,7 @@ struct Vector(T,size_t size)
 T[] getVector(T)(ubyte[] blob)
 {
 	auto size = getVectorSize!T(blob.ptr);
-	auto data = cast(double*)getVectorData!T(blob.ptr);
+	auto data = cast(T*)getVectorData!T(blob.ptr);
 	return data[0..size];
 }
 
