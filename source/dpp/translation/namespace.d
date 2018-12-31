@@ -9,14 +9,15 @@ string[] translateNamespace(in from!"clang".Cursor cursor,
     import dpp.translation.translation: translate, ignoredCppCursorSpellings;
     import clang: Cursor;
     import std.conv: text;
-    import std.algorithm: map, canFind, startsWith;
+    import std.algorithm: map,canFind, startsWith,count;
+    import std.string:strip;
     import std.array: array;
 
     assert(cursor.kind == Cursor.Kind.Namespace);
 
-    string[] lines;
+    string[] bodyLines;
 
-    lines ~= [
+    auto preludeLines = [
             `extern(C++, "` ~ cursor.spelling ~ `")`,
             `{`,
     ];
@@ -25,12 +26,13 @@ string[] translateNamespace(in from!"clang".Cursor cursor,
 
         if(child.kind == Cursor.Kind.VisibilityAttr) continue;
 
-        lines ~= translate(child, context)
+        bodyLines ~= translate(child, context)
             .map!(a => (child.kind == Cursor.Kind.Namespace ? "    " : "        ") ~ a)
             .array;
     }
 
-    lines ~= `}`;
+    enum finLines = `}`;
 
-    return lines;
+    bool hasAnyBodyLines = (bodyLines.count!(l=>l.strip.length > 0)> 0);
+    return hasAnyBodyLines ? preludeLines ~ bodyLines ~ finLines : [];
 }
