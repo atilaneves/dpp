@@ -167,6 +167,13 @@ struct Context {
     private string[] lines;
 
     /**
+      Current namespace
+    */
+
+    private string namespace;
+    
+
+    /**
        Structs can be anonymous in C, and it's even common
        to typedef them to a name. We come up with new names
        that we track here so as to be able to properly translate
@@ -227,6 +234,24 @@ struct Context {
     string[] opaqueTypes;
     string[] headerBlacklists;
     string[] functionBlacklists;
+
+    string getNamespace() @safe
+    {
+	    return this.namespace;
+    }
+
+    void pushNamespace(string ns) @safe
+    {
+	    this.namespace= (this.namespace.length==0) ? ns : (this.namespace ~"."~ns);
+    }
+
+    void popNamespace() @safe
+    {
+	    import std.string:lastIndexOf;
+	    auto i = this.namespace.lastIndexOf(".");
+	    this.namespace=(i==-1)? "" : this.namespace[0..i];
+    }
+
 	    
     alias dgMatch = (string s, RegexT r) @system
 	    		{
