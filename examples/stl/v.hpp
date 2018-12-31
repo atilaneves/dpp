@@ -1,23 +1,16 @@
 #include <vector>
 #include <string>
 #include <map>
-//#include <pair>
 #include "stdio.h"
 
 using std::vector;
 using std::string;
 using std::map;
-using std::pair;
-
-// typedef map<std::string,std::string> MapStringString;
-// typedef pair<std::string,std::string> PairStringString;
 
 struct Problem
 {
 	vector<double> values;
 	map<std::string,std::string> stringStringMap2;
-	// MapStringString stringStringMap; typedef dont work yet
-	// PairStringString pairStringString;
 };
 
 Problem problem(double*,size_t);
