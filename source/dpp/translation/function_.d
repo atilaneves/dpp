@@ -24,6 +24,7 @@ string[] translateFunction(in from!"clang".Cursor cursor,
 {
     import dpp.translation.dlang: maybeRename, maybePragma;
     import dpp.translation.aggregate: maybeRememberStructs;
+    import dpp.translation.translation: isForwardDeclaration;
     import dpp.translation.type: translate;
     import clang: Cursor, Type;
     import std.array: join, array;
@@ -32,6 +33,13 @@ string[] translateFunction(in from!"clang".Cursor cursor,
     import std.typecons: Yes;
 
     if(ignoreFunction(cursor)) return [];
+
+    if (!isForwardDeclaration(cursor))
+    {
+	    // ie it should be the only declaration or the forward declaration
+	    context.log("skipping definition for cursor because it is not a forward declaration",cursor);
+	    return [];
+    }
 
     // FIXME - stop special casing the move ctor
     auto moveCtorLines = maybeMoveCtor(cursor, context);

@@ -213,10 +213,18 @@ string[] translateAggregate(
 )
     @safe
 {
-    import dpp.translation.translation: translate;
+    import dpp.translation.translation: translate, isForwardDeclaration;
     import clang: Cursor, Type;
     import std.algorithm: map;
     import std.array: array;
+
+    if (cursor.isForwardDeclaration)
+    {
+	context.log("cursor is forward definition",cursor);
+	context.log("real definition is",cursor);
+	return [];
+    }
+
 
     // remember all aggregate declarations
     context.rememberAggregate(cursor);

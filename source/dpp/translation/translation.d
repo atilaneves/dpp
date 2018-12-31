@@ -45,8 +45,6 @@ private bool skipTopLevel(in from!"clang".Cursor cursor,
     if(isAggregateC(cursor) && cursor.spelling == "")
         return true;
 
-    if (isForwardDeclaration(cursor))
-	    return true;
 
     static immutable forbiddenSpellings =
         [
@@ -308,7 +306,7 @@ private alias ForwardDeclarationLambda =(const from!"clang".Cursor cursor) @trus
 	import clang:Cursor;
 	if (cursor.definition == Cursor.nullCursor())
 		return true;
-	return !(cursor == cursor.definition);
+	return !(cursor == cursor.definition());
 };
 
 // https://joshpeterson.github.io/identifying-a-forward-declaration-with-libclang
