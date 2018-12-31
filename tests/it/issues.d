@@ -1411,3 +1411,32 @@ unittest {
         ),
     );
 }
+
+
+@ShouldFail
+@Tags("issue")
+@("114")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<class T>
+                struct Foo {
+                    template<class U>
+                    Foo& operator=(U& other) {
+                        return *this;
+                    }
+                };
+            }
+        ),
+        D(
+            q{
+                Foo!int foo;
+                int i;
+                foo = i;
+                double d;
+                foo = d;
+            }
+        ),
+    );
+}
