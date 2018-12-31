@@ -87,7 +87,7 @@ struct Vector(T,size_t size)
 T[] getVector(T)(ubyte[] blob)
 {
 	auto size = getVectorSize!T(blob.ptr);
-	auto data = cast(double*)getVectorData!T(blob.ptr);
+	auto data = cast(T*)getVectorData!T(blob.ptr);
 	return data[0..size];
 }
 

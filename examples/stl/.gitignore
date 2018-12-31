@@ -1,0 +1,16 @@
+.dub
+docs.json
+__dummy.html
+docs/
+stl.so
+stl.dylib
+stl.dll
+stl.a
+stl.lib
+stl-test-*
+*.exe
+*.o
+*.obj
+*.lst
+build/*
+bin/*

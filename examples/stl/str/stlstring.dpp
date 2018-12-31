@@ -1,0 +1,84 @@
+import opaque;
+#include "s_tl_strin_g.hpp"
+import std.stdio;
+
+enum StringSize = ProblemString.s.sizeof;
+alias MyString = String!StringSize;
+
+auto problemString(ubyte[] blob)
+{
+	ProblemString ret;
+	alias Blob = typeof(ret.s);
+	ret.s = Blob(blob);
+	return ret;
+}
+void main()
+{
+	import std.array:array;
+	import std.algorithm:map;
+	import std.conv:to;
+	
+	auto value = "hello there!  This is a string";
+	writefln("D string: %s",value);
+	auto s = MyString(value);
+	writefln("coning back from C++ string: %s",s.value);
+	auto p = problemString(s.getBlob);
+	writefln("coming back from C++ struct: %s",MyString.fromBlob(p.s));
+}
+
+
+struct String(size_t size)
+{
+	string toString()
+	{
+		return value().idup;
+	}
+	static String!(size) fromBlob(ubyte[size] blob)
+	{
+		String!size ret;
+		ret.values_ = blob;
+		return ret;
+	}
+	this(const(char)[] values)
+	{
+		createString(this.values_.ptr,cast(char*)values.ptr,values.length);
+	}
+
+	char* ptr()
+	{
+		return cast(char*) getStringData(values_.ptr);
+	}
+	size_t length()
+	{
+		return getStringSize(this.values_.ptr);
+	}
+	char[] value()
+	{
+		return this.ptr()[0..this.length];
+	}
+
+	char opIndex(size_t index)
+	{
+		return this.value[index];
+	}
+
+	char[] opSlice(size_t start, size_t end)
+	{
+		return this.value[start..end];	
+	}
+
+	alias value this;
+	ubyte[] getBlob()
+	{
+		return this.values_;
+	}	
+	private ubyte[size] values_;
+}
+
+string getString(ubyte[] blob)
+{
+	auto size = getStringSize(blob.ptr);
+	auto data = cast(char*)getStringData(blob.ptr);
+	return data[0..size].idup;
+}
+
