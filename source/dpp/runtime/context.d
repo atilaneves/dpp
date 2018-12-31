@@ -3,6 +3,7 @@
  */
 module dpp.runtime.context;
 import dpp.from;
+import dpp.util:assumePure;
 
 alias LineNumber = size_t;
 
@@ -540,10 +541,3 @@ private struct CursorId {
     }
 }
 
-private auto assumePure(T)(T t)
-if (from!"std.traits".isFunctionPointer!T || from!"std.traits".isDelegate!T)
-{
-	import std.traits:functionAttributes, FunctionAttribute,functionLinkage,SetFunctionAttributes;
-	enum attrs = functionAttributes!T | FunctionAttribute.pure_;
-	return cast(SetFunctionAttributes!(T, functionLinkage!T, attrs)) t;
-}

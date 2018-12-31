@@ -162,6 +162,16 @@ private string translateAggregate(in from!"clang".Type type_,
 	string[] templateArgsTranslation;
         if(type.numTemplateArguments > 0) {
             const openAngleBracketIndex = type.spelling.countUntil("<");
+	    //FIXME - not sure why this happens
+            if (openAngleBracketIndex==-1)
+	    {
+		    context.log("no brackets but type has ",type.numTemplateArguments," apparently");
+		    context.log(type);
+		    string ret = type.spelling;
+		    if (ret.startsWith("typename "))
+			    ret = ret["typename ".length..$];
+		    return ret~pointeeText;
+	    }
             const baseName = type.spelling[0 .. openAngleBracketIndex];
             templateArgsTranslation = (type
                 .numTemplateArguments

@@ -45,6 +45,9 @@ private bool skipTopLevel(in from!"clang".Cursor cursor,
     if(isAggregateC(cursor) && cursor.spelling == "")
         return true;
 
+    if (isForwardDeclaration(cursor))
+	    return true;
+
     static immutable forbiddenSpellings =
         [
             "ulong", "ushort", "uint",
@@ -299,4 +302,20 @@ string[] ignoredCppCursorSpellings() @safe pure nothrow {
             "__do_is_swappable_impl",
             "__do_is_nothrow_swappable_impl",
         ];
+}
+
+private alias ForwardDeclarationLambda =(const from!"clang".Cursor cursor) @trusted {
+	import clang:Cursor;
+	if (cursor.definition == Cursor.nullCursor())
+		return true;
+	return !(cursor == cursor.definition);
+};
+
+// https://joshpeterson.github.io/identifying-a-forward-declaration-with-libclang
+bool isForwardDeclaration(in from!"clang".Cursor cursor) @trusted pure
+{
+	import clang:Cursor;
+	import dpp.util:assumePure;
+	auto f = assumePure(ForwardDeclarationLambda);
+	return f(cursor);
 }
