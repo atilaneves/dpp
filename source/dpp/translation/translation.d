@@ -41,11 +41,6 @@ private bool skipTopLevel(in from!"clang".Cursor cursor,
 	    //debug writeln("skipping %s",cursor.sourceRange);
 	    return true;
     }
-    else
-    {
-	    import std.stdio;
-	    //debug writeln("not skipping %s",cursor.sourceRange);
-    }
     // don't bother translating top-level anonymous aggregates
     if(isAggregateC(cursor) && cursor.spelling == "")
         return true;

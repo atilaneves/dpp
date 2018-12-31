@@ -45,7 +45,11 @@ string[] translateFunction(in from!"clang".Cursor cursor,
     maybeRememberStructs(paramTypes(cursor), context);
 
     const spelling = functionSpelling(cursor, context);
-
+    if (context.isFunctionBlacklisted(spelling))
+    {
+	    context.log("Not translating function (blacklisted) ",spelling);
+    	     return [];
+    }
     lines ~= [
         maybePragma(cursor, context) ~ functionDecl(cursor, context, spelling)
     ];

@@ -23,7 +23,7 @@ private string readAsString(string filename) @trusted
 	return cast(string)(std.file.read(filename));
 }
 
-string[] readHeaderBlacklistFile(string filename) @safe
+string[] readBlacklistFile(string filename) @safe
 {
 	static import std.file;
 	import std.string:splitLines,strip;
@@ -38,6 +38,7 @@ string[] readHeaderBlacklistFile(string filename) @safe
 			.array;
 	return lines;
 }
+
 struct TypeRemapping
 {
 	string originalType;
@@ -133,7 +134,20 @@ private const(TypeRemapping)[] nonOpaqueTypeRemappings(const scope TypeRemapping
 		.safeArray;
 }
 
+// FIXME - maybe should be std.algorithm.any with lambda
+private bool canFindAny(string[] haystack,string needle) @safe pure
+{
+    import std.algorithm:canFind;
 
+    foreach(e;haystack)
+    {
+	    // deliberate - if needle contains in part the blacklist then blacklist
+	    if (needle.canFind(e))
+		    return true;
+    }
+    return false;
+}
+		
 /**
    Context for the current translation, to avoid global variables
  */
@@ -211,6 +225,7 @@ struct Context {
 
     string[] opaqueTypes;
     string[] headerBlacklists;
+    string[] functionBlacklists;
 	    
     alias dgMatch = (string s, RegexT r) @system
 	    		{
@@ -238,7 +253,7 @@ struct Context {
 	    }
 	    return ret;
     }
-	    
+	   
     bool isTypeBlobSubstituted(string typeName) @safe pure
     {
 	    import std.regex:matchFirst;
@@ -251,18 +266,9 @@ struct Context {
 	    }
 	    return false;
     }
-    bool isPathBlackListed(string path) @safe pure
-    {
-	    import std.algorithm:canFind;
+    bool isFunctionBlacklisted(string functionName) @safe pure { return canFindAny(this.functionBlacklists,functionName);};
+    bool isPathBlackListed(string path) @safe pure  { return canFindAny(this.headerBlacklists,path);};
 
-	    //TODO - add regex later
-	    foreach(headerBlacklist;headerBlacklists)
-	    {
-		    if(path.canFind(headerBlacklist))
-			    return true;
-	    }
-	    return false;
-    }
     /// Command-line options
     Options options;
 
@@ -281,16 +287,19 @@ struct Context {
 
     Language language;
 
-    this(Options options, in Language language,string typeRemappingsFile, string headerBlacklistFile) @safe {
+    this(Options options, in Language language,string typeRemappingsFile, string headerBlacklistFile,string functionBlacklistFile) @safe {
 	import std.array:array;
 	import std.algorithm:filter;
 	import std.regex:regex;
         this.options = options;
         this.language = language;
-	auto typeRemappings = readTypeRemappingsFile(typeRemappingsFile);
+	auto typeRemappings = (typeRemappingsFile.length>0)? readTypeRemappingsFile(typeRemappingsFile) : [];
 	this.opaqueTypes = typeRemappings.opaqueTypes;
 	this.typeRemappings = typeRemappings.nonOpaqueTypeRemappings;
-	this.headerBlacklists = readHeaderBlacklistFile(headerBlacklistFile);
+	if(headerBlacklistFile.length>0)
+		this.headerBlacklists = readBlacklistFile(headerBlacklistFile);
+	if(functionBlacklistFile.length>0)
+	this.functionBlacklists = readBlacklistFile(functionBlacklistFile);
 	foreach(typeRemapping;typeRemappings.filter!(t=>t.isRegex))
 		this.typeRemappingsRegex[typeRemapping.originalType] = regex(typeRemapping.originalType);
     }

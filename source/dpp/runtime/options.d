@@ -31,6 +31,7 @@ struct Options {
     bool cppStdLib;
     string headerBlacklistFile;
     string typeRemappingsFile;
+    string functionBlacklistFile;
 
     this(string[] args) {
 
@@ -106,6 +107,7 @@ struct Options {
                 "c++-std-lib", "Link to the C++ standard library", &cppStdLib,
 		"map-type-file", "File specifying type remappings",&typeRemappingsFile,
 		"blacklist-header-file", "File specifying headers to blacklist",&headerBlacklistFile,
+		"blacklist-function-file", "File specifying functions to blacklist",&functionBlacklistFile,
             );
 
         if(helpInfo.helpWanted) {
