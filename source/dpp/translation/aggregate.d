@@ -541,39 +541,42 @@ do
     ];
 }
 
-string renameTypeToBlob(string spelling, size_t size)
+string renameTypeToBlob(string spelling, string size) @safe pure
 {
 	import std.format:format;
 	return format!`Opaque!("%s",%s)`(spelling,size);
 }
 
-from!"clang".Type maybeRenameTypeToBlob(const from!"clang".Type type, in from!"clang".Cursor cursor,
-                       ref from!"dpp.runtime.context".Context context) @trusted
+from!"clang".Type maybeRenameTypeToBlob(const from!"clang".Type type, //in from!"clang".Cursor cursor,
+                       ref from!"dpp.runtime.context".Context context) @trusted pure
 //    in(cursor.kind == from!"clang".Cursor.Kind.CXXBaseSpecifier)
 {
-	import clang:Cursor,Type;
+	import clang:Type;
 	import std.traits:Unqual;
+	import std.conv:to;
 	auto ret = cast(Unqual!Type) type;
-	ret.spelling = context.isTypeBlobSubstituted(type.spelling) ? 
-			renameTypeToBlob(type.spelling,getSizeOf(type)) :
-			type.spelling;
+	if(context.isTypeBlobSubstituted(type.spelling))
+	{
+		long size = getSizeOf(type);
+		ret.spelling = renameTypeToBlob(type.spelling,(size>0 && size !=-1) ? size.to!string : "FIXME");
+	}
 	return cast(Type) ret;
 }
-private auto getSizeOf(const from!"clang".Type type) pure
+private auto getSizeOf(const from!"clang".Type type) pure @safe
 {
 	import clang.c.index:clang_Type_getSizeOf;
 	return clang_Type_getSizeOf(type.cx);
 }
 
-private auto mutableCursor(const from!"clang".Cursor cursor) @trusted
+private auto mutableCursor(const from!"clang".Cursor cursor) @trusted pure
 {
 	import std.traits:Unqual;
 	auto ret = cast(Unqual!(from!"clang".Cursor)) cursor;
 	return ret;
 }
 
-from!"clang".Cursor maybeRenameType(in from!"clang".Cursor cursor,
-                       ref from!"dpp.runtime.context".Context context) @safe
+from!"clang".Cursor maybeRenameType(in from!"clang".Cursor cursor, 
+                       ref from!"dpp.runtime.context".Context context) @safe pure
 //    in(cursor.kind == from!"clang".Cursor.Kind.CXXBaseSpecifier)
 {
 	import clang:Cursor,Type;
@@ -581,7 +584,7 @@ from!"clang".Cursor maybeRenameType(in from!"clang".Cursor cursor,
 
 	auto ret = mutableCursor(cursor);
 	debug writefln("// %s",cursor.type.spelling);
-	ret.type= maybeRenameTypeToBlob(ret.type,cursor,context);
+	ret.type= maybeRenameTypeToBlob(ret.type,context);
 	return cast(Cursor)ret;
 }
 

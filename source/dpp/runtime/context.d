@@ -86,16 +86,14 @@ struct Context {
      */
     private SeenCursors seenCursors;
 
-    string[] blobTypes = ["vector","map","string","pair"];
-    string[] blackListedPaths = ["vector","string","map"];
+    string[] blobTypes = ["vector","map","string","pair","set","array","ostream","tbb","concurrent","shared_ptr","std::"];
+    string[] blackListedPaths = ["vector","string","map","boost","c++","set","tbb","patterns"];
 
-    bool isTypeBlobSubstituted(string typeName)
+    bool isTypeBlobSubstituted(string typeName) @safe pure
     {
 	    import std.algorithm:canFind;
 	    foreach(blobType;blobTypes)
 	    {
-		import std.stdio:writefln,stderr;
-	    	debug stderr.writefln("// typename %s: blob %s",typeName,typeName.canFind(blobType));
 		if (typeName.canFind(blobType))
 			return true;
 	    }
@@ -106,7 +104,7 @@ struct Context {
 	    import std.algorithm:canFind;
 	    foreach(blackListedPath;blackListedPaths)
 	    {
-		    if(path.canFind(blackListedPath) || path.canFind("c++"))
+		    if(path.canFind(blackListedPath))
 			    return true;
 	    }
 	    return false;

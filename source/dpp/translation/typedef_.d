@@ -26,7 +26,7 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
         .array;
     }();
 
-    const nonCanonicalUnderlyingType = maybeRenameTypeToBlob(typedef_.underlyingType,typedef_,context);
+    const nonCanonicalUnderlyingType = maybeRenameTypeToBlob(typedef_.underlyingType,context);
     const canonicalUnderlyingType = nonCanonicalUnderlyingType.canonical;
 
     context.log("Children: ", children);

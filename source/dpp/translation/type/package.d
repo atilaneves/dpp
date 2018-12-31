@@ -116,35 +116,54 @@ private string translateRecord(in from!"clang".Type type,
         : translateAggregate(type, context, translatingFunction);
 }
 
-private string translateAggregate(in from!"clang".Type type,
+private string translateAggregate(in from!"clang".Type type_,
                                   ref from!"dpp.runtime.context".Context context,
                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
     @safe pure
 {
     import std.array: replace, join;
-    import std.algorithm: canFind, countUntil, map;
+    import std.algorithm: canFind, countUntil, map,startsWith;
     import std.range: iota;
+    import std.conv: text;
+    import dpp.translation.aggregate:maybeRenameTypeToBlob;
+    import clang:Type;
 
+    context.log("translateAggregate: in ",type_);
+    const canonicalType = type_.canonical;
+    const usedType = (canonicalType.kind == Type.Kind.Record) ? canonicalType : type_;
+    const pointeeText = usedType.pointee.isInvalid ? "": text(usedType.pointee);
+    const type = maybeRenameTypeToBlob(usedType,context);
+    const bool isOpaque = type.spelling.startsWith("Opaque!");
+    context.log("translateAggregate: out ",type,pointeeText);
     // if it's anonymous, find the nickname, otherwise return the spelling
     string spelling() {
+	    if (isOpaque)
+		    return type.spelling;
+	    import std.array:array;
+	// std::shared_ptr will be considered an aggregate
         // clang names anonymous types with a long name indicating where the type
         // was declared, so we check here with `hasAnonymousSpelling`
-        if(hasAnonymousSpelling(type)) return context.spellingOrNickname(type.declaration);
+        if(hasAnonymousSpelling(type))
+	{
+		context.log("has anonymous spelling: ",context.spellingOrNickname(type.declaration));
+		return context.spellingOrNickname(type.declaration);
+	}
 
         // A struct in a namespace will have a type of kind Record with the fully
         // qualified name (e.g. std::random_access_iterator_tag), but the cursor
         // itself has only the name (e.g. random_access_iterator_tag), so we get
         // the spelling from the type's declaration instead of from the type itself.
         // See it.cpp.templates.__copy_move and contract.namespace.struct.
-        if(type.spelling.canFind(":")) return type.declaration.spelling;
+        if( type.spelling.startsWith(":")) return type.declaration.spelling ~ pointeeText;
 
         // Clang template types have a spelling such as `Foo<unsigned int, unsigned short>`.
         // We need to extract the "base" name (e.g. Foo above) then translate each type
         // template argument (`unsigned long` is not a D type)
+	string[] templateArgsTranslation;
         if(type.numTemplateArguments > 0) {
             const openAngleBracketIndex = type.spelling.countUntil("<");
             const baseName = type.spelling[0 .. openAngleBracketIndex];
-            const templateArgsTranslation = type
+            templateArgsTranslation = (type
                 .numTemplateArguments
                 .iota
                 .map!((i) {
@@ -156,19 +175,23 @@ private string translateAggregate(in from!"clang".Type type,
                         case Value:
                             return templateParameterSpelling(type, i);
                     }
-                 })
-                .join(", ");
-            return baseName ~ "!(" ~ templateArgsTranslation ~ ")";
+                 })).array;
+            if (!type.pointee.isInvalid)
+	         templateArgsTranslation ~= pointeeText;
+            return baseName ~ "!(" ~ templateArgsTranslation.join(",") ~ ")";
         }
-
-        return type.spelling;
+	// std::shared_ptr will be considered an aggregate
+        return type.spelling~pointeeText;
     }
 
-    return addModifiers(type, spelling)
+    const result = addModifiers(type, spelling)
         .translateElaborated
         .replace("<", "!(")
         .replace(">", ")")
+	.replace("::",".")
         ;
+    context.log("translateAggregate - final :",result);
+    return result;
 }
 
 

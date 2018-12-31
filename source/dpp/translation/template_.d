@@ -56,6 +56,11 @@ package string[] translateSpecialisedTemplateParams(
         if(templateArgType.isVolatileQualified)
             throw new UntranslatableException("Cannot translate volatile template type parameter specialisation");
 
+	// FIXME
+	import std.conv:to;
+	if(index+1>translatedTemplateParams.length)
+            throw new UntranslatableException("translatedtemplateparams problem " ~ translatedTemplateParams.to!string ~ "/ " ~ index.to!string);
+
         string ret = translatedTemplateParams[index];  // e.g. `T`,  `bool V0`
         const maybeSpecialisation = translateTemplateParamSpecialisation(cursor.type, templateArgType, index, context);
         const templateArgKind = templateArgumentKind(templateArgType);
@@ -117,6 +122,7 @@ private bool isValueOfType(
     import std.exception: collectException;
     import std.conv: to;
     import core.stdc.config: c_long, c_ulong;
+    import dpp.translation.exception: UntranslatableException;
 
     // the original template cursor (no specialisations)
     const templateCursor = cursor.specializedCursorTemplate;
@@ -132,7 +138,7 @@ private bool isValueOfType(
     }
 
     switch(dtype) {
-        default: throw new Exception("isValueOfType cannot handle type `" ~ dtype ~ "`");
+        default: throw new UntranslatableException("isValueOfType cannot handle type `" ~ dtype ~ "`");
         case "bool":    tryConvert!bool;    break;
         case "char":    tryConvert!char;    break;
         case "wchar":   tryConvert!wchar;   break;

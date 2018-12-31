@@ -235,15 +235,23 @@ private string operatorSpellingD(in from!"clang".Cursor cursor,
 
     // Some of the operators here have empty parentheses around them. This is to
     // to make them templates and only be instantiated if needed. See #102.
+    string bracketsIfNotTemplated = operatorIsTemplated(cursor)? "" : "()";
     switch(cppOperator) {
         default: return dFunction ~ `(string op: "` ~ cppOperator ~ `")`;
-        case "=": return `opAssign()`;
-        case "()": return `opCall()`;
-        case "[]": return `opIndex()`;
-        case "==": return `opEquals()`;
+        case "=": return `opAssign` ~bracketsIfNotTemplated;
+        case "()": return `opCall` ~ bracketsIfNotTemplated;
+        case "[]": return `opIndex` ~ bracketsIfNotTemplated;
+        case "==": return `opEquals` ~ bracketsIfNotTemplated;
     }
 }
 
+private bool operatorIsTemplated(in from!"clang".Cursor cursor) @safe nothrow {
+	import clang.c.index:clang_Cursor_getNumTemplateArguments;
+	auto numArguments = clang_Cursor_getNumTemplateArguments(cursor.cx);
+	//return (numArguments!=0 && numArguments!=-1);
+	//FIXME
+	return true;
+}
 private bool isUnaryOperator(in from!"clang".Cursor cursor) @safe nothrow {
     return isOperator(cursor) && numParams(cursor) == 0;
 }
@@ -450,7 +458,7 @@ private string translateFunctionParam(in from!"clang".Cursor function_,
             : type;
     }
 
-    // See contract.ctor.copy.definition.declartion for libclang silliness leading to this.
+    // See contract.ctor.copy.definition.declaration for libclang silliness leading to this.
     // If the enclosing struct/class is templated and the function isn't, then we might
     // get "type-parameter-0-0" spellings even when the actual name is e.g. `T`.
     const numAggTemplateParams = function_.semanticParent.templateParams.length;
