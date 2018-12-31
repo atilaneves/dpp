@@ -1,0 +1,28 @@
+// already pretty much done
+// ** we comment out vector for purposes of this example - not yet in runtime dmd release
+// vector,core.stdcpp.vector
+array,core.stdcpp.array
+
+// for now
+vector,opaque
+map,opaque
+basic_string,opaque
+string,opaque
+
+// we fake it for now so need the size
+// map,core.stdcpp.map,true
+pair,core.stdcpp.pair,true
+//basic_string,core.stdcpp.basic_string,true
+//string,core.stdcpp.basic_string,true
+pair,core.stdcpp.pair,true
+set,core.stdcpp.set,true
+
+// opaque types
+ostream,opaque
+tbb,opaque
+concurrent,opaque
+shared_ptr,opaque
+
+// everything else in STL
+std::,opaque
+

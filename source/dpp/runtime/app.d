@@ -172,7 +172,7 @@ private TranslationText translationText(File)(in from!"dpp.runtime.options".Opti
        We remember the cursors already seen so as to not try and define
        something twice (legal in C, illegal in D).
     */
-    auto context = Context(options.indent, language);
+    auto context = Context(options.indent, language,options.typeRemappingsFile,options.headerBlacklistFile);
 
     // parse all #includes at once and populate context with
     // D definitions
@@ -247,6 +247,20 @@ string preamble() @safe pure {
         import core.stdc.stdarg: va_list;
         static import core.simd;
         static import std.conv;
+	struct Opaque(string TypeName,size_t BlobSize)
+	{
+		import std.exception:enforce;
+		ubyte[BlobSize] blob;
+		alias blob this;
+		enum blobSize = BlobSize;
+		enum typeName = TypeName;
+
+		this(ubyte[] blob)
+		{
+			enforce(blob.length == BlobSize);
+			this.blob=blob;
+		}
+	}
 
         struct Int128 { long lower; long upper; }
         struct UInt128 { ulong lower; ulong upper; }

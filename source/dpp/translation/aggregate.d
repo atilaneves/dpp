@@ -541,31 +541,45 @@ do
     ];
 }
 
-string renameTypeToBlob(string spelling, string size) @safe pure
+string renameTypeToBlob(string spelling, ptrdiff_t size) @safe pure
 {
 	import std.format:format;
-	return format!`Opaque!("%s",%s)`(spelling,size);
+	import std.conv:to;
+	string sizeString = (size>0 && size!=-1) ? size.to!string : "FIXME";
+	return format!`Opaque!("%s",%s)`(spelling,sizeString);
 }
 
+// TODO - not just to blob - also remaps type
 from!"clang".Type maybeRenameTypeToBlob(const from!"clang".Type type, //in from!"clang".Cursor cursor,
-                       ref from!"dpp.runtime.context".Context context) @trusted pure
+                       ref from!"dpp.runtime.context".Context context) @safe pure
 //    in(cursor.kind == from!"clang".Cursor.Kind.CXXBaseSpecifier)
 {
 	import clang:Type;
 	import std.traits:Unqual;
 	import std.conv:to;
-	auto ret = cast(Unqual!Type) type;
-	if(context.isTypeBlobSubstituted(type.spelling))
+	auto ret = mutableType(type);
+	if(context.isTypeBlobSubstituted(ret.spelling))
 	{
-		long size = getSizeOf(type);
-		ret.spelling = renameTypeToBlob(type.spelling,(size>0 && size !=-1) ? size.to!string : "FIXME");
+		ret.spelling = renameTypeToBlob(type.spelling,getSizeOf(type));
+	}
+	else
+	{
+		ret.spelling = context.remapType(ret.spelling);
 	}
 	return cast(Type) ret;
 }
+
 private auto getSizeOf(const from!"clang".Type type) pure @safe
 {
 	import clang.c.index:clang_Type_getSizeOf;
 	return clang_Type_getSizeOf(type.cx);
+}
+
+private auto mutableType(const from!"clang".Type type) @trusted pure
+{
+	import std.traits:Unqual;
+	auto ret = cast(Unqual!(from!"clang".Type)) type;
+	return ret;
 }
 
 private auto mutableCursor(const from!"clang".Cursor cursor) @trusted pure
@@ -583,7 +597,6 @@ from!"clang".Cursor maybeRenameType(in from!"clang".Cursor cursor,
 	import std.stdio:writefln;
 
 	auto ret = mutableCursor(cursor);
-	debug writefln("// %s",cursor.type.spelling);
 	ret.type= maybeRenameTypeToBlob(ret.type,context);
 	return cast(Cursor)ret;
 }

@@ -29,6 +29,8 @@ struct Options {
     bool earlyExit;
     bool hardFail;
     bool cppStdLib;
+    string headerBlacklistFile;
+    string typeRemappingsFile;
 
     this(string[] args) {
 
@@ -102,6 +104,8 @@ struct Options {
                 "define", "C Preprocessor macro", &defines,
                 "hard-fail", "Translate nothing if any part fails", &hardFail,
                 "c++-std-lib", "Link to the C++ standard library", &cppStdLib,
+		"map-type-file", "File specifying type remappings",&typeRemappingsFile,
+		"blacklist-header-file", "File specifying headers to blacklist",&headerBlacklistFile,
             );
 
         if(helpInfo.helpWanted) {

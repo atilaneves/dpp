@@ -2,6 +2,7 @@
    The context the translation happens in, to avoid global variables
  */
 module dpp.runtime.context;
+import dpp.from;
 
 alias LineNumber = size_t;
 
@@ -14,6 +15,106 @@ struct Linkable {
 enum Language {
     C,
     Cpp,
+}
+
+private string readAsString(string filename) @trusted
+{
+	static import std.file;
+	return cast(string)(std.file.read(filename));
+}
+
+string[] readHeaderBlacklistFile(string filename) @safe
+{
+	static import std.file;
+	import std.string:splitLines,strip;
+	import std.array:array;
+	import std.algorithm:map,filter,startsWith;
+
+	auto lines = readAsString(filename)
+			.splitLines
+			.map!(line=>line.strip)
+			.array
+			.filter!(l=>l.length>0 && !l.startsWith("//"))
+			.array;
+	return lines;
+}
+struct TypeRemapping
+{
+	string originalType;
+	string replacementType;
+	bool addFirstSizeOfArgument;
+}
+
+private TypeRemapping readTypeRemapping(string line) @safe
+{
+	import std.exception:enforce;
+	import std.string:strip,toUpper,split;
+	import std.array:array;
+	import std.algorithm:map;
+
+	TypeRemapping ret;
+	auto cols = line.split(',')
+			.map!(col=>col.strip)
+			.array;
+	enforce(cols.length>=2);
+	ret.originalType = cols[0];
+	ret.replacementType = cols[1];
+	ret.addFirstSizeOfArgument = (cols.length>2 && (cols[2].toUpper =="Y" || cols[2].toUpper=="TRUE"));
+	return ret;
+}
+
+private TypeRemapping[] readTypeRemappingsFile(string filename) @safe
+{
+	static import std.file;
+	import std.string:splitLines,strip,split,toUpper;
+	import std.array:array;
+	import std.algorithm:map,filter,startsWith;
+
+	auto lines = readAsString(filename)
+			.splitLines
+			.map!(line=>line.strip)
+			.array
+			.filter!(l=>l.length>0 && !l.startsWith("//"))
+			.array
+			.map!(line => readTypeRemapping(line))
+			.array;
+	return lines;
+}
+
+private bool isOpaqueType(string typeName)
+{
+	import std.string:toLower;
+	return (typeName.toLower =="opaque");
+}
+
+// wtf Map and Filter don't return InputRanges?
+auto safeArray(Range)(Range range) @trusted // because filter is system
+if (from!"std.range".isInputRange!Range || is(Range==FilterResult) || is(Range==MapResult))
+{
+	import std.array:Appender;
+	alias T = from!"std.range".ElementType!(Range);
+	Appender!(T[]) ret;
+	foreach(ref e;range)
+		ret.put(e);
+	return ret.data;
+}
+
+private string[] opaqueTypes(TypeRemapping[] remappings) @safe
+{
+	import std.algorithm:filter,map;
+	import std.array:array;
+	return remappings.filter!(remappings => remappings.replacementType.isOpaqueType)
+			.map!(remapping => remapping.originalType)
+			.safeArray;
+}
+
+private const(TypeRemapping)[] nonOpaqueTypeRemappings(const scope TypeRemapping[] typeRemappings) @safe
+{
+	import std.algorithm:filter,map;
+	import std.array:array;
+	return typeRemappings
+		.filter!(type => !type.replacementType.isOpaqueType)
+		.safeArray;
 }
 
 
@@ -85,16 +186,32 @@ struct Context {
        All previously seen cursors
      */
     private SeenCursors seenCursors;
+    string typeRemappingsFile;
+    string headerBlacklistFile;
 
     string[] blobTypes = ["vector","map","string","pair","set","array","ostream","tbb","concurrent","shared_ptr","std::"];
     string[] blackListedPaths = ["vector","string","map","boost","c++","set","tbb","patterns"];
 
+    const(TypeRemapping)[] typeRemappings;
+    string[] opaqueTypes;
+    string[] headerBlacklists;
+
+    string remapType(string typeName) @safe pure
+    {
+	    import std.string:replace;
+	    //TODO - add regex later
+	    string ret = typeName;
+	    foreach(t;typeRemappings)
+	    	ret=ret.replace(t.originalType,t.replacementType);
+	    return ret;
+    }
+	    
     bool isTypeBlobSubstituted(string typeName) @safe pure
     {
 	    import std.algorithm:canFind;
-	    foreach(blobType;blobTypes)
+	    foreach(opaqueType;opaqueTypes)
 	    {
-		if (typeName.canFind(blobType))
+		if (typeName.canFind(opaqueType))
 			return true;
 	    }
 	    return false;
@@ -102,9 +219,11 @@ struct Context {
     bool isPathBlackListed(string path) @safe pure
     {
 	    import std.algorithm:canFind;
-	    foreach(blackListedPath;blackListedPaths)
+
+	    //TODO - add regex later
+	    foreach(headerBlacklist;headerBlacklists)
 	    {
-		    if(path.canFind(blackListedPath))
+		    if(path.canFind(headerBlacklist))
 			    return true;
 	    }
 	    return false;
@@ -127,9 +246,15 @@ struct Context {
 
     Language language;
 
-    this(Options options, in Language language) @safe pure {
+    this(Options options, in Language language,string typeRemappingsFile, string headerBlacklistFile) @safe {
+	import std.array:array;
+	import std.algorithm:filter;
         this.options = options;
         this.language = language;
+	auto typeRemappings = readTypeRemappingsFile(typeRemappingsFile);
+	this.opaqueTypes = typeRemappings.opaqueTypes;
+	this.typeRemappings = typeRemappings.nonOpaqueTypeRemappings;
+	this.headerBlacklists = readHeaderBlacklistFile(headerBlacklistFile);
     }
 
     ref Context indent() @safe pure return {

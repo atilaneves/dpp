@@ -46,7 +46,7 @@ void printVector(void* bytes)
 	auto size = p->size();	
 	//printf("vector size = %ld\n",size);
 	for(long i = 0;i<size;++i)
-		printf("%ld:%f\n",i,p->data()[i]);
+		printf("%ld:%s\n",i,std::to_string(p->data()[i]).c_str());
 }
 template <class T>
 void* getVectorData(void* bytes)
