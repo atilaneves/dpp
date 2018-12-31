@@ -1,5 +1,6 @@
 import opaque;
 enum VectorSize = Problem.values.sizeof;
+enum VectorIntSize = VectorInt.values.sizeof;
 
 #include "v.hpp"
 import std.stdio;
@@ -7,16 +8,10 @@ void main()
 {
 	import std.range:iota;
 	import std.array:array;
-	import std.algorithm:map;
+	import std.algorithm:map,reverse;
 	import std.conv:to;
 	auto values = iota(100).map!(v=>v.to!double).array;
 	auto v = problem(values.ptr,values.length);
-	/+auto size = getVectorSize!double(v.values.ptr);
-	auto bytes = getVectorDataDouble(v.values.ptr);
-	auto test = getVectorFoo(&v);
-	writeln(size);
-	writeln(test);
-	+/
 	auto results = getVector!double(v.values);
 	writeln(results);
 
@@ -29,6 +24,12 @@ void main()
 
 	auto v3 = vector(v.values);
 	writefln("v3.values = %s",v3.values);
+
+	auto intValues = iota(100).array.reverse;
+	auto iv = Vector!(int,VectorIntSize)(intValues);
+	writefln("iv.length = %s",iv.length);
+	writefln("iv.values = %s",iv.values);
+
 }
 
 alias VectorDouble = Opaque!("vector!(double)",VectorSize);
