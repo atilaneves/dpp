@@ -1,0 +1,31 @@
+import opaque;
+
+// FIXME - sadly timeval and timespec get dragged in by dpp
+struct timeval {}
+struct timespec{} 
+
+#include "variant.hpp"
+import std.stdio;
+
+void main(string[] args)
+{
+	SomeVariant v;
+	setT!double(v,3.14);
+	auto d = getT!double(v,double.nan);
+	writeln(d);
+	setT!int(v,123);
+	auto i = getT!int(v,-999);
+	writeln(i);
+
+}
+
+T getT(T)(ref SomeVariant v, T elseValue)
+{
+	auto p = cast(T*)variantGet!T(cast(void*)v.value.blob);
+	return (p is null)?elseValue : *p;
+}
+
+void setT(T)(ref SomeVariant v, T value)
+{
+	variantSet!T(cast(void*)v.value.blob.ptr,cast(void*)&value);
+}
