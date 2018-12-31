@@ -43,6 +43,20 @@ struct TypeRemapping
 	string originalType;
 	string replacementType;
 	bool addFirstSizeOfArgument;
+	bool isRegex;
+}
+
+private enum BackQuote='`';
+
+private bool originalTypeIsRegex(string typeName) pure @trusted
+{
+	return (typeName.length>2 && typeName[0]==BackQuote  && typeName[$-1] ==BackQuote);
+}
+
+string stripBackQuotes(string typeName) pure @safe
+{
+	import std.string:replace;
+	return typeName.replace([BackQuote],"");
 }
 
 private TypeRemapping readTypeRemapping(string line) @safe
@@ -57,7 +71,9 @@ private TypeRemapping readTypeRemapping(string line) @safe
 			.map!(col=>col.strip)
 			.array;
 	enforce(cols.length>=2);
-	ret.originalType = cols[0];
+	auto originalType = cols[0];
+	ret.isRegex = originalTypeIsRegex(originalType);
+	ret.originalType = originalType.stripBackQuotes;
 	ret.replacementType = cols[1];
 	ret.addFirstSizeOfArgument = (cols.length>2 && (cols[2].toUpper =="Y" || cols[2].toUpper=="TRUE"));
 	return ret;
@@ -81,7 +97,7 @@ private TypeRemapping[] readTypeRemappingsFile(string filename) @safe
 	return lines;
 }
 
-private bool isOpaqueType(string typeName)
+private bool isOpaqueType(string typeName) pure @safe
 {
 	import std.string:toLower;
 	return (typeName.toLower =="opaque");
@@ -189,29 +205,48 @@ struct Context {
     string typeRemappingsFile;
     string headerBlacklistFile;
 
-    string[] blobTypes = ["vector","map","string","pair","set","array","ostream","tbb","concurrent","shared_ptr","std::"];
-    string[] blackListedPaths = ["vector","string","map","boost","c++","set","tbb","patterns"];
-
     const(TypeRemapping)[] typeRemappings;
+    alias RegexT = typeof(from!"std.regex".regex("*"));
+    RegexT[string] typeRemappingsRegex;
+
     string[] opaqueTypes;
     string[] headerBlacklists;
+	    
+    alias dgMatch = (string s, RegexT r) @system
+	    		{
+				auto match = from!"std.regex".matchFirst(s,r);
+				return match? match.hit.idup : "";
+			};
+
+    string getRegexHit(const(string) originalType, const(string) tryType) @trusted pure
+    {
+	    import std.regex:matchFirst;
+	    auto f = assumePure(dgMatch);
+	    auto p = originalType in typeRemappingsRegex;
+	    return (p is null) ? "" : f(tryType,*p);
+    }
 
     string remapType(string typeName) @safe pure
     {
 	    import std.string:replace;
-	    //TODO - add regex later
+	    import std.regex:matchFirst;
 	    string ret = typeName;
-	    foreach(t;typeRemappings)
-	    	ret=ret.replace(t.originalType,t.replacementType);
+	    foreach(ref t;typeRemappings)
+	    {
+		auto originalType = (!t.isRegex) ?  t.originalType : getRegexHit(t.originalType,typeName);
+	    	ret=ret.replace(originalType,t.replacementType);
+	    }
 	    return ret;
     }
 	    
     bool isTypeBlobSubstituted(string typeName) @safe pure
     {
+	    import std.regex:matchFirst;
 	    import std.algorithm:canFind;
-	    foreach(opaqueType;opaqueTypes)
+	    foreach(ref opaqueType;opaqueTypes)
 	    {
-		if (typeName.canFind(opaqueType))
+		auto hit = (opaqueType in typeRemappingsRegex) ? (getRegexHit(opaqueType,typeName).length>0) : (typeName.canFind(opaqueType));
+		if (hit)
 			return true;
 	    }
 	    return false;
@@ -249,12 +284,15 @@ struct Context {
     this(Options options, in Language language,string typeRemappingsFile, string headerBlacklistFile) @safe {
 	import std.array:array;
 	import std.algorithm:filter;
+	import std.regex:regex;
         this.options = options;
         this.language = language;
 	auto typeRemappings = readTypeRemappingsFile(typeRemappingsFile);
 	this.opaqueTypes = typeRemappings.opaqueTypes;
 	this.typeRemappings = typeRemappings.nonOpaqueTypeRemappings;
 	this.headerBlacklists = readHeaderBlacklistFile(headerBlacklistFile);
+	foreach(typeRemapping;typeRemappings.filter!(t=>t.isRegex))
+		this.typeRemappingsRegex[typeRemapping.originalType] = regex(typeRemapping.originalType);
     }
 
     ref Context indent() @safe pure return {
@@ -491,4 +529,12 @@ private struct CursorId {
         typeSpelling = cursor.type.spelling;
         typeKind = cursor.type.kind;
     }
+}
+
+private auto assumePure(T)(T t)
+if (from!"std.traits".isFunctionPointer!T || from!"std.traits".isDelegate!T)
+{
+	import std.traits:functionAttributes, FunctionAttribute,functionLinkage,SetFunctionAttributes;
+	enum attrs = functionAttributes!T | FunctionAttribute.pure_;
+	return cast(SetFunctionAttributes!(T, functionLinkage!T, attrs)) t;
 }
