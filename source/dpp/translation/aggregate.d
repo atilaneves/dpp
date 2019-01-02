@@ -221,6 +221,7 @@ string[] translateAggregate(
     import std.algorithm: map, count;
     import std.array: array;
     import std.string: strip;
+    import clang: Cursor, Type;
 
     if (cursor.isForwardDeclaration)
     {
@@ -333,7 +334,7 @@ string[] translateField(in from!"clang".Cursor field,
 
     return field.isBitField
         ? translateBitField(field, context, type)
-        : [text(makeOffsetSizeAttribute(field),, " ", type, " ", maybeRename(field, context), ";")];
+        : [text(makeOffsetSizeAttribute(field), " ", type, " ", maybeRename(field, context), ";")];
 }
 
 string[] translateBitField(in from!"clang".Cursor cursor,

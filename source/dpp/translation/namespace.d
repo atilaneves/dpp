@@ -1,6 +1,8 @@
 module dpp.translation.namespace;
 
 import dpp.from;
+import std.exception:enforce;
+import std.algorithm:all;
 
 struct NamespaceNode
 {
