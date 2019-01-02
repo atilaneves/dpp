@@ -60,9 +60,9 @@ string[] translateVariable(in from!"clang".Cursor cursor,
 
         ret ~= text("enum ", spelling, " = ", translateTokens(tokens), ";");
     } else
-        ret ~=
-            maybePragma(cursor, context) ~
-            text("extern __gshared ", static_,
+    {
+        ret ~= maybePragma(cursor, context);
+	ret ~= text("extern __gshared ", static_,
                  translateType(cursor.type, context, No.translatingFunction), " ", spelling, ";")
             ;
 
