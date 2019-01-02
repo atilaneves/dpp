@@ -95,11 +95,15 @@ string[] translateEnum(in from!"clang".Cursor cursor,
     auto enumName = context.spellingOrNickname(cursor);
 
     string[] lines;
-    foreach(member; cursor) {
-        if(!member.isDefinition) continue;
-        auto memName = member.spelling;
-        lines ~= `enum ` ~ memName ~ ` = ` ~ enumName ~ `.` ~ memName ~ `;`;
-    }
+    if (!context.noGenerateExtraCEnum)
+    {
+         foreach(member; cursor) {
+            if(!member.isDefinition) continue;
+
+            auto memName = member.spelling;
+            lines ~= `enum ` ~ memName ~ ` = ` ~ enumName ~ `.` ~ memName ~ `;`;
+        }
+     }
 
     return
         translateAggregate(context, cursor, "enum", nullable(enumName)) ~
@@ -214,15 +218,15 @@ string[] translateAggregate(
     @safe
 {
     import dpp.translation.translation: translate, isForwardDeclaration;
-    import clang: Cursor, Type;
-    import std.algorithm: map;
+    import std.algorithm: map, count;
     import std.array: array;
+    import std.string: strip;
 
     if (cursor.isForwardDeclaration)
     {
-	context.log("cursor is forward definition",cursor);
-	context.log("real definition is",cursor);
-	return [];
+    	context.log("cursor is forward definition",cursor);
+    	context.log("real definition is",cursor);
+    	return [];
     }
 
 
@@ -259,9 +263,9 @@ string[] translateAggregate(
         lines ~= bitFieldInfo.handle(member);
 
         if(skipMember(member)) continue;
-
-        lines ~= translate(member, context).map!(a => "    " ~ a).array;
-
+        auto fieldLines = translate(member, context).map!(a => "    " ~ a).array;
+        lines ~= fieldLines;
+        
         // Possibly deal with C11 anonymous structs/unions. See issue #29.
         lines ~= maybeC11AnonymousRecords(cursor, member, context);
 
@@ -272,11 +276,21 @@ string[] translateAggregate(
     lines ~= maybeOperators(cursor, name);
     lines ~= maybeDisableDefaultCtor(cursor, dKeyword);
 
-    lines ~= `}`;
+    lines ~= "}\n";
 
     return lines;
 }
 
+string makeOffsetSizeAttribute(in from!"clang".Cursor member) @safe pure {
+     import clang.c.index:clang_Cursor_getOffsetOfField, clang_Type_getSizeOf;
+     import std.conv: text;
+     import std.exception:enforce;
+     auto offsetOf = clang_Cursor_getOffsetOfField(member.cx);
+     //enforce (offsetOf == -1 || (offsetOf % 8 ==0));
+     offsetOf = (offsetOf == -1) ? -1 : (offsetOf / 8);
+     auto sizeOf = clang_Type_getSizeOf(member.type.cx);
+     return  text("@DppOffsetSize(",offsetOf,",",sizeOf, ")");
+ }
 
 private bool skipMember(in from!"clang".Cursor member) @safe @nogc pure nothrow {
     import clang: Cursor;
@@ -319,7 +333,7 @@ string[] translateField(in from!"clang".Cursor field,
 
     return field.isBitField
         ? translateBitField(field, context, type)
-        : [text(type, " ", maybeRename(field, context), ";")];
+        : [text(makeOffsetSizeAttribute(field),, " ", type, " ", maybeRename(field, context), ";")];
 }
 
 string[] translateBitField(in from!"clang".Cursor cursor,
@@ -590,7 +604,7 @@ private auto mutableType(const from!"clang".Type type) @trusted pure
 	return ret;
 }
 
-private auto mutableCursor(const from!"clang".Cursor cursor) @trusted pure
+package auto mutableCursor(const from!"clang".Cursor cursor) @trusted pure
 {
 	import std.traits:Unqual;
 	auto ret = cast(Unqual!(from!"clang".Cursor)) cursor;

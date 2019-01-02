@@ -32,6 +32,10 @@ struct Options {
     string headerBlacklistFile;
     string typeRemappingsFile;
     string functionBlacklistFile;
+    bool noGenerateExtraCEnum;
+    string[] onlyNamespaces;
+ 
+  
 
     this(string[] args) {
 
@@ -92,23 +96,25 @@ struct Options {
     private void parseArgs(ref string[] args) {
         import std.getopt: getopt, defaultGetoptPrinter, config;
         auto helpInfo =
-            getopt(
-                args,
-                config.passThrough,
-                "print-cursors", "Print debug information", &debugOutput,
-                "include-path", "Include paths", &includePaths,
-                "keep-pre-cpp-files", "Do not delete the temporary pre-preprocessed file", &keepPreCppFiles,
-                "keep-d-files", "Do not delete the temporary D file to be compiled", &keepDlangFiles,
-                "preprocess-only", "Only transform the .dpp file into a .d file, don't compile", &preprocessOnly,
-                "compiler", "D compiler to use", &dlangCompiler,
-                "parse-as-cpp", "Parse header as C++", &parseAsCpp,
-                "define", "C Preprocessor macro", &defines,
-                "hard-fail", "Translate nothing if any part fails", &hardFail,
-                "c++-std-lib", "Link to the C++ standard library", &cppStdLib,
-		"map-type-file", "File specifying type remappings",&typeRemappingsFile,
-		"blacklist-header-file", "File specifying headers to blacklist",&headerBlacklistFile,
-		"blacklist-function-file", "File specifying functions to blacklist",&functionBlacklistFile,
-            );
+        getopt(
+            args,
+            config.passThrough,
+            "print-cursors", "Print debug information", &debugOutput,
+            "include-path", "Include paths", &includePaths,
+            "keep-pre-cpp-files", "Do not delete the temporary pre-preprocessed file", &keepPreCppFiles,
+            "keep-d-files", "Do not delete the temporary D file to be compiled", &keepDlangFiles,
+            "preprocess-only", "Only transform the .dpp file into a .d file, don't compile", &preprocessOnly,
+            "compiler", "D compiler to use", &dlangCompiler,
+            "parse-as-cpp", "Parse header as C++", &parseAsCpp,
+            "define", "C Preprocessor macro", &defines,
+            "hard-fail", "Translate nothing if any part fails", &hardFail,
+            "c++-std-lib", "Link to the C++ standard library", &cppStdLib,
+            "map-type-file", "File specifying type remappings",&typeRemappingsFile,
+            "blacklist-header-file", "File specifying headers to blacklist",&headerBlacklistFile,
+            "blacklist-function-file", "File specifying functions to blacklist",&functionBlacklistFile,
+            "no-generate-extra-c-enum", "Do not generate C-style additional enums",&noGenerateExtraCEnum,
+            "only-namespace", "Only process c++ code within specified namespace",&onlyNamespaces,
+        );
 
         if(helpInfo.helpWanted) {
             () @trusted {
