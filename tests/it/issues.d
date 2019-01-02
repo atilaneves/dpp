@@ -1152,3 +1152,62 @@ unittest {
         ),
     );
 }
+
+
+@ShouldFail
+@Tags("issue")
+@("114")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<class T>
+                struct Foo {
+                    template<class U>
+                    Foo& operator=(U& other) {
+                        return *this;
+                    }
+                };
+            }
+        ),
+        D(
+            q{
+                Foo!int foo;
+                int i;
+                foo = i;
+                double d;
+                foo = d;
+            }
+        ),
+    );
+}
+
+
+@ShouldFail("Should ignore 'global' constructor declaration")
+@Tags("issue")
+@("115")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<class T>
+                class Foo {
+                    T value;
+                public:
+                    Foo(T value);
+                };
+
+                template<class T>
+                    Foo<T>::Foo(T val) {
+                    value = val;
+                }
+            }
+        ),
+        D(
+            q{
+                auto fooI = Foo!int(42);
+                auto fooD = Foo!double(33.3);
+            }
+        ),
+    );
+}
