@@ -1198,7 +1198,7 @@ unittest {
                 };
 
                 template<class T>
-                    Foo<T>::Foo(T val) {
+                Foo<T>::Foo(T val) {
                     value = val;
                 }
             }
@@ -1207,6 +1207,25 @@ unittest {
             q{
                 auto fooI = Foo!int(42);
                 auto fooD = Foo!double(33.3);
+            }
+        ),
+    );
+}
+
+
+@Tags("issue")
+@("116")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct Foo;
+                struct Foo { int i; };
+            }
+        ),
+        D(
+            q{
+                static assert(is(typeof(Foo.i) == int));
             }
         ),
     );
