@@ -1230,3 +1230,47 @@ unittest {
         ),
     );
 }
+
+
+@ShouldFail("The function parameter gets named Enum instead of Struct.Enum")
+@Tags("issue")
+@("119.0")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct Struct {
+                    enum Enum { foo, bar, baz };
+                };
+
+                void fun(Struct::Enum);
+            }
+        ),
+        D(
+            q{
+            }
+        ),
+    );
+}
+
+
+@ShouldFail("enum class should not alias members")
+@Tags("issue")
+@("119.1")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct Struct {
+                    enum class Enum { foo, bar, baz };
+                };
+            }
+        ),
+        D(
+            q{
+                auto f = Struct.Enum.foo;
+                static assert(!__traits(compiles, Struct.foo));
+            }
+        ),
+    );
+}
