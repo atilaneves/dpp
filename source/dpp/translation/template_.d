@@ -113,6 +113,7 @@ private bool isValueOfType(
     @safe
 {
     import dpp.translation.type: translate;
+    import dpp.translation.exception: UntranslatableException;
     import std.array: array;
     import std.exception: collectException;
     import std.conv: to;
@@ -132,7 +133,7 @@ private bool isValueOfType(
     }
 
     switch(dtype) {
-        default: throw new Exception("isValueOfType cannot handle type `" ~ dtype ~ "`");
+        default: throw new UntranslatableException("isValueOfType cannot handle type `" ~ dtype ~ "`");
         case "bool":    tryConvert!bool;    break;
         case "char":    tryConvert!char;    break;
         case "wchar":   tryConvert!wchar;   break;
