@@ -327,3 +327,22 @@ import it;
          ),
     );
 }
+
+
+@("keyword")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                enum Enum { debug, other };
+            }
+         ),
+
+        D(
+            q{
+                auto d = Enum.debug_;
+                auto o = Enum.other;
+            }
+         ),
+    );
+}
