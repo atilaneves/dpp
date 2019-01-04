@@ -67,7 +67,7 @@ string[] translate(in from!"clang".Cursor cursor,
     import dpp.runtime.context: Language;
     import dpp.translation.exception: UntranslatableException;
     import std.conv: text;
-    import std.algorithm: canFind;
+    import std.algorithm: canFind, any;
     import std.array: join;
 
     debugCursor(cursor, context);
@@ -91,9 +91,10 @@ string[] translate(in from!"clang".Cursor cursor,
 
     try {
         auto lines = translators[cursor.kind](cursor, context);
-        if(lines.canFind!(l => l.canFind("&)")))
+
+        if(lines.any!untranslatable)
             throw new UntranslatableException(
-                text("D doesn't have & in:\n",
+                text("Not valid D:\n",
                      "------------\n",
                      lines.join("\n"),
                     "\n------------\n",));
@@ -231,6 +232,27 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
     }
 }
 
+bool untranslatable(in string line) @safe pure {
+    import std.algorithm: canFind;
+    return
+        line.canFind(`&)`)
+        || line.canFind("&,")
+        || line.canFind("&...")
+        || line.canFind(" (*)")
+        || line.canFind("variant!")
+        || line.canFind("value _ ")
+        || line.canFind("enable_if_c")
+        || line.canFind(`}))`)
+        || line.canFind(`(this_)_M_t._M_equal_range_tr(`)
+        || line.canFind(`this-`)
+        || line.canFind("function!")
+        || line.canFind("_BoundArgs...")
+        || line.canFind("sizeof...")
+        || line.canFind("template<")  // FIXME: mir_slice
+        ;
+}
+
+
 // blacklist of cursors in the C++ standard library that dpp can't handle
 string[] ignoredCppCursorSpellings() @safe pure nothrow {
     return
@@ -302,7 +324,105 @@ string[] ignoredCppCursorSpellings() @safe pure nothrow {
             "__do_is_swappable_impl",
             "__do_is_nothrow_swappable_impl",
             "is_optional_val_init_candidate",
+
+            // xenon / boost / STL
             "optional", // FIXME
             "is_variant_constructible_from", // FIXME
+            "invoke_visitor",  // FIXME
+            "make_variant_list",  // FIXME
+            "has_result_type",  // FIXME
+            "apply_visitor_binary_invoke", // FIXME
+            "apply_visitor_binary_unwrap", // FIXME
+            "is_assignable_imp",  // FIXME
+            "has_trivial_constructor",  // FIXME
+            "has_trivial_default_constructor",  // FIXME
+            "has_trivial_destructor",  // FIXME
+            "has_nothrow_constructor",  // FIXME
+            "has_trivial_copy",  // FIXME
+            "type_with_alignment",  // FIXME
+            "ct_imp",  // FIXME
+            "is_constructible_imp",  // FIXME
+            "is_destructible_imp",  // FIXME
+            "is_default_constructible_imp",  // FIXME
+            "aligned_storage_impl",  // FIXME
+            "aligned_struct_wrapper",  // FIXME
+            "has_nothrow_copy_constructor",  // FIXME
+            "is_constructible",  // FIXME
+            "is_default_constructible",  // FIXME
+            "hash_combine_tuple",  // FIXME
+            "is_character_type",  // FIXME
+            "strictest_lock_impl",
+            "strictest_lock",
+            "light_function",  // FIXME
+            "inherit_features",  // FIXME
+            "addr_impl_ref",  // FIXME
+            "_Hashtable_ebo_helper",  // FIXME
+            "unordered_multimap",  // FIXME'
+            "unordered_map",  // FIXME STL
+            "is_string_widening_required_t",  // FIXME
+            "is_arithmetic_and_not_xchars",  // FIXME
+            "is_xchar_to_xchar",  // FIXME
+            "date_facet",  // FIXME
+            "date_input_facet",  // FIXME
+            "date_generator_formatter",  // FIXME
+            "int_t",  // FIXME
+            "uint_t", // FIXME
+            "int_max_value_t",  // FIXME
+            "int_min_value_t",  // FIXME
+            "uint_value_t",  // FIXME
+            "precision",  // FIXME
+            "append_N",  // FIXME
+            "normalise",  // FIXME
+            "evaluation",  // FIXME
+            "plus_impl",  // FIXME
+            "minus_impl",  // FIXME
+            "advance_forward",  // FIXME
+            "advance_backward", // FIXME
+            "not_equal_to_impl",  // FIXME
+            "greater_impl",  // FIXME
+            "iter_fold_impl",  // FIXME
+            "less_equal_impl",  // FIXME
+            "special_values_formatter",  // FIXME
+            "period_formatter",  // FIXME
+            "assert",  // FIXME - should be caught by dpp.translation.dlang
+            "assertion_failed",
+            "multimap", // FIXME STL
+            "map",  // FIXME STL
+            "function",  // FIXME - should be caught by dpp.translation.dlang
+            "_Function_handler",  // FIXME
+            "_Mem_fn",  // FIXME
+            "mem_fn",  // FIXME STL
+            "_Mu",  // FIXME - C cast
+            "__volget",  // FIXME
+            "_Bind",  // FIXME
+            "_Bind_result", // FIXME
+            "_Bind_check_arity",  // FIXME
+            "_Bind_helper",  // FIXME
+            "_Not_fn",  // FIXME
+            "__is_byte_like", // FIXME
+            "shared_ptr",  // FIXME STL
+            "weak_ptr",  // FIXME STL
+            "_Sp_ebo_helper",  // FIXME STL
+            "auto_ptr",  // FIXME STL
+            "__allocated_ptr",  // FIXME STL
+            "tuple_size",  // FIXME STL
+            "__invoke",  // FIXME
+            "_Mem_fn_traits",  // FIXME
+            "_Weak_result_type_impl", // FIXME
+            "__uses_alloc",  // FIXME
+            "_Tuple_impl", // FIXME
+            "_TC",  // FIXME
+            "__combine_tuples",  // FIXME
+            "__tuple_concater",  // FIXME
+            "tuple_cat",  // FIXME STL
+            "reference_wrapper",
+            "tuple",  // FIXME STL
+            "__is_copy_insertable_impl", // FIXME
+            "greater",  // FIXME STL
+            "less",  // FIXME STL
+            "greater_equal",  // FIXME STL
+            "less_equal",  // FIXME STL
+            "logical_and", // FIXME STL
+            "mir_rci",  // FIXME
         ];
 }

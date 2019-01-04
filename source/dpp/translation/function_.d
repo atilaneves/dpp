@@ -88,8 +88,9 @@ private string functionDecl(
     @safe
 {
     import dpp.translation.template_: translateTemplateParams;
+    import dpp.translation.exception: UntranslatableException;
     import std.conv: text;
-    import std.algorithm: endsWith;
+    import std.algorithm: endsWith, canFind;
     import std.array: join;
 
     context.log("Function return type (raw):        ", cursor.type.returnType);
@@ -106,6 +107,10 @@ private string functionDecl(
         ? ""
         : "(" ~ templateParams.join(", ") ~ ")"
         ;
+
+    // FIXME: avoid opBinary(string op: )(CT params)(RT params)
+    if(ctParams != "" && spelling.canFind("("))
+        throw new UntranslatableException("BUG with templated operators");
 
     return text(returnType, " ", spelling, ctParams, "(", params, ") @nogc nothrow", const_, ";");
 }
@@ -242,7 +247,9 @@ private string operatorSpellingD(in from!"clang".Cursor cursor,
     // Some of the operators here have empty parentheses around them. This is to
     // to make them templates and only be instantiated if needed. See #102.
     switch(cppOperator) {
-        default: return dFunction ~ `(string op: "` ~ cppOperator ~ `")`;
+        default:
+            return dFunction ~ `(string op: "` ~ cppOperator ~ `")`;
+
         case "=": return `opAssign` ~ templateParens;
         case "()": return `opCall` ~ templateParens;
         case "[]": return `opIndex` ~ templateParens;

@@ -345,7 +345,7 @@ private string translateUnexposed(in from!"clang".Type type,
     const translation =  spelling
         .translateString
         // we might get template arguments here (e.g. `type-parameter-0-0`)
-        .replace("-", "_")
+        .replace("type-parameter-0-", "type_parameter_0_")
         ;
 
     return addModifiers(type, translation);
@@ -372,8 +372,11 @@ string translateString(in string spelling) @safe pure nothrow {
         .replace("::", ".")
         .replace("volatile ", "")
         .replace("long long", "long")
+        .replace("long double", "double")
         .replace("unsigned ", "u")
+        .replace("signed char", "char")  // FIXME?
         .replace("&&", "")
+        .replace("...", "")  // variadics work differently in D
         ;
 }
 
