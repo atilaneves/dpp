@@ -68,6 +68,7 @@ string[] translate(in from!"clang".Cursor cursor,
     import dpp.translation.exception: UntranslatableException;
     import std.conv: text;
     import std.algorithm: canFind;
+    import std.array: join;
 
     debugCursor(cursor, context);
 
@@ -90,8 +91,12 @@ string[] translate(in from!"clang".Cursor cursor,
 
     try {
         auto lines = translators[cursor.kind](cursor, context);
-        if(lines.canFind!(l => l.canFind("&")))
-            throw new UntranslatableException("& is not valid in D");
+        if(lines.canFind!(l => l.canFind("&)")))
+            throw new UntranslatableException(
+                text("D doesn't have & in:\n",
+                     "------------\n",
+                     lines.join("\n"),
+                    "\n------------\n",));
         return lines;
     } catch(UntranslatableException e) {
 
@@ -99,8 +104,9 @@ string[] translate(in from!"clang".Cursor cursor,
             import std.stdio: stderr;
             () @trusted {
                 stderr.writeln("\nUntranslatable cursor ", cursor,
-                               " sourceRange: ", cursor.sourceRange,
-                               " children: ", cursor.children, "\n");
+                               "\nmsg: ", e.msg,
+                               "\nsourceRange: ", cursor.sourceRange,
+                               "\nchildren: ", cursor.children, "\n");
             }();
         }
 
@@ -115,8 +121,9 @@ string[] translate(in from!"clang".Cursor cursor,
             import std.stdio: stderr;
             () @trusted {
                 stderr.writeln("\nCould not translate cursor ", cursor,
-                               " sourceRange: ", cursor.sourceRange,
-                               " children: ", cursor.children, "\n");
+                               "\nmsg: ", e.msg,
+                               "\nsourceRange: ", cursor.sourceRange,
+                               "\nchildren: ", cursor.children, "\n");
             }();
         }
 

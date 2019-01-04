@@ -1154,7 +1154,6 @@ unittest {
 }
 
 
-@ShouldFail
 @Tags("issue")
 @("114")
 @safe unittest {
