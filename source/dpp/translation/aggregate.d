@@ -217,6 +217,14 @@ string[] translateAggregate(
     import clang: Cursor, Type;
     import std.algorithm: map;
     import std.array: array;
+    import dpp.util:callAssumePure;
+
+    if (cursor.definition != Cursor.nullCursor && cursor != cursor.definition)
+    {
+	context.log("aggregate is defined elsewhere in TU and this is a redundant forward declaration, so skipping cursor",cursor);
+	context.log("real definition is",cursor.definition);
+        return [];
+    }
 
     // remember all aggregate declarations
     context.rememberAggregate(cursor);
@@ -270,6 +278,16 @@ string[] translateAggregate(
 }
 
 
+string makeOffsetSizeAttribute(in from!"clang".Cursor member) @safe pure {
+     import clang.c.index:clang_Cursor_getOffsetOfField, clang_Type_getSizeOf;
+     import std.conv: text;
+     import std.exception:enforce;
+     auto offsetOf = clang_Cursor_getOffsetOfField(member.cx);
+     offsetOf = (offsetOf == -1) ? -1 : (offsetOf / 8);
+     auto sizeOf = clang_Type_getSizeOf(member.type.cx);
+     return  text("@DppOffsetSize(",offsetOf,",",sizeOf, ")");
+ }
+
 private bool skipMember(in from!"clang".Cursor member) @safe @nogc pure nothrow {
     import clang: Cursor;
     return
@@ -311,7 +329,7 @@ string[] translateField(in from!"clang".Cursor field,
 
     return field.isBitField
         ? translateBitField(field, context, type)
-        : [text(type, " ", maybeRename(field, context), ";")];
+         : [text(makeOffsetSizeAttribute(field), " ", type, " ", maybeRename(field, context), ";")];
 }
 
 string[] translateBitField(in from!"clang".Cursor cursor,

@@ -16,9 +16,9 @@ alias Translator = string function(
 alias Translators = Translator[from!"clang".Type.Kind];
 
 
-string translate(in from!"clang".Type type,
+string translate(const from!"clang".Type type,
                  ref from!"dpp.runtime.context".Context context,
-                 in from!"std.typecons".Flag!"translatingFunction" translatingFunction = from!"std.typecons".No.translatingFunction)
+                 const from!"std.typecons".Flag!"translatingFunction" translatingFunction = from!"std.typecons".No.translatingFunction)
     @safe pure
 {
     import std.conv: text;
