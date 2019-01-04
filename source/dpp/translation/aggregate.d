@@ -217,6 +217,14 @@ string[] translateAggregate(
     import clang: Cursor, Type;
     import std.algorithm: map;
     import std.array: array;
+    import dpp.util:callAssumePure;
+
+    if (cursor.definition != Cursor.nullCursor && cursor != cursor.definition)
+    {
+	context.log("aggregate is defined elsewhere in TU and this is a redundant forward declaration, so skipping cursor",cursor);
+	context.log("real definition is",cursor.definition);
+        return [];
+    }
 
     // remember all aggregate declarations
     context.rememberAggregate(cursor);
