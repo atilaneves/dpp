@@ -17,7 +17,7 @@ string[] translateNamespace(in from!"clang".Cursor cursor,
     string[] lines;
 
     lines ~= [
-            `extern(C++, "` ~ cursor.spelling ~ `")`,
+            `extern(C++, ` ~ cursor.spelling ~ `)`,
             `{`,
     ];
 

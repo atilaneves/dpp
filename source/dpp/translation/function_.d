@@ -9,12 +9,37 @@ import dpp.from;
 enum OPERATOR_PREFIX = "operator";
 
 
-private bool isRedundantFunctionDeclaration(const(from!"clang".Cursor) cursor) @trusted
+private bool isRedundantFunctionDeclaration(const(from!"clang".Cursor) cursor,
+                ref from!"dpp.runtime.context".Context context ) @trusted
 {
     import clang: Cursor;
     // skip cursor when there is both a declaration and a definition and the cursor is the declaration
-    return (cursor.definition != Cursor.nullCursor) && (cursor == cursor.definition);
+    return (cursor.definition != Cursor.nullCursor) && (cursor == cursor.definition) && !isMethodDeclaredWithinAggregate(cursor,context);
 }
+
+bool isMethodDeclaredWithinAggregate(const from!"clang".Cursor cursor,
+                           ref from!"dpp.runtime.context".Context context) @trusted
+{
+    with(from!"clang".Cursor.Kind)
+    {
+        if (! from!"std.algorithm".canFind([CXXMethod,Constructor,Destructor,ConversionFunction],cursor.kind))
+        {
+            context.log("cursor is a ",cursor.kind," and so it cannot be a method declared within an aggregate");
+            return false;
+        }
+    }
+    context.log("semanticParent is ",cursor.semanticParent);
+    context.log("cursor range is ",cursor.sourceRange);
+    context.log("semanticParent range is ",cursor.semanticParent.sourceRange);
+    context.log("cursorRange within semanticParent range? ", cursor.semanticParent.contains(cursor));
+    return cursor.semanticParent.contains(cursor);
+}
+
+private bool contains(const from!"clang".Cursor haystack, const from!"clang".Cursor needle)
+{
+    return needle.sourceRange.start >= haystack.sourceRange.start && needle.sourceRange.end <= haystack.sourceRange.end;
+}
+
 
 string[] translateFunction(in from!"clang".Cursor cursor,
                            ref from!"dpp.runtime.context".Context context)
@@ -42,7 +67,7 @@ string[] translateFunction(in from!"clang".Cursor cursor,
 
     if(ignoreFunction(cursor)) return [];
 
-    if (callAssumePure(&isRedundantFunctionDeclaration,cursor))
+    if (isRedundantFunctionDeclaration(cursor,context))
     {
         // skip cursor when there is both a declaration and a definition and the cursor is the declaration
         context.log("skipping cursor because there is both a declaration and a definition and the cursor is the declaration",cursor);
