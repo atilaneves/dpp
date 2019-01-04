@@ -21,9 +21,11 @@ string translate(in from!"clang".Type type,
                  in from!"std.typecons".Flag!"translatingFunction" translatingFunction = from!"std.typecons".No.translatingFunction)
     @safe pure
 {
+    import dpp.translation.exception: UntranslatableException;
     import std.conv: text;
+
     if(type.kind !in translators)
-        throw new Exception(text("Type kind ", type.kind, " not supported: ", type));
+        throw new UntranslatableException(text("Type kind ", type.kind, " not supported: ", type));
 
     return translators[type.kind](type, context, translatingFunction);
 }
