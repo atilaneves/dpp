@@ -103,10 +103,26 @@ struct Context {
     private int _anonymousIndex;
 
     Language language;
+    private string[] namespaces_;
 
     this(Options options, in Language language) @safe pure {
         this.options = options;
         this.language = language;
+    }
+    
+    string getNamespace() @safe {
+        import std.array:join;
+        return this.namespaces_.join(".");
+    }
+
+    void pushNamespace(string ns) @safe {
+        import std.conv:text;
+        this.namespaces_ ~= ns;
+    }
+
+    void popNamespace() @safe {
+        import std.algorithm:min;
+        this.namespaces_ = this.namespaces_[0.. (min(1, this.namespaces_.length)-1)];
     }
 
     ref Context indent() @safe pure return {

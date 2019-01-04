@@ -23,15 +23,27 @@ void expand(in string translUnitFileName,
 {
     import dpp.translation.translation: translateTopLevelCursor;
     import dpp.runtime.context: Language;
-    import clang: Cursor;
+    import dpp.util:safeArray;
+    import clang: Cursor;       import clang: Cursor;
+    import dpp.translation.namespace:mergeNamespaces,chunk;
+    import std.algorithm:filter,map;
 
     const extern_ = context.language == Language.Cpp ? "extern(C++)" : "extern(C)";
     context.writeln([extern_, "{"]);
 
     auto translationUnit = parseTU(translUnitFileName, context, includePaths);
     auto cursors = canonicalCursors(translationUnit);
+	auto namespaceCursors = cursors
+                             .filter!(cursor => cursor.kind == Cursor.Kind.Namespace)
+                            .safeArray
+                            .chunk
+                            .map!(g => g.mergeNamespaces)
+                            .safeArray;
 
-    foreach(cursor; cursors) {
+     auto nonNamespaceCursors = cursors
+                                .filter!(cursor => cursor.kind != Cursor.Kind.Namespace)
+                                .safeArray;
+    foreach(cursor; namespaceCursors ~ nonNamespaceCursors) {
 
         if(context.hasSeen(cursor)) continue;
         context.rememberCursor(cursor);
