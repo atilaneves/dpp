@@ -22,7 +22,6 @@ import it;
 }
 
 
-@ShouldFail
 @("constexpr.braces")
 @safe unittest {
     shouldCompile(
@@ -33,7 +32,7 @@ import it;
         ),
         D(
             q{
-                static assert(is(typeof(var) == int));
+                static assert(is(typeof(var) == const(int)));
             }
         ),
    );
