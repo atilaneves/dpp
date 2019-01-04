@@ -280,7 +280,7 @@ do
             if(operator.startsWith(`""`))  // user-defined string literal
                 throw new UntranslatableException("Cannot translate user-defined literals");
 
-            throw new Exception("Unknown C++ spelling for operator '" ~ operator ~ "'");
+            throw new UntranslatableException("Unknown C++ spelling for operator '" ~ operator ~ "'");
 
         case        "+":  return `opCppPlus`;
         case        "-":  return `opCppMinus`;

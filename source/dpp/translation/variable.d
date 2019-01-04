@@ -6,6 +6,7 @@ string[] translateVariable(in from!"clang".Cursor cursor,
                            ref from!"dpp.runtime.context".Context context)
     @safe
 {
+    import dpp.translation.exception: UntranslatableException;
     import dpp.translation.dlang: maybePragma;
     import dpp.translation.translation: translateCursor = translate;
     import dpp.translation.type: translateType = translate;
@@ -54,7 +55,8 @@ string[] translateVariable(in from!"clang".Cursor cursor,
         tokens = tokens.find!(a => a.kind == Token.Kind.Punctuation && a.spelling == "=");
 
         if(tokens.empty)
-            throw new Exception(text("Could not find assignment in ", cursor.tokens));
+            throw new Exception(
+                text("Could not find assignment in ", cursor.tokens, "\ncursor: ", cursor, "\n@ ", cursor.sourceRange));
 
         tokens.popFront;
 

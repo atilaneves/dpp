@@ -484,6 +484,7 @@ string templateParameterSpelling(in from!"clang".Type cursorType,
                                  int index)
     @safe pure
 {
+    import dpp.translation.exception: UntranslatableException;
     import std.algorithm: findSkip, startsWith;
     import std.array: split;
     import std.conv: text;
@@ -495,5 +496,11 @@ string templateParameterSpelling(in from!"clang".Type cursorType,
     assert(spelling[$-1] == '>');
 
     const templateParams = spelling[0 .. $-1].split(", ");
+
+    if(index < 0 || index >= templateParams.length)
+        throw new UntranslatableException(
+            text("index (", index, ") out of bounds for template params of length ",
+                 templateParams.length, ":\n", templateParams));
+
     return templateParams[index].text;
 }
