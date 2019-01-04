@@ -327,7 +327,7 @@ struct Context {
 
         // parens and a type inside, where "a type" is any we know about
         const regexStr = `\(( *?(?:` ~ typeSelectionStr ~ `) *?)\)`;
-
+    
         return regex(regexStr);
     }
 

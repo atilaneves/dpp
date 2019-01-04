@@ -34,7 +34,7 @@ string[] translateNamespace(in from!"clang".Cursor cursor,
 
     string[] bodyLines;
 
-    lines ~= [
+    auto preludeLines = [
             `extern(C++, ` ~ cursor.spelling ~ `)`,
             `{`,
     ];

@@ -131,5 +131,5 @@ private string fixOctal(in string str) @safe pure {
     if(!isOctal) return str;
 
     const firstNonZero = stripped.countUntil!(a => a != '0');
-    return ` std.conv.octal!` ~ stripped[firstNonZero .. $];
+    return ` __from!"std.conv.octal".` ~ stripped[firstNonZero .. $];
 }
