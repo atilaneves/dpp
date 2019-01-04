@@ -319,7 +319,7 @@ struct Module {
  */
 auto mockTU(Module moduleName, CodeURL codeURL)() {
 
-    mixin(`import `, moduleName.name, `;`);
+    mixin(text(`import `, moduleName.name, `;`));
     import std.meta: Alias, AliasSeq, Filter, staticMap;
     import std.traits: hasUDA, getUDAs;
     import std.algorithm: startsWith;

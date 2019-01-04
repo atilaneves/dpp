@@ -248,6 +248,7 @@ string preamble() @safe pure {
         static import core.simd;
         static import std.conv;
 
+        struct DppOffsetSize{ long offset; long size; }
         struct Int128 { long lower; long upper; }
         struct UInt128 { ulong lower; ulong upper; }
 
