@@ -247,9 +247,25 @@ string preamble() @safe pure {
         import core.stdc.stdarg: va_list;
         static import core.simd;
 
+        struct Opaque(string TypeName,size_t BlobSize)
+        {
+            import std.exception:enforce;
+            ubyte[BlobSize] blob;
+            alias blob this;
+            enum blobSize = BlobSize;
+            enum typeName = TypeName;
+
+            this(ubyte[] blob)
+            {
+                enforce(blob.length == BlobSize);
+                this.blob=blob;
+            }
+        }
+
         template __from(string moduleName) {
             mixin("import from = " ~ moduleName ~ ";");
         }
+
         struct DppOffsetSize{ long offset; long size; }
         struct Int128 { long lower; long upper; }
         struct UInt128 { ulong lower; ulong upper; }

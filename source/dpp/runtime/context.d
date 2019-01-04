@@ -2,6 +2,9 @@
    The context the translation happens in, to avoid global variables
  */
 module dpp.runtime.context;
+import dpp.from;
+import dpp.util:assumePure;
+import dpp.config;
 
 alias LineNumber = size_t;
 
@@ -89,6 +92,14 @@ struct Context {
     /// Command-line options
     Options options;
 
+    const(TypeRemapping)[] typeRemappings;
+    alias RegexT = typeof(from!"std.regex".regex("*"));
+    RegexT[string] typeRemappingsRegex;
+
+    string[] opaqueTypes;
+    string[] headerBlacklists;
+    string[] functionBlacklists;
+
     /*
       Remember all declared types so that C-style casts can be recognised
      */
@@ -105,11 +116,39 @@ struct Context {
     Language language;
     private string[] namespaces_;
 
-    this(Options options, in Language language) @safe pure {
+    this(Options options, in Language language) @safe {
         this.options = options;
         this.language = language;
+        setupMappings();
     }
-    
+
+    void setupMappings() @safe
+    {
+        import std.array:array;
+        import std.algorithm:filter;
+        import std.regex:regex;
+        auto typeRemappings = (options.typeRemappingsFile.length>0)? readTypeRemappingsFile(options.typeRemappingsFile) : [];
+        this.opaqueTypes = typeRemappings.opaqueTypes;
+        this.typeRemappings = typeRemappings.nonOpaqueTypeRemappings;
+        if(options.headerBlacklistFile.length>0)
+            headerBlacklists = readBlacklistFile(options.headerBlacklistFile);
+        if(options.functionBlacklistFile.length>0)
+            functionBlacklists = readBlacklistFile(options.functionBlacklistFile);
+        foreach(typeRemapping;typeRemappings.filter!(t=>t.isRegex))
+            this.typeRemappingsRegex[typeRemapping.originalType] = regex(typeRemapping.originalType);
+    }
+
+    auto noGenerateExtraCEnum() @safe pure
+    {
+        return options.noGenerateExtraCEnum;
+    }
+
+    bool isNamespaceSelected(string namespace) @safe pure
+    {
+        import std.algorithm:canFind;
+        return (options.onlyNamespaces.length ==0 || options.onlyNamespaces.canFind(namespace));
+    }
+ 
     string getNamespace() @safe {
         import std.array:join;
         return this.namespaces_.join(".");
@@ -123,6 +162,48 @@ struct Context {
     void popNamespace() @safe {
         this.namespaces_ = (namespaces_.length == 0) ? this.namespaces_ : this.namespaces_[0..$-1];
     }
+
+    alias dgMatch = (string s, RegexT r) @system
+                {
+                auto match = from!"std.regex".matchFirst(s,r);
+                return match? match.hit.idup : "";
+            };
+
+     string getRegexHit(const(string) originalType, const(string) tryType) @trusted pure
+    {
+        import std.regex:matchFirst;
+        auto f = assumePure(dgMatch);
+        auto p = originalType in typeRemappingsRegex;
+        return (p is null) ? "" : f(tryType,*p);
+    }
+
+     string remapType(string typeName) @safe pure
+    {
+        import std.string:replace;
+        import std.regex:matchFirst;
+        string ret = typeName;
+        foreach(ref t;typeRemappings)
+        {
+        auto originalType = (!t.isRegex) ?  t.originalType : getRegexHit(t.originalType,typeName);
+            ret=ret.replace(originalType,t.replacementType);
+        }
+        return ret;
+    }
+
+     bool isTypeBlobSubstituted(string typeName) @safe pure
+    {
+        import std.regex:matchFirst;
+        import std.algorithm:canFind;
+        foreach(ref opaqueType;opaqueTypes)
+        {
+        auto hit = (opaqueType in typeRemappingsRegex) ? (getRegexHit(opaqueType,typeName).length>0) : (typeName.canFind(opaqueType));
+        if (hit)
+            return true;
+        }
+        return false;
+    }
+    bool isFunctionBlacklisted(string functionName) @safe pure { return canFindAny(this.functionBlacklists,functionName);};
+    bool isPathBlackListed(string path) @safe pure  { return canFindAny(this.headerBlacklists,path);};
 
     ref Context indent() @safe pure return {
         options = options.indent;

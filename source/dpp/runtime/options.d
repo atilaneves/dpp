@@ -30,6 +30,12 @@ struct Options {
     bool hardFail;
     bool cppStdLib;
 
+    string headerBlacklistFile;
+    string typeRemappingsFile;
+    string functionBlacklistFile;
+    bool noGenerateExtraCEnum;
+    string[] onlyNamespaces;
+
     this(string[] args) {
 
         import clang: systemPaths;
@@ -102,6 +108,11 @@ struct Options {
                 "define", "C Preprocessor macro", &defines,
                 "hard-fail", "Translate nothing if any part fails", &hardFail,
                 "c++-std-lib", "Link to the C++ standard library", &cppStdLib,
+                "map-type-file", "File specifying type remappings",&typeRemappingsFile,
+                "blacklist-header-file", "File specifying headers to blacklist",&headerBlacklistFile,
+                "blacklist-function-file", "File specifying functions to blacklist",&functionBlacklistFile,
+                "no-generate-extra-c-enum", "Do not generate C-style additional enums",&noGenerateExtraCEnum,
+                "only-namespace", "Only process c++ code within specified namespace",&onlyNamespaces,
             );
 
         if(helpInfo.helpWanted) {

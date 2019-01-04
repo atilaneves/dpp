@@ -145,10 +145,14 @@ string[] translateEnum(in from!"clang".Cursor cursor,
     string[] lines;
     bool scopedEnum = cursor.isScopedEnum(context);
     context.log("scopedEnum? ",scopedEnum);
-    foreach(member; cursor) {
-        if(scopedEnum && !member.isDefinition) continue;
-        auto memName = member.spelling;
-        lines ~= `enum ` ~ memName ~ ` = ` ~ enumName ~ `.` ~ memName ~ `;`;
+
+    if(!context.noGenerateExtraCEnum && scopedEnum)
+    {
+        foreach(member; cursor) {
+            if(!member.isDefinition) continue;
+            auto memName = member.spelling;
+            lines ~= `enum ` ~ memName ~ ` = ` ~ enumName ~ `.` ~ memName ~ `;`;
+        }
     }
 
     return
@@ -322,7 +326,7 @@ string[] translateAggregate(
     lines ~= maybeOperators(cursor, name);
     lines ~= maybeDisableDefaultCtor(cursor, dKeyword);
 
-    lines ~= `}`;
+    lines ~= `}` ~ "\n";
 
     return lines;
 }
@@ -607,4 +611,52 @@ do
         type ~ " " ~ fieldName ~ ";",
         `alias ` ~ fieldName ~ ` this;`,
     ];
+}
+
+string renameTypeToBlob(string spelling, ptrdiff_t size) @safe pure
+{
+    import std.format:format;
+    import std.conv:to;
+    string sizeString = (size>0 && size!=-1) ? size.to!string : "FIXME";
+    return format!`Opaque!("%s",%s)`(spelling,sizeString);
+}
+
+ // TODO - not just to blob - also remaps type
+from!"clang".Type maybeRenameTypeToBlob(const from!"clang".Type type, //in from!"clang".Cursor cursor,
+                       ref from!"dpp.runtime.context".Context context) @safe pure
+//    in(cursor.kind == from!"clang".Cursor.Kind.CXXBaseSpecifier)
+{
+    import clang:Type;
+    import std.traits:Unqual;
+    import std.conv:to;
+    import dpp.util:mutableT;
+    auto ret = mutableT(type);
+    if(context.isTypeBlobSubstituted(ret.spelling))
+    {
+        ret.spelling = renameTypeToBlob(type.spelling,getSizeOf(type));
+    }
+    else
+    {
+        ret.spelling = context.remapType(ret.spelling);
+    }
+    return cast(Type) ret;
+}
+
+ private auto getSizeOf(const from!"clang".Type type) pure @safe
+{
+    import clang.c.index:clang_Type_getSizeOf;
+    return clang_Type_getSizeOf(type.cx);
+}
+
+
+from!"clang".Cursor maybeRenameType(in from!"clang".Cursor cursor, 
+                       ref from!"dpp.runtime.context".Context context) @safe pure
+//    in(cursor.kind == from!"clang".Cursor.Kind.CXXBaseSpecifier)
+{
+    import clang:Cursor,Type;
+    import dpp.util:mutableT;
+
+    auto ret = mutableT(cursor);
+    ret.type= maybeRenameTypeToBlob(ret.type,context);
+    return cast(Cursor)ret;
 }
