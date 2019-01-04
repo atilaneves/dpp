@@ -41,9 +41,7 @@ private bool skipTopLevel(in from!"clang".Cursor cursor,
     if(isAggregateC(cursor) && cursor.spelling == "")
         return true;
 
-    // boost preprocessor is... "fun"
-    if(cursor.kind == Cursor.Kind.MacroDefinition &&
-       cursor.spelling.startsWith("BOOST_PP"))
+    if(context.options.ignoreMacros && cursor.kind == Cursor.Kind.MacroDefinition)
         return true;
 
     static immutable forbiddenSpellings =
