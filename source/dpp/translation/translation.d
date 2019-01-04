@@ -20,12 +20,15 @@ string translateTopLevelCursor(in from!"clang".Cursor cursor,
     import std.array: join;
     import std.algorithm: map;
 
-    return cursor.skipTopLevel
+    return skipTopLevel(cursor, context)
         ? ""
         : translate(cursor, context, file, line).map!(a => "    " ~ a).join("\n");
 }
 
-private bool skipTopLevel(in from!"clang".Cursor cursor) @safe pure {
+private bool skipTopLevel(in from!"clang".Cursor cursor,
+                          in from!"dpp.runtime.context".Context context)
+    @safe pure
+{
     import dpp.translation.aggregate: isAggregateC;
     import clang: Cursor;
     import std.algorithm: startsWith, canFind;
@@ -36,6 +39,11 @@ private bool skipTopLevel(in from!"clang".Cursor cursor) @safe pure {
 
     // don't bother translating top-level anonymous aggregates
     if(isAggregateC(cursor) && cursor.spelling == "")
+        return true;
+
+    // boost preprocessor is... "fun"
+    if(cursor.kind == Cursor.Kind.MacroDefinition &&
+       cursor.spelling.startsWith("BOOST_PP"))
         return true;
 
     static immutable forbiddenSpellings =

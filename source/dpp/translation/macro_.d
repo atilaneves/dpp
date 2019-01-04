@@ -89,6 +89,7 @@ private bool isStringRepr(T)(in string str) @safe pure {
 // We attempt to translate them here.
 private string translateToD(in string line, in from!"dpp.runtime.context".Context context) @trusted {
     import dpp.translation.type: translateElaborated;
+    import dpp.translation.exception: UntranslatableException;
     import std.array: replace;
     import std.regex: regex, replaceAll;
 
@@ -100,11 +101,22 @@ private string translateToD(in string line, in from!"dpp.runtime.context".Contex
         sizeofRegex = regex(`sizeof *?\(([^)]+)\)`);
     }
 
-    return line
+    auto replacements = line
         .replace("->", ".")
         .replaceNull
-        .replaceAll(sizeofRegex, "($1).sizeof")
-        .replaceAll(context.castRegex, "cast($1)")
+        ;
+
+    string regexReps;
+
+    try {
+        regexReps = replacements
+            .replaceAll(sizeofRegex, "($1).sizeof")
+            .replaceAll(context.castRegex, "cast($1)")
+            ;
+    } catch(Exception ex)
+        throw new UntranslatableException("Regex substitution failed: " ~ ex.msg);
+
+    return regexReps
         .fixOctal
         .translateElaborated
         ;
