@@ -1,0 +1,46 @@
+// =======================================
+// Types already in DRuntime
+// =======================================
+
+// array,core.stdcpp.array
+// vector,core.stdcpp.vector
+// map,core.stdcpp.map
+// pair,core.stdcpp.pair,true
+// basic_string,core.stdcpp.basic_string,true
+// string,core.stdcpp.basic_string,true
+// set,core.stdcpp.set,true
+
+// =======================================
+// Types soon to be in DRuntime
+// =======================================
+
+vector,opaque
+map,opaque
+basic_string,opaque
+string,opaque
+pair,opaque
+set,opaque
+array,opaque
+
+
+// =======================================
+// Types to model as opaque
+// =======================================
+`.*ostream.*`,opaque
+`.*tbb::.*`,opaque
+`.*concurrent.*`,opaque
+`.*shared_ptr.*`,opaque
+`std::.*`,opaque
+
+// =======================================
+// Types to model specifically - need size
+// =======================================
+
+// exampleT,ReplacementT,true
+// line above will provide size as first template argument
+
+// =======================================
+// Other hints
+// =======================================
+
+// use backquotes to specify regex
