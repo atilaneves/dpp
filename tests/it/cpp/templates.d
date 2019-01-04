@@ -879,17 +879,17 @@ import it;
    );
 }
 
-
+// std conflicts with std.conv etc now statically imported into boilerplate
 @("declaration and definitions with different template argument names")
 @safe unittest {
     shouldCompile(
         Cpp(
             q{
-                namespace std {
+                namespace std2 {
                     template <typename> class allocator;
                 }
 
-                namespace std {
+                namespace std2 {
                     template <typename T> class allocator {
                         static constexpr auto value = 42;
                         allocator(const allocator& other) throw() {}

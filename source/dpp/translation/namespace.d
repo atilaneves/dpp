@@ -34,23 +34,9 @@ string[] translateNamespace(in from!"clang".Cursor cursor,
 
     string[] bodyLines;
 
-    context.log("opening new namespace from ",context.getNamespace, " and adding ",cursor.spelling,cursor);
-    context.pushNamespace(cursor.spelling);
-
-    static if (hasNewExternCpp())
-    {
-        debug pragma(msg,"new namespace version");
-        string revisedSpelling = context.getNamespace
-                    .splitNameSpaceSpelling
-                    .map!(name => `"` ~ name ~ `"`)
-                    .join(",");
-    }
-    else {
-        string revisedSpelling = `"` ~ cursor.spelling ~ `"`;
-    }
-    auto preludeLines = [
-           `extern(C++, ` ~ revisedSpelling ~ `)`,
-           `{`,
+    lines ~= [
+            `extern(C++, ` ~ cursor.spelling ~ `)`,
+            `{`,
     ];
 
     auto nonNamespaceChildren =    cursor.children
