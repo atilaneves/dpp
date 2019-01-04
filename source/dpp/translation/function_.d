@@ -9,6 +9,13 @@ import dpp.from;
 enum OPERATOR_PREFIX = "operator";
 
 
+private bool isRedundantFunctionDeclaration(const(from!"clang".Cursor) cursor) @trusted
+{
+    import clang: Cursor;
+    // skip cursor when there is both a declaration and a definition and the cursor is the declaration
+    return (cursor.definition != Cursor.nullCursor) && (cursor == cursor.definition);
+}
+
 string[] translateFunction(in from!"clang".Cursor cursor,
                            ref from!"dpp.runtime.context".Context context)
     @safe
@@ -25,13 +32,23 @@ string[] translateFunction(in from!"clang".Cursor cursor,
     import dpp.translation.dlang: maybeRename, maybePragma;
     import dpp.translation.aggregate: maybeRememberStructs;
     import dpp.translation.type: translate;
+    import dpp.util:callAssumePure;
     import clang: Cursor, Type;
     import std.array: join, array;
     import std.conv: text;
     import std.algorithm: any, endsWith, canFind;
     import std.typecons: Yes;
 
+
     if(ignoreFunction(cursor)) return [];
+
+    if (callAssumePure(&isRedundantFunctionDeclaration,cursor))
+    {
+        // skip cursor when there is both a declaration and a definition and the cursor is the declaration
+        context.log("skipping cursor because there is both a declaration and a definition and the cursor is the declaration",cursor);
+	return [];
+    }
+
 
     // FIXME - stop special casing the move ctor
     auto moveCtorLines = maybeMoveCtor(cursor, context);
