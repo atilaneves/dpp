@@ -302,18 +302,16 @@ string[] ignoredCppCursorSpellings() @safe pure nothrow {
         ];
 }
 
-private alias ForwardDeclarationLambda =(const from!"clang".Cursor cursor) @trusted {
+bool isForwardDeclarationImpure(const(from!"clang".Cursor) cursor)
+{
 	import clang:Cursor;
-	if (cursor.definition == Cursor.nullCursor())
-		return true;
-	return !(cursor == cursor.definition());
-};
+	return (cursor.definition == Cursor.nullCursor) || !(cursor == cursor.definition);
+}
 
 // https://joshpeterson.github.io/identifying-a-forward-declaration-with-libclang
 bool isForwardDeclaration(in from!"clang".Cursor cursor) @trusted pure
 {
 	import clang:Cursor;
-	import dpp.util:assumePure;
-	auto f = assumePure(ForwardDeclarationLambda);
-	return f(cursor);
+	import dpp.util:callAssumePure;
+	return callAssumePure(&isForwardDeclarationImpure,cursor);
 }

@@ -222,10 +222,15 @@ string[] translateAggregate(
     import std.array: array;
     import std.string: strip;
     import clang: Cursor, Type;
+    import dpp.util:callAssumePure;
 
-    if (cursor.isForwardDeclaration)
+    auto toSkip(const(Cursor)c)
     {
-    	context.log("cursor is forward definition",cursor);
+	    return c.definition != Cursor.nullCursor() && c != c.definition;
+    }
+    if (callAssumePure(&toSkip,cursor.mutableCursor))
+    {
+    	context.log("cursor is forward definition and aggregate is defined elsewhere in file",cursor);
     	context.log("real definition is",cursor);
     	return [];
     }
