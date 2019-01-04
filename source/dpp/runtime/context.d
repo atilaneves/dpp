@@ -121,8 +121,7 @@ struct Context {
     }
 
     void popNamespace() @safe {
-        import std.algorithm:min;
-        this.namespaces_ = this.namespaces_[0.. (min(1, this.namespaces_.length)-1)];
+        this.namespaces_ = (namespaces_.length == 0) ? this.namespaces_ : this.namespaces_[0..$-1];
     }
 
     ref Context indent() @safe pure return {

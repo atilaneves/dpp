@@ -3,14 +3,15 @@ module dpp.translation.namespace;
 import dpp.from;
 
 
-bool hasNewExternCpp() @safe @pure
+bool hasNewExternCpp() @safe pure
 {
     version(NewExternCpp)
     {
-        return  __traits(compiles,`extern(C++) extern(C++,"Foo","Bar","Indeed")`));
+        return  __traits(compiles,`extern(C++) extern(C++,"Foo","Bar","Indeed")`);
     }
+    else
     {
-        else return false;
+        return false;
     }
 }
 
