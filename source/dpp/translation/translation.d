@@ -88,9 +88,12 @@ string[] translate(in from!"clang".Cursor cursor,
     scope(exit) context.setIndentation(indentation);
     context.indent;
 
-    try
-        return translators[cursor.kind](cursor, context);
-    catch(UntranslatableException e) {
+    try {
+        auto lines = translators[cursor.kind](cursor, context);
+        if(lines.canFind!(l => l.canFind("&")))
+            throw new UntranslatableException("& is not valid in D");
+        return lines;
+    } catch(UntranslatableException e) {
 
         debug {
             import std.stdio: stderr;
@@ -291,5 +294,8 @@ string[] ignoredCppCursorSpellings() @safe pure nothrow {
             "__result_of_other_impl",
             "__do_is_swappable_impl",
             "__do_is_nothrow_swappable_impl",
+            "is_optional_val_init_candidate",
+            "optional", // FIXME
+            "is_variant_constructible_from", // FIXME
         ];
 }
