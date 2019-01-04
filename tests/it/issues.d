@@ -1152,3 +1152,125 @@ unittest {
         ),
     );
 }
+
+
+@ShouldFail
+@Tags("issue")
+@("114")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<class T>
+                struct Foo {
+                    template<class U>
+                    Foo& operator=(U& other) {
+                        return *this;
+                    }
+                };
+            }
+        ),
+        D(
+            q{
+                Foo!int foo;
+                int i;
+                foo = i;
+                double d;
+                foo = d;
+            }
+        ),
+    );
+}
+
+
+@ShouldFail("Should ignore 'global' constructor declaration")
+@Tags("issue")
+@("115")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<class T>
+                class Foo {
+                    T value;
+                public:
+                    Foo(T value);
+                };
+
+                template<class T>
+                Foo<T>::Foo(T val) {
+                    value = val;
+                }
+            }
+        ),
+        D(
+            q{
+                auto fooI = Foo!int(42);
+                auto fooD = Foo!double(33.3);
+            }
+        ),
+    );
+}
+
+
+@Tags("issue")
+@("116")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct Foo;
+                struct Foo { int i; };
+            }
+        ),
+        D(
+            q{
+                static assert(is(typeof(Foo.i) == int));
+            }
+        ),
+    );
+}
+
+
+@ShouldFail("The function parameter gets named Enum instead of Struct.Enum")
+@Tags("issue")
+@("119.0")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct Struct {
+                    enum Enum { foo, bar, baz };
+                };
+
+                void fun(Struct::Enum);
+            }
+        ),
+        D(
+            q{
+            }
+        ),
+    );
+}
+
+
+@ShouldFail("enum class should not alias members")
+@Tags("issue")
+@("119.1")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct Struct {
+                    enum class Enum { foo, bar, baz };
+                };
+            }
+        ),
+        D(
+            q{
+                auto f = Struct.Enum.foo;
+                static assert(!__traits(compiles, Struct.foo));
+            }
+        ),
+    );
+}
