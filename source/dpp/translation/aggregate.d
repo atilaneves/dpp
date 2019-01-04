@@ -146,7 +146,7 @@ string[] translateEnum(in from!"clang".Cursor cursor,
     bool scopedEnum = cursor.isScopedEnum(context);
     context.log("scopedEnum? ",scopedEnum);
 
-    if(!context.noGenerateExtraCEnum && scopedEnum)
+    if(!scopedEnum || !context.noGenerateExtraCEnum)
     {
         foreach(member; cursor) {
             if(!member.isDefinition) continue;
@@ -273,10 +273,10 @@ string[] translateAggregate(
     import std.array: array;
     import dpp.util:callAssumePure;
 
-    if (cursor.definition != Cursor.nullCursor && cursor != cursor.definition)
+    if ((dKeyword=="struct" || dKeyword=="class") && cursor.definition != Cursor.nullCursor && cursor != cursor.definition)
     {
-	context.log("aggregate is defined elsewhere in TU and this is a redundant forward declaration, so skipping cursor",cursor);
-	context.log("real definition is",cursor.definition);
+        context.log("aggregate is defined elsewhere in TU and this is a redundant forward declaration, so skipping cursor",cursor);
+        context.log("real definition is",cursor.definition);
         return [];
     }
 

@@ -1,3 +1,5 @@
+#!/bin/bash
+
 if [ -z ${DPP_BLACKLIST_HEADERS} ]; then
 	export DPP_BLACKLIST_HEADERS="blacklist_headers.txt";
 fi
@@ -13,6 +15,7 @@ fi
 set -euxo pipefail
 clang++ -c vec/v.cpp -o build/v.o
 d++ 	--parse-as-cpp \
+    --print-cursors \
 	--c++-std-lib \
 	--keep-d-files \
 	--map-type-file $DPP_MAP_TYPE_FILE \

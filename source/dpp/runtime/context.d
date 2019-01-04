@@ -136,6 +136,10 @@ struct Context {
             functionBlacklists = readBlacklistFile(options.functionBlacklistFile);
         foreach(typeRemapping;typeRemappings.filter!(t=>t.isRegex))
             this.typeRemappingsRegex[typeRemapping.originalType] = regex(typeRemapping.originalType);
+        log("opaqueTypes",opaqueTypes);
+        log("typeRemappings",typeRemappings);
+        log("headerBlacklists",headerBlacklists);
+        log("functionBlacklists",functionBlacklists);
     }
 
     auto noGenerateExtraCEnum() @safe pure
