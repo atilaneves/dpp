@@ -1198,7 +1198,7 @@ unittest {
                 };
 
                 template<class T>
-                    Foo<T>::Foo(T val) {
+                Foo<T>::Foo(T val) {
                     value = val;
                 }
             }
@@ -1207,6 +1207,69 @@ unittest {
             q{
                 auto fooI = Foo!int(42);
                 auto fooD = Foo!double(33.3);
+            }
+        ),
+    );
+}
+
+
+@Tags("issue")
+@("116")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct Foo;
+                struct Foo { int i; };
+            }
+        ),
+        D(
+            q{
+                static assert(is(typeof(Foo.i) == int));
+            }
+        ),
+    );
+}
+
+
+@ShouldFail("The function parameter gets named Enum instead of Struct.Enum")
+@Tags("issue")
+@("119.0")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct Struct {
+                    enum Enum { foo, bar, baz };
+                };
+
+                void fun(Struct::Enum);
+            }
+        ),
+        D(
+            q{
+            }
+        ),
+    );
+}
+
+
+@ShouldFail("enum class should not alias members")
+@Tags("issue")
+@("119.1")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct Struct {
+                    enum class Enum { foo, bar, baz };
+                };
+            }
+        ),
+        D(
+            q{
+                auto f = Struct.Enum.foo;
+                static assert(!__traits(compiles, Struct.foo));
             }
         ),
     );
