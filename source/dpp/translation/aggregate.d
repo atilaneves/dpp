@@ -76,6 +76,54 @@ string[] translateUnion(in from!"clang".Cursor cursor,
     return translateAggregate(context, cursor, "union");
 }
 
+
+bool isScopedEnum(in from!"clang".Cursor cursor_, ref from!"dpp.runtime.context".Context context) @trusted
+{ 
+    import clang.c.index: CXToken,clang_tokenize,clang_getTokenSpelling,clang_getCursorExtent,clang_disposeTokens;
+    import clang:Cursor,toString;
+    import dpp.util:mutableT;
+
+    if (cursor_.kind != Cursor.Kind.EnumDecl)
+        return false;
+    auto cursor = mutableT(cursor_);
+    auto translationUnit = cursor.translationUnit;
+
+    CXToken* tokensP = null;
+    uint numTokens = 0; 
+
+    clang_tokenize( translationUnit.cx, clang_getCursorExtent( cursor_.cx ), &tokensP, &numTokens ); 
+    bool hasEncounteredEnumKeyword = false; 
+    bool isStronglyScoped = false; 
+
+    //Check the declaration until we find an "enum" keyword. If it's followed by "class", it's strongly scoped. 
+    //Possible input: typedef enum class {} Foo; (typedef is apparently ignored, but can't hurt to account for it) 
+
+    foreach(token; 0.. numTokens)
+    { 
+         auto spelling = clang_getTokenSpelling(translationUnit.cx, tokensP[ token ] ).toString;
+         if( spelling == "enum" ) 
+         { 
+             hasEncounteredEnumKeyword = true; 
+         } 
+         else if( hasEncounteredEnumKeyword ) 
+         { 
+             if( spelling == "class" ) 
+             { 
+                 isStronglyScoped = true; 
+             } 
+
+             //No "class" keyword encountered, so it's a weakly scoped enum. 
+             break; 
+         } 
+     } 
+
+     clang_disposeTokens(translationUnit.cx,tokensP,numTokens);
+
+     return isStronglyScoped;
+}
+
+
+
 string[] translateEnum(in from!"clang".Cursor cursor,
                        ref from!"dpp.runtime.context".Context context)
     @safe
@@ -95,8 +143,10 @@ string[] translateEnum(in from!"clang".Cursor cursor,
     auto enumName = context.spellingOrNickname(cursor);
 
     string[] lines;
+    bool scopedEnum = cursor.isScopedEnum(context);
+    context.log("scopedEnum? ",scopedEnum);
     foreach(member; cursor) {
-        if(!member.isDefinition) continue;
+        if(scopedEnum && !member.isDefinition) continue;
         auto memName = member.spelling;
         lines ~= `enum ` ~ memName ~ ` = ` ~ enumName ~ `.` ~ memName ~ `;`;
     }
