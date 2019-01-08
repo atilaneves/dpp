@@ -1308,8 +1308,6 @@ unittest {
 
 
 
-
-@ShouldFail
 @Tags("namespace", "issue")
 @("149")
 @safe unittest {
@@ -1320,8 +1318,7 @@ unittest {
                     struct Struct;
 
                     template<typename T>
-                        struct Template {
-                    };
+                    struct Template { };
 
                     // The `Struct` template parameter must be translated properly
                     // and was showing up as ns.Struct

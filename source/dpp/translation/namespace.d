@@ -19,7 +19,6 @@ string[] translateNamespace(in from!"clang".Cursor cursor,
         throw new UntranslatableException("BUG: namespace with no name");
 
     // FIXME - The translated D code isn't valid for a lot of these
-    // boost namespaces
     enum problematicNamespaces = [
         "boost",
         "mpl",
@@ -40,6 +39,9 @@ string[] translateNamespace(in from!"clang".Cursor cursor,
             `extern(C++, "` ~ cursor.spelling ~ `")`,
             `{`,
     ];
+
+    context.pushNamespace(cursor.spelling);
+    scope(exit) context.popNamespace(cursor.spelling);
 
     foreach(child; cursor.children) {
 

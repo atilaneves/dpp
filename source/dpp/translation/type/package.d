@@ -142,7 +142,7 @@ private string translateAggregate(in from!"clang".Type type,
 
         // Clang template types have a spelling such as `Foo<unsigned int, unsigned short>`.
         // We need to extract the "base" name (e.g. Foo above) then translate each type
-        // template argument (`unsigned long` is not a D type)
+        // template argument (e.g. `unsigned long` is not a D type)
         if(type.numTemplateArguments > 0) {
             const openAngleBracketIndex = type.spelling.countUntil("<");
             const baseName = type.spelling[0 .. openAngleBracketIndex];
@@ -342,8 +342,7 @@ private string translateUnexposed(in from!"clang".Type type,
         ? "auto ref " ~ type.spelling.replace(" &&...", "")
         : type.spelling;
 
-    const translation =  spelling
-        .translateString
+    const translation =  translateString(spelling, context)
         // we might get template arguments here (e.g. `type-parameter-0-0`)
         .replace("type-parameter-0-", "type_parameter_0_")
         ;
@@ -354,7 +353,10 @@ private string translateUnexposed(in from!"clang".Type type,
 /**
    Translate possibly problematic C++ spellings
  */
-string translateString(in string spelling) @safe pure nothrow {
+string translateString(in string spelling,
+                       in from!"dpp.runtime.context".Context context)
+    @safe pure nothrow
+{
     import std.string: replace;
     import std.algorithm: canFind;
 
@@ -366,6 +368,7 @@ string translateString(in string spelling) @safe pure nothrow {
 
     return
         maybeTranslateTemplateBrackets(spelling)
+        .replace(context.namespace, "")
         .replace("decltype", "typeof")
         .replace("typename ", "")
         .replace("template ", "")

@@ -6,6 +6,7 @@ import dpp.from;
 
 string translateTokens(in from!"clang".Token[] tokens) @safe pure {
     import dpp.translation.type: translateString;
+    import dpp.runtime.context: Context;
     import clang: Token;
     import std.algorithm: map, filter, canFind, endsWith;
     import std.array: array, join, replace;
@@ -32,7 +33,7 @@ string translateTokens(in from!"clang".Token[] tokens) @safe pure {
 
     auto ret = translatedAngleBracketTokens
         .filter!(t => t.kind != Token.Kind.Keyword || t.spelling != "typename")
-        .map!(t => t.spelling.translateString)
+        .map!(t => translateString(t.spelling, Context()))
         .join;
 
     // this can happen because of ending with ">>"
@@ -45,6 +46,7 @@ string translateTokens(in from!"clang".Token[] tokens) @safe pure {
 // sizeof(foo) -> foo.sizeof, alignof(foo) -> foo.alignof
 private auto translateProperty(const(from!"clang".Token)[] tokens, in string property) @safe pure {
     import dpp.translation.type: translateString;
+    import dpp.runtime.context: Context;
     import clang: Token;
     import std.algorithm: countUntil, map;
     import std.array: join, replace;
@@ -62,7 +64,7 @@ private auto translateProperty(const(from!"clang".Token)[] tokens, in string pro
 
         tokens =
             tokens[0 .. indexProperty] ~
-            Token(Token.Kind.Literal, newTokenSpelling.translateString) ~
+            Token(Token.Kind.Literal, translateString(newTokenSpelling, Context())) ~
             tokens[indexCloseParen + 1 .. $];
     }
 }

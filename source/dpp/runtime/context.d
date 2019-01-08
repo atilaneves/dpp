@@ -102,6 +102,8 @@ struct Context {
     /// to generate unique names
     private int _anonymousIndex;
 
+    private string[] _namespaces;
+
     Language language;
 
     this(Options options, in Language language) @safe pure {
@@ -324,6 +326,19 @@ struct Context {
 
     bool macroAlreadyDefined(in Cursor cursor) @safe pure const {
         return cast(bool) (cursor.spelling in macros);
+    }
+
+    void pushNamespace(in string ns) @safe pure nothrow {
+        _namespaces ~= ns;
+    }
+
+    void popNamespace(in string ns) @safe pure nothrow {
+        _namespaces = _namespaces[0 .. $-1];
+    }
+
+    string namespace() @safe pure nothrow const {
+        import std.array: join;
+        return _namespaces.join("::");
     }
 }
 
