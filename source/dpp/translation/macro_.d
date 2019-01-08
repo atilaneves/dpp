@@ -112,6 +112,7 @@ private string translateToD(in string line, in from!"dpp.runtime.context".Contex
         regexReps = replacements
             .replaceAll(sizeofRegex, "($1).sizeof")
             .replaceAll(context.castRegex, "cast($1)")
+            .fixSizeof
             ;
     } catch(Exception ex)
         throw new UntranslatableException("Regex substitution failed: " ~ ex.msg);
@@ -122,6 +123,21 @@ private string translateToD(in string line, in from!"dpp.runtime.context".Contex
         ;
 }
 
+// See it.issues.22.3
+private string fixSizeof(in string str) @safe pure {
+    import std.algorithm: countUntil, startsWith;
+
+    enum sizeofStr = `).sizeof`;
+    const sizeofIndex = str.countUntil(sizeofStr);
+    if(sizeofIndex == -1) return str;
+    long i;
+    enum prefix = `cast(`;
+    // search back for prefix
+    for(i = sizeofIndex; i >= prefix.length && !str[i..$].startsWith(prefix); --i) {}
+    if(i < prefix.length) return str;
+
+    return str[0 .. i] ~ str[i + 4 .. sizeofIndex] ~ str[sizeofIndex .. $];
+}
 
 private string replaceNull(in string str) @safe pure nothrow {
     import std.array: replace;

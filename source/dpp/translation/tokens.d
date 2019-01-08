@@ -52,7 +52,8 @@ private auto translateProperty(const(from!"clang".Token)[] tokens, in string pro
     import std.array: join, replace;
 
     for(;;) {
-        const indexProperty = tokens.countUntil!(a => a.kind == Token.Kind.Keyword && a.spelling == property);
+        const indexProperty = tokens.countUntil!(a => a.kind == Token.Kind.Keyword
+                                                   && a.spelling == property);
         if(indexProperty == -1) return tokens;
         const indexCloseParen = indexProperty + tokens[indexProperty..$].countUntil!(a => a.kind == Token.Kind.Punctuation && a.spelling == ")");
         const newTokenSpelling =
