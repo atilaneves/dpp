@@ -1154,14 +1154,14 @@ unittest {
 }
 
 
-@ShouldFail
+
 @Tags("issue", "namespace")
 @("113")
 @safe unittest {
     shouldCompile(
         Cpp(
             q{
-
+                // the issue here was nested namespaces
                 namespace ns1 {
                     namespace ns2 {
                         struct Struct;

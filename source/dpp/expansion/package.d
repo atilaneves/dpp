@@ -89,6 +89,48 @@ private auto canonicalCursors(from!"clang".TranslationUnit translationUnit) @saf
 
     import clang: Cursor;
     import std.algorithm: filter, partition;
+    import std.array: array;
+
+    auto topLevelCursors = translationUnit.cursor.children;
+    auto nsCursors = topLevelCursors.filter!(c => c.kind == Cursor.Kind.Namespace);
+    auto nonNsCursors = topLevelCursors.filter!(c => c.kind != Cursor.Kind.Namespace);
+
+    auto cursors = trueCursors(nonNsCursors).array ~ trueNsCursors(nsCursors);
+
+    // put the macros at the end
+    cursors.partition!(a => a.kind != Cursor.Kind.MacroDefinition);
+
+    return cursors;
+}
+
+private auto trueNsCursors(R)(R cursors) @trusted {
+    import clang: Cursor;
+    import std.algorithm: map, chunkBy;
+    import std.typecons: tuple;
+    import std.array: array, join;
+
+    return cursors
+        // each chunk is a range of NS cursors with the same name
+        .chunkBy!((a, b) => a.spelling == b.spelling)
+        // a range of ("namespace", childrenCursors) tuples
+        .map!(nsChunk => tuple(nsChunk.front.spelling, nsChunk.map!(ns => ns.children).join))
+        // convert the children to true cursors (filter out ghosts)
+        .map!(t => tuple(t[0],  // namespace spelling
+                         trueCursors(t[1] /*children cursors*/)))
+        // map each tuple to a new Namespace cursor with the "correct" children
+        .map!((t) { auto c = Cursor(Cursor.Kind.Namespace, t[0]); c.children = t[1].array; return c; })
+        .array
+        ;
+}
+
+
+// Given an arbitrary range of cursors, returns a new range filtering out
+// the "ghosts" (useless repeated cursors).
+auto trueCursors(R)(R cursors) @trusted {
+    import clang: Cursor;
+    import std.algorithm: sort, chunkBy, map, filter;
+    import std.array: array, join;
+    import std.range: chain;
 
     // Filter out "ghosts" (useless repeated cursors).
     // Each element of `cursors` has the same canonical cursor.
@@ -111,54 +153,36 @@ private auto canonicalCursors(from!"clang".TranslationUnit translationUnit) @saf
         return [cursors.front];
     }
 
-    // Given an arbitrary range of cursors, returns a new range filtering out
-    // the "ghosts" (useless repeated cursors).
-    static auto trueCursors(R)(R cursors) @trusted {
-        import std.algorithm: sort, chunkBy, map;
-        import std.array: array, join;
-
-        return cursors
-            .array  // needed by sort
-            .sort!((a, b) => a.canonical.sourceRange.start <
-                             b.canonical.sourceRange.start)
-            // each chunk is a range of cursors representing the same canonical entity
-            .chunkBy!((a, b) => a.canonical == b.canonical)
-            // for each chunk, extract the one cursor we want
-            .map!trueCursorsFromSameCanonical
-            .join  // flatten (range of chunks of cursors -> range of cursors)
-            ;
-    }
-
-    auto topLevelCursors = translationUnit.cursor.children;
-    auto nsCursors = topLevelCursors.filter!(c => c.kind == Cursor.Kind.Namespace);
-    auto nonNsCursors = topLevelCursors.filter!(c => c.kind != Cursor.Kind.Namespace);
-
-    auto trueNsCursors = () @trusted {
-        import clang: Cursor;
-        import std.algorithm: map, chunkBy;
-        import std.typecons: tuple;
-        import std.array: array, join;
-
-        return nsCursors
-        // each chunk is a range of NS cursors with the same name
-        .chunkBy!((a, b) => a.spelling == b.spelling)
-        // a range of ("namespace", childrenCursors) tuples
-        .map!(nsChunk => tuple(nsChunk.front.spelling, nsChunk.map!(ns => ns.children).join))
-        // convert the children to true cursors (filter out ghosts)
-        .map!(t => tuple(t[0],  // namespace spelling
-                         trueCursors(t[1] /*child cursors*/)))
-        // map each tuple to a new Namespace cursor with the "correct" children
-        .map!((t) { auto c = Cursor(Cursor.Kind.Namespace, t[0]); c.children = t[1]; return c; })
-        .array
+    auto nonNs = cursors
+        .filter!(c => c.kind != Cursor.Kind.Namespace)
+        .array  // needed by sort
+        .sort!((a, b) => a.canonical.sourceRange.start <
+                         b.canonical.sourceRange.start)
+        // each chunk is a range of cursors representing the same canonical entity
+        .chunkBy!((a, b) => a.canonical == b.canonical)
+        // for each chunk, extract the one cursor we want
+        .map!trueCursorsFromSameCanonical
+        .join  // flatten (range of chunks of cursors -> range of cursors)
         ;
-    }();
 
-    auto cursors = trueCursors(nonNsCursors) ~ trueNsCursors;
+    return chain(nonNs,
+                 cursors.filter!(c => c.kind == Cursor.Kind.Namespace));
+}
 
-    // put the macros at the end
-    cursors.partition!(a => a.kind != Cursor.Kind.MacroDefinition);
+auto foo(R)(R cursors) {
+    import clang: Cursor;
+    import std.algorithm: filter, map;
+    import std.array: array;
 
-    return cursors;
+    auto ns = cursors
+        .filter!(c => c.kind == Cursor.Kind.Namespace)
+        .map!((n) {
+                auto c = Cursor(Cursor.Kind.Namespace, n.spelling);
+                c.children = trueCursors(n.children).array;
+                return c;
+            }
+        )
+        ;
 }
 
 

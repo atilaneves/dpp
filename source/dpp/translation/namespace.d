@@ -8,6 +8,7 @@ string[] translateNamespace(in from!"clang".Cursor cursor,
     in(cursor.kind == from!"clang".Cursor.Kind.Namespace)
     do
 {
+    import dpp.expansion: trueCursors;
     import dpp.translation.translation: translate, ignoredCppCursorSpellings;
     import dpp.translation.exception: UntranslatableException;
     import clang: Cursor;
@@ -43,7 +44,9 @@ string[] translateNamespace(in from!"clang".Cursor cursor,
     context.pushNamespace(cursor.spelling);
     scope(exit) context.popNamespace(cursor.spelling);
 
-    foreach(child; cursor.children) {
+    auto children = () @trusted { return trueCursors(cast(Cursor[]) cursor.children); }();
+
+    foreach(child; children) {
 
         if(child.kind == Cursor.Kind.VisibilityAttr) continue;
 
