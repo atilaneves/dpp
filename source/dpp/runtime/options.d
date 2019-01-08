@@ -29,6 +29,7 @@ struct Options {
     bool earlyExit;
     bool hardFail;
     bool cppStdLib;
+    bool ignoreMacros;
 
     this(string[] args) {
 
@@ -102,6 +103,7 @@ struct Options {
                 "define", "C Preprocessor macro", &defines,
                 "hard-fail", "Translate nothing if any part fails", &hardFail,
                 "c++-std-lib", "Link to the C++ standard library", &cppStdLib,
+                "ignore-macros", "Ignore preprocessor macros", &ignoreMacros,
             );
 
         if(helpInfo.helpWanted) {

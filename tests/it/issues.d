@@ -1155,6 +1155,37 @@ unittest {
 
 
 @ShouldFail
+@Tags("issue", "namespace")
+@("113")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+
+                namespace ns1 {
+                    namespace ns2 {
+                        struct Struct;
+
+                        template<typename T>
+                            struct Template {
+                        };
+
+                        class Class;  // should be ignored but isn't
+                        class Class: public Template<Struct> {
+                            int i;
+                        };
+                    }
+                }
+            }
+        ),
+        D(
+            q{
+            }
+        ),
+    );
+}
+
+
 @Tags("issue")
 @("114")
 @safe unittest {
@@ -1270,6 +1301,38 @@ unittest {
             q{
                 auto f = Struct.Enum.foo;
                 static assert(!__traits(compiles, Struct.foo));
+            }
+        ),
+    );
+}
+
+
+
+
+@ShouldFail
+@Tags("namespace", "issue")
+@("149")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                namespace ns {
+                    struct Struct;
+
+                    template<typename T>
+                        struct Template {
+                    };
+
+                    // The `Struct` template parameter must be translated properly
+                    // and was showing up as ns.Struct
+                    class Class: public Template<Struct> {
+                        int i;
+                    };
+                }
+            }
+        ),
+        D(
+            q{
             }
         ),
     );

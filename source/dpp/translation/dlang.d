@@ -31,7 +31,7 @@ string rename(string spelling,
 {
     do
         spelling ~= "_";
-    while(spelling in context.aggregateDeclarations);
+    while(spelling in context.aggregateDeclarations || isKeyword(spelling));
 
     return spelling;
 }

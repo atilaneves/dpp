@@ -88,8 +88,9 @@ private string functionDecl(
     @safe
 {
     import dpp.translation.template_: translateTemplateParams;
+    import dpp.translation.exception: UntranslatableException;
     import std.conv: text;
-    import std.algorithm: endsWith;
+    import std.algorithm: endsWith, canFind;
     import std.array: join;
 
     context.log("Function return type (raw):        ", cursor.type.returnType);
@@ -106,6 +107,10 @@ private string functionDecl(
         ? ""
         : "(" ~ templateParams.join(", ") ~ ")"
         ;
+
+    // FIXME: avoid opBinary(string op: )(CT params)(RT params)
+    if(ctParams != "" && spelling.canFind("("))
+        throw new UntranslatableException("BUG with templated operators");
 
     return text(returnType, " ", spelling, ctParams, "(", params, ") @nogc nothrow", const_, ";");
 }
@@ -233,14 +238,22 @@ private string operatorSpellingD(in from!"clang".Cursor cursor,
            text("Cursor is neither a unary or binary operator: ", cursor, "@", cursor.sourceRange.start));
     const dFunction = isBinaryOperator(cursor) ? "opBinary" : "opUnary";
 
+    // to avoid problems, some C++ operators are translated as template functions,
+    // but as seen in #114, don't do this if they're already templates!
+    const templateParens = cursor.templateParams.length
+        ? ""
+        : "()";
+
     // Some of the operators here have empty parentheses around them. This is to
     // to make them templates and only be instantiated if needed. See #102.
     switch(cppOperator) {
-        default: return dFunction ~ `(string op: "` ~ cppOperator ~ `")`;
-        case "=": return `opAssign()`;
-        case "()": return `opCall()`;
-        case "[]": return `opIndex()`;
-        case "==": return `opEquals()`;
+        default:
+            return dFunction ~ `(string op: "` ~ cppOperator ~ `")`;
+
+        case "=": return `opAssign` ~ templateParens;
+        case "()": return `opCall` ~ templateParens;
+        case "[]": return `opIndex` ~ templateParens;
+        case "==": return `opEquals` ~ templateParens;
     }
 }
 
@@ -280,7 +293,7 @@ do
             if(operator.startsWith(`""`))  // user-defined string literal
                 throw new UntranslatableException("Cannot translate user-defined literals");
 
-            throw new Exception("Unknown C++ spelling for operator '" ~ operator ~ "'");
+            throw new UntranslatableException("Unknown C++ spelling for operator '" ~ operator ~ "'");
 
         case        "+":  return `opCppPlus`;
         case        "-":  return `opCppMinus`;

@@ -80,6 +80,7 @@ string[] translateEnum(in from!"clang".Cursor cursor,
                        ref from!"dpp.runtime.context".Context context)
     @safe
 {
+    import dpp.translation.dlang: maybeRename;
     import clang: Cursor;
     import std.typecons: nullable;
 
@@ -97,7 +98,7 @@ string[] translateEnum(in from!"clang".Cursor cursor,
     string[] lines;
     foreach(member; cursor) {
         if(!member.isDefinition) continue;
-        auto memName = member.spelling;
+        auto memName = maybeRename(member, context);
         lines ~= `enum ` ~ memName ~ ` = ` ~ enumName ~ `.` ~ memName ~ `;`;
     }
 

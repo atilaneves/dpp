@@ -21,9 +21,11 @@ string translate(in from!"clang".Type type,
                  in from!"std.typecons".Flag!"translatingFunction" translatingFunction = from!"std.typecons".No.translatingFunction)
     @safe pure
 {
+    import dpp.translation.exception: UntranslatableException;
     import std.conv: text;
+
     if(type.kind !in translators)
-        throw new Exception(text("Type kind ", type.kind, " not supported: ", type));
+        throw new UntranslatableException(text("Type kind ", type.kind, " not supported: ", type));
 
     return translators[type.kind](type, context, translatingFunction);
 }
@@ -343,7 +345,7 @@ private string translateUnexposed(in from!"clang".Type type,
     const translation =  spelling
         .translateString
         // we might get template arguments here (e.g. `type-parameter-0-0`)
-        .replace("-", "_")
+        .replace("type-parameter-0-", "type_parameter_0_")
         ;
 
     return addModifiers(type, translation);
@@ -370,8 +372,11 @@ string translateString(in string spelling) @safe pure nothrow {
         .replace("::", ".")
         .replace("volatile ", "")
         .replace("long long", "long")
+        .replace("long double", "double")
         .replace("unsigned ", "u")
+        .replace("signed char", "char")  // FIXME?
         .replace("&&", "")
+        .replace("...", "")  // variadics work differently in D
         ;
 }
 
@@ -482,6 +487,7 @@ string templateParameterSpelling(in from!"clang".Type cursorType,
                                  int index)
     @safe pure
 {
+    import dpp.translation.exception: UntranslatableException;
     import std.algorithm: findSkip, startsWith;
     import std.array: split;
     import std.conv: text;
@@ -493,5 +499,11 @@ string templateParameterSpelling(in from!"clang".Type cursorType,
     assert(spelling[$-1] == '>');
 
     const templateParams = spelling[0 .. $-1].split(", ");
+
+    if(index < 0 || index >= templateParams.length)
+        throw new UntranslatableException(
+            text("index (", index, ") out of bounds for template params of length ",
+                 templateParams.length, ":\n", templateParams));
+
     return templateParams[index].text;
 }

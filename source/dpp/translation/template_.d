@@ -273,6 +273,7 @@ string[] translateTypeAliasTemplate(in from!"clang".Cursor cursor,
 do
 {
     import dpp.translation.type: translate;
+    import dpp.translation.exception: UntranslatableException;
     import clang: Cursor, Type;
     import std.conv: text;
     import std.algorithm: countUntil;
@@ -290,6 +291,10 @@ do
             const templateRefIndex = typeAlias
             .children
             .countUntil!(c => c.kind == Cursor.Kind.TemplateRef);
+
+            if(templateRefIndex < 0 || templateRefIndex >= typeAlias.children.length)
+                throw new UntranslatableException(
+                    text("templateRefIndex (", templateRefIndex, ") out of bounds. Children:\n", typeAlias.children));
 
             const templateRef = typeAlias.children[templateRefIndex];
             return templateRef.spelling;

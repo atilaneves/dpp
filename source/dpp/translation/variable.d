@@ -6,6 +6,7 @@ string[] translateVariable(in from!"clang".Cursor cursor,
                            ref from!"dpp.runtime.context".Context context)
     @safe
 {
+    import dpp.translation.exception: UntranslatableException;
     import dpp.translation.dlang: maybePragma;
     import dpp.translation.translation: translateCursor = translate;
     import dpp.translation.type: translateType = translate;
@@ -46,29 +47,57 @@ string[] translateVariable(in from!"clang".Cursor cursor,
     const static_ = cursor.semanticParent.type.canonical.kind == Type.Kind.Record
         ? "static  "
         : "";
+    // e.g. enum foo = 42;
     const constexpr = cursor.tokens.canFind(Token(Token.Kind.Keyword, "constexpr"));
 
-    if(constexpr) {
-        // e.g. enum foo = 42;
-        auto tokens = cursor.tokens;
-        tokens = tokens.find!(a => a.kind == Token.Kind.Punctuation && a.spelling == "=");
+    if(constexpr)
+        ret ~= translateConstexpr(spelling, cursor, context);
+    else {
 
-        if(tokens.empty)
-            throw new Exception(text("Could not find assignment in ", cursor.tokens));
-
-        tokens.popFront;
-
-        ret ~= text("enum ", spelling, " = ", translateTokens(tokens), ";");
-    } else
         ret ~=
             maybePragma(cursor, context) ~
             text("extern __gshared ", static_,
-                 translateType(cursor.type, context, No.translatingFunction), " ", spelling, ";")
-            ;
+                 translateType(cursor.type, context, No.translatingFunction), " ", spelling, ";");
+    }
 
     return ret;
 }
 
+
+private string[] translateConstexpr(in string spelling,
+                                    in from!"clang".Cursor cursor,
+                                    ref from!"dpp.runtime.context".Context context)
+    @safe
+{
+    import dpp.translation.tokens: translateTokens;
+    import dpp.translation.exception: UntranslatableException;
+    import dpp.translation.type: translate;
+    import clang: Cursor, Token;
+    import std.algorithm: find, canFind;
+    import std.conv: text;
+    import std.array: empty, popFront;
+    import std.typecons: No;
+
+    auto tokens = cursor.tokens;
+    tokens = tokens.find!(a => a.kind == Token.Kind.Punctuation && a.spelling == "=");
+
+    const init = () {
+        // see contract.constexpr.variable.init.braces
+        if(cursor.children.canFind!(c => c.kind == Cursor.Kind.InitListExpr))
+            return " = " ~ translate(cursor.type, context, No.translatingFunction) ~ ".init";
+
+        if(!tokens.empty) {
+            tokens.popFront;
+            return " = " ~ translateTokens(tokens);
+        }
+
+        throw new UntranslatableException(
+            text("Could not find assignment in ", cursor.tokens,
+                 "\ncursor: ", cursor, "\n@ ", cursor.sourceRange));
+    }();
+
+    return [ text("enum ", spelling, init, ";") ];
+}
 
 private bool isRecordWithoutDefinition(
     in from!"clang".Cursor cursor,
