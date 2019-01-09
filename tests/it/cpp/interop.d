@@ -3,7 +3,6 @@ module it.cpp.interop;
 
 import it;
 
-
 @ShouldFail
 @("opaque.vector")
 @safe unittest {

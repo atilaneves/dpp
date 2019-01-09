@@ -30,6 +30,7 @@ struct Options {
     bool hardFail;
     bool cppStdLib;
     bool ignoreMacros;
+    string[] ignoredNamespaces;
 
     this(string[] args) {
 
@@ -104,6 +105,7 @@ struct Options {
                 "hard-fail", "Translate nothing if any part fails", &hardFail,
                 "c++-std-lib", "Link to the C++ standard library", &cppStdLib,
                 "ignore-macros", "Ignore preprocessor macros", &ignoreMacros,
+                "ignore-ns", "Ignore a C++ namespace", &ignoredNamespaces,
             );
 
         if(helpInfo.helpWanted) {

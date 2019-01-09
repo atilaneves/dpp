@@ -13,24 +13,16 @@ string[] translateNamespace(in from!"clang".Cursor cursor,
     import dpp.translation.exception: UntranslatableException;
     import clang: Cursor;
     import std.conv: text;
-    import std.algorithm: map, canFind, startsWith, endsWith;
+    import std.algorithm: map, startsWith;
     import std.array: array;
+
+    if(shouldSkip(cursor.spelling, context))
+        return [];
 
     if(cursor.spelling == "")
         throw new UntranslatableException("BUG: namespace with no name");
 
-    // FIXME - The translated D code isn't valid for a lot of these
-    enum problematicNamespaces = [
-        "boost",
-        "mpl",
-        "mpl_",
-        "container",
-        "range",
-        "iterators",
-        "placeholders",
-        "rel_ops",
-    ];
-    if(problematicNamespaces.canFind(cursor.spelling) || cursor.spelling.endsWith("detail"))
+    if(cantTranslate(cursor.spelling))
         throw new UntranslatableException("Currently unsupported namespace");
 
 
@@ -58,4 +50,20 @@ string[] translateNamespace(in from!"clang".Cursor cursor,
     lines ~= `}`;
 
     return lines;
+}
+
+
+private bool cantTranslate(in string spelling) @safe pure {
+    import std.algorithm: endsWith;
+
+    // FIXME
+    return spelling.endsWith("detail");
+}
+
+
+private bool shouldSkip(in string spelling, in from!"dpp.runtime.context".Context context)
+    @safe pure
+{
+    import std.algorithm: canFind;
+    return context.options.ignoredNamespaces.canFind(spelling);
 }
