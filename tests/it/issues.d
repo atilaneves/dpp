@@ -1411,3 +1411,34 @@ unittest {
         ),
     );
 }
+
+
+@ShouldFail
+@("missing.template.parameter")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                namespace myns {
+                    template<typename T>
+                    struct vector {
+                        T* elements;
+                        long size;
+                    };
+                }
+
+                struct Problem {
+                    // In the issue this gets emitted as `vector values`
+                    // instead of `vector!double values`
+                    myns::vector<double> values;
+                };
+
+                Problem createProblem();
+            }
+        ),
+        D(
+            q{
+            }
+        ),
+   );
+}
