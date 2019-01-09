@@ -442,9 +442,11 @@ private void expectEqualImpl(TestMode mode, L, R)
 }
 
 
-void expectLengthEqual(TestMode mode, R)
+void expectLengthEqual(R)
                       (auto ref R range, in size_t length, in string file = __FILE__, in size_t line = __LINE__)
 {
+    enum mode = InferTestMode!range;
+
     static if(mode == TestMode.verify)
         range.length.shouldEqual(length, file, line);
     else static if(mode == TestMode.mock)
