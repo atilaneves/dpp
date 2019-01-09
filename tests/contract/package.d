@@ -398,7 +398,6 @@ template InferTestMode(alias lhs) {
             enum isConst = is(T == const);
     }
 
-    // hopefully this can replace manual mode selection
     static if(!__traits(isRef, lhs) && !isPointer!L)
         enum InferTestMode = TestMode.verify;  // can't modify non-ref
     else static if(isConst!L)

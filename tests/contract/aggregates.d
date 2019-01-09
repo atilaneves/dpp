@@ -4,57 +4,8 @@ module contract.aggregates;
 import contract;
 
 
-// This is only here to write a blog about it later
-@("struct.onefield.int.manual")
-@MockTU!(
-    {
-        import clang;
-        return MockCursor(
-            Cursor.Kind.TranslationUnit,
-            "",
-            MockType(),
-            [
-                MockCursor(Cursor.Kind.StructDecl,
-                           "Foo",
-                           MockType(Type.Kind.Record,
-                                    "struct Foo"),
-                           [
-                               MockCursor(Cursor.Kind.FieldDecl,
-                                          "i",
-                                          MockType(Type.Kind.Int,
-                                                   "int")),
-                           ],
-                    ),
-            ],
-        );
-    }
-)
-@Types!(Cursor, MockCursor)
-void testStructOneFieldInt(T)() {
 
-    mixin createTU!(T, "it.c.compile.struct_", "onefield.int");
-
-    tu.children.length.should == 1;
-
-    const struct_ = tu.children[0];
-    struct_.kind.should == Cursor.Kind.StructDecl;
-    struct_.spelling.should == "Foo";
-    struct_.type.kind.should == Type.Kind.Record;
-    struct_.type.spelling.should == "struct Foo";
-
-    printChildren(struct_);
-    struct_.children.length.should == 1;
-    const member = struct_.children[0];
-    member.kind.should == Cursor.Kind.FieldDecl;
-    member.spelling.should == "i";
-
-    member.type.kind.should == Type.Kind.Int;
-    member.type.spelling.should == "int";
-}
-
-
-
-mixin Contract!(TestName("struct.onefield.int.auto"), contract_onefield_int);
+mixin Contract!(TestName("struct.onefield.int"), contract_onefield_int);
 @ContractFunction(CodeURL("it.c.compile.struct_", "onefield.int"))
 auto contract_onefield_int(TestMode mode, CursorType)(auto ref CursorType tu) {
 
@@ -81,8 +32,6 @@ auto contract_onefield_int(TestMode mode, CursorType)(auto ref CursorType tu) {
 mixin Contract!(TestName("struct.nested.c"), contract_nested);
 @ContractFunction(CodeURL("it.c.compile.struct_", "nested"))
 auto contract_nested(TestMode mode, CursorType)(auto ref CursorType tu) {
-
-    pragma(msg, "Mode: ", mode, " CursorType: ", CursorType);
 
     tu.kind.expect == Cursor.Kind.TranslationUnit;
     tu.children.expectLengthEqual!mode(1);
