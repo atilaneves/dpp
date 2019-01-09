@@ -10,7 +10,7 @@ mixin Contract!(TestName("struct.onefield.int"), contract_onefield_int);
 auto contract_onefield_int(TestMode mode, CursorType)(auto ref CursorType tu) {
 
     tu.kind.expect == Cursor.Kind.TranslationUnit;
-    tu.children.expectLengthEqual(1);
+    tu.children.expectLength == 1;
 
     auto struct_ = tu.child(0);
     struct_.isDefinition.expect == true;
@@ -18,7 +18,7 @@ auto contract_onefield_int(TestMode mode, CursorType)(auto ref CursorType tu) {
     struct_.type.expectEqual(Type.Kind.Record, "struct Foo");
 
     printChildren(struct_);
-    struct_.children.expectLengthEqual(1);
+    struct_.children.expectLength == 1;
 
     auto member = struct_.child(0);
     member.expectEqual(Cursor.Kind.FieldDecl,"i");
@@ -34,7 +34,7 @@ mixin Contract!(TestName("struct.nested.c"), contract_nested);
 auto contract_nested(TestMode mode, CursorType)(auto ref CursorType tu) {
 
     tu.kind.expect == Cursor.Kind.TranslationUnit;
-    tu.children.expectLengthEqual(1);
+    tu.children.expectLength == 1;
 
     auto outer = tu.child(0);
     outer.isDefinition.expect == true;
@@ -44,7 +44,7 @@ auto contract_nested(TestMode mode, CursorType)(auto ref CursorType tu) {
     outer.type.spelling.expect == "struct Outer";
 
     printChildren(outer);
-    outer.children.expectLengthEqual(3);
+    outer.children.expectLength == 3;
 
 
     auto integer = outer.child(0);
@@ -61,7 +61,7 @@ auto contract_nested(TestMode mode, CursorType)(auto ref CursorType tu) {
     innerStruct.type.canonical.expectEqual(Type.Kind.Record, "struct Inner");
 
     printChildren(innerStruct);
-    innerStruct.children.expectLengthEqual(1);  // the `x` field
+    innerStruct.children.expectLength == 1;  // the `x` field
 
     auto xfield = innerStruct.child(0);
     xfield.kind.expect == Cursor.Kind.FieldDecl;
@@ -73,7 +73,7 @@ auto contract_nested(TestMode mode, CursorType)(auto ref CursorType tu) {
     innerField.kind.expect == Cursor.Kind.FieldDecl;
     innerField.spelling.expect == "inner";
     printChildren(innerField);
-    innerField.children.expectLengthEqual(1);  // the Inner StructDecl
+    innerField.children.expectLength == 1;  // the Inner StructDecl
 
     innerField.type.expectEqual(Type.Kind.Elaborated, "struct Inner");
     innerField.type.canonical.expectEqual(Type.Kind.Record, "struct Inner");
@@ -152,7 +152,7 @@ mixin Contract!(TestName("struct.typedef.name"), contract_typedef_name);
 auto contract_typedef_name(TestMode mode, CursorType)(auto ref CursorType tu) {
 
     tu.kind.expect == Cursor.Kind.TranslationUnit;
-    tu.children.expectLengthEqual(2);
+    tu.children.expectLength == 2;
 
     auto struct_ = tu.child(0);
     struct_.isDefinition.expect == true;
@@ -174,7 +174,7 @@ auto contract_typedef_name(TestMode mode, CursorType)(auto ref CursorType tu) {
     typedef_.underlyingType.canonical.spelling.expect == "struct TypeDefd_";
 
     printChildren(typedef_);
-    typedef_.children.expectLengthEqual(1);
+    typedef_.children.expectLength == 1;
     typedef_.children[0].expect == struct_;
 
     static if(is(CursorType == MockCursor)) return tu;
@@ -186,7 +186,7 @@ mixin Contract!(TestName("struct.typedef.anon"), contract_typedef_anon);
 auto contract_typedef_anon(TestMode mode, CursorType)(auto ref CursorType tu) {
 
     tu.kind.expect == Cursor.Kind.TranslationUnit;
-    tu.children.expectLengthEqual(4);
+    tu.children.expectLength == 4;
 
     {
         auto struct1 = tu.child(0);
@@ -197,7 +197,7 @@ auto contract_typedef_anon(TestMode mode, CursorType)(auto ref CursorType tu) {
         // the cursor has no spelling but the type does
         struct1.type.spelling.expect == "Nameless1";
 
-        struct1.children.expectLengthEqual(3);
+        struct1.children.expectLength == 3;
         struct1.child(0).kind.expect == Cursor.Kind.FieldDecl;
         struct1.child(0).spelling.expect == "x";
         struct1.child(0).type.kind.expect == Type.Kind.Int;
@@ -221,7 +221,7 @@ auto contract_typedef_anon(TestMode mode, CursorType)(auto ref CursorType tu) {
         typedef1.underlyingType.canonical.spelling.expect == "Nameless1";
 
         printChildren(typedef1);
-        typedef1.children.expectLengthEqual(1);
+        typedef1.children.expectLength == 1;
         typedef1.children[0].expect == struct1;
     }
 
@@ -233,7 +233,7 @@ auto contract_typedef_anon(TestMode mode, CursorType)(auto ref CursorType tu) {
         struct2.type.kind.expect == Type.Kind.Record;
         struct2.type.spelling.expect == "Nameless2";
 
-        struct2.children.expectLengthEqual(1);
+        struct2.children.expectLength == 1;
         struct2.child(0).kind.expect == Cursor.Kind.FieldDecl;
         struct2.child(0).spelling.expect == "d";
         struct2.child(0).type.kind.expect == Type.Kind.Double;
@@ -251,7 +251,7 @@ auto contract_typedef_anon(TestMode mode, CursorType)(auto ref CursorType tu) {
         typedef2.underlyingType.canonical.spelling.expect == "Nameless2";
 
         printChildren(typedef2);
-        typedef2.children.expectLengthEqual(1);
+        typedef2.children.expectLength == 1;
         typedef2.children[0].expect == struct2;
     }
 
@@ -264,7 +264,7 @@ mixin Contract!(TestName("struct.typedef.before"), contract_typedef_before);
 auto contract_typedef_before(TestMode mode, CursorType)(auto ref CursorType tu) {
 
     tu.kind.expect == Cursor.Kind.TranslationUnit;
-    tu.children.expectLengthEqual(3);
+    tu.children.expectLength == 3;
 
     // first, a struct declaration with no definition
     auto struct1 = tu.child(0);
@@ -275,7 +275,7 @@ auto contract_typedef_before(TestMode mode, CursorType)(auto ref CursorType tu) 
     struct1.type.spelling.expect == "struct A";
 
     // forward declaration has no children
-    struct1.children.expectLengthEqual(0);
+    struct1.children.expectLength == 0;
 
     auto typedef_ = tu.child(1);
     typedef_.isDefinition.expect == true;
@@ -298,7 +298,7 @@ auto contract_typedef_before(TestMode mode, CursorType)(auto ref CursorType tu) 
     struct2.type.spelling.expect == "struct A";
 
     // definition has the child
-    struct2.children.expectLengthEqual(1);
+    struct2.children.expectLength == 1;
     auto child = struct2.child(0);
 
     child.kind.expect == Cursor.Kind.FieldDecl;

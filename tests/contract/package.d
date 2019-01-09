@@ -442,8 +442,25 @@ private void expectEqualImpl(TestMode mode, L, R)
 }
 
 
-void expectLengthEqual(R)
-                      (auto ref R range, in size_t length, in string file = __FILE__, in size_t line = __LINE__)
+auto expectLength(L)
+                 (auto ref L lhs, in string file = __FILE__, in size_t line = __LINE__)
+{
+    struct Expect {
+
+        bool opEquals(in size_t length) {
+            import std.functional: forward;
+            enum mode = InferTestMode!lhs;
+            expectLengthEqualImpl!mode(forward!lhs, length, file, line);
+            return true;
+        }
+    }
+
+    return Expect();
+}
+
+
+private void expectLengthEqualImpl(TestMode mode, R)
+                                  (auto ref R range, in size_t length, in string file = __FILE__, in size_t line = __LINE__)
 {
     enum mode = InferTestMode!range;
 
