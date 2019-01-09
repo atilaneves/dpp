@@ -1334,3 +1334,31 @@ unittest {
         ),
     );
 }
+
+
+@Tags("issue")
+@("150")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct Foo {
+                    int a, b, c;
+                };
+
+                struct Bar {
+                    Foo& foo;
+                };
+            }
+        ),
+        D(
+            q{
+                import std.conv: text;
+                static assert(Foo.sizeof == 12, Foo.sizeof.text);
+                static assert(Foo.alignof == 4, Foo.alignof.text);
+                static assert(Bar.sizeof == 8, Bar.sizeof.text);
+                static assert(Bar.alignof == 8, Bar.alignof.text);
+            }
+        ),
+    );
+}
