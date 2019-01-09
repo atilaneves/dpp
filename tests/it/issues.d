@@ -1362,3 +1362,52 @@ unittest {
         ),
     );
 }
+
+
+@Tags("issue")
+@("151")
+@safe unittest {
+    shouldRun(
+        Cpp(
+            q{
+                struct Foo {
+                    long data;
+                };
+
+                struct Bar {
+                    static long numDtors;
+                    long data;
+                    ~Bar();
+                };
+
+                Foo makeFoo();
+                Bar makeBar();
+            }
+        ),
+        Cpp(
+            q{
+                Foo makeFoo() { return {}; }
+                Bar makeBar() { return {}; }
+                Bar::~Bar() { ++numDtors; }
+                long Bar::numDtors;
+            }
+        ),
+        D(
+            q{
+                import std.conv: text;
+
+                auto foo = makeFoo;
+                assert(foo.data == 0, foo.data.text);
+
+                {
+                    auto bar = makeBar;
+                    assert(bar.data == 0, bar.data.text);
+                    bar.data = 42;
+                    assert(bar.numDtors == 0, bar.numDtors.text);
+                }
+
+                assert(Bar.numDtors == 1, Bar.numDtors.text);
+            }
+        ),
+    );
+}
