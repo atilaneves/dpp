@@ -36,10 +36,10 @@ import it;
         ),
         D(
             q{
-                auto f = Foo(42, 33.3);
                 static assert(is(Foo == struct), "Foo should be a struct");
-                static assert(__traits(getProtection, f.i) == "private");
-                static assert(__traits(getProtection, f.d) == "public");
+                static assert(__traits(getProtection, __traits(getMember, Foo, "i")) == "private");
+                static assert(__traits(getProtection, __traits(getMember, Foo, "d")) == "public");
+                Foo f;
                 f.d = 22.2;
             }
         ),
@@ -57,10 +57,9 @@ import it;
         ),
         D(
             q{
-                auto f = Foo(42, 33.3);
                 static assert(is(Foo == struct), "Foo should be a struct");
-                static assert(__traits(getProtection, f.i) == "private");
-                static assert(__traits(getProtection, f.d) == "private");
+                static assert(__traits(getProtection, __traits(getMember, Foo, "i")) == "private");
+                static assert(__traits(getProtection, __traits(getMember, Foo, "d")) == "private");
             }
         ),
    );
@@ -81,10 +80,10 @@ import it;
         ),
         D(
             q{
-                auto f = Foo(42, 33.3);
                 static assert(is(Foo == struct), "Foo should be a struct");
-                static assert(__traits(getProtection, f.i) == "public");
-                static assert(__traits(getProtection, f.d) == "private");
+                static assert(__traits(getProtection, __traits(getMember, Foo, "i")) == "public");
+                static assert(__traits(getProtection, __traits(getMember, Foo, "d")) == "private");
+                Foo f;
                 f.i = 7; // public, ok
             }
         ),

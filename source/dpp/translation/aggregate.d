@@ -29,6 +29,13 @@ private string[] translateStrass(in from!"clang".Cursor cursor,
                                  ref from!"dpp.runtime.context".Context context,
                                  in string cKeyword)
     @safe
+    in(
+        cursor.kind == from!"clang".Cursor.Kind.StructDecl ||
+        cursor.kind == from!"clang".Cursor.Kind.ClassDecl ||
+        cursor.kind == from!"clang".Cursor.Kind.ClassTemplate ||
+        cursor.kind == from!"clang".Cursor.Kind.ClassTemplatePartialSpecialization
+    )
+  do
 {
     import dpp.translation.template_: templateSpelling, translateTemplateParams,
         translateSpecialisedTemplateParams;
@@ -37,14 +44,7 @@ private string[] translateStrass(in from!"clang".Cursor cursor,
     import std.array: join;
     import std.conv: text;
 
-    assert(
-        cursor.kind == Cursor.Kind.StructDecl ||
-        cursor.kind == Cursor.Kind.ClassDecl ||
-        cursor.kind == Cursor.Kind.ClassTemplate ||
-        cursor.kind == Cursor.Kind.ClassTemplatePartialSpecialization
-    );
-
-    const spelling = () {
+    Nullable!string spelling() {
 
         // full template
         if(cursor.kind == Cursor.Kind.ClassTemplate)
@@ -56,7 +56,7 @@ private string[] translateStrass(in from!"clang".Cursor cursor,
 
         // non-template class/struct
         return Nullable!string();
-    }();
+    }
 
     const dKeyword = "struct";
 
@@ -64,27 +64,26 @@ private string[] translateStrass(in from!"clang".Cursor cursor,
 }
 
 
-
-
-
 string[] translateUnion(in from!"clang".Cursor cursor,
                         ref from!"dpp.runtime.context".Context context)
     @safe
+    in(cursor.kind == from!"clang".Cursor.Kind.UnionDecl)
+    do
 {
     import clang: Cursor;
-    assert(cursor.kind == Cursor.Kind.UnionDecl);
     return translateAggregate(context, cursor, "union");
 }
+
 
 string[] translateEnum(in from!"clang".Cursor cursor,
                        ref from!"dpp.runtime.context".Context context)
     @safe
+    in(cursor.kind == from!"clang".Cursor.Kind.EnumDecl)
+    do
 {
     import dpp.translation.dlang: maybeRename;
     import clang: Cursor;
     import std.typecons: nullable;
-
-    assert(cursor.kind == Cursor.Kind.EnumDecl);
 
     // Translate it twice so that C semantics are the same (global names)
     // but also have a named version for optional type correctness and
@@ -215,7 +214,7 @@ string[] translateAggregate(
     @safe
 {
     import dpp.translation.translation: translate;
-    import clang: Cursor, Type;
+    import clang: Cursor, Type, AccessSpecifier;
     import std.algorithm: map;
     import std.array: array;
 
@@ -234,7 +233,12 @@ string[] translateAggregate(
     lines ~= firstLine;
     lines ~= `{`;
 
-    if(cKeyword == "class") lines ~= "private:";
+    // In C++ classes have private access as default
+    if(cKeyword == "class") {
+        lines ~= "private:";
+        context.accessSpecifier = AccessSpecifier.Private;
+    } else
+        context.accessSpecifier = AccessSpecifier.Public;
 
     BitFieldInfo bitFieldInfo;
 
@@ -242,23 +246,27 @@ string[] translateAggregate(
 
     context.log("Children: ", cursor.children);
 
-    foreach(member; cursor.children) {
+    foreach(child; cursor.children) {
 
-        if(member.kind == Cursor.Kind.PackedAttr) {
+        if(child.kind == Cursor.Kind.PackedAttr) {
             lines ~= "align(1):";
             continue;
         }
 
-        lines ~= bitFieldInfo.handle(member);
+        lines ~= bitFieldInfo.handle(child);
 
-        if(skipMember(member)) continue;
+        if(skipMember(child)) continue;
 
-        lines ~= translate(member, context).map!(a => "    " ~ a).array;
+        const childTranslation = isPrivateField(child, context)
+            ? translatePrivateMember(child)
+            : translate(child, context);
+
+        lines ~= childTranslation.map!(a => "    " ~ a).array;
 
         // Possibly deal with C11 anonymous structs/unions. See issue #29.
-        lines ~= maybeC11AnonymousRecords(cursor, member, context);
+        lines ~= maybeC11AnonymousRecords(cursor, child, context);
 
-        bitFieldInfo.update(member);
+        bitFieldInfo.update(child);
     }
 
     lines ~= bitFieldInfo.finish;
@@ -268,6 +276,28 @@ string[] translateAggregate(
     lines ~= `}`;
 
     return lines;
+}
+
+
+private bool isPrivateField(in from!"clang".Cursor cursor,
+                            in from!"dpp.runtime.context".Context context)
+    @safe
+{
+    import clang: Cursor, AccessSpecifier;
+    return
+        context.accessSpecifier == AccessSpecifier.Private
+        && cursor.kind == Cursor.Kind.FieldDecl
+        && cursor.type.getSizeof > 0
+        ;
+
+}
+
+// Since one can't access private members anyway, why bother translating?
+// Declare an array of equivalent size in D, helps with the untranslatable
+// parts of C++
+private string[] translatePrivateMember(in from!"clang".Cursor cursor) @safe {
+    import std.conv: text;
+    return [text(`void[`, cursor.type.getSizeof, `] `, cursor.spelling, `;`)];
 }
 
 

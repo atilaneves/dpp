@@ -925,11 +925,13 @@ unittest {
         Cpp(
             q{
                 class T1 {
+                public:
                     int i;
                 };
 
                 template<int I>
                 class T2 {
+                public:
                     double d;
                 };
 

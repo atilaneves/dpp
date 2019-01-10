@@ -188,6 +188,8 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
     {
         import clang: AccessSpecifier;
 
+        context.accessSpecifier = cursor.accessSpecifier;
+
         final switch(cursor.accessSpecifier) with(AccessSpecifier) {
             case InvalidAccessSpecifier: assert(0);
             case Public: return ["    public:"];
