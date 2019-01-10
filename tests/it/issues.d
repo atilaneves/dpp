@@ -1287,7 +1287,6 @@ unittest {
 }
 
 
-@ShouldFail("enum class should not alias members")
 @Tags("issue")
 @("119.1")
 @safe unittest {
