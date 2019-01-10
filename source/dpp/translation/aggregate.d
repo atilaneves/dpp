@@ -89,14 +89,16 @@ string[] translateEnum(in from!"clang".Cursor cursor,
     const enumName = context.spellingOrNickname(cursor);
     string[] lines;
 
-    // Translate it twice so that C semantics are the same (global names)
-    // but also have a named version for optional type correctness and
-    // reflection capabilities.
-    // This means that `enum Foo { foo, bar }` in C will become:
-    // `enum Foo { foo, bar }` _and_
-    // `enum foo = Foo.foo; enum bar = Foo.bar;` in D.
-    // Only do this however for regular enums, not C++11 `enum class`
-    if(!cursor.tokens.canFind(Token(Token.Kind.Keyword, "class"))) {
+    const isEnumClass = cursor.tokens.canFind(Token(Token.Kind.Keyword, "class"));
+
+    if(!isEnumClass && !context.options.alwaysScopedEnums) {
+        // Translate it twice so that C semantics are the same (global names)
+        // but also have a named version for optional type correctness and
+        // reflection capabilities.
+        // This means that `enum Foo { foo, bar }` in C will become:
+        // `enum Foo { foo, bar }` _and_
+        // `enum foo = Foo.foo; enum bar = Foo.bar;` in D.
+
         foreach(member; cursor) {
             if(!member.isDefinition) continue;
             auto memName = maybeRename(member, context);

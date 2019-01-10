@@ -31,6 +31,7 @@ struct Options {
     bool cppStdLib;
     bool ignoreMacros;
     string[] ignoredNamespaces;
+    bool alwaysScopedEnums;
 
     this(string[] args) {
 
@@ -106,6 +107,7 @@ struct Options {
                 "c++-std-lib", "Link to the C++ standard library", &cppStdLib,
                 "ignore-macros", "Ignore preprocessor macros", &ignoreMacros,
                 "ignore-ns", "Ignore a C++ namespace", &ignoredNamespaces,
+                "scoped-enums", "Don't redeclare enums to mimic C", &alwaysScopedEnums,
             );
 
         if(helpInfo.helpWanted) {
