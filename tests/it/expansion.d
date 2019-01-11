@@ -5,14 +5,14 @@ import it;
 import contract: printChildren, shouldMatch;
 import dpp.expansion;
 import clang: parse, TranslationUnit, Cursor, Type;
+import std.conv: text;
+import std.array: join;
+import std.algorithm: map;
 
 
 @("namespace")
 @safe unittest {
 
-    import std.conv: text;
-    import std.array: join;
-    import std.algorithm: map;
 
     auto tu = () {
 
@@ -80,4 +80,49 @@ import clang: parse, TranslationUnit, Cursor, Type;
 
     const quux = outer2.children[0];
     quux.shouldMatch(Cursor.Kind.StructDecl, "Quux");
+}
+
+
+@("issue113")
+@safe unittest {
+
+    auto tu = () {
+        with(immutable Sandbox()) {
+            writeFile(
+                "foo.cpp",
+                q{
+                    namespace ns1 {
+                        namespace ns2 {
+                            struct Struct;
+
+                            template<typename T>
+                                struct Template {
+                            };
+
+                            class Class;  // should be ignored but isn't
+                            class Class: public Template<Struct> {
+                                int i;
+                            };
+                        }
+                    }
+                });
+
+            return parse(inSandboxPath("foo.cpp"));
+        }
+    }();
+
+    const cursors = canonicalCursors(tu);
+    writelnUt(cursors.map!text.join("\n"));
+    cursors.length.should == 1;
+
+    const ns1 = cursors[0];
+    ns1.shouldMatch(Cursor.Kind.Namespace, "ns1");
+    printChildren(ns1);
+    ns1.children.length.should == 1;
+
+    const ns2 = ns1.children[0];
+    ns2.shouldMatch(Cursor.Kind.Namespace, "ns2");
+    printChildren(ns2);
+    ns2.children.map!(a => a.spelling).shouldBeSameSetAs(["Struct", "Template", "Class"]);
+    ns2.children.length.should == 3;
 }

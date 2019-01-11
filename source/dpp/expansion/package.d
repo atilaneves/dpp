@@ -83,8 +83,6 @@ private from!"clang".TranslationUnit parseTU
    Unfortunately, the canonical type is orthogonal to which cursor is the actual
    definition, so we prefer to find the definition if it exists, and if not, we
    take the canonical declaration so as to not repeat ourselves in D.
-
-   Returns: range of clang.Cursor
 */
 from!"clang".Cursor[] canonicalCursors(from!"clang".TranslationUnit translationUnit) @safe {
     // translationUnit isn't const becaus the cursors need to be sorted
@@ -95,17 +93,35 @@ from!"clang".Cursor[] canonicalCursors(from!"clang".TranslationUnit translationU
     import std.array: array;
 
     auto topLevelCursors = translationUnit.cursor.children;
-    auto globalCursors = topLevelCursors.filter!(c => c.kind != Cursor.Kind.Namespace);
-    auto nsCursors = topLevelCursors.filter!(c => c.kind == Cursor.Kind.Namespace);
+    return canonicalCursors(topLevelCursors);
+}
 
-    auto cursors =
-        chain(trueLeafCursors(globalCursors), trueNsCursors(nsCursors))
+
+/**
+   In C there can be several declarations and one definition of a type.
+   In D we can have only ever one of either. There might be multiple
+   cursors in the translation unit that all refer to the same canonical type.
+   Unfortunately, the canonical type is orthogonal to which cursor is the actual
+   definition, so we prefer to find the definition if it exists, and if not, we
+   take the canonical declaration so as to not repeat ourselves in D.
+*/
+from!"clang".Cursor[] canonicalCursors(R)(R cursors) @safe {
+    import clang: Cursor;
+    import std.algorithm: filter, partition;
+    import std.range: chain;
+    import std.array: array;
+
+    auto leafCursors = cursors.filter!(c => c.kind != Cursor.Kind.Namespace);
+    auto nsCursors = cursors.filter!(c => c.kind == Cursor.Kind.Namespace);
+
+    auto ret =
+        chain(trueLeafCursors(leafCursors), trueNsCursors(nsCursors))
         .array;
 
     // put the macros at the end
-    cursors.partition!(a => a.kind != Cursor.Kind.MacroDefinition);
+    ret.partition!(a => a.kind != Cursor.Kind.MacroDefinition);
 
-    return cursors;
+    return ret;
 }
 
 
@@ -139,18 +155,40 @@ from!"clang".Cursor[] trueNsCursors(R)(R cursors) @trusted /* who knows */ {
     import std.algorithm: chunkBy, fold, map;
     import std.array: array;
 
-    return
+    auto ret =
         cursors
         // each chunk is a range of NS cursors with the same name
         .chunkBy!((a, b) => a.spelling == b.spelling)
         .map!(chunk => chunk.fold!mergeNodes)
         .array
         ;
+
+    // if there's only one namespace, the fold above does nothing,
+    // so we make the children cursors canonical here
+    if(ret.length == 1) {
+        ret[0].children = canonicalCursors(ret[0].children);
+    }
+
+    return ret;
+}
+
+from!"clang".Cursor mergeCursors(from!"clang".Cursor lhs, from!"clang".Cursor rhs)
+    in(lhs.kind == rhs.kind)
+    do
+{
+    import clang: Cursor;
+    return lhs.kind == Cursor.Kind.Namespace
+        ? mergeNodes(lhs, rhs)
+        : mergeLeaves(lhs, rhs);
 }
 
 
+// Takes two namespaces with the same name and returns a new namespace cursor
+// with merged declarations from each
 from!"clang".Cursor mergeNodes(from!"clang".Cursor lhs, from!"clang".Cursor rhs)
-    in(lhs.spelling == rhs.spelling)
+    in(lhs.kind == from!"clang".Cursor.Kind.Namespace &&
+       rhs.kind == from!"clang".Cursor.Kind.Namespace &&
+       lhs.spelling == rhs.spelling)
     do
 {
     import clang: Cursor;
@@ -158,7 +196,7 @@ from!"clang".Cursor mergeNodes(from!"clang".Cursor lhs, from!"clang".Cursor rhs)
     import std.array: front, empty;
 
     auto ret = Cursor(Cursor.Kind.Namespace, lhs.spelling);
-    ret.children = lhs.children;
+    ret.children = trueLeafCursors(lhs.children);
 
     foreach(child; rhs.children) {
         const alreadyHaveIndex = ret.children.countUntil!(a => a.kind == child.kind &&
@@ -180,7 +218,13 @@ from!"clang".Cursor mergeNodes(from!"clang".Cursor lhs, from!"clang".Cursor rhs)
 }
 
 
-from!"clang".Cursor mergeLeaves(from!"clang".Cursor lhs, from!"clang".Cursor rhs) {
+// Merges two cursors so that the "best" one is returned. Avoid double definitions
+// that are allowed in C but not in D
+from!"clang".Cursor mergeLeaves(from!"clang".Cursor lhs, from!"clang".Cursor rhs)
+    in(lhs.kind != from!"clang".Cursor.Kind.Namespace &&
+       rhs.kind != from!"clang".Cursor.Kind.Namespace)
+    do
+{
     import clang: Cursor;
     import std.algorithm: sort, chunkBy, map, filter;
     import std.array: array, join;

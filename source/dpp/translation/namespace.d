@@ -10,7 +10,6 @@ string[] translateNamespace(in from!"clang".Cursor cursor,
     in(cursor.kind == from!"clang".Cursor.Kind.Namespace)
     do
 {
-    import dpp.expansion: trueLeafCursors;
     import dpp.translation.translation: translate, ignoredCppCursorSpellings;
     import dpp.translation.exception: UntranslatableException;
     import clang: Cursor;
@@ -38,10 +37,7 @@ string[] translateNamespace(in from!"clang".Cursor cursor,
     context.pushNamespace(cursor.spelling);
     scope(exit) context.popNamespace(cursor.spelling);
 
-    // the cast is required due to sort not working on const cursors
-    auto children = () @trusted { return trueLeafCursors(cast(Cursor[]) cursor.children); }();
-
-    foreach(child; children) {
+    foreach(child; cursor.children) {
 
         if(child.kind == Cursor.Kind.VisibilityAttr) continue;
 

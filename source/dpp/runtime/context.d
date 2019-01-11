@@ -338,6 +338,8 @@ struct Context {
         _namespaces = _namespaces[0 .. $-1];
     }
 
+    // returns the current namespace so it can be deleted
+    // from translated names
     string namespace() @safe pure nothrow const {
         import std.array: join;
         return _namespaces.join("::");
