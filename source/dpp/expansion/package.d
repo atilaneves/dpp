@@ -115,7 +115,7 @@ from!"clang".Cursor[] canonicalCursors(R)(R cursors) @safe {
     auto nsCursors = cursors.filter!(c => c.kind == Cursor.Kind.Namespace);
 
     auto ret =
-        chain(trueLeafCursors(leafCursors), trueNsCursors(nsCursors))
+        chain(trueCursors(leafCursors), trueCursors(nsCursors))
         .array;
 
     // put the macros at the end
@@ -128,40 +128,19 @@ from!"clang".Cursor[] canonicalCursors(R)(R cursors) @safe {
 // Given an arbitrary range of cursors, returns a new range filtering out
 // the "ghosts" (useless repeated cursors).
 // Only works when there are no namespaces
-from!"clang".Cursor[] trueLeafCursors(R)(R cursors) @trusted /* who knows */ {
-
-    import std.algorithm: chunkBy, fold, map, sort;
-    import std.array: array;
-
-    return
-        cursors
-        // each chunk is a range of cursors with the same name
-        .array  // needed by sort
-        .sort!((a, b) => a.canonical.sourceRange.start <
-                         b.canonical.sourceRange.start)
-        // each chunk is a range of cursors representing the same canonical entity
-        .chunkBy!((a, b) => a.canonical == b.canonical)
-        // for each chunk, extract the one cursor we want
-
-        .map!(chunk => chunk.fold!mergeLeaves)
-        .array
-        ;
-}
-
-
-// merges namespace cursors together
-from!"clang".Cursor[] trueNsCursors(R)(R cursors) @trusted /* who knows */ {
+from!"clang".Cursor[] trueCursors(R)(R cursors) @trusted /* who knows */ {
 
     import std.algorithm: chunkBy, fold, map, sort;
     import std.array: array;
 
     auto ret =
         cursors
-        .array // needed by sort
-        .sort!((a, b) => a.spelling < b.spelling)
-        // each chunk is a range of NS cursors with the same name
-        .chunkBy!((a, b) => a.spelling == b.spelling)
-        .map!(chunk => chunk.fold!mergeNodes)
+        // each chunk is a range of cursors with the same name
+        .array  // needed by sort
+        .sort!sortCursors
+        // each chunk is a range of cursors representing the same canonical entity
+        .chunkBy!sameCursorForChunking
+        .map!(chunk => chunk.fold!mergeCursors)
         .array
         ;
 
@@ -173,6 +152,21 @@ from!"clang".Cursor[] trueNsCursors(R)(R cursors) @trusted /* who knows */ {
 
     return ret;
 }
+
+bool sortCursors(from!"clang".Cursor lhs, from!"clang".Cursor rhs) @safe {
+    import clang: Cursor;
+    return lhs.kind == Cursor.Kind.Namespace && rhs.kind == Cursor.Kind.Namespace
+        ? lhs.spelling < rhs.spelling
+        : lhs.canonical.sourceRange.start < rhs.canonical.sourceRange.start;
+}
+
+bool sameCursorForChunking(from!"clang".Cursor lhs, from!"clang".Cursor rhs) @safe {
+    import clang: Cursor;
+    return lhs.kind == Cursor.Kind.Namespace && rhs.kind == Cursor.Kind.Namespace
+        ? lhs.spelling == rhs.spelling
+        : lhs.canonical == rhs.canonical;
+}
+
 
 from!"clang".Cursor mergeCursors(from!"clang".Cursor lhs, from!"clang".Cursor rhs)
     in(lhs.kind == rhs.kind)
