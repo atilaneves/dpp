@@ -1308,7 +1308,8 @@ unittest {
 }
 
 
-@Tags("issue")
+@ShouldFail("libclang fails to tokenise this for some reason")
+@Tags("issue", "libclang")
 @("119.2")
 @safe unittest {
     with(immutable IncludeSandbox()) {
