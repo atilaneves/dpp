@@ -84,3 +84,30 @@ unittest {
         ),
    );
 }
+
+
+@ShouldFail("Doesn't use the template parameter")
+@("parameter.std.string")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                namespace std {
+                    template <typename CharT>
+                    struct basic_string {};
+
+                    using string = basic_string<char>;
+                }
+
+                struct Foo {
+                    void fun(const std::string&);
+                };
+            }
+        ),
+        D(
+            q{
+                auto foo = Foo();
+            }
+        ),
+   );
+}
