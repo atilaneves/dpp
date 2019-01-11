@@ -111,7 +111,7 @@ auto parse(T)
 }
 
 
-void printChildren(T)(auto ref T cursorOrTU) {
+void printChildren(T)(auto ref in T cursorOrTU) {
     import clang: TranslationUnit, Cursor;
     import std.traits: Unqual;
 
@@ -122,7 +122,12 @@ void printChildren(T)(auto ref T cursorOrTU) {
         import std.array: join;
         import std.conv: text;
 
-        writelnUt("\n", cursorOrTU, " children:\n[\n", cursorOrTU.children.map!(a => text("    ", a)).join(",\n"));
+        static if(is(Unqual!T == TranslationUnit))
+            const children = cursorOrTU.cursor.children;
+        else
+            const children = cursorOrTU.children;
+
+        writelnUt("\n", cursorOrTU, " children:\n[\n", children.map!(a => text("    ", a)).join(",\n"));
         writelnUt("]\n");
     }
 }

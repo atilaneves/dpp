@@ -1,6 +1,8 @@
 module dpp.translation.namespace;
 
+
 import dpp.from;
+
 
 string[] translateNamespace(in from!"clang".Cursor cursor,
                             ref from!"dpp.runtime.context".Context context)
@@ -8,7 +10,6 @@ string[] translateNamespace(in from!"clang".Cursor cursor,
     in(cursor.kind == from!"clang".Cursor.Kind.Namespace)
     do
 {
-    import dpp.expansion: trueCursors;
     import dpp.translation.translation: translate, ignoredCppCursorSpellings;
     import dpp.translation.exception: UntranslatableException;
     import clang: Cursor;
@@ -36,9 +37,7 @@ string[] translateNamespace(in from!"clang".Cursor cursor,
     context.pushNamespace(cursor.spelling);
     scope(exit) context.popNamespace(cursor.spelling);
 
-    auto children = () @trusted { return trueCursors(cast(Cursor[]) cursor.children); }();
-
-    foreach(child; children) {
+    foreach(child; cursor.children) {
 
         if(child.kind == Cursor.Kind.VisibilityAttr) continue;
 
