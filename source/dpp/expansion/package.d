@@ -98,7 +98,9 @@ from!"clang".Cursor[] canonicalCursors(from!"clang".TranslationUnit translationU
     auto globalCursors = topLevelCursors.filter!(c => c.kind != Cursor.Kind.Namespace);
     auto nsCursors = topLevelCursors.filter!(c => c.kind == Cursor.Kind.Namespace);
 
-    auto cursors = chain(trueCursors(globalCursors), trueNsCursors(nsCursors)).array;
+    auto cursors =
+        chain(trueLeafCursors(globalCursors), trueNsCursors(nsCursors))
+        .array;
 
     // put the macros at the end
     cursors.partition!(a => a.kind != Cursor.Kind.MacroDefinition);
@@ -106,6 +108,32 @@ from!"clang".Cursor[] canonicalCursors(from!"clang".TranslationUnit translationU
     return cursors;
 }
 
+
+// Given an arbitrary range of cursors, returns a new range filtering out
+// the "ghosts" (useless repeated cursors).
+// Only works when there are no namespaces
+from!"clang".Cursor[] trueLeafCursors(R)(R cursors) @trusted /* who knows */ {
+
+    import std.algorithm: chunkBy, fold, map, sort;
+    import std.array: array;
+
+    return
+        cursors
+        // each chunk is a range of cursors with the same name
+        .array  // needed by sort
+        .sort!((a, b) => a.canonical.sourceRange.start <
+                         b.canonical.sourceRange.start)
+        // each chunk is a range of cursors representing the same canonical entity
+        .chunkBy!((a, b) => a.canonical == b.canonical)
+        // for each chunk, extract the one cursor we want
+
+        .map!(chunk => chunk.fold!mergeLeaves)
+        .array
+        ;
+}
+
+
+// merges namespace cursors together
 from!"clang".Cursor[] trueNsCursors(R)(R cursors) @trusted /* who knows */ {
 
     import std.algorithm: chunkBy, fold, map;
@@ -115,56 +143,9 @@ from!"clang".Cursor[] trueNsCursors(R)(R cursors) @trusted /* who knows */ {
         cursors
         // each chunk is a range of NS cursors with the same name
         .chunkBy!((a, b) => a.spelling == b.spelling)
-        .map!(nsChunk => nsChunk.fold!mergeNodes)
+        .map!(chunk => chunk.fold!mergeNodes)
         .array
         ;
-}
-
-
-// Given an arbitrary range of cursors, returns a new range filtering out
-// the "ghosts" (useless repeated cursors).
-// Only works when there are no namespaces
-auto trueCursors(R)(R cursors) @trusted {
-    import clang: Cursor;
-    import std.algorithm: sort, chunkBy, map, filter;
-    import std.array: array, join;
-    import std.range: chain;
-
-    // Filter out "ghosts" (useless repeated cursors).
-    // Each element of `cursors` has the same canonical cursor.
-    static Cursor[] trueCursorsFromSameCanonical(R)(R cursors) {
-        import clang: Cursor;
-        import std.algorithm: all, filter;
-        import std.array: array;
-
-        // we always accept multiple namespaces
-        if(cursors.save.all!(a => a.kind == Cursor.Kind.Namespace))
-            return cursors.array;
-
-        auto definitions = cursors.save.filter!(a => a.isDefinition);
-        if(!definitions.empty) return [definitions.front];
-
-        auto canonicals = cursors.save.filter!(a => a.isCanonical);
-        if(!canonicals.empty) return [canonicals.front];
-
-        assert(!cursors.empty);
-        return [cursors.front];
-    }
-
-    auto nonNs = cursors
-        .filter!(c => c.kind != Cursor.Kind.Namespace)
-        .array  // needed by sort
-        .sort!((a, b) => a.canonical.sourceRange.start <
-                         b.canonical.sourceRange.start)
-        // each chunk is a range of cursors representing the same canonical entity
-        .chunkBy!((a, b) => a.canonical == b.canonical)
-        // for each chunk, extract the one cursor we want
-        .map!trueCursorsFromSameCanonical
-        .join  // flatten (range of chunks of cursors -> range of cursors)
-        ;
-
-    return chain(nonNs,
-                 cursors.filter!(c => c.kind == Cursor.Kind.Namespace));
 }
 
 
@@ -199,7 +180,7 @@ from!"clang".Cursor mergeNodes(from!"clang".Cursor lhs, from!"clang".Cursor rhs)
 }
 
 
-private from!"clang".Cursor mergeLeaves(from!"clang".Cursor lhs, from!"clang".Cursor rhs) {
+from!"clang".Cursor mergeLeaves(from!"clang".Cursor lhs, from!"clang".Cursor rhs) {
     import clang: Cursor;
     import std.algorithm: sort, chunkBy, map, filter;
     import std.array: array, join;

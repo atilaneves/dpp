@@ -2,14 +2,14 @@ module it.expansion;
 
 
 import it;
+import contract: printChildren, shouldMatch;
 import dpp.expansion;
+import clang: parse, TranslationUnit, Cursor, Type;
 
 
-@("canonical.namespace")
+@("namespace")
 @safe unittest {
 
-    import contract: printChildren, shouldMatch;
-    import clang: parse, TranslationUnit, Cursor, Type;
     import std.conv: text;
     import std.array: join;
     import std.algorithm: map;
