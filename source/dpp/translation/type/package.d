@@ -302,10 +302,7 @@ private string translateLvalueRef(in from!"clang".Type type,
                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
     @safe pure
 {
-
-    // See it.cpp.templates.__normal_iterator.base
-    const typeToUse = type.canonical.isTypeParameter ? type : type.canonical;
-    const pointeeTranslation = translate(typeToUse.pointee, context, translatingFunction);
+    const pointeeTranslation = translate(type.pointee, context, translatingFunction);
     return translatingFunction
         ? "ref " ~ pointeeTranslation
         : pointeeTranslation ~ "*";

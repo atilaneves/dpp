@@ -438,7 +438,10 @@ auto translateParamTypes(in from!"clang".Cursor cursor,
 
     return params(cursor)
         .enumerate
-        .tee!((a) { context.log("    Function param #", a[0], " type: ", a[1].type, "  canonical ", a[1].type.canonical); })
+        .tee!((a) {
+            context.log("    Function param #", a[0],
+                        " type: ", a[1].type, "  canonical ", a[1].type.canonical);
+        })
         .map!(t => translateFunctionParam(cursor, t[1], context))
         ;
 }

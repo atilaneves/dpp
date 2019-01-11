@@ -86,7 +86,6 @@ unittest {
 }
 
 
-@ShouldFail("Doesn't use the template parameter")
 @("parameter.std.string")
 @safe unittest {
     shouldCompile(
@@ -96,11 +95,14 @@ unittest {
                     template <typename CharT>
                     struct basic_string {};
 
-                    using string = basic_string<char>;
+                    // naming it string clashes with D's immutable(char)[] alias
+                    using mystring = basic_string<char>;
                 }
 
                 struct Foo {
-                    void fun(const std::string&);
+                    // the parameter used to get translated as
+                    // basic_string without a template parameter
+                    void fun(const std::mystring&);
                 };
             }
         ),

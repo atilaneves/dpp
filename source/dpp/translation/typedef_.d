@@ -26,14 +26,11 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
         .array;
     }();
 
-    const nonCanonicalUnderlyingType = typedef_.underlyingType;
-    const canonicalUnderlyingType = nonCanonicalUnderlyingType.canonical;
-
     context.log("Children: ", children);
-    context.log("          Underlying type: ", nonCanonicalUnderlyingType);
-    context.log("Canonical underlying type: ", canonicalUnderlyingType);
+    context.log("Underlying type: ", typedef_.underlyingType);
 
-    if(isSomeFunction(canonicalUnderlyingType))
+    // FIXME - why canonical?
+    if(isSomeFunction(typedef_.underlyingType.canonical))
         return translateFunctionTypeDef(typedef_, context.indent);
 
     const isOnlyAggregateChild = children.length == 1 && isAggregateC(children[0]);
@@ -56,10 +53,7 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
         switch(typedef_.spelling) {
             default:
                 if(isOnlyAggregateChild) return context.spellingOrNickname(children[0]);
-                const typeToUse = isTypeParameter(canonicalUnderlyingType)
-                    ? nonCanonicalUnderlyingType
-                    : canonicalUnderlyingType;
-                return translate(typeToUse, context, No.translatingFunction);
+                return translate(typedef_.underlyingType, context, No.translatingFunction);
 
             // possible issues on 32-bit
             case "int32_t":  return "int";
