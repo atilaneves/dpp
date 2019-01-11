@@ -925,11 +925,13 @@ unittest {
         Cpp(
             q{
                 class T1 {
+                public:
                     int i;
                 };
 
                 template<int I>
                 class T2 {
+                public:
                     double d;
                 };
 
@@ -1285,7 +1287,6 @@ unittest {
 }
 
 
-@ShouldFail("enum class should not alias members")
 @Tags("issue")
 @("119.1")
 @safe unittest {
@@ -1306,6 +1307,40 @@ unittest {
     );
 }
 
+
+@ShouldFail("libclang fails to tokenise this for some reason")
+@Tags("issue", "libclang")
+@("119.2")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+
+        writeFile("util.hpp",
+                  `
+                      #define MAKE_ENUM_CLASS(type, values) enum class type { values };
+                  `);
+
+        writeFile("hdr.hpp",
+                  `
+                      #include "util.hpp"
+                      #define VALUES X(foo) X(bar) X(baz)
+                      #define X(n) n,
+                          MAKE_ENUM_CLASS(Enum, VALUES)
+                      #undef X
+                  `);
+
+        writeFile("app.dpp",
+                  `
+                  #include "hdr.hpp"
+                  void main() {
+                      auto f = Enum.foo;
+                      static assert(!__traits(compiles, foo));
+                  }
+                  `);
+
+        runPreprocessOnly(["app.dpp"]);
+        shouldCompile("app.d");
+    }
+}
 
 
 @Tags("namespace", "issue")

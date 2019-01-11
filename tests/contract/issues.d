@@ -6,6 +6,33 @@ import contract;
 
 
 @Tags("contract")
+@("119")
+@safe unittest {
+
+    import clang: Token;
+
+    const tu = parse(
+        Cpp(
+            q{
+                enum class Enum { foo, bar, baz };
+            }
+        )
+    );
+
+    tu.children.length.should == 1;
+    const enum_ = tu.child(0);
+
+    enum_.shouldMatch(Cursor.Kind.EnumDecl, "Enum");
+    enum_.type.shouldMatch(Type.Kind.Enum, "Enum");
+    printChildren(enum_);
+    enum_.children.length.should == 3; // EnumConstantDecl
+
+    Token(Token.Kind.Keyword, "class").should.be in enum_.tokens;
+}
+
+
+
+@Tags("contract")
 @("126")
 @safe unittest {
 

@@ -23,7 +23,7 @@ enum Language {
 struct Context {
 
     import dpp.runtime.options: Options;
-    import clang: Cursor;
+    import clang: Cursor, AccessSpecifier;
 
     alias SeenCursors = bool[CursorId];
 
@@ -85,6 +85,8 @@ struct Context {
        All previously seen cursors
      */
     private SeenCursors seenCursors;
+
+    AccessSpecifier accessSpecifier = AccessSpecifier.Public;
 
     /// Command-line options
     Options options;

@@ -31,6 +31,8 @@ struct Options {
     bool cppStdLib;
     bool ignoreMacros;
     bool detailedUntranslatable;
+    string[] ignoredNamespaces;
+    bool alwaysScopedEnums;
 
     this(string[] args) {
 
@@ -105,7 +107,9 @@ struct Options {
                 "hard-fail", "Translate nothing if any part fails", &hardFail,
                 "c++-std-lib", "Link to the C++ standard library", &cppStdLib,
                 "ignore-macros", "Ignore preprocessor macros", &ignoreMacros,
+                "ignore-ns", "Ignore a C++ namespace", &ignoredNamespaces,
                 "detailed-untranslatables", "Show details about untranslatable cursors", &detailedUntranslatable,
+                "scoped-enums", "Don't redeclare enums to mimic C", &alwaysScopedEnums,
             );
 
         if(helpInfo.helpWanted) {

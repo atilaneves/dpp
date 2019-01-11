@@ -74,7 +74,7 @@ struct IncludeSandbox {
         dppRun(options);
     }
 
-    void runPreprocessOnly(string[] args...) @safe const {
+    void runPreprocessOnly(in string[] args...) @safe const {
         run(["--preprocess-only", "--keep-pre-cpp-files"] ~ args);
     }
 
@@ -162,9 +162,9 @@ private auto dropPreamble(R)(R lines) {
    header and a D main file.
 */
 void shouldCompile(string file = __FILE__, size_t line = __LINE__)
-                  (in C header, in D app)
+                  (in C header, in D app, in string[] cmdLineArgs = [])
 {
-    shouldCompile!(file, line)("hdr.h", header.code, app);
+    shouldCompile!(file, line)("hdr.h", header.code, app, cmdLineArgs);
 }
 
 /**
@@ -172,18 +172,21 @@ void shouldCompile(string file = __FILE__, size_t line = __LINE__)
    header and a D main file.
 */
 void shouldCompile(string file = __FILE__, size_t line = __LINE__)
-                  (in Cpp header, in D app)
+                  (in Cpp header, in D app, in string[] cmdLineArgs = [])
 {
-    shouldCompile!(file, line)("hdr.hpp", header.code, app);
+    shouldCompile!(file, line)("hdr.hpp", header.code, app, cmdLineArgs);
 }
 
 
 private void shouldCompile(string file = __FILE__, size_t line = __LINE__)
-                          (in string headerFileName, in string headerText, in D app)
+                          (in string headerFileName,
+                           in string headerText,
+                           in D app,
+                           in string[] cmdLineArgs = [])
 {
     with(const IncludeSandbox()) {
         writeHeaderAndApp(headerFileName, headerText, app);
-        runPreprocessOnly("app.dpp");
+        runPreprocessOnly(cmdLineArgs ~ "app.dpp");
         shouldCompile!(file, line)("app.d");
     }
 }
