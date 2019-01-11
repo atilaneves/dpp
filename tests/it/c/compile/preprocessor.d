@@ -60,3 +60,20 @@ import it;
         shouldCompile("foo.d");
     }
 }
+
+
+@("octal.whitespace")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                #define FOO	   00
+            `
+        ),
+        D(
+            q{
+            }
+        )
+    );
+
+}

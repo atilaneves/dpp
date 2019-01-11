@@ -132,7 +132,9 @@ private string replaceNull(in string str) @safe pure nothrow {
 
 private string fixOctal(in string str) @safe pure {
     import std.string: strip;
-    import std.algorithm: countUntil;
+    import std.algorithm: countUntil, all;
+    import std.exception: enforce;
+    import std.uni: isWhite;
 
     const stripped = str.strip;
     const isOctal =
@@ -143,5 +145,11 @@ private string fixOctal(in string str) @safe pure {
     if(!isOctal) return str;
 
     const firstNonZero = stripped.countUntil!(a => a != '0');
+
+    if(firstNonZero == -1) {
+        enforce(str.all!(a => a == '0' || a.isWhite), "Cannot fix octal '" ~ str ~ "'");
+        return "0";
+    }
+
     return ` std.conv.octal!` ~ stripped[firstNonZero .. $];
 }
