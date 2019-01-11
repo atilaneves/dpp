@@ -36,6 +36,9 @@ import contract;
 @Tags("contract")
 @("template.type.parameter")
 @safe unittest {
+
+    import dpp.clang: namespace;
+
     const tu = parse(
         Cpp(
             q{
@@ -99,4 +102,6 @@ import contract;
     i.shouldMatch(Cursor.Kind.FieldDecl, "i");
     i.type.shouldMatch(Type.Kind.Int, "int");
     i.children.length.should == 0;
+
+    i.namespace.shouldMatch(Cursor.Kind.Namespace, "ns");
 }
