@@ -41,6 +41,7 @@ version(dpp2) {
         "contract.issues",
 
         "it.issues",
+        "it.expansion",
 
         // C tests
         "it.c.compile.preprocessor",

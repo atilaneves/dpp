@@ -75,6 +75,7 @@ private from!"clang".TranslationUnit parseTU
                  TranslationUnitFlags.DetailedPreprocessingRecord);
 }
 
+
 /**
    In C there can be several declarations and one definition of a type.
    In D we can have only ever one of either. There might be multiple
@@ -85,17 +86,19 @@ private from!"clang".TranslationUnit parseTU
 
    Returns: range of clang.Cursor
 */
-private auto canonicalCursors(from!"clang".TranslationUnit translationUnit) @safe {
+from!"clang".Cursor[] canonicalCursors(from!"clang".TranslationUnit translationUnit) @safe {
+    // translationUnit isn't const becaus the cursors need to be sorted
 
     import clang: Cursor;
     import std.algorithm: filter, partition;
+    import std.range: chain;
     import std.array: array;
 
     auto topLevelCursors = translationUnit.cursor.children;
+    auto globalCursors = topLevelCursors.filter!(c => c.kind != Cursor.Kind.Namespace);
     auto nsCursors = topLevelCursors.filter!(c => c.kind == Cursor.Kind.Namespace);
-    auto nonNsCursors = topLevelCursors.filter!(c => c.kind != Cursor.Kind.Namespace);
 
-    auto cursors = trueCursors(nonNsCursors).array ~ trueNsCursors(nsCursors);
+    auto cursors = chain(trueCursors(globalCursors), trueNsCursors(nsCursors)).array;
 
     // put the macros at the end
     cursors.partition!(a => a.kind != Cursor.Kind.MacroDefinition);
@@ -103,22 +106,16 @@ private auto canonicalCursors(from!"clang".TranslationUnit translationUnit) @saf
     return cursors;
 }
 
-private auto trueNsCursors(R)(R cursors) @trusted {
-    import clang: Cursor;
-    import std.algorithm: map, chunkBy;
-    import std.typecons: tuple;
-    import std.array: array, join;
+from!"clang".Cursor[] trueNsCursors(R)(R cursors) @trusted /* who knows */ {
 
-    return cursors
+    import std.algorithm: chunkBy, fold, map;
+    import std.array: array;
+
+    return
+        cursors
         // each chunk is a range of NS cursors with the same name
         .chunkBy!((a, b) => a.spelling == b.spelling)
-        // a range of ("namespace", childrenCursors) tuples
-        .map!(nsChunk => tuple(nsChunk.front.spelling, nsChunk.map!(ns => ns.children).join))
-        // convert the children to true cursors (filter out ghosts)
-        .map!(t => tuple(t[0],  // namespace spelling
-                         trueCursors(t[1] /*children cursors*/)))
-        // map each tuple to a new Namespace cursor with the "correct" children
-        .map!((t) { auto c = Cursor(Cursor.Kind.Namespace, t[0]); c.children = t[1].array; return c; })
+        .map!(nsChunk => nsChunk.fold!mergeNodes)
         .array
         ;
 }
@@ -126,6 +123,7 @@ private auto trueNsCursors(R)(R cursors) @trusted {
 
 // Given an arbitrary range of cursors, returns a new range filtering out
 // the "ghosts" (useless repeated cursors).
+// Only works when there are no namespaces
 auto trueCursors(R)(R cursors) @trusted {
     import clang: Cursor;
     import std.algorithm: sort, chunkBy, map, filter;
@@ -169,21 +167,64 @@ auto trueCursors(R)(R cursors) @trusted {
                  cursors.filter!(c => c.kind == Cursor.Kind.Namespace));
 }
 
-auto foo(R)(R cursors) {
-    import clang: Cursor;
-    import std.algorithm: filter, map;
-    import std.array: array;
 
-    auto ns = cursors
-        .filter!(c => c.kind == Cursor.Kind.Namespace)
-        .map!((n) {
-                auto c = Cursor(Cursor.Kind.Namespace, n.spelling);
-                c.children = trueCursors(n.children).array;
-                return c;
-            }
-        )
-        ;
+from!"clang".Cursor mergeNodes(from!"clang".Cursor lhs, from!"clang".Cursor rhs)
+    in(lhs.spelling == rhs.spelling)
+    do
+{
+    import clang: Cursor;
+    import std.algorithm: filter, countUntil;
+    import std.array: front, empty;
+
+    auto ret = Cursor(Cursor.Kind.Namespace, lhs.spelling);
+    ret.children = lhs.children;
+
+    foreach(child; rhs.children) {
+        const alreadyHaveIndex = ret.children.countUntil!(a => a.kind == child.kind &&
+                                                               a.spelling == child.spelling);
+        // no such cursor yet, add it to the list
+        if(alreadyHaveIndex == -1)
+            ret.children = ret.children ~ child;
+        else {
+            auto merge = child.kind == Cursor.Kind.Namespace ? &mergeNodes : &mergeLeaves;
+
+            ret.children =
+                ret.children[0 .. alreadyHaveIndex] ~
+                ret.children[alreadyHaveIndex + 1 .. $] ~
+                merge(ret.children[alreadyHaveIndex], child);
+        }
+    }
+
+    return ret;
 }
+
+
+private from!"clang".Cursor mergeLeaves(from!"clang".Cursor lhs, from!"clang".Cursor rhs) {
+    import clang: Cursor;
+    import std.algorithm: sort, chunkBy, map, filter;
+    import std.array: array, join;
+    import std.range: chain;
+
+    // Filter out "ghosts" (useless repeated cursors).
+    // Each element of `cursors` has the same canonical cursor.
+    static Cursor cursorFromCanonicals(Cursor[] cursors) {
+        import clang: Cursor;
+        import std.algorithm: all, filter;
+        import std.array: array, save, front, empty;
+
+        auto definitions = cursors.save.filter!(a => a.isDefinition);
+        if(!definitions.empty) return definitions.front;
+
+        auto canonicals = cursors.save.filter!(a => a.isCanonical);
+        if(!canonicals.empty) return canonicals.front;
+
+        assert(!cursors.empty);
+        return cursors.front;
+    }
+
+    return cursorFromCanonicals([lhs, rhs]);
+}
+
 
 
 bool isCppHeader(in from!"dpp.runtime.options".Options options, in string headerFileName) @safe pure {
