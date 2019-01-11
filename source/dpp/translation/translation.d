@@ -104,10 +104,13 @@ string[] translate(in from!"clang".Cursor cursor,
         debug {
             import std.stdio: stderr;
             () @trusted {
-                stderr.writeln("\nUntranslatable cursor ", cursor,
-                               "\nmsg: ", e.msg,
-                               "\nsourceRange: ", cursor.sourceRange,
-                               "\nchildren: ", cursor.children, "\n");
+                if(context.options.detailedUntranslatable)
+                    stderr.writeln("\nUntranslatable cursor ", cursor,
+                                   "\nmsg: ", e.msg,
+                                   "\nsourceRange: ", cursor.sourceRange,
+                                   "\nchildren: ", cursor.children, "\n");
+                else
+                    stderr.writeln("Untranslatable cursor ", cursor);
             }();
         }
 
