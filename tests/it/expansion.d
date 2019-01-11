@@ -20,8 +20,8 @@ import std.algorithm: map;
             writeFile(
                 "foo.cpp",
                 q{
-
                     int globalInt;
+
                     namespace outer1 {
                         namespace inner1 {
                             struct Foo;
@@ -34,6 +34,10 @@ import std.algorithm: map;
                         }
                     }
 
+                    namespace outer2 {
+                        struct Quux { };
+                    }
+
                     namespace outer1 {
                         namespace inner1 {
                             struct Foo {
@@ -44,10 +48,6 @@ import std.algorithm: map;
                                 double d;
                             };
                         }
-                    }
-
-                    namespace outer2 {
-                        struct Quux { };
                     }
                 });
 

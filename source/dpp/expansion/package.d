@@ -152,11 +152,13 @@ from!"clang".Cursor[] trueLeafCursors(R)(R cursors) @trusted /* who knows */ {
 // merges namespace cursors together
 from!"clang".Cursor[] trueNsCursors(R)(R cursors) @trusted /* who knows */ {
 
-    import std.algorithm: chunkBy, fold, map;
+    import std.algorithm: chunkBy, fold, map, sort;
     import std.array: array;
 
     auto ret =
         cursors
+        .array // needed by sort
+        .sort!((a, b) => a.spelling < b.spelling)
         // each chunk is a range of NS cursors with the same name
         .chunkBy!((a, b) => a.spelling == b.spelling)
         .map!(chunk => chunk.fold!mergeNodes)
