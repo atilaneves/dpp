@@ -4,7 +4,7 @@ module it.cpp.opaque;
 import it;
 
 
-@("vector")
+@("field")
 @safe unittest {
     shouldCompile(
         Cpp(
@@ -33,6 +33,31 @@ import it;
                 static assert(Problem.sizeof == 16);
                 auto problem = Problem();
                 long l = problem.length();
+            }
+        ),
+        ["--ignore-ns", "myns"],
+   );
+}
+
+
+@ShouldFail
+@("base")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                namespace myns {
+                    struct Base{};
+                }
+
+                struct Derived: public myns::Base {
+
+                };
+            }
+        ),
+        D(
+            q{
+                auto derived = Derived();
             }
         ),
         ["--ignore-ns", "myns"],
