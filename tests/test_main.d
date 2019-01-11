@@ -68,6 +68,6 @@ version(dpp2) {
         "it.cpp.class_",
         "it.cpp.templates",
         "it.cpp.misc",
-        "it.cpp.interop",
+        "it.cpp.opaque",
     );
 }

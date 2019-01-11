@@ -1,10 +1,10 @@
-module it.cpp.interop;
+module it.cpp.opaque;
 
 
 import it;
 
 
-@("opaque.vector")
+@("vector")
 @safe unittest {
     shouldCompile(
         Cpp(
