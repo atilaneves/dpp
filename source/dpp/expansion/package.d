@@ -129,7 +129,7 @@ from!"clang".Cursor[] canonicalCursors(R)(R cursors) @safe {
 // the "ghosts" (useless repeated cursors).
 // Only works when there are no namespaces
 from!"clang".Cursor[] trueCursors(R)(R cursors) @trusted /* who knows */ {
-
+    import clang: Cursor;
     import std.algorithm: chunkBy, fold, map, sort;
     import std.array: array;
 
@@ -146,7 +146,7 @@ from!"clang".Cursor[] trueCursors(R)(R cursors) @trusted /* who knows */ {
 
     // if there's only one namespace, the fold above does nothing,
     // so we make the children cursors canonical here
-    if(ret.length == 1) {
+    if(ret.length == 1 && ret[0].kind == Cursor.Kind.Namespace) {
         ret[0].children = canonicalCursors(ret[0].children);
     }
 
@@ -169,10 +169,17 @@ bool sameCursorForChunking(from!"clang".Cursor lhs, from!"clang".Cursor rhs) @sa
 
 
 from!"clang".Cursor mergeCursors(from!"clang".Cursor lhs, from!"clang".Cursor rhs)
-    in(lhs.kind == rhs.kind)
+    in(
+        lhs.kind == rhs.kind
+        || (lhs.kind == from!"clang".Cursor.Kind.StructDecl &&
+            rhs.kind == from!"clang".Cursor.Kind.ClassDecl)
+        || (lhs.kind == from!"clang".Cursor.Kind.ClassDecl &&
+            rhs.kind == from!"clang".Cursor.Kind.StructDecl)
+    )
     do
 {
     import clang: Cursor;
+
     return lhs.kind == Cursor.Kind.Namespace
         ? mergeNodes(lhs, rhs)
         : mergeLeaves(lhs, rhs);
