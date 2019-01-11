@@ -63,3 +63,28 @@ import it;
         ["--ignore-ns", "myns"],
    );
 }
+
+
+@ShouldFail
+@("parameter.udt")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                namespace myns {
+                    struct Forbidden{};
+                }
+
+                struct Foo {
+                    void fun(const myns::Forbidden&);
+                };
+            }
+        ),
+        D(
+            q{
+                auto foo = Foo();
+            }
+        ),
+        ["--ignore-ns", "myns"],
+   );
+}
