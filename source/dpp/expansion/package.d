@@ -196,7 +196,7 @@ from!"clang".Cursor mergeNodes(from!"clang".Cursor lhs, from!"clang".Cursor rhs)
     import std.array: front, empty;
 
     auto ret = Cursor(Cursor.Kind.Namespace, lhs.spelling);
-    ret.children = trueLeafCursors(lhs.children);
+    ret.children = canonicalCursors(lhs.children);
 
     foreach(child; rhs.children) {
         const alreadyHaveIndex = ret.children.countUntil!(a => a.kind == child.kind &&
