@@ -343,8 +343,12 @@ private string translateUnexposed(in from!"clang".Type type,
                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
     @safe pure
 {
+    import clang: Type;
     import std.string: replace;
     import std.algorithm: canFind;
+
+    if(type.canonical.kind == Type.Kind.Record)
+        return translateAggregate(type.canonical, context, translatingFunction);
 
     const spelling = type.spelling.canFind(" &&...")
         ? "auto ref " ~ type.spelling.replace(" &&...", "")
