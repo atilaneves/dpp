@@ -205,3 +205,33 @@ import it;
         shouldCompile("app.d");
     }
 }
+
+
+@ShouldFail
+@("parameter.exception_ptr")
+@safe unittest {
+
+    with(immutable IncludeSandbox()) {
+        writeFile("hdr.hpp",
+                  q{
+                      namespace oops {
+                          namespace le_exception_ptr {
+                              class exception_ptr;
+                          }
+                          using le_exception_ptr::exception_ptr;
+                      }
+
+                      // make sure the paremeter gets translated correctly
+                      void fun(const oops::exception_ptr&);
+                  });
+        writeFile("app.dpp",
+                  `
+                      #include "hdr.hpp"
+                      struct exception_ptr;
+                      void main() {
+                      }
+                  `);
+        runPreprocessOnly(["--ignore-ns", "oops", "app.dpp"]);
+        shouldCompile("app.d");
+    }
+}

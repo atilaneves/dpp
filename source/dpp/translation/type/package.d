@@ -139,6 +139,14 @@ private string translateAggregate(in from!"clang".Type type,
             ? type.spelling.replace(type.declaration.namespace.spelling ~ "::", "")
             : type.spelling;
 
+        context.log("*** type ", type);
+        context.log("*** canonical: ", type.canonical);
+        context.log("*** spelling ", type.spelling);
+        context.log("*** tentative ", tentative);
+        context.log("*** decl ", type.declaration);
+        context.log("*** ns ", type.declaration.namespace);
+
+
         // Clang template types have a spelling such as `Foo<unsigned int, unsigned short>`.
         // We need to extract the "base" name (e.g. Foo above) then translate each type
         // template argument (e.g. `unsigned long` is not a D type)
