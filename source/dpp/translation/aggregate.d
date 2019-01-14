@@ -368,7 +368,7 @@ string[] translateBitField(in from!"clang".Cursor cursor,
 
 private void maybeRememberStructsFromType(in from!"clang".Type type,
                                           ref from!"dpp.runtime.context".Context context)
-    @safe pure
+    @safe
 {
     import clang: Type;
     import std.range: only, chain;
@@ -386,7 +386,7 @@ private void maybeRememberStructsFromType(in from!"clang".Type type,
 }
 
 void maybeRememberStructs(R)(R types, ref from!"dpp.runtime.context".Context context)
-    @safe pure if(isInputRange!R)
+    @safe if(isInputRange!R)
 {
     import dpp.translation.type: translate;
     import clang: Type;

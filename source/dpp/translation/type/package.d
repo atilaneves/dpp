@@ -11,7 +11,7 @@ alias Translator = string function(
     in from!"clang".Type type,
     ref from!"dpp.runtime.context".Context context,
     in from!"std.typecons".Flag!"translatingFunction" translatingFunction
-) @safe pure;
+) @safe;
 
 alias Translators = Translator[from!"clang".Type.Kind];
 
@@ -19,7 +19,7 @@ alias Translators = Translator[from!"clang".Type.Kind];
 string translate(in from!"clang".Type type,
                  ref from!"dpp.runtime.context".Context context,
                  in from!"std.typecons".Flag!"translatingFunction" translatingFunction = from!"std.typecons".No.translatingFunction)
-    @safe pure
+    @safe
 {
     import dpp.translation.exception: UntranslatableException;
     import std.conv: text;
@@ -31,7 +31,7 @@ string translate(in from!"clang".Type type,
 }
 
 
-Translators translators() @safe pure {
+Translators translators() @safe {
     import clang: Type;
 
     with(Type.Kind) {
@@ -90,7 +90,7 @@ Translators translators() @safe pure {
 private string ignore(in from!"clang".Type type,
                       ref from!"dpp.runtime.context".Context context,
                       in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
-@safe pure
+@safe
 {
     return "";
 }
@@ -100,7 +100,7 @@ private string simple(string translation)
                      (in from!"clang".Type type,
                       ref from!"dpp.runtime.context".Context context,
                       in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
-@safe pure
+@safe
 {
     return addModifiers(type, translation);
 }
@@ -109,7 +109,7 @@ private string simple(string translation)
 private string translateRecord(in from!"clang".Type type,
                                ref from!"dpp.runtime.context".Context context,
                                in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
-@safe pure
+@safe
 {
 
     // see it.compile.projects.va_list
@@ -121,8 +121,9 @@ private string translateRecord(in from!"clang".Type type,
 private string translateAggregate(in from!"clang".Type type,
                                   ref from!"dpp.runtime.context".Context context,
                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
-    @safe pure
+    @safe
 {
+    import dpp.clang: namespace;
     import std.array: replace, join;
     import std.algorithm: canFind, countUntil, map;
     import std.range: iota;
@@ -133,19 +134,19 @@ private string translateAggregate(in from!"clang".Type type,
         // was declared, so we check here with `hasAnonymousSpelling`
         if(hasAnonymousSpelling(type)) return context.spellingOrNickname(type.declaration);
 
-        // A struct in a namespace will have a type of kind Record with the fully
-        // qualified name (e.g. std::random_access_iterator_tag), but the cursor
-        // itself has only the name (e.g. random_access_iterator_tag), so we get
-        // the spelling from the type's declaration instead of from the type itself.
-        // See it.cpp.templates.__copy_move and contract.namespace.struct.
-        if(type.spelling.canFind(":")) return type.declaration.spelling;
+        // remove namespace
+        const tentative = type.spelling.canFind(":")
+            ? type.spelling.replace(type.declaration.namespace.spelling ~ "::", "")
+            : type.spelling;
 
         // Clang template types have a spelling such as `Foo<unsigned int, unsigned short>`.
         // We need to extract the "base" name (e.g. Foo above) then translate each type
         // template argument (e.g. `unsigned long` is not a D type)
         if(type.numTemplateArguments > 0) {
-            const openAngleBracketIndex = type.spelling.countUntil("<");
-            const baseName = type.spelling[0 .. openAngleBracketIndex];
+            const openAngleBracketIndex = tentative.countUntil("<");
+            // this might happen because of alises, e.g. std::string is really std::basic_stream<chas>
+            if(openAngleBracketIndex == -1) return tentative;
+            const baseName = tentative[0 .. openAngleBracketIndex];
             const templateArgsTranslation = type
                 .numTemplateArguments
                 .iota
@@ -163,7 +164,7 @@ private string translateAggregate(in from!"clang".Type type,
             return baseName ~ "!(" ~ templateArgsTranslation ~ ")";
         }
 
-        return type.spelling;
+        return tentative;
     }
 
     return addModifiers(type, spelling)
@@ -177,7 +178,7 @@ private string translateAggregate(in from!"clang".Type type,
 private string translateConstantArray(in from!"clang".Type type,
                                       ref from!"dpp.runtime.context".Context context,
                                       in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
-@safe pure
+@safe
 {
     import std.conv: text;
 
@@ -193,7 +194,7 @@ private string translateDependentSizedArray(
     in from!"clang".Type type,
     ref from!"dpp.runtime.context".Context context,
     in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
-@safe pure
+@safe
 {
     import std.conv: text;
     import std.algorithm: find, countUntil;
@@ -209,7 +210,7 @@ private string translateDependentSizedArray(
 private string translateIncompleteArray(in from!"clang".Type type,
                                         ref from!"dpp.runtime.context".Context context,
                                         in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
-@safe pure
+@safe
 {
     const dType = translate(type.elementType, context);
     // if translating a function, we want C's T[] to translate
@@ -221,7 +222,7 @@ private string translateIncompleteArray(in from!"clang".Type type,
 private string translateTypedef(in from!"clang".Type type,
                                 ref from!"dpp.runtime.context".Context context,
                                 in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
-@safe pure
+@safe
 {
     const translation = translate(type.declaration.underlyingType, context, translatingFunction);
     return addModifiers(type, translation);
@@ -230,7 +231,7 @@ private string translateTypedef(in from!"clang".Type type,
 private string translatePointer(in from!"clang".Type type,
                                 ref from!"dpp.runtime.context".Context context,
                                 in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
-    @safe pure
+    @safe
 {
     import clang: Type;
     import std.conv: text;
@@ -284,7 +285,7 @@ private string translatePointer(in from!"clang".Type type,
 private string translateFunctionProto(in from!"clang".Type type,
                                       ref from!"dpp.runtime.context".Context context,
                                       in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
-    @safe pure
+    @safe
 {
     import std.conv: text;
     import std.algorithm: map;
@@ -300,7 +301,7 @@ private string translateFunctionProto(in from!"clang".Type type,
 private string translateLvalueRef(in from!"clang".Type type,
                                   ref from!"dpp.runtime.context".Context context,
                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
-    @safe pure
+    @safe
 {
     const pointeeTranslation = translate(type.pointee, context, translatingFunction);
     return translatingFunction
@@ -312,7 +313,7 @@ private string translateLvalueRef(in from!"clang".Type type,
 private string translateRvalueRef(in from!"clang".Type type,
                                   ref from!"dpp.runtime.context".Context context,
                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
-    @safe pure
+    @safe
 {
     const dtype = translate(type.canonical.pointee, context, translatingFunction);
     return `dpp.Move!(` ~ dtype ~ `)`;
@@ -322,7 +323,7 @@ private string translateRvalueRef(in from!"clang".Type type,
 private string translateComplex(in from!"clang".Type type,
                                 ref from!"dpp.runtime.context".Context context,
                                 in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
-    @safe pure
+    @safe
 {
     return "c" ~ translate(type.elementType, context, translatingFunction);
 }
@@ -330,7 +331,7 @@ private string translateComplex(in from!"clang".Type type,
 private string translateUnexposed(in from!"clang".Type type,
                                   ref from!"dpp.runtime.context".Context context,
                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
-    @safe pure
+    @safe
 {
     import std.string: replace;
     import std.algorithm: canFind;
@@ -394,7 +395,7 @@ string translateElaborated(in string spelling) @safe pure nothrow {
 private string translateSimdVector(in from!"clang".Type type,
                                    ref from!"dpp.runtime.context".Context context,
                                    in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
-    @safe pure
+    @safe
 {
     import std.conv: text;
     import std.algorithm: canFind;
@@ -414,7 +415,7 @@ private string translateSimdVector(in from!"clang".Type type,
 }
 
 
-private string addModifiers(in from!"clang".Type type, in string translation) @safe pure {
+private string addModifiers(in from!"clang".Type type, in string translation) @safe  pure {
     import std.array: replace;
     const realTranslation = translation.replace("const ", "").replace("volatile ", "");
     return type.isConstQualified
@@ -460,7 +461,7 @@ TemplateArgumentKind templateArgumentKind(in from!"clang".Type type) @safe pure 
 string translateTemplateParamSpecialisation(
     in from!"clang".Type templateType,
     in int index,
-    ref from!"dpp.runtime.context".Context context) @safe pure
+    ref from!"dpp.runtime.context".Context context) @safe
 {
     return translateTemplateParamSpecialisation(templateType, templateType, index, context);
 }
@@ -471,7 +472,8 @@ string translateTemplateParamSpecialisation(
     in from!"clang".Type cursorType,
     in from!"clang".Type type,
     in int index,
-    ref from!"dpp.runtime.context".Context context) @safe pure
+    ref from!"dpp.runtime.context".Context context)
+    @safe
 {
     import clang: Type;
     return type.kind == Type.Kind.Invalid
@@ -485,7 +487,7 @@ string translateTemplateParamSpecialisation(
 // e.g. template<> struct Foo<int, 42, double> -> 1: 42
 string templateParameterSpelling(in from!"clang".Type cursorType,
                                  int index)
-    @safe pure
+    @safe
 {
     import dpp.translation.exception: UntranslatableException;
     import std.algorithm: findSkip, startsWith;

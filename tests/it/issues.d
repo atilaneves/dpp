@@ -1448,7 +1448,6 @@ unittest {
 }
 
 
-@ShouldFail
 @("missing.template.parameter")
 @safe unittest {
     shouldCompile(

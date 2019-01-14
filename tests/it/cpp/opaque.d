@@ -176,7 +176,6 @@ import it;
 }
 
 
-@ShouldFail
 @("parameter.vector")
 @safe unittest {
 
