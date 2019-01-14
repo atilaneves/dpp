@@ -207,7 +207,6 @@ import it;
 }
 
 
-@ShouldFail
 @("parameter.exception_ptr")
 @safe unittest {
 
@@ -222,6 +221,9 @@ import it;
                       }
 
                       // make sure the paremeter gets translated correctly
+                      // It's referred to as oops::exception_ptr and that's what
+                      // libclang will see, but its real name is
+                      // oops::le_exception_ptr::exception_ptr
                       void fun(const oops::exception_ptr&);
                   });
         writeFile("app.dpp",

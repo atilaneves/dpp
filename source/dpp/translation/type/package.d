@@ -134,18 +134,17 @@ private string translateAggregate(in from!"clang".Type type,
         // was declared, so we check here with `hasAnonymousSpelling`
         if(hasAnonymousSpelling(type)) return context.spellingOrNickname(type.declaration);
 
-        // remove namespace
-        const tentative = type.spelling.canFind(":")
-            ? type.spelling.replace(type.declaration.namespace.spelling ~ "::", "")
-            : type.spelling;
-
-        context.log("*** type ", type);
-        context.log("*** canonical: ", type.canonical);
-        context.log("*** spelling ", type.spelling);
-        context.log("*** tentative ", tentative);
-        context.log("*** decl ", type.declaration);
-        context.log("*** ns ", type.declaration.namespace);
-
+        // If there's a namespace in the name, we have to remove it. To find out
+        // what the namespace is called, we look at the type's declaration.
+        // In libclang, the type has the FQN, but the cursor only has the name
+        // without namespaces.
+        const tentative = () {
+            if(!type.spelling.canFind(":")) return type.spelling;
+            const endOfNsIndex = type.spelling.countUntil(type.declaration.spelling);
+            if(endOfNsIndex == -1)
+                throw new Exception("Could not find '" ~ type.declaration.spelling ~ "' in '" ~ type.spelling ~ "'");
+            return type.spelling[endOfNsIndex .. $];
+        }();
 
         // Clang template types have a spelling such as `Foo<unsigned int, unsigned short>`.
         // We need to extract the "base" name (e.g. Foo above) then translate each type
