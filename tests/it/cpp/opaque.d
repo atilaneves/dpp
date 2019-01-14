@@ -146,3 +146,32 @@ import it;
         shouldCompile("app.d");
     }
 }
+
+
+@ShouldFail
+@("return.value")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                namespace myns {
+                    struct Forbidden{
+                        int i;
+                    };
+                }
+
+                struct Foo {
+                    myns::Forbidden fun();
+                };
+            }
+        ),
+        D(
+            q{
+                auto foo = Foo();
+                auto blob = foo.fun();
+                static assert(is(typeof(blob) == void[4]));
+            }
+        ),
+        ["--ignore-ns", "myns"],
+   );
+}
