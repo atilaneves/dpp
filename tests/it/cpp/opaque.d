@@ -174,3 +174,35 @@ import it;
         ["--ignore-ns", "myns"],
    );
 }
+
+
+@ShouldFail
+@("parameter.vector")
+@safe unittest {
+
+    with(immutable IncludeSandbox()) {
+        writeFile("hdr.hpp",
+                  q{
+                      namespace oops {
+                          template<typename T>
+                              struct vector {};
+                      }
+
+                      namespace myns {
+                          struct Foo {};
+                      }
+
+                      // make sure the paremeter gets translated correctly
+                      void fun(oops::vector<myns::Foo>&);
+                  });
+        writeFile("app.dpp",
+                  `
+                      #include "hdr.hpp"
+                      struct vector(T);
+                      void main() {
+                      }
+                  `);
+        runPreprocessOnly(["--ignore-ns", "oops", "app.dpp"]);
+        shouldCompile("app.d");
+    }
+}
