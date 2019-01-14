@@ -76,6 +76,10 @@ string[] translate(in from!"clang".Cursor cursor,
         return [];
     }
 
+    if(context.options.ignoredCursors.canFind(cursor.spelling)) {
+        return [];
+    }
+
     if(cursor.kind !in translators) {
         if(context.options.hardFail)
             throw new Exception(text("Cannot translate unknown cursor kind ", cursor.kind),
