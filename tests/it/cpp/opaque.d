@@ -4,7 +4,7 @@ module it.cpp.opaque;
 import it;
 
 
-@("field")
+@("field.private")
 @safe unittest {
     shouldCompile(
         Cpp(
@@ -37,6 +37,33 @@ import it;
         ),
         ["--ignore-ns", "myns"],
    );
+}
+
+
+@ShouldFail
+@("field.public")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                namespace oops {
+                    struct Date {};
+                }
+
+                struct Foo {
+                    // these need to be made opaque
+                    oops::Date start;
+                    oops::Date end;
+                };
+            }
+        ),
+        D(
+            q{
+            }
+        ),
+        ["--ignore-ns", "oops"],
+   );
+
 }
 
 
