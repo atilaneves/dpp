@@ -237,3 +237,31 @@ import it;
         shouldCompile("app.d");
     }
 }
+
+
+@ShouldFail
+@("using")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                namespace oops {
+                    struct Date {
+                        using Year = int;
+                    };
+                }
+
+                struct Foo {
+                    using Year = oops::Date::Year;
+                    Year year;
+                };
+            }
+        ),
+        D(
+            q{
+            }
+        ),
+        ["--ignore-ns", "oops"],
+   );
+
+}
