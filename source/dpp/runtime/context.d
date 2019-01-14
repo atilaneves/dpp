@@ -344,6 +344,12 @@ struct Context {
         import std.array: join;
         return _namespaces.join("::");
     }
+
+    /// If this cursor is from one of the ignored namespaces
+    bool isFromIgnoredNs(in Cursor cursor) @safe const {
+        import std.algorithm: canFind, any;
+        return options.ignoredNamespaces.any!(a => cursor.type.spelling.canFind(a ~ "::"));
+    }
 }
 
 

@@ -458,6 +458,17 @@ private string translateFunctionParam(in from!"clang".Cursor function_,
     import clang: Type, Language;
     import std.typecons: Yes;
     import std.array: replace;
+    import std.conv: text;
+
+    // if the type is from an ignored namespace, use an opaque type, but not
+    // if it's a pointer or reference - in that case the user can always
+    // declare the type with no definition.
+    if(context.isFromIgnoredNs(param) &&
+       param.type.kind != Type.Kind.LValueReference &&
+       param.type.kind == Type.Kind.LValueReference)
+    {
+        return text(`void[`, param.type.getSizeof, `]`);
+    }
 
     // See #43
     const(Type) deunexpose(in Type type) {

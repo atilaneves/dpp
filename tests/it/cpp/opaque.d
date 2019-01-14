@@ -65,26 +65,28 @@ import it;
 }
 
 
-@ShouldFail
-@("parameter.udt")
+@("parameter.ref.const")
 @safe unittest {
-    shouldCompile(
-        Cpp(
-            q{
-                namespace myns {
-                    struct Forbidden{};
-                }
 
-                struct Foo {
-                    void fun(const myns::Forbidden&);
-                };
-            }
-        ),
-        D(
-            q{
-                auto foo = Foo();
-            }
-        ),
-        ["--ignore-ns", "myns"],
-   );
+    with(immutable IncludeSandbox()) {
+        writeFile("hdr.hpp",
+                  q{
+                      namespace myns {
+                          struct Forbidden{};
+                      }
+
+                      struct Foo {
+                          void fun(const myns::Forbidden&);
+                      };
+                  });
+        writeFile("app.dpp",
+                  `
+                      #include "hdr.hpp"
+                      struct Forbidden;
+                      void main() {
+                      }
+                  `);
+        runPreprocessOnly(["--ignore-ns", "myns", "app.dpp"]);
+        shouldCompile("app.d");
+    }
 }
