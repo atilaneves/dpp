@@ -23,7 +23,7 @@ enum Language {
 struct Context {
 
     import dpp.runtime.options: Options;
-    import clang: Cursor, AccessSpecifier;
+    import clang: Cursor, Type, AccessSpecifier;
 
     alias SeenCursors = bool[CursorId];
 
@@ -346,9 +346,9 @@ struct Context {
     }
 
     /// If this cursor is from one of the ignored namespaces
-    bool isFromIgnoredNs(in Cursor cursor) @safe const {
+    bool isFromIgnoredNs(in Type type) @safe const {
         import std.algorithm: canFind, any;
-        return options.ignoredNamespaces.any!(a => cursor.type.spelling.canFind(a ~ "::"));
+        return options.ignoredNamespaces.any!(a => type.spelling.canFind(a ~ "::"));
     }
 }
 

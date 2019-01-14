@@ -148,7 +148,6 @@ import it;
 }
 
 
-@ShouldFail
 @("return.value")
 @safe unittest {
     shouldCompile(
