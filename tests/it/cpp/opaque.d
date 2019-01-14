@@ -90,3 +90,30 @@ import it;
         shouldCompile("app.d");
     }
 }
+
+
+@("return.ref.const")
+@safe unittest {
+
+    with(immutable IncludeSandbox()) {
+        writeFile("hdr.hpp",
+                  q{
+                      namespace myns {
+                          struct Forbidden{};
+                      }
+
+                      struct Foo {
+                          const myns::Forbidden& fun();
+                      };
+                  });
+        writeFile("app.dpp",
+                  `
+                      #include "hdr.hpp"
+                      struct Forbidden;
+                      void main() {
+                      }
+                  `);
+        runPreprocessOnly(["--ignore-ns", "myns", "app.dpp"]);
+        shouldCompile("app.d");
+    }
+}
