@@ -465,7 +465,7 @@ private string translateFunctionParam(in from!"clang".Cursor function_,
     // declare the type with no definition.
     if(context.isFromIgnoredNs(param) &&
        param.type.kind != Type.Kind.LValueReference &&
-       param.type.kind == Type.Kind.LValueReference)
+       param.type.kind != Type.Kind.Pointer)
     {
         return text(`void[`, param.type.getSizeof, `]`);
     }

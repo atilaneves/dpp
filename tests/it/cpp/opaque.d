@@ -92,6 +92,35 @@ import it;
 }
 
 
+@("parameter.value")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                namespace myns {
+                    struct Forbidden{
+                        int i;
+                    };
+                }
+
+                struct Foo {
+                    void fun(myns::Forbidden);
+                };
+            }
+        ),
+        D(
+            q{
+                void[4] forbidden = void;
+                auto foo = Foo();
+                foo.fun(forbidden);
+            }
+        ),
+        ["--ignore-ns", "myns"],
+   );
+}
+
+
+
 @("return.ref.const")
 @safe unittest {
 
