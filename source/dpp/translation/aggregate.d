@@ -366,6 +366,8 @@ string[] translateBitField(in from!"clang".Cursor cursor,
     return [text("    ", type, `, "`, spelling, `", `, cursor.bitWidth, `,`)];
 }
 
+// C allows elaborated types to appear in function parameters and member declarations
+// if they're pointers and doesn't require a declaration for the referenced type.
 private void maybeRememberStructsFromType(in from!"clang".Type type,
                                           ref from!"dpp.runtime.context".Context context)
     @safe
@@ -386,6 +388,9 @@ private void maybeRememberStructsFromType(in from!"clang".Type type,
                              context);
 }
 
+
+// C allows elaborated types to appear in function parameters and member declarations
+// if they're pointers and doesn't require a declaration for the referenced type.
 void maybeRememberStructs(R)(R types, ref from!"dpp.runtime.context".Context context)
     @safe if(isInputRange!R)
 {
@@ -400,6 +405,17 @@ void maybeRememberStructs(R)(R types, ref from!"dpp.runtime.context".Context con
     void rememberStruct(in Type pointeeCanonicalType) {
         import dpp.translation.type: translateElaborated;
         import std.array: replace;
+        import std.algorithm: canFind;
+
+        // If it's not a C elaborated type, we don't need to do anything.
+        // The only reason this code exists is because elaborated types
+        // can be used in function signatures or member declarations
+        // without a declaration for the struct itself as long as it's
+        // a pointer.
+        if(!pointeeCanonicalType.spelling.canFind("struct ") &&
+           !pointeeCanonicalType.spelling.canFind("union ") &&
+           !pointeeCanonicalType.spelling.canFind("enum "))
+            return;
 
         const removeConst = pointeeCanonicalType.isConstQualified
             ? pointeeCanonicalType.spelling.replace("const ", "")

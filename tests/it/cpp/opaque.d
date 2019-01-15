@@ -40,7 +40,6 @@ import it;
 }
 
 
-@ShouldFail
 @("field.public")
 @safe unittest {
     with(immutable IncludeSandbox()) {
