@@ -48,12 +48,13 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     if(isTopLevelAnonymous && children[0].kind != Cursor.Kind.EnumDecl)
         return translateTopLevelAnonymous(children[0], context);
 
-    // FIXME - still not sure I understand isOnlyAggregateChild here
     const underlyingSpelling = () {
         switch(typedef_.spelling) {
             default:
-                if(isOnlyAggregateChild) return context.spellingOrNickname(children[0]);
-                return translate(typedef_.underlyingType, context, No.translatingFunction);
+                // FIXME - still not sure I understand isOnlyAggregateChild here
+                return isOnlyAggregateChild
+                    ? context.spellingOrNickname(children[0])
+                    : translate(typedef_.underlyingType, context, No.translatingFunction);
 
             // possible issues on 32-bit
             case "int32_t":  return "int";
