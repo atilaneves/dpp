@@ -58,7 +58,7 @@ string[] translateFunction(in from!"clang".Cursor cursor,
 
 private bool ignoreFunction(in from!"clang".Cursor cursor) @safe {
     import clang: Cursor, Type, Token;
-    import std.algorithm: countUntil, any, canFind;
+    import std.algorithm: countUntil, any, canFind, startsWith;
 
     // C++ partial specialisation function bodies
     if(cursor.semanticParent.kind == Cursor.Kind.ClassTemplatePartialSpecialization &&
@@ -74,11 +74,23 @@ private bool ignoreFunction(in from!"clang".Cursor cursor) @safe {
 
     // C++ member functions defined "outside the class", e.g.
     // `int Foo::bar() const { return 42; }`
+    // This first condition checks if the function cursor has a body (compound statement)
     if(cursor.children.any!(a => a.kind == Cursor.Kind.CompoundStmt)) {
+
+        // If it has a body, we check that its tokens contain "::" in the right place
+
         const tokens = cursor.tokens;
         const doubleColonIndex = tokens.countUntil(Token(Token.Kind.Punctuation, "::"));
-        if(doubleColonIndex != -1 && tokens[doubleColonIndex + 1] == Token(Token.Kind.Identifier, cursor.spelling))
-            return true;
+
+        if(doubleColonIndex != -1) {
+            const nextToken = tokens[doubleColonIndex + 1];
+            // The reason we're not checking the next token's spelling exactly is
+            // because for templated types the cursor's spelling might be `Foo<T>`
+            // but the token is `Foo`.
+            if(nextToken.kind == Token.Kind.Identifier &&
+               cursor.spelling.startsWith(nextToken.spelling))
+                return true;
+        }
     }
 
     // FIXME - no default contructors for structs in D

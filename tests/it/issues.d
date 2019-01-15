@@ -1216,7 +1216,6 @@ unittest {
 }
 
 
-@ShouldFail("Should ignore 'global' constructor declaration")
 @Tags("issue")
 @("115")
 @safe unittest {
