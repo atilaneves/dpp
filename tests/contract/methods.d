@@ -26,20 +26,21 @@ import contract;
     const foo = tu.child(0);
     foo.shouldMatch(Cursor.Kind.StructDecl, "Foo");
 
-    const fun = tu.child(1);
-    fun.shouldMatch(Cursor.Kind.CXXMethod, "fun");
-    fun.type.shouldMatch(Type.Kind.FunctionProto, "double (int)");
-    printChildren(fun);
-    fun.children.length.should == 3;
+    const funDef = tu.child(1);
+    funDef.shouldMatch(Cursor.Kind.CXXMethod, "fun");
+    funDef.type.shouldMatch(Type.Kind.FunctionProto, "double (int)");
+    printChildren(funDef);
+    funDef.children.length.should == 3;
+    writelnUt(funDef.tokens);
 
-    const typeRef = fun.child(0);
+    const typeRef = funDef.child(0);
     typeRef.shouldMatch(Cursor.Kind.TypeRef, "struct Foo");
 
-    const param = fun.child(1);
+    const param = funDef.child(1);
     param.shouldMatch(Cursor.Kind.ParmDecl, "i");
 
     // this is where the magic happens
-    const body_ = fun.child(2);
+    const body_ = funDef.child(2);
     body_.shouldMatch(Cursor.Kind.CompoundStmt, "");
     body_.type.shouldMatch(Type.Kind.Invalid, "");
     printChildren(body_);

@@ -1343,7 +1343,6 @@ unittest {
 }
 
 
-@ShouldFail
 @Tags("issue")
 @("134")
 @safe unittest {

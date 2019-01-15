@@ -58,7 +58,7 @@ string[] translateFunction(in from!"clang".Cursor cursor,
 
 private bool ignoreFunction(in from!"clang".Cursor cursor) @safe {
     import clang: Cursor, Type, Token;
-    import std.algorithm: countUntil;
+    import std.algorithm: countUntil, any, canFind;
 
     // C++ partial specialisation function bodies
     if(cursor.semanticParent.kind == Cursor.Kind.ClassTemplatePartialSpecialization &&
@@ -69,6 +69,15 @@ private bool ignoreFunction(in from!"clang".Cursor cursor) @safe {
     const deleteIndex = cursor.tokens.countUntil(Token(Token.Kind.Keyword, "delete"));
     if(deleteIndex != -1 && deleteIndex > 1) {
         if(cursor.tokens[deleteIndex - 1] == Token(Token.Kind.Punctuation, "="))
+            return true;
+    }
+
+    // C++ member functions defined "outside the class", e.g.
+    // `int Foo::bar() const { return 42; }`
+    if(cursor.children.any!(a => a.kind == Cursor.Kind.CompoundStmt)) {
+        const tokens = cursor.tokens;
+        const doubleColonIndex = tokens.countUntil(Token(Token.Kind.Punctuation, "::"));
+        if(doubleColonIndex != -1 && tokens[doubleColonIndex + 1] == Token(Token.Kind.Identifier, cursor.spelling))
             return true;
     }
 
