@@ -156,7 +156,7 @@ import it;
 }
 
 
-@("alias this")
+@("inheritance.struct.single")
 @safe unittest {
     shouldCompile(
         Cpp(
@@ -167,6 +167,35 @@ import it;
 
                 struct Derived: public Base {
                     double d;
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(is(typeof(Derived.i) == int));
+                static assert(is(typeof(Derived.d) == double));
+            }
+        ),
+   );
+}
+
+
+@ShouldFail
+@("inheritance.struct.multiple")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct Base0 {
+                    int i;
+                };
+
+                struct Base1 {
+                    double d;
+                };
+
+                struct Derived: public Base0, public Base1 {
+
                 };
             }
         ),
