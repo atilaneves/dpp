@@ -1343,6 +1343,32 @@ unittest {
 }
 
 
+@ShouldFail
+@Tags("issue")
+@("134")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct Foo {
+                    double fun(int i) const;
+                };
+
+                double Foo::fun(int i) const {
+                    return i * 2;
+                }
+            }
+        ),
+        D(
+            q{
+                auto foo = Foo();
+                double d = foo.fun(42);
+            }
+        ),
+    );
+}
+
+
 @Tags("namespace", "issue")
 @("149")
 @safe unittest {
