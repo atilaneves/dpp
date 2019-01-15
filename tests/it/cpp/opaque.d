@@ -43,27 +43,37 @@ import it;
 @ShouldFail
 @("field.public")
 @safe unittest {
-    shouldCompile(
-        Cpp(
-            q{
-                namespace oops {
-                    struct Date {};
-                }
+    with(immutable IncludeSandbox()) {
+        writeFile("hdr.hpp",
+                  q{
+                      namespace oops {
+                          struct Date {};
+                      }
 
-                struct Foo {
-                    // these need to be made opaque
-                    oops::Date start;
-                    oops::Date end;
-                };
-            }
-        ),
-        D(
-            q{
-            }
-        ),
-        ["--ignore-ns", "oops"],
-   );
+                      struct DateUser {
+                          // Using it as a parameter caused dpp to define it for
+                          // the user in `Context.declaredUnknownStructs`/
+                          // This prevents the user from defining it.
+                          void fun(oops::Date*);
+                      };
 
+                      struct Foo {
+                          // these need to be made opaque
+                          oops::Date start;
+                          oops::Date end;
+                      };
+
+                  });
+        writeFile("app.dpp",
+                  `
+                      #include "hdr.hpp"
+                      struct date{} // the definition will be skipped
+                      void main() {
+                      }
+                  `);
+        runPreprocessOnly(["--ignore-ns", "oops", "app.dpp"]);
+        shouldCompile("app.d");
+    }
 }
 
 
@@ -94,7 +104,6 @@ import it;
 
 @("parameter.ref.const")
 @safe unittest {
-
     with(immutable IncludeSandbox()) {
         writeFile("hdr.hpp",
                   q{
