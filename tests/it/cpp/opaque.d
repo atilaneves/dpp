@@ -67,7 +67,7 @@ import it;
         writeFile("app.dpp",
                   `
                       #include "hdr.hpp"
-                      struct date{} // the definition will be skipped
+                      struct Date{} // the definition will be skipped
                       void main() {
                       }
                   `);
