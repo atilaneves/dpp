@@ -211,7 +211,12 @@ struct Context {
     /**
        Tells the context to remember a struct type encountered in an aggregate field.
        Typically this will be a pointer to a structure but it could also be the return
-       type or parameter types of a function pointer field.
+       type or parameter types of a function pointer field. This is (surprisingly!)
+       perfectly valid C code, even though `Foo` is never declared anywhere:
+       ----------------------
+       struct Foo* fun(void);
+       ----------------------
+       See issues #22 and #24
      */
     void rememberFieldStruct(in string typeSpelling) @safe pure {
         fieldStructSpellings[typeSpelling] = true;

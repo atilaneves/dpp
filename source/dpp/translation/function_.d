@@ -42,6 +42,7 @@ string[] translateFunction(in from!"clang".Cursor cursor,
     lines ~= maybeCopyCtor(cursor, context);
     lines ~= maybeOperator(cursor, context);
 
+    // never declared types might lurk here
     maybeRememberStructs(paramTypes(cursor), context);
 
     const spelling = functionSpelling(cursor, context);

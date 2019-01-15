@@ -379,6 +379,7 @@ private void maybeRememberStructsFromType(in from!"clang".Type type,
         pointeeType.kind == Type.Kind.FunctionNoProto;
 
     if(pointeeType.kind == Type.Kind.Record)
+        // can't use `only` with `const` for some reason
         maybeRememberStructs([type], context);
     else if(isFunction)
         maybeRememberStructs(chain(only(pointeeType.returnType), pointeeType.paramTypes),
@@ -397,16 +398,17 @@ void maybeRememberStructs(R)(R types, ref from!"dpp.runtime.context".Context con
         .map!(a => a.pointee.canonical);
 
     void rememberStruct(in Type pointeeCanonicalType) {
-        const translatedType = translate(pointeeCanonicalType, context);
-        // const becomes a problem if we have to define a struct at the end of all translations.
-        // See it.compile.projects.nv_alloc_ops
-        enum constPrefix = "const(";
-        const cleanedType = pointeeCanonicalType.isConstQualified
-            ? translatedType[constPrefix.length .. $-1] // unpack from const(T)
-            : translatedType;
+        import dpp.translation.type: translateElaborated;
+        import std.array: replace;
 
-        if(cleanedType != "va_list")
-            context.rememberFieldStruct(cleanedType);
+        const removeConst = pointeeCanonicalType.isConstQualified
+            ? pointeeCanonicalType.spelling.replace("const ", "")
+            : pointeeCanonicalType.spelling;
+        const removeVolatile = pointeeCanonicalType.isVolatileQualified
+            ? removeConst.replace("volatile ", "")
+            : removeConst;
+
+        context.rememberFieldStruct(translateElaborated(removeVolatile));
     }
 
     foreach(structType; structTypes)
