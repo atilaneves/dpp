@@ -208,7 +208,6 @@ import it;
 }
 
 
-@ShouldFail
 @("hard_to_describe")
 @safe unittest {
     shouldCompile(

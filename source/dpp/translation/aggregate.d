@@ -561,11 +561,17 @@ private string[] maybeOperators(in from!"clang".Cursor cursor, in string name)
 private string[] maybeDisableDefaultCtor(in from!"clang".Cursor cursor, in string dKeyword)
     @safe
 {
+    import dpp.translation.function_: numParams;
     import clang: Cursor;
     import std.algorithm: any;
 
+    bool hasNoArgsCtor(in Cursor child) {
+        return child.kind == Cursor.Kind.Constructor &&
+            numParams(child) == 0;
+    }
+
     if(dKeyword == "struct" &&
-       cursor.children.any!(a => a.kind == Cursor.Kind.Constructor)) {
+       cursor.children.any!hasNoArgsCtor) {
         return [`    @disable this();`];
     }
 

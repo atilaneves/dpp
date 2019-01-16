@@ -291,7 +291,7 @@ private bool isBinaryOperator(in from!"clang".Cursor cursor) @safe nothrow {
     return isOperator(cursor) && numParams(cursor) == 1;
 }
 
-private long numParams(in from!"clang".Cursor cursor) @safe nothrow {
+package long numParams(in from!"clang".Cursor cursor) @safe nothrow {
     import std.range: walkLength;
     return paramTypes(cursor).walkLength;
 }
