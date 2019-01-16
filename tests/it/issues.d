@@ -744,6 +744,30 @@ import it;
     );
 }
 
+
+@Tags("issue")
+@("76")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template <typename T>
+                struct Template {
+                    T payload;
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(__traits(getProtection, Template!int.payload) == "public",
+                              __traits(getProtection, Template!int.payload));
+            }
+        ),
+    );
+}
+
+
+
 @Tags("issue")
 @("77")
 @safe unittest {
@@ -956,6 +980,7 @@ unittest {
         Cpp(
             q{
                 class A {
+                public:
                     constexpr static int i = 0;
                     constexpr static int j = A::i;
                 };

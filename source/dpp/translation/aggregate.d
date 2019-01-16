@@ -21,7 +21,14 @@ string[] translateClass(in from!"clang".Cursor cursor,
                         ref from!"dpp.runtime.context".Context context)
     @safe
 {
-    return translateStrass(cursor, context, "class");
+    import clang: Token;
+    import std.algorithm: canFind;
+
+    const cKeyword = cursor.tokens.canFind(Token(Token.Kind.Keyword, "class"))
+        ? "class"
+        : "struct";
+
+    return translateStrass(cursor, context, cKeyword);
 }
 
 // "strass" is a struct or class
