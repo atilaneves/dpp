@@ -234,7 +234,6 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
             VisibilityAttr:                     &ignore, // ???
             FirstAttr:                          &ignore, // ???
             ClassTemplatePartialSpecialization: &translateClass,
-            CXXBaseSpecifier:                   &translateBase,
             TypeAliasTemplateDecl:              &translateTypeAliasTemplate,
             FunctionTemplate:                   &translateFunction,
         ];

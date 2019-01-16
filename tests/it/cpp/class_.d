@@ -180,7 +180,6 @@ import it;
 }
 
 
-@ShouldFail
 @("inheritance.struct.multiple")
 @safe unittest {
     shouldCompile(
@@ -202,7 +201,7 @@ import it;
         D(
             q{
                 static assert(is(typeof(Derived.i) == int));
-                static assert(is(typeof(Derived.d) == double));
+                static assert(is(typeof(Derived._base1.d) == double));
             }
         ),
    );

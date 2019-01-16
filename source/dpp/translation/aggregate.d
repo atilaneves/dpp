@@ -123,6 +123,89 @@ string[] translateAggregate(
     return translateAggregate(context, cursor, keyword, keyword, spelling);
 }
 
+
+// not pure due to Cursor.opApply not being pure
+string[] translateAggregate(
+    ref from!"dpp.runtime.context".Context context,
+    in from!"clang".Cursor cursor,
+    in string cKeyword,
+    in string dKeyword,
+    in from!"std.typecons".Nullable!string spelling = from!"std.typecons".Nullable!string()
+)
+    @safe
+{
+    import dpp.translation.translation: translate;
+    import clang: Cursor, Type, AccessSpecifier;
+    import std.algorithm: map;
+    import std.array: array;
+
+    // remember all aggregate declarations
+    context.rememberAggregate(cursor);
+
+    const name = spelling.isNull ? context.spellingOrNickname(cursor) : spelling.get;
+    const realDlangKeyword = cursor.semanticParent.type.canonical.kind == Type.Kind.Record
+        ? "static " ~ dKeyword
+        : dKeyword;
+    const firstLine = realDlangKeyword ~ ` ` ~ name;
+
+    if(!cursor.isDefinition) return [firstLine ~ `;`];
+
+    string[] lines;
+    lines ~= firstLine;
+    lines ~= `{`;
+
+    // In C++ classes have private access as default
+    if(cKeyword == "class") {
+        lines ~= "private:";
+        context.accessSpecifier = AccessSpecifier.Private;
+    } else
+        context.accessSpecifier = AccessSpecifier.Public;
+
+    BitFieldInfo bitFieldInfo;
+
+    lines ~= bitFieldInfo.header(cursor);
+
+    context.log("Children: ", cursor.children);
+
+    foreach(i, child; cursor.children) {
+
+        if(child.kind == Cursor.Kind.PackedAttr) {
+            lines ~= "align(1):";
+            continue;
+        }
+
+        lines ~= bitFieldInfo.handle(child);
+
+        if(skipMember(child)) continue;
+
+        const childTranslation = () {
+
+            if(isPrivateField(child, context))
+                return translatePrivateMember(child);
+
+            if(child.kind == Cursor.Kind.CXXBaseSpecifier)
+                return translateBase(i, child, context);
+
+            return translate(child, context);
+        }();
+
+        lines ~= childTranslation.map!(a => "    " ~ a).array;
+
+        // Possibly deal with C11 anonymous structs/unions. See issue #29.
+        lines ~= maybeC11AnonymousRecords(cursor, child, context);
+
+        bitFieldInfo.update(child);
+    }
+
+    lines ~= bitFieldInfo.finish;
+    lines ~= maybeOperators(cursor, name);
+    lines ~= maybeDisableDefaultCtor(cursor, dKeyword);
+
+    lines ~= `}`;
+
+    return lines;
+}
+
 private struct BitFieldInfo {
 
     import dpp.runtime.context: Context;
@@ -205,84 +288,7 @@ private struct BitFieldInfo {
         import std.conv: text;
         return text("_padding_", paddingNameIndex++);
     }
-
 }
-
-// not pure due to Cursor.opApply not being pure
-string[] translateAggregate(
-    ref from!"dpp.runtime.context".Context context,
-    in from!"clang".Cursor cursor,
-    in string cKeyword,
-    in string dKeyword,
-    in from!"std.typecons".Nullable!string spelling = from!"std.typecons".Nullable!string()
-)
-    @safe
-{
-    import dpp.translation.translation: translate;
-    import clang: Cursor, Type, AccessSpecifier;
-    import std.algorithm: map;
-    import std.array: array;
-
-    // remember all aggregate declarations
-    context.rememberAggregate(cursor);
-
-    const name = spelling.isNull ? context.spellingOrNickname(cursor) : spelling.get;
-    const realDlangKeyword = cursor.semanticParent.type.canonical.kind == Type.Kind.Record
-        ? "static " ~ dKeyword
-        : dKeyword;
-    const firstLine = realDlangKeyword ~ ` ` ~ name;
-
-    if(!cursor.isDefinition) return [firstLine ~ `;`];
-
-    string[] lines;
-    lines ~= firstLine;
-    lines ~= `{`;
-
-    // In C++ classes have private access as default
-    if(cKeyword == "class") {
-        lines ~= "private:";
-        context.accessSpecifier = AccessSpecifier.Private;
-    } else
-        context.accessSpecifier = AccessSpecifier.Public;
-
-    BitFieldInfo bitFieldInfo;
-
-    lines ~= bitFieldInfo.header(cursor);
-
-    context.log("Children: ", cursor.children);
-
-    foreach(child; cursor.children) {
-
-        if(child.kind == Cursor.Kind.PackedAttr) {
-            lines ~= "align(1):";
-            continue;
-        }
-
-        lines ~= bitFieldInfo.handle(child);
-
-        if(skipMember(child)) continue;
-
-        const childTranslation = isPrivateField(child, context)
-            ? translatePrivateMember(child)
-            : translate(child, context);
-
-        lines ~= childTranslation.map!(a => "    " ~ a).array;
-
-        // Possibly deal with C11 anonymous structs/unions. See issue #29.
-        lines ~= maybeC11AnonymousRecords(cursor, child, context);
-
-        bitFieldInfo.update(child);
-    }
-
-    lines ~= bitFieldInfo.finish;
-    lines ~= maybeOperators(cursor, name);
-    lines ~= maybeDisableDefaultCtor(cursor, dKeyword);
-
-    lines ~= `}`;
-
-    return lines;
-}
-
 
 private bool isPrivateField(in from!"clang".Cursor cursor,
                             in from!"dpp.runtime.context".Context context)
@@ -567,8 +573,9 @@ private string[] maybeDisableDefaultCtor(in from!"clang".Cursor cursor, in strin
 }
 
 
-string[] translateBase(in from!"clang".Cursor cursor,
-                       ref from!"dpp.runtime.context".Context context)
+private string[] translateBase(size_t index,
+                               in from!"clang".Cursor cursor,
+                               ref from!"dpp.runtime.context".Context context)
     @safe
     in(cursor.kind == from!"clang".Cursor.Kind.CXXBaseSpecifier)
 do
@@ -576,6 +583,7 @@ do
     import dpp.translation.type: translate;
     import std.typecons: No;
     import std.algorithm: canFind;
+    import std.conv: text;
 
     const type = translate(cursor.type, context, No.translatingFunction);
 
@@ -587,10 +595,11 @@ do
     // FIXME - type traits failures due to inheritance
     if(type.canFind("&")) return [];
 
-    const fieldName = "__base";
+    const fieldName = text("_base", index);
+    auto fieldDecl = type ~ " " ~ fieldName ~ ";";
+    auto maybeAliasThis = index == 0
+        ? [`alias ` ~ fieldName ~ ` this;`]
+        : [];
 
-    return [
-        type ~ " " ~ fieldName ~ ";",
-        `alias ` ~ fieldName ~ ` this;`,
-    ];
+    return fieldDecl ~ maybeAliasThis;
 }
