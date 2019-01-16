@@ -77,6 +77,35 @@ import it;
 
 
 @ShouldFail
+@("field.static")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                namespace oops {
+                    template <typename K, typename V, typename C, typename A>
+                    struct Map {
+
+                    };
+                }
+
+                class Foo {
+                private:
+                    // this is private so shouldn't show up
+                    static oops::Map<int, int, int, int> theMap;
+                };
+            }
+        ),
+        D(
+            q{
+            }
+        ),
+        ["--ignore-ns", "oops"],
+   );
+}
+
+
+@ShouldFail
 @("base")
 @safe unittest {
     shouldCompile(
