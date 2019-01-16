@@ -5,7 +5,7 @@ import contract;
 
 
 @Tags("contract")
-@("struct.single")
+@("single")
 @safe unittest {
     const tu = parse(
         Cpp(
@@ -61,4 +61,58 @@ import contract;
 
     printChildren(typeRef);
     typeRef.children.length.should == 0;
+}
+
+
+@Tags("contract")
+@("multiple")
+@safe unittest {
+    const tu = parse(
+        Cpp(
+            q{
+                struct Base0 {
+                    int i;
+                };
+
+                struct Base1 {
+                    int j;
+                };
+
+                struct Derived: public Base0, Base1 {
+                    double d;
+                };
+            }
+        )
+    );
+
+    tu.children.length.should == 3;
+
+    const derived = tu.child(2);
+    derived.shouldMatch(Cursor.Kind.StructDecl, "Derived");
+    derived.type.shouldMatch(Type.Kind.Record, "Derived");
+
+    printChildren(derived);
+    derived.children.length.should == 3;
+
+    const baseSpec0 = derived.child(0);
+    baseSpec0.shouldMatch(Cursor.Kind.CXXBaseSpecifier, "struct Base0");
+    baseSpec0.type.shouldMatch(Type.Kind.Record, "Base0");
+    printChildren(baseSpec0);
+    baseSpec0.children.length.should == 1;
+
+    const typeRef0 = baseSpec0.child(0);
+    typeRef0.shouldMatch(Cursor.Kind.TypeRef, "struct Base0");
+    typeRef0.type.shouldMatch(Type.Kind.Record, "Base0");
+    typeRef0.children.length.should == 0;
+
+    const baseSpec1 = derived.child(1);
+    baseSpec1.shouldMatch(Cursor.Kind.CXXBaseSpecifier, "struct Base1");
+    baseSpec1.type.shouldMatch(Type.Kind.Record, "Base1");
+    printChildren(baseSpec1);
+    baseSpec1.children.length.should == 1;
+
+    const typeRef1 = baseSpec1.child(0);
+    typeRef1.shouldMatch(Cursor.Kind.TypeRef, "struct Base1");
+    typeRef1.type.shouldMatch(Type.Kind.Record, "Base1");
+    typeRef1.children.length.should == 0;
 }
