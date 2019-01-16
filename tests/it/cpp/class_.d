@@ -206,3 +206,34 @@ import it;
         ),
    );
 }
+
+
+@ShouldFail
+@("hard_to_describe")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct Member {
+                    // having a constructor caused dpp to emit a `@disable this`
+                    Member(const char*);
+                };
+
+                template <typename T>
+                struct Template {
+                    T payload;
+                };
+
+                struct Struct {
+                    Member member;
+                    static Template<Struct> global;
+                };
+            }
+        ),
+        D(
+            q{
+                // just to check that the D code compiles
+            }
+        ),
+   );
+}
