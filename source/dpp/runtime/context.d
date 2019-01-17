@@ -23,7 +23,7 @@ enum Language {
 struct Context {
 
     import dpp.runtime.options: Options;
-    import clang: Cursor, AccessSpecifier;
+    import clang: Cursor, Type, AccessSpecifier;
 
     alias SeenCursors = bool[CursorId];
 
@@ -211,7 +211,12 @@ struct Context {
     /**
        Tells the context to remember a struct type encountered in an aggregate field.
        Typically this will be a pointer to a structure but it could also be the return
-       type or parameter types of a function pointer field.
+       type or parameter types of a function pointer field. This is (surprisingly!)
+       perfectly valid C code, even though `Foo` is never declared anywhere:
+       ----------------------
+       struct Foo* fun(void);
+       ----------------------
+       See issues #22 and #24
      */
     void rememberFieldStruct(in string typeSpelling) @safe pure {
         fieldStructSpellings[typeSpelling] = true;
@@ -343,6 +348,12 @@ struct Context {
     string namespace() @safe pure nothrow const {
         import std.array: join;
         return _namespaces.join("::");
+    }
+
+    /// If this cursor is from one of the ignored namespaces
+    bool isFromIgnoredNs(in Type type) @safe const {
+        import std.algorithm: canFind, any;
+        return options.ignoredNamespaces.any!(a => type.spelling.canFind(a ~ "::"));
     }
 }
 

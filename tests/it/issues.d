@@ -744,6 +744,30 @@ import it;
     );
 }
 
+
+@Tags("issue")
+@("76")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template <typename T>
+                struct Template {
+                    T payload;
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(__traits(getProtection, Template!int.payload) == "public",
+                              __traits(getProtection, Template!int.payload));
+            }
+        ),
+    );
+}
+
+
+
 @Tags("issue")
 @("77")
 @safe unittest {
@@ -956,6 +980,7 @@ unittest {
         Cpp(
             q{
                 class A {
+                public:
                     constexpr static int i = 0;
                     constexpr static int j = A::i;
                 };
@@ -1216,7 +1241,6 @@ unittest {
 }
 
 
-@ShouldFail("Should ignore 'global' constructor declaration")
 @Tags("issue")
 @("115")
 @safe unittest {
@@ -1343,6 +1367,31 @@ unittest {
 }
 
 
+@Tags("issue")
+@("134")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct Foo {
+                    double fun(int i) const;
+                };
+
+                double Foo::fun(int i) const {
+                    return i * 2;
+                }
+            }
+        ),
+        D(
+            q{
+                auto foo = Foo();
+                double d = foo.fun(42);
+            }
+        ),
+    );
+}
+
+
 @Tags("namespace", "issue")
 @("149")
 @safe unittest {
@@ -1448,7 +1497,6 @@ unittest {
 }
 
 
-@ShouldFail
 @("missing.template.parameter")
 @safe unittest {
     shouldCompile(

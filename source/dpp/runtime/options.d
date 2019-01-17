@@ -32,6 +32,7 @@ struct Options {
     bool ignoreMacros;
     bool detailedUntranslatable;
     string[] ignoredNamespaces;
+    string[] ignoredCursors;
     bool alwaysScopedEnums;
 
     this(string[] args) {
@@ -108,6 +109,7 @@ struct Options {
                 "c++-std-lib", "Link to the C++ standard library", &cppStdLib,
                 "ignore-macros", "Ignore preprocessor macros", &ignoreMacros,
                 "ignore-ns", "Ignore a C++ namespace", &ignoredNamespaces,
+                "ignore-cursor", "Ignore a C++ cursor", &ignoredCursors,
                 "detailed-untranslatables", "Show details about untranslatable cursors", &detailedUntranslatable,
                 "scoped-enums", "Don't redeclare enums to mimic C", &alwaysScopedEnums,
             );

@@ -84,3 +84,32 @@ unittest {
         ),
    );
 }
+
+
+@("parameter.std.string")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                namespace std {
+                    template <typename CharT>
+                    struct basic_string {};
+
+                    // naming it string clashes with D's immutable(char)[] alias
+                    using mystring = basic_string<char>;
+                }
+
+                struct Foo {
+                    // the parameter used to get translated as
+                    // basic_string without a template parameter
+                    void fun(const std::mystring&);
+                };
+            }
+        ),
+        D(
+            q{
+                auto foo = Foo();
+            }
+        ),
+   );
+}

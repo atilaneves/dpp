@@ -123,6 +123,7 @@ private string translateAggregate(in from!"clang".Type type,
                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
     @safe pure
 {
+    import dpp.clang: namespace;
     import std.array: replace, join;
     import std.algorithm: canFind, countUntil, map;
     import std.range: iota;
@@ -133,19 +134,29 @@ private string translateAggregate(in from!"clang".Type type,
         // was declared, so we check here with `hasAnonymousSpelling`
         if(hasAnonymousSpelling(type)) return context.spellingOrNickname(type.declaration);
 
-        // A struct in a namespace will have a type of kind Record with the fully
-        // qualified name (e.g. std::random_access_iterator_tag), but the cursor
-        // itself has only the name (e.g. random_access_iterator_tag), so we get
-        // the spelling from the type's declaration instead of from the type itself.
-        // See it.cpp.templates.__copy_move and contract.namespace.struct.
-        if(type.spelling.canFind(":")) return type.declaration.spelling;
+        // If there's a namespace in the name, we have to remove it. To find out
+        // what the namespace is called, we look at the type's declaration.
+        // In libclang, the type has the FQN, but the cursor only has the name
+        // without namespaces.
+        const tentative = () {
+            // no namespace, no problem
+            if(!type.spelling.canFind(":")) return type.spelling;
+            // look for the base name in the declaration
+            const endOfNsIndex = type.spelling.countUntil(type.declaration.spelling);
+            if(endOfNsIndex == -1)
+                throw new Exception("Could not find '" ~ type.declaration.spelling ~ "' in '" ~ type.spelling ~ "'");
+            // "subtract" the namespace away
+            return type.spelling[endOfNsIndex .. $];
+        }();
 
         // Clang template types have a spelling such as `Foo<unsigned int, unsigned short>`.
         // We need to extract the "base" name (e.g. Foo above) then translate each type
         // template argument (e.g. `unsigned long` is not a D type)
         if(type.numTemplateArguments > 0) {
-            const openAngleBracketIndex = type.spelling.countUntil("<");
-            const baseName = type.spelling[0 .. openAngleBracketIndex];
+            const openAngleBracketIndex = tentative.countUntil("<");
+            // this might happen because of alises, e.g. std::string is really std::basic_stream<chas>
+            if(openAngleBracketIndex == -1) return tentative;
+            const baseName = tentative[0 .. openAngleBracketIndex];
             const templateArgsTranslation = type
                 .numTemplateArguments
                 .iota
@@ -163,7 +174,7 @@ private string translateAggregate(in from!"clang".Type type,
             return baseName ~ "!(" ~ templateArgsTranslation ~ ")";
         }
 
-        return type.spelling;
+        return tentative;
     }
 
     return addModifiers(type, spelling)
@@ -302,10 +313,7 @@ private string translateLvalueRef(in from!"clang".Type type,
                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
     @safe pure
 {
-
-    // See it.cpp.templates.__normal_iterator.base
-    const typeToUse = type.canonical.isTypeParameter ? type : type.canonical;
-    const pointeeTranslation = translate(typeToUse.pointee, context, translatingFunction);
+    const pointeeTranslation = translate(type.pointee, context, translatingFunction);
     return translatingFunction
         ? "ref " ~ pointeeTranslation
         : pointeeTranslation ~ "*";
@@ -335,8 +343,12 @@ private string translateUnexposed(in from!"clang".Type type,
                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
     @safe pure
 {
+    import clang: Type;
     import std.string: replace;
     import std.algorithm: canFind;
+
+    if(type.canonical.kind == Type.Kind.Record)
+        return translateAggregate(type.canonical, context, translatingFunction);
 
     const spelling = type.spelling.canFind(" &&...")
         ? "auto ref " ~ type.spelling.replace(" &&...", "")
@@ -474,7 +486,8 @@ string translateTemplateParamSpecialisation(
     in from!"clang".Type cursorType,
     in from!"clang".Type type,
     in int index,
-    ref from!"dpp.runtime.context".Context context) @safe pure
+    ref from!"dpp.runtime.context".Context context)
+    @safe pure
 {
     import clang: Type;
     return type.kind == Type.Kind.Invalid

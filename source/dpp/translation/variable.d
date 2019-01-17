@@ -5,6 +5,8 @@ import dpp.from;
 string[] translateVariable(in from!"clang".Cursor cursor,
                            ref from!"dpp.runtime.context".Context context)
     @safe
+    in(cursor.kind == from!"clang".Cursor.Kind.VarDecl)
+    do
 {
     import dpp.translation.exception: UntranslatableException;
     import dpp.translation.dlang: maybePragma;
@@ -16,8 +18,6 @@ string[] translateVariable(in from!"clang".Cursor cursor,
     import std.typecons: No;
     import std.algorithm: canFind, find, map;
     import std.array: empty, popFront, join;
-
-    assert(cursor.kind == Cursor.Kind.VarDecl);
 
     string[] ret;
 

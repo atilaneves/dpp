@@ -39,6 +39,7 @@ version(dpp2) {
         "contract.aggregates",
         "contract.inheritance",
         "contract.issues",
+        "contract.methods",
 
         "it.issues",
         "it.expansion",
@@ -68,6 +69,6 @@ version(dpp2) {
         "it.cpp.class_",
         "it.cpp.templates",
         "it.cpp.misc",
-        "it.cpp.interop",
+        "it.cpp.opaque",
     );
 }

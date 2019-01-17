@@ -14,6 +14,7 @@ import it;
                 struct Struct {
                     void *data;
 
+                    Struct();
                     Struct(int i);
                     Struct(const Struct&);
                     Struct(Struct&&);

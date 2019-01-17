@@ -42,6 +42,7 @@ string[] translateFunction(in from!"clang".Cursor cursor,
     lines ~= maybeCopyCtor(cursor, context);
     lines ~= maybeOperator(cursor, context);
 
+    // never declared types might lurk here
     maybeRememberStructs(paramTypes(cursor), context);
 
     const spelling = functionSpelling(cursor, context);
@@ -57,7 +58,7 @@ string[] translateFunction(in from!"clang".Cursor cursor,
 
 private bool ignoreFunction(in from!"clang".Cursor cursor) @safe {
     import clang: Cursor, Type, Token;
-    import std.algorithm: countUntil;
+    import std.algorithm: countUntil, any, canFind, startsWith;
 
     // C++ partial specialisation function bodies
     if(cursor.semanticParent.kind == Cursor.Kind.ClassTemplatePartialSpecialization &&
@@ -69,6 +70,27 @@ private bool ignoreFunction(in from!"clang".Cursor cursor) @safe {
     if(deleteIndex != -1 && deleteIndex > 1) {
         if(cursor.tokens[deleteIndex - 1] == Token(Token.Kind.Punctuation, "="))
             return true;
+    }
+
+    // C++ member functions defined "outside the class", e.g.
+    // `int Foo::bar() const { return 42; }`
+    // This first condition checks if the function cursor has a body (compound statement)
+    if(cursor.children.any!(a => a.kind == Cursor.Kind.CompoundStmt)) {
+
+        // If it has a body, we check that its tokens contain "::" in the right place
+
+        const tokens = cursor.tokens;
+        const doubleColonIndex = tokens.countUntil(Token(Token.Kind.Punctuation, "::"));
+
+        if(doubleColonIndex != -1) {
+            const nextToken = tokens[doubleColonIndex + 1];
+            // The reason we're not checking the next token's spelling exactly is
+            // because for templated types the cursor's spelling might be `Foo<T>`
+            // but the token is `Foo`.
+            if(nextToken.kind == Token.Kind.Identifier &&
+               cursor.spelling.startsWith(nextToken.spelling))
+                return true;
+        }
     }
 
     // FIXME - no default contructors for structs in D
@@ -122,6 +144,10 @@ private string returnType(in from!"clang".Cursor cursor,
     import dpp.translation.type: translate;
     import clang: Cursor;
     import std.typecons: Yes;
+
+    const blob = blob(cursor.returnType, context);
+    if(blob != "")
+        return blob;
 
     const indentation = context.indentation;
 
@@ -265,7 +291,7 @@ private bool isBinaryOperator(in from!"clang".Cursor cursor) @safe nothrow {
     return isOperator(cursor) && numParams(cursor) == 1;
 }
 
-private long numParams(in from!"clang".Cursor cursor) @safe nothrow {
+package long numParams(in from!"clang".Cursor cursor) @safe nothrow {
     import std.range: walkLength;
     return paramTypes(cursor).walkLength;
 }
@@ -438,7 +464,10 @@ auto translateParamTypes(in from!"clang".Cursor cursor,
 
     return params(cursor)
         .enumerate
-        .tee!((a) { context.log("    Function param #", a[0], " type: ", a[1].type, "  canonical ", a[1].type.canonical); })
+        .tee!((a) {
+            context.log("    Function param #", a[0],
+                        " type: ", a[1].type, "  canonical ", a[1].type.canonical);
+        })
         .map!(t => translateFunctionParam(cursor, t[1], context))
         ;
 }
@@ -455,6 +484,10 @@ private string translateFunctionParam(in from!"clang".Cursor function_,
     import clang: Type, Language;
     import std.typecons: Yes;
     import std.array: replace;
+
+    const blob = blob(param.type, context);
+    if(blob != "")
+        return blob;
 
     // See #43
     const(Type) deunexpose(in Type type) {
@@ -495,4 +528,25 @@ private auto params(in from!"clang".Cursor cursor) @safe {
         .children
         .filter!(a => a.kind == Cursor.Kind.ParmDecl)
         ;
+}
+
+
+private string blob(in from!"clang".Type type,
+                    in from!"dpp.runtime.context".Context context)
+    @safe
+{
+    import clang: Type;
+    import std.conv: text;
+
+    // if the type is from an ignored namespace, use an opaque type, but not
+    // if it's a pointer or reference - in that case the user can always
+    // declare the type with no definition.
+    if(context.isFromIgnoredNs(type) &&
+       type.kind != Type.Kind.LValueReference &&
+       type.kind != Type.Kind.Pointer)
+    {
+        return text(`void[`, type.getSizeof, `]`);
+    }
+
+    return "";
 }

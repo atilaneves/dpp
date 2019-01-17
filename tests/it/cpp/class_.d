@@ -156,7 +156,7 @@ import it;
 }
 
 
-@("alias this")
+@("inheritance.struct.single")
 @safe unittest {
     shouldCompile(
         Cpp(
@@ -174,6 +174,64 @@ import it;
             q{
                 static assert(is(typeof(Derived.i) == int));
                 static assert(is(typeof(Derived.d) == double));
+            }
+        ),
+   );
+}
+
+
+@("inheritance.struct.multiple")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct Base0 {
+                    int i;
+                };
+
+                struct Base1 {
+                    double d;
+                };
+
+                struct Derived: public Base0, public Base1 {
+
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(is(typeof(Derived.i) == int));
+                static assert(is(typeof(Derived._base1.d) == double));
+            }
+        ),
+   );
+}
+
+
+@("hard_to_describe")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct Member {
+                    // having a constructor caused dpp to emit a `@disable this`
+                    Member(const char*);
+                };
+
+                template <typename T>
+                struct Template {
+                    T payload;
+                };
+
+                struct Struct {
+                    Member member;
+                    static Template<Struct> global;
+                };
+            }
+        ),
+        D(
+            q{
+                // just to check that the D code compiles
             }
         ),
    );
