@@ -302,9 +302,18 @@ private bool isPrivateField(in from!"clang".Cursor cursor,
     @safe
 {
     import clang: Cursor, AccessSpecifier;
+
+    const isField =
+        cursor.kind == Cursor.Kind.FieldDecl ||
+        cursor.kind == Cursor.Kind.VarDecl;
+
     return
         context.accessSpecifier == AccessSpecifier.Private
-        && cursor.kind == Cursor.Kind.FieldDecl
+        && isField
+        // The reason for this is templated types have negative sizes according
+        // to libclang, even if they're fully instantiated...
+        // So even though they're private, they can't be declared as opaque
+        // binary blobs because we don't know how large they are.
         && cursor.type.getSizeof > 0
         ;
 
@@ -315,7 +324,9 @@ private bool isPrivateField(in from!"clang".Cursor cursor,
 // parts of C++
 private string[] translatePrivateMember(in from!"clang".Cursor cursor) @safe {
     import std.conv: text;
-    return [text(`void[`, cursor.type.getSizeof, `] `, cursor.spelling, `;`)];
+    return cursor.type.getSizeof > 0
+        ? [text(`void[`, cursor.type.getSizeof, `] `, cursor.spelling, `;`)]
+        : [];
 }
 
 

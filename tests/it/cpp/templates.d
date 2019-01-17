@@ -891,6 +891,7 @@ import it;
 
                 namespace std {
                     template <typename T> class allocator {
+                    public:
                         static constexpr auto value = 42;
                         allocator(const allocator& other) throw() {}
                     };
