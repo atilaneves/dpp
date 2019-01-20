@@ -102,6 +102,7 @@ string[] translate(in from!"clang".Cursor cursor,
                      "------------\n",
                      lines.join("\n"),
                     "\n------------\n",));
+
         return lines;
     } catch(UntranslatableException e) {
 
@@ -250,7 +251,7 @@ bool untranslatable(in string line) @safe pure {
         || line.canFind("variant!")
         || line.canFind("value _ ")
         || line.canFind("enable_if_c")
-        || line.canFind(`}))`)
+        || line.canFind(`}))`)  // ???
         || line.canFind(`(this_)_M_t._M_equal_range_tr(`)
         || line.canFind(`this-`)
         || line.canFind("function!")

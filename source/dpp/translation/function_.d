@@ -35,7 +35,7 @@ string[] translateFunction(in from!"clang".Cursor cursor,
 
     // FIXME - stop special casing the move ctor
     auto moveCtorLines = maybeMoveCtor(cursor, context);
-    if(moveCtorLines) return moveCtorLines;
+    if(moveCtorLines.length) return moveCtorLines;
 
     string[] lines;
 
@@ -414,7 +414,17 @@ private string[] maybeMoveCtor(in from!"clang".Cursor cursor,
         // The fake D move constructor
         "this(" ~ translate(paramType, context) ~ " wrapper) {",
         "    this(wrapper.ptr);",
-        "    *wrapper.ptr = typeof(*wrapper.ptr).init;",
+        // Hollow out moved-from value
+        "    static if(is(typeof( { typeof(*wrapper.ptr) _; }   )))",
+        "    {",
+        "        typeof(*wrapper.ptr) init;",
+        "        *wrapper.ptr = init;",
+        "    }",
+        "    else",
+        "    {",
+        "        import core.stdc.string: memset;",
+        "        memset(wrapper.ptr, 0, typeof(*wrapper.ptr).sizeof);",
+        "    }",
         "}",
         // The fake D by-value constructor imitating C++ semantics
         "this(" ~ pointee ~ " other)",
