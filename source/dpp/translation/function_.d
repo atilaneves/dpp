@@ -399,24 +399,27 @@ private string[] maybeMoveCtor(in from!"clang".Cursor cursor,
                                ref from!"dpp.runtime.context".Context context)
     @safe
 {
-
     import dpp.translation.dlang: maybeRename, maybePragma;
     import dpp.translation.type: translate;
     import clang: Cursor, Type;
 
     if(!cursor.isMoveConstructor) return [];
 
-    const paramType = () @trusted {  return paramTypes(cursor).front; }();
+    const paramType = () @trusted { return paramTypes(cursor).front; }();
     const pointee = translate(paramType.pointee, context);
 
     return [
+        // The actual C++ move constructor but declared to take a pointer
         maybePragma(cursor, context) ~ " this(" ~ pointee ~ "*);",
+        // The fake D move constructor
         "this(" ~ translate(paramType, context) ~ " wrapper) {",
         "    this(wrapper.ptr);",
         "    *wrapper.ptr = typeof(*wrapper.ptr).init;",
         "}",
+        // The fake D by-value constructor imitating C++ semantics
         "this(" ~ pointee ~ " other)",
         "{",
+        // Forward the call to the C++ move constructor
         "    this(&other);",
         "}",
     ];

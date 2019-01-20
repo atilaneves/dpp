@@ -236,3 +236,28 @@ import it;
         ),
    );
 }
+
+
+@ShouldFail
+@("rule_of_5")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct Struct {
+                    Struct() = default;
+                    virtual ~Struct() = default;
+                    Struct(Struct&&) = default;
+                    Struct(const Struct&) = default;
+                    Struct& operator=(Struct&&) = default;
+                    Struct& operator=(const Struct&) = default;
+                };
+            }
+        ),
+        D(
+            q{
+                // just to check that the D code compiles
+            }
+        ),
+   );
+}
