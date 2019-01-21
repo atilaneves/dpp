@@ -175,3 +175,23 @@ unittest {
         ),
    );
 }
+
+
+@("opBang")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct Foo {
+                    bool operator!() const;
+                };
+            }
+        ),
+        D(
+            q{
+                auto foo = Foo();
+                bool maybe = !foo;
+            }
+        ),
+   );
+}
