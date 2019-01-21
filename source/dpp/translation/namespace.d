@@ -23,10 +23,6 @@ string[] translateNamespace(in from!"clang".Cursor cursor,
     if(cursor.spelling == "")
         throw new UntranslatableException("BUG: namespace with no name");
 
-    if(cantTranslate(cursor.spelling))
-        throw new UntranslatableException("Currently unsupported namespace");
-
-
     string[] lines;
 
     lines ~= [
@@ -49,14 +45,6 @@ string[] translateNamespace(in from!"clang".Cursor cursor,
     lines ~= `}`;
 
     return lines;
-}
-
-
-private bool cantTranslate(in string spelling) @safe pure {
-    import std.algorithm: endsWith;
-
-    // FIXME
-    return spelling.endsWith("detail");
 }
 
 
