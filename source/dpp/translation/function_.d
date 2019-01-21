@@ -131,6 +131,7 @@ private string functionDecl(
         ;
 
     // FIXME: avoid opBinary(string op: )(CT params)(RT params)
+    // See it.cpp.function_.opBinary
     if(ctParams != "" && spelling.canFind("("))
         throw new UntranslatableException("BUG with templated operators");
 

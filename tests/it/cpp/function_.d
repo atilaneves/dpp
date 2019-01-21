@@ -113,3 +113,25 @@ unittest {
         ),
    );
 }
+
+
+@ShouldFail("Cannot currently handle templated opBinary. See dpp.translation.function_.functionDecl FIXME")
+@("opBinary")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct Foo {
+                    template<typename T>
+                    int operator+(const T& other);
+                };
+            }
+        ),
+        D(
+            q{
+                auto foo = Foo();
+                int ret = foo + 42;
+            }
+        ),
+   );
+}
