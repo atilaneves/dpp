@@ -135,3 +135,43 @@ unittest {
         ),
    );
 }
+
+
+@("opIndex")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct Foo {
+                    int operator[](int i);
+                };
+            }
+        ),
+        D(
+            q{
+                auto foo = Foo();
+                int ret = foo[42];
+            }
+        ),
+   );
+}
+
+
+@("opOpAssign")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct Foo {
+                    void operator+=(int i);
+                };
+            }
+        ),
+        D(
+            q{
+                auto foo = Foo();
+                foo += 42;
+            }
+        ),
+   );
+}
