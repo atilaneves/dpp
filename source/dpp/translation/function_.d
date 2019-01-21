@@ -61,8 +61,7 @@ private bool ignoreFunction(in from!"clang".Cursor cursor) @safe {
     import std.algorithm: countUntil, any, canFind, startsWith;
 
     // C++ partial specialisation function bodies
-    if(cursor.semanticParent.kind == Cursor.Kind.ClassTemplatePartialSpecialization &&
-       cursor.semanticParent.type.kind == Type.Kind.Unexposed)
+    if(cursor.semanticParent.kind == Cursor.Kind.ClassTemplatePartialSpecialization)
         return true;
 
     // C++ deleted functions
