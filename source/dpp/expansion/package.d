@@ -286,18 +286,6 @@ string getHeaderName(const(char)[] line)
     return line[openingQuote + 1 .. closingQuote].idup;
 }
 
-///
-@("getHeaderName")
-@safe pure unittest {
-    import unit_threaded: shouldEqual;
-    getHeaderName(`#include "foo.h"`).shouldEqual(`foo.h`);
-    getHeaderName(`#include "bar.h"`).shouldEqual(`bar.h`);
-    getHeaderName(`#include "foo.h" // comment`).shouldEqual(`foo.h`);
-    getHeaderName(`#include <foo.h>`).shouldEqual(`foo.h`);
-    getHeaderName(`    #include "foo.h"`).shouldEqual(`foo.h`);
-}
-
-
 
 // transforms a header name, e.g. stdio.h
 // into a full file path, e.g. /usr/include/stdio.h

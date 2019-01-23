@@ -26,6 +26,7 @@ version(dpp2) {
 
         // unit tests
         "ut.old.type",
+        "ut.expansion",
 
         // contract tests
         "contract.array",

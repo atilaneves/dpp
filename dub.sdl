@@ -24,6 +24,7 @@ configuration "executable" {
 
 configuration "library" {
     targetType "library"
+    targetName "dpp"
     excludedSourceFiles "source/main.d"
 }
 

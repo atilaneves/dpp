@@ -4,10 +4,37 @@ import std.typecons: Yes, No;
 
 enum debugFlags = ["-w", "-g", "-debug"];
 
-alias exe = dubDefaultTarget!(CompilerFlags(debugFlags));
-alias ut = dubTestTarget!(
+//alias exe = dubDefaultTarget!(CompilerFlags(debugFlags));
+
+alias lib = dubConfigurationTarget!(
+    Configuration("library"),
     CompilerFlags(debugFlags),
     LinkerFlags(),
+    No.main,
+    CompilationMode.package_,
+);
+
+enum mainObj = objectFile(
+    SourceFile("source/main.d"),
+    Flags(debugFlags),
+    ImportPaths("source")
+);
+
+alias exe = dubLink!(
+    TargetName("d++"),
+    Configuration("library"),
+    targetConcat!(lib, mainObj)
+);
+
+alias utOld = dubTestTarget!(
+    CompilerFlags(debugFlags),
+    LinkerFlags(),
+);
+
+alias ut = dubLink!(
+    TargetName("ut"),
+    Configuration("unittest"),
+    targetConcat!(lib, testObjs, dubDependencies!(Configuration("unittest"))),
 );
 
 alias dpp2 = dubTarget!(
@@ -30,26 +57,28 @@ alias utlPerPackage = dubTarget!(TargetName("utl_per_package"),
 // that compiles the production code per package and the test code
 // per module.
 
-// The production code object files
-alias prodObjs = dubObjects!(Configuration("default"),
-                             CompilerFlags(debugFlags),
-                             No.main,
-                             CompilationMode.package_);
-
 // The test code object files
 // We build the default configuration to avoid depencencies
 // or -unittest.
-alias testObjsPerPackage = dlangObjectsPerModule!(
+alias testObjsLight = dlangObjectsPerModule!(
     Sources!"tests",
     CompilerFlags(debugFlags ~ ["-unittest", "-version=unitThreadedLight"]),
     dubImportPaths!(Configuration("unittest"))
 );
 
 
+alias testObjs = dlangObjectsPerModule!(
+    Sources!"tests",
+    CompilerFlags(debugFlags ~ ["-unittest"]),
+    dubImportPaths!(Configuration("unittest"))
+);
+
+
+
 // The object file(s) for unit-threaded.
 // `dubDependencies` could give us this, but it'd include libclang and any other
 // dependencies compiled with `-unittest`, which we'd rather avoid.
-alias unitThreaded = dubPackageObjects!(
+alias unitThreadedLight = dubPackageObjects!(
     DubPackageName("unit-threaded"),
     Configuration("unittest"),  // or else the dependency doesn't even exist
     CompilerFlags(["-unittest", "-version=unitThreadedLight"]),
@@ -59,7 +88,7 @@ alias unitThreaded = dubPackageObjects!(
 alias utl = dubLink!(
     TargetName("utl"),
     Configuration("unittest"),
-    targetConcat!(prodObjs, testObjsPerPackage, unitThreaded),
+    targetConcat!(lib, testObjsLight, unitThreadedLight),
     LinkerFlags("-main"),
 );
 
