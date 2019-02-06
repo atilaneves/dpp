@@ -1,3 +1,5 @@
+module ut.expansion;
+
 import ut;
 import dpp.expansion;
 
