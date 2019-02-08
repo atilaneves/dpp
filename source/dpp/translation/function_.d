@@ -230,7 +230,7 @@ private string functionSpelling(in from!"clang".Cursor cursor,
     if(isOperator(cursor)) return operatorSpellingCpp(cursor, context);
 
     // if no special case
-    return context.rememberLinkable(const Node(cursor.spelling, const ClangCursor(cursor)));
+    return context.rememberLinkable(const ClangCursor(cursor));
 }
 
 private bool isConstructor(in from!"clang".Cursor cursor) @safe nothrow {

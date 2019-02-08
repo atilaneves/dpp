@@ -64,7 +64,7 @@ private string[] translateRegularTypedef(in from!"dpp.ast.node".ClangCursor node
             // FIXME - still not sure I understand isOnlyAggregateChild here
             const isOnlyAggregateChild = children.length == 1 && isAggregateC(children[0]);
             return isOnlyAggregateChild
-                ? context.spellingOrNickname(const Node(children[0].spelling, const ClangCursor(children[0])))
+                ? context.spellingOrNickname(const Node(children[0].spelling, const Node.Declaration(const ClangCursor(children[0]))))
                 : translate(node.underlyingType, context, No.translatingFunction);
 
         // possible issues on 32-bit

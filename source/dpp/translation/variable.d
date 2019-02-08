@@ -44,7 +44,7 @@ string[] translateVariable(in from!"dpp.ast.node".ClangCursor node,
     // extern Foo gFoo;
     if(isRecordWithoutDefinition(node, context)) return [];
 
-    const spelling = context.rememberLinkable(const Node(node.spelling, const ClangCursor(node)));
+    const spelling = context.rememberLinkable(node);
 
     // global variable or static member of a struct/class?
     const static_ = node.semanticParent.type.canonical.kind == Type.Kind.Record

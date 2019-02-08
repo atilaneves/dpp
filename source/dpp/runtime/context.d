@@ -141,12 +141,21 @@ struct Context {
         return cast(bool) (NodeId(node) in _seenNodes);
     }
 
-    void rememberNode(in Node node) @safe pure nothrow {
+    void rememberNode(in Node node) @trusted pure nothrow {
         import clang: Cursor;
-        // EnumDecl can have no spelling but end up defining an enum anyway
-        // See "it.compile.projects.double enum typedef"
-        if(node.spelling != "" || node.cursor.kind == Cursor.Kind.EnumDecl)
-            _seenNodes[NodeId(node)] = true;
+        import sumtype: match;
+
+        void ignore() { }
+
+        node.declaration.match!(
+            (in ClangCursor cursor) {
+                // EnumDecl can have no spelling but end up defining an enum anyway
+                // See "it.compile.projects.double enum typedef"
+                if(cursor.spelling != "" || cursor.cursor.kind == Cursor.Kind.EnumDecl)
+                    _seenNodes[NodeId(node)] = true;
+            },
+            _ => ignore,
+        );
     }
 
     string translation() @safe pure nothrow const {
@@ -163,10 +172,10 @@ struct Context {
     }
 
     // remember a function or variable declaration
-    string rememberLinkable(in Node node) @safe pure nothrow {
+    string rememberLinkable(in ClangCursor node) @safe pure nothrow {
         import dpp.translation.dlang: maybeRename;
 
-        const spelling = maybeRename(node.cursor, this);
+        const spelling = maybeRename(node, this);
         // since linkables produce one-line translations, the next
         // will be the linkable
         _linkableDeclarations[spelling] = Linkable(lines.length, node.cursor.mangling);
@@ -231,7 +240,7 @@ struct Context {
        Remember this aggregate cursor
      */
     void rememberAggregate(in ClangCursor node) @safe pure {
-        const spelling = spellingOrNickname(const Node(node.spelling, node));
+        const spelling = spellingOrNickname(const Node(node.spelling, const Node.Declaration(node)));
         _aggregateDeclarations[spelling] = true;
         rememberType(spelling);
     }
@@ -365,9 +374,20 @@ private struct NodeId {
     Type.Kind typeKind;
 
     this(in Node node) @safe pure nothrow {
-        cursorSpelling = node.cursor.spelling;
-        cursorKind = node.cursor.kind;
-        typeSpelling = node.cursor.type.spelling;
-        typeKind = node.cursor.type.kind;
+
+        import dpp.ast.node: ClangCursor;
+        import sumtype: match;
+
+        void ignore() {}
+
+        node.declaration.match!(
+            (in ClangCursor cursor) {
+                cursorSpelling = cursor.spelling;
+                cursorKind = cursor.kind;
+                typeSpelling = cursor.type.spelling;
+                typeKind = cursor.type.kind;
+            },
+            _ => ignore,
+        );
     }
 }

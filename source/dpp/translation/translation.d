@@ -22,9 +22,22 @@ string translateTopLevel(in from!"dpp.ast.node".Node node,
     import std.array: join;
     import std.algorithm: map;
 
-    return skipTopLevel(node.cursor, context)
+    return skipTopLevel(node, context)
         ? ""
         : translate(node, context, file, line).map!(a => "    " ~ a).join("\n");
+}
+
+private bool skipTopLevel(in from!"dpp.ast.node".Node node,
+                          in from!"dpp.runtime.context".Context context)
+    @safe pure
+{
+    import dpp.ast.node: ClangCursor, EnumMember;
+    import sumtype: match;
+
+    return node.declaration.match!(
+        (in ClangCursor cursor) => skipTopLevel(cursor, context),
+        _ => false,
+    );
 }
 
 private bool skipTopLevel(in from!"clang".Cursor cursor,
@@ -66,7 +79,17 @@ string[] translate(in from!"dpp.ast.node".Node node,
                    in size_t line = __LINE__)
     @safe
 {
-    return translate(node.cursor, context, file, line);
+    import dpp.ast.node: ClangCursor;
+    import sumtype: match;
+
+    string[] oops() {
+        throw new Exception("oops");
+    }
+
+    return node.declaration.match!(
+        (in ClangCursor cursor) => .translate(cursor, context, file, line),
+        _ => oops,
+    );
 }
 
 
