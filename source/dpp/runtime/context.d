@@ -40,23 +40,19 @@ struct Context {
        that we track here so as to be able to properly translate
        those typedefs.
     */
-    private string[Cursor.Hash] cursorNickNames;
-
-    // FIXME - there must be a better way
-    /// Used to find the last nickname we coined (e.g. "_Anonymous_1")
-    private string[] nickNames;
+    private string[Cursor.Hash] _nickNames;
 
     /**
        Remembers the seen struct pointers so that if any are undeclared in C,
        we do so in D at the end.
      */
-    private bool[string] fieldStructSpellings;
+    private bool[string] _fieldStructSpellings;
 
     /**
        Remembers the field spellings in aggregates in case we need to change any
        of them.
      */
-    private LineNumber[string] fieldDeclarations;
+    private LineNumber[string] _fieldDeclarations;
 
     /**
        All the aggregates that have been declared
@@ -69,22 +65,22 @@ struct Context {
        come back and fix the declarations after the fact with
        pragma(mangle).
      */
-    private Linkable[string] linkableDeclarations;
+    private Linkable[string] _linkableDeclarations;
 
     /**
        All the function-like macros that have been declared
      */
-    private bool[string] functionMacroDeclarations;
+    private bool[string] _functionMacroDeclarations;
 
     /**
        Remember all the macros already defined
      */
-    private bool[string] macros;
+    private bool[string] _macros;
 
     /**
        All previously seen cursors
      */
-    private SeenCursors seenCursors;
+    private SeenCursors _seenCursors;
 
     AccessSpecifier accessSpecifier = AccessSpecifier.Public;
 
@@ -141,14 +137,14 @@ struct Context {
     }
 
     bool hasSeen(in Cursor cursor) @safe pure nothrow const {
-        return cast(bool)(CursorId(cursor) in seenCursors);
+        return cast(bool)(CursorId(cursor) in _seenCursors);
     }
 
     void rememberCursor(in Cursor cursor) @safe pure nothrow {
         // EnumDecl can have no spelling but end up defining an enum anyway
         // See "it.compile.projects.double enum typedef"
         if(cursor.spelling != "" || cursor.kind == Cursor.Kind.EnumDecl)
-            seenCursors[CursorId(cursor)] = true;
+            _seenCursors[CursorId(cursor)] = true;
     }
 
     string translation() @safe pure nothrow const {
@@ -171,7 +167,7 @@ struct Context {
         const spelling = maybeRename(cursor, this);
         // since linkables produce one-line translations, the next
         // will be the linkable
-        linkableDeclarations[spelling] = Linkable(lines.length, cursor.mangling);
+        _linkableDeclarations[spelling] = Linkable(lines.length, cursor.mangling);
 
         return spelling;
     }
@@ -183,10 +179,10 @@ struct Context {
     }
 
     void fixLinkables() @safe pure {
-        foreach(declarations; [_aggregateDeclarations, functionMacroDeclarations]) {
+        foreach(declarations; [_aggregateDeclarations, _functionMacroDeclarations]) {
             foreach(name, _; declarations) {
                 // if there's a name clash, fix it
-                auto clashingLinkable = name in linkableDeclarations;
+                auto clashingLinkable = name in _linkableDeclarations;
                 if(clashingLinkable) {
                     resolveClash(lines[clashingLinkable.lineNumber], name, clashingLinkable.mangling);
                 }
@@ -199,7 +195,7 @@ struct Context {
         import dpp.translation.dlang: pragmaMangle, rename;
         import std.string: replace;
 
-        foreach(spelling, lineNumber; fieldDeclarations) {
+        foreach(spelling, lineNumber; _fieldDeclarations) {
             if(spelling in _aggregateDeclarations) {
                 lines[lineNumber] = lines[lineNumber]
                     .replace(spelling ~ `;`, rename(spelling, this) ~ `;`);
@@ -218,7 +214,7 @@ struct Context {
        See issues #22 and #24
      */
     void rememberFieldStruct(in string typeSpelling) @safe pure {
-        fieldStructSpellings[typeSpelling] = true;
+        _fieldStructSpellings[typeSpelling] = true;
     }
 
     /**
@@ -226,7 +222,7 @@ struct Context {
        because of elaborated names. We remember them here in case we need to fix them.
      */
     void rememberField(in string spelling) @safe pure {
-        fieldDeclarations[spelling] = lines.length;
+        _fieldDeclarations[spelling] = lines.length;
     }
 
     /**
@@ -244,7 +240,7 @@ struct Context {
         See `it.c.compile.delayed`.
     */
     void declareUnknownStructs() @safe pure {
-        foreach(name, _; fieldStructSpellings) {
+        foreach(name, _; _fieldStructSpellings) {
             if(name !in _aggregateDeclarations) {
                 log("Could not find '", name, "' in aggregate declarations, defining it");
                 writeln("struct " ~ name ~ ";");
@@ -265,13 +261,12 @@ struct Context {
     }
 
     private string nickName(in Cursor cursor) @safe pure {
-        if(cursor.hash !in cursorNickNames) {
+        if(cursor.hash !in _nickNames) {
             auto nick = newAnonymousTypeName;
-            nickNames ~= nick;
-            cursorNickNames[cursor.hash] = nick;
+            _nickNames[cursor.hash] = nick;
         }
 
-        return cursorNickNames[cursor.hash];
+        return _nickNames[cursor.hash];
     }
 
     private string newAnonymousTypeName() @safe pure {
@@ -325,13 +320,13 @@ struct Context {
     }
 
     void rememberMacro(in Cursor cursor) @safe pure {
-        macros[cursor.spelling] = true;
+        _macros[cursor.spelling] = true;
         if(cursor.isMacroFunction)
-            functionMacroDeclarations[cursor.spelling] = true;
+            _functionMacroDeclarations[cursor.spelling] = true;
     }
 
     bool macroAlreadyDefined(in Cursor cursor) @safe pure const {
-        return cast(bool) (cursor.spelling in macros);
+        return cast(bool) (cursor.spelling in _macros);
     }
 
     void pushNamespace(in string ns) @safe pure nothrow {
