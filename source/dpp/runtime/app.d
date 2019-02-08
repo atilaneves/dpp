@@ -142,7 +142,7 @@ private TranslationText translationText(File)(in from!"dpp.runtime.options".Opti
     version(dpp2)
         import dpp2.expansion: expand, isCppHeader, getHeaderName;
     else
-        import dpp.expansion: expand, isCppHeader, getHeaderName;
+        import dpp.expansion: expand;
 
     import std.algorithm: map, filter;
     import std.string: fromStringz;
@@ -188,7 +188,6 @@ private void writeDlangLines(in string inputFileName, ref from!"std.stdio".File 
     @trusted
 {
 
-    import dpp.expansion: getHeaderName;
     import std.stdio: File;
     import std.algorithm: filter;
 
@@ -308,4 +307,58 @@ string preamble() @safe pure {
     .filter!(a => a != "")
     .map!(a => a.length >= 8 ? a[8 .. $] : a) // get rid of leading spaces
     .join("\n");
+}
+
+
+private string getHeaderName(in const(char)[] line, in string[] includePaths)
+    @safe
+{
+    const name = getHeaderName(line);
+    return name == "" ? name : fullPath(includePaths, name);
+}
+
+
+string getHeaderName(const(char)[] line)
+    @safe pure
+{
+    import std.algorithm: startsWith, countUntil;
+    import std.range: dropBack;
+    import std.array: popFront;
+    import std.string: stripLeft;
+
+    line = line.stripLeft;
+    if(!line.startsWith(`#include `)) return "";
+
+    const openingQuote = line.countUntil!(a => a == '"' || a == '<');
+    const closingQuote = line[openingQuote + 1 .. $].countUntil!(a => a == '"' || a == '>') + openingQuote + 1;
+    return line[openingQuote + 1 .. closingQuote].idup;
+}
+
+
+// transforms a header name, e.g. stdio.h
+// into a full file path, e.g. /usr/include/stdio.h
+private string fullPath(in string[] includePaths, in string headerName) @safe {
+
+    import std.algorithm: map, filter;
+    import std.path: buildPath, absolutePath;
+    import std.file: exists;
+    import std.conv: text;
+    import std.exception: enforce;
+
+    if(headerName.exists) return headerName;
+
+    auto filePaths = includePaths
+        .map!(a => buildPath(a, headerName).absolutePath)
+        .filter!exists;
+
+    enforce(!filePaths.empty, text("d++ cannot find file path for header '", headerName, "'"));
+
+    return filePaths.front;
+}
+
+
+private bool isCppHeader(in from!"dpp.runtime.options".Options options, in string headerFileName) @safe pure {
+    import std.path: extension;
+    if(options.parseAsCpp) return true;
+    return headerFileName.extension != ".h";
 }

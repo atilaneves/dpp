@@ -3,7 +3,7 @@ module it.expansion;
 
 import it;
 import contract: printChildren, shouldMatch;
-import dpp.expansion;
+import dpp.expansion.libclang;
 import clang: parse, TranslationUnit, Cursor, Type;
 import std.conv: text;
 import std.array: join;

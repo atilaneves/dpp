@@ -22,11 +22,10 @@ version(dpp2) {
         // in-file
         "dpp.runtime",
         "dpp.translation",
-        "dpp.expansion",
 
         // unit tests
         "ut.old.type",
-        "ut.expansion",
+        "ut.runtime",
 
         // contract tests
         "contract.array",
