@@ -3,6 +3,7 @@
  */
 module dpp.translation.translation;
 
+
 import dpp.from;
 
 
@@ -11,18 +12,19 @@ alias Translator = string[] function(
     ref from!"dpp.runtime.context".Context context,
 ) @safe;
 
-string translateTopLevelCursor(in from!"clang".Cursor cursor,
-                               ref from!"dpp.runtime.context".Context context,
-                               in string file = __FILE__,
-                               in size_t line = __LINE__)
+
+string translateTopLevel(in from!"dpp.ast.node".Node node,
+                         ref from!"dpp.runtime.context".Context context,
+                         in string file = __FILE__,
+                         in size_t line = __LINE__)
     @safe
 {
     import std.array: join;
     import std.algorithm: map;
 
-    return skipTopLevel(cursor, context)
+    return skipTopLevel(node, context)
         ? ""
-        : translate(cursor, context, file, line).map!(a => "    " ~ a).join("\n");
+        : translate(node, context, file, line).map!(a => "    " ~ a).join("\n");
 }
 
 private bool skipTopLevel(in from!"clang".Cursor cursor,
@@ -58,7 +60,7 @@ private bool skipTopLevel(in from!"clang".Cursor cursor,
 }
 
 
-string[] translate(in from!"clang".Cursor cursor,
+string[] translate(in from!"dpp.ast.node".Node node,
                    ref from!"dpp.runtime.context".Context context,
                    in string file = __FILE__,
                    in size_t line = __LINE__)
@@ -71,19 +73,19 @@ string[] translate(in from!"clang".Cursor cursor,
     import std.algorithm: canFind, any;
     import std.array: join;
 
-    debugCursor(cursor, context);
+    debugCursor(node, context);
 
-    if(context.language == Language.Cpp && ignoredCppCursorSpellings.canFind(cursor.spelling)) {
+    if(context.language == Language.Cpp && ignoredCppCursorSpellings.canFind(node.spelling)) {
         return [];
     }
 
-    if(context.options.ignoredCursors.canFind(cursor.spelling)) {
+    if(context.options.ignoredCursors.canFind(node.spelling)) {
         return [];
     }
 
-    if(cursor.kind !in translators) {
+    if(node.kind !in translators) {
         if(context.options.hardFail)
-            throw new Exception(text("Cannot translate unknown cursor kind ", cursor.kind),
+            throw new Exception(text("Cannot translate unknown cursor kind ", node.kind),
                                 file,
                                 line);
         else
@@ -95,7 +97,7 @@ string[] translate(in from!"clang".Cursor cursor,
     context.indent;
 
     try {
-        auto lines = translators[cursor.kind](const Node(cursor), context);
+        auto lines = translators[node.kind](node, context);
 
         if(lines.any!untranslatable)
             throw new UntranslatableException(
@@ -111,12 +113,12 @@ string[] translate(in from!"clang".Cursor cursor,
             import std.stdio: stderr;
             () @trusted {
                 if(context.options.detailedUntranslatable)
-                    stderr.writeln("\nUntranslatable cursor ", cursor,
+                    stderr.writeln("\nUntranslatable cursor ", node.cursor,
                                    "\nmsg: ", e.msg,
-                                   "\nsourceRange: ", cursor.sourceRange,
-                                   "\nchildren: ", cursor.children, "\n");
+                                   "\nsourceRange: ", node.sourceRange,
+                                   "\nchildren: ", node.children, "\n");
                 else
-                    stderr.writeln("Untranslatable cursor ", cursor);
+                    stderr.writeln("Untranslatable cursor ", node.cursor);
             }();
         }
 
@@ -130,10 +132,10 @@ string[] translate(in from!"clang".Cursor cursor,
         debug {
             import std.stdio: stderr;
             () @trusted {
-                stderr.writeln("\nCould not translate cursor ", cursor,
+                stderr.writeln("\nCould not translate cursor ", node.cursor,
                                "\nmsg: ", e.msg,
-                               "\nsourceRange: ", cursor.sourceRange,
-                               "\nchildren: ", cursor.children, "\n");
+                               "\nsourceRange: ", node.sourceRange,
+                               "\nchildren: ", node.children, "\n");
             }();
         }
 

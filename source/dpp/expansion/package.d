@@ -21,8 +21,9 @@ void expand(in string translUnitFileName,
             in size_t line = __LINE__)
     @safe
 {
-    import dpp.translation.translation: translateTopLevelCursor;
+    import dpp.translation.translation: translateTopLevel;
     import dpp.runtime.context: Language;
+    import dpp.ast.node: Node;
     import clang: Cursor;
 
     const extern_ = context.language == Language.Cpp ? "extern(C++)" : "extern(C)";
@@ -37,7 +38,7 @@ void expand(in string translUnitFileName,
         context.rememberCursor(cursor);
 
         const indentation = context.indentation;
-        const lines = translateTopLevelCursor(cursor, context, file, line);
+        const lines = translateTopLevel(const Node(cursor), context, file, line);
         if(lines.length) context.writeln(lines);
         context.setIndentation(indentation);
     }

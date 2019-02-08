@@ -125,6 +125,7 @@ private string[] translateTopLevelAnonymous(in from!"clang".Cursor cursor,
     @safe
 {
     import dpp.translation.translation: translate;
+    import dpp.ast.node: Node;
     import clang: Cursor;
 
     // the old cursor has no spelling, so construct a new one
@@ -134,5 +135,5 @@ private string[] translateTopLevelAnonymous(in from!"clang".Cursor cursor,
     newCursor.spelling = cursor.type.spelling;
 
     // delegate to whoever knows what they're doing
-    return translate(newCursor, context);
+    return translate(const Node(newCursor), context);
 }

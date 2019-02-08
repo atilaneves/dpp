@@ -15,6 +15,7 @@ string[] translateVariable(in from!"dpp.ast.node".Node node,
     import dpp.translation.translation: translateCursor = translate;
     import dpp.translation.type: translateType = translate;
     import dpp.translation.tokens: translateTokens;
+    import dpp.ast.node: Node;
     import clang: Cursor, Type, Token;
     import std.conv: text;
     import std.typecons: No;
@@ -27,7 +28,7 @@ string[] translateVariable(in from!"dpp.ast.node".Node node,
     // If the type is anonymous, then we need to define it before we declare
     // ourselves of that type, unless that type is an enum. See #54.
     if(isAnonymous && node.type.canonical.declaration.kind != Cursor.Kind.EnumDecl) {
-        ret ~= translateCursor(node.type.canonical.declaration, context);
+        ret ~= translateCursor(const Node(node.type.canonical.declaration), context);
     }
 
     // variables can be declared multiple times in C but only one in D

@@ -12,6 +12,7 @@ string[] translateNamespace(in from!"dpp.ast.node".Node node,
 {
     import dpp.translation.translation: translate, ignoredCppCursorSpellings;
     import dpp.translation.exception: UntranslatableException;
+    import dpp.ast.node: Node;
     import clang: Cursor;
     import std.conv: text;
     import std.algorithm: map, startsWith;
@@ -37,7 +38,7 @@ string[] translateNamespace(in from!"dpp.ast.node".Node node,
 
         if(child.kind == Cursor.Kind.VisibilityAttr) continue;
 
-        lines ~= translate(child, context)
+        lines ~= translate(const Node(child), context)
             .map!(a => (child.kind == Cursor.Kind.Namespace ? "    " : "        ") ~ a)
             .array;
     }
