@@ -7,17 +7,15 @@ module dpp.translation.enum_;
 import dpp.from;
 
 
-string[] translateEnumConstant(in from!"dpp.ast.node".ClangCursor node,
+string[] translateEnumConstant(in string spelling,
+                               in from!"dpp.ast.node".EnumMember enumMember,
                                ref from!"dpp.runtime.context".Context context)
     @safe
-    in(node.kind == from!"clang".Cursor.Kind.EnumConstantDecl)
-    do
 {
     import dpp.translation.dlang: maybeRename;
     import std.conv: text;
 
-    context.log("    Enum Constant Value: ", node.enumConstantValue);
-    context.log("    tokens: ", node.tokens);
+    context.log("    Enum Constant Value: ", enumMember.value);
 
-    return [text(maybeRename(node, context), ` = `, node.enumConstantValue, `, `)];
+    return [text(maybeRename(spelling, context), ` = `, enumMember.value, `, `)];
 }

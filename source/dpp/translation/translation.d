@@ -79,7 +79,8 @@ string[] translate(in from!"dpp.ast.node".Node node,
                    in size_t line = __LINE__)
     @safe
 {
-    import dpp.ast.node: ClangCursor;
+    import dpp.ast.node: ClangCursor, EnumMember;
+    import dpp.translation.enum_: translateEnumConstant;
     import sumtype: match;
 
     string[] oops() {
@@ -88,7 +89,8 @@ string[] translate(in from!"dpp.ast.node".Node node,
 
     return node.declaration.match!(
         (in ClangCursor cursor) => .translate(cursor, context, file, line),
-        _ => oops,
+        (in EnumMember enumMember) => translateEnumConstant(node.spelling, enumMember, context),
+        //_ => oops,
     );
 }
 
@@ -211,6 +213,14 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
         return [];
     }
 
+    static string[] fail(
+        in ClangCursor node,
+        ref from!"dpp.runtime.context".Context context)
+    {
+        assert(0);
+    }
+
+
     static string[] translateUnexposed(
         in ClangCursor node,
         ref from!"dpp.runtime.context".Context context)
@@ -261,7 +271,7 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
             TypedefDecl:                        &translateTypedef,
             MacroDefinition:                    &translateMacro,
             InclusionDirective:                 &ignore,
-            EnumConstantDecl:                   &translateEnumConstant,
+            EnumConstantDecl:                   &fail,
             VarDecl:                            &translateVariable,
             UnexposedDecl:                      &translateUnexposed,
             CXXAccessSpecifier:                 &translateAccess,

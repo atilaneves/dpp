@@ -3,6 +3,7 @@
  */
 module dpp.translation.dlang;
 
+
 import dpp.from;
 
 
@@ -10,8 +11,17 @@ string maybeRename(in from!"dpp.ast.node".ClangCursor node,
                    in from!"dpp.runtime.context".Context context)
     @safe pure nothrow
 {
-    return nameClashes(node, context) ? rename(node.spelling, context) : node.spelling;
+    return maybeRename(node.spelling, context);
 }
+
+
+string maybeRename(in string spelling,
+                   in from!"dpp.runtime.context".Context context)
+    @safe pure nothrow
+{
+    return nameClashes(spelling, context) ? rename(spelling, context) : spelling;
+}
+
 
 string maybePragma(in from!"dpp.ast.node".ClangCursor node,
                    in from!"dpp.runtime.context".Context context)
@@ -22,7 +32,7 @@ string maybePragma(in from!"dpp.ast.node".ClangCursor node,
     // FIXME - why are free function operators showing up as Language.C?
     const isCpp = node.language == Language.CPlusPlus || node.spelling.startsWith("operator");
     if(isCpp) return pragmaMangle(node.mangling);
-    return nameClashes(node, context) ? pragmaMangle(node.mangling) : "";
+    return nameClashes(node.spelling, context) ? pragmaMangle(node.mangling) : "";
 }
 
 string rename(string spelling,
@@ -40,13 +50,13 @@ string pragmaMangle(in string mangling) @safe pure nothrow {
     return mangling == "" ? "" : `pragma(mangle, "` ~ mangling ~ `") `;
 }
 
-private bool nameClashes(in from!"dpp.ast.node".ClangCursor node,
+private bool nameClashes(in string spelling,
                          in from!"dpp.runtime.context".Context context)
     @safe pure nothrow
 {
     return
-        node.spelling.isKeyword ||
-        node.spelling in context.aggregateDeclarations;
+        spelling.isKeyword ||
+        spelling in context.aggregateDeclarations;
 }
 
 bool isKeyword(string str) @safe @nogc pure nothrow {

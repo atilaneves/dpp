@@ -145,6 +145,7 @@ string[] translateAggregate(
 {
     import dpp.translation.translation: translate;
     import dpp.ast.node: Node, ClangCursor;
+    import dpp.expansion.libclang: toNode;
     import clang: Cursor, Type, AccessSpecifier;
     import std.algorithm: map;
     import std.array: array;
@@ -198,7 +199,7 @@ string[] translateAggregate(
             if(child.kind == Cursor.Kind.CXXBaseSpecifier)
                 return translateBase(i, child, context);
 
-            return translate(const Node(child.spelling, const Node.Declaration(const ClangCursor(child))), context);
+            return translate(child.toNode, context);
         }();
 
         lines ~= childTranslation.map!(a => "    " ~ a).array;

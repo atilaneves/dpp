@@ -15,21 +15,33 @@ package auto tuToNodes(
 )
     @safe
 {
-    import dpp.ast.node: Node, ClangCursor;
+    import dpp.ast.node;
     import clang: Cursor;
     import std.algorithm: map;
 
     auto translationUnit = parseTU(translUnitFileName, context, includePaths);
     auto cursors = canonicalCursors(translationUnit);
 
-    static toNode(Cursor cursor) {
-        switch(cursor.kind) with(Cursor.Kind) {
-            default:
-                return Node(cursor.spelling, Node.Declaration(ClangCursor(cursor)));
-        }
-    }
-
     return cursors.map!toNode;
+}
+
+
+auto toNode(T)(T cursor)
+    @safe
+    if(is(from!"std.traits".Unqual!T == from!"clang".Cursor))
+{
+    import dpp.ast.node;
+    import clang: Cursor;
+    import std.traits: CopyTypeQualifiers;
+
+    alias CursorType = CopyTypeQualifiers!(T, ClangCursor);
+
+    switch(cursor.kind) with(Cursor.Kind) {
+        default:
+            return Node(cursor.spelling, Node.Declaration(CursorType(cursor)));
+        case EnumConstantDecl:
+            return Node(cursor.spelling, Node.Declaration(EnumMember(cursor.enumConstantValue)));
+    }
 }
 
 
