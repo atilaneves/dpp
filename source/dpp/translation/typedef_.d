@@ -5,7 +5,7 @@ module dpp.translation.typedef_;
 
 import dpp.from;
 
-string[] translateTypedef(in from!"clang".Cursor typedef_,
+string[] translateTypedef(in from!"dpp.ast.node".Node node,
                           ref from!"dpp.runtime.context".Context context)
     @safe
 {
@@ -14,7 +14,7 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     import std.array: array;
 
     const children = () @trusted {
-        return typedef_
+        return node
         .children
         .filter!(a => !a.isInvalid)
         // ???
@@ -23,11 +23,11 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     }();
 
     context.log("Children: ", children);
-    context.log("Underlying type: ", typedef_.underlyingType);
+    context.log("Underlying type: ", node.underlyingType);
 
     // FIXME - why canonical?
-    if(isSomeFunction(typedef_.underlyingType.canonical))
-        return translateFunctionTypeDef(typedef_, context.indent);
+    if(isSomeFunction(node.underlyingType.canonical))
+        return translateFunctionTypeDef(node, context.indent);
 
     const isTopLevelAnonymous =
         children.length == 1 && // so we can inspect it
@@ -43,7 +43,7 @@ string[] translateTypedef(in from!"clang".Cursor typedef_,
     if(isTopLevelAnonymous && children[0].kind != Cursor.Kind.EnumDecl)
         return translateTopLevelAnonymous(children[0], context);
 
-    return translateRegularTypedef(typedef_, context, children);
+    return translateRegularTypedef(node, context, children);
 }
 
 

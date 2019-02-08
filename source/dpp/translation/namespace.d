@@ -4,10 +4,10 @@ module dpp.translation.namespace;
 import dpp.from;
 
 
-string[] translateNamespace(in from!"clang".Cursor cursor,
+string[] translateNamespace(in from!"dpp.ast.node".Node node,
                             ref from!"dpp.runtime.context".Context context)
     @safe
-    in(cursor.kind == from!"clang".Cursor.Kind.Namespace)
+    in(node.kind == from!"clang".Cursor.Kind.Namespace)
     do
 {
     import dpp.translation.translation: translate, ignoredCppCursorSpellings;
@@ -17,23 +17,23 @@ string[] translateNamespace(in from!"clang".Cursor cursor,
     import std.algorithm: map, startsWith;
     import std.array: array;
 
-    if(shouldSkip(cursor.spelling, context))
+    if(shouldSkip(node.spelling, context))
         return [];
 
-    if(cursor.spelling == "")
+    if(node.spelling == "")
         throw new UntranslatableException("BUG: namespace with no name");
 
     string[] lines;
 
     lines ~= [
-            `extern(C++, "` ~ cursor.spelling ~ `")`,
+            `extern(C++, "` ~ node.spelling ~ `")`,
             `{`,
     ];
 
-    context.pushNamespace(cursor.spelling);
-    scope(exit) context.popNamespace(cursor.spelling);
+    context.pushNamespace(node.spelling);
+    scope(exit) context.popNamespace(node.spelling);
 
-    foreach(child; cursor.children) {
+    foreach(child; node.children) {
 
         if(child.kind == Cursor.Kind.VisibilityAttr) continue;
 

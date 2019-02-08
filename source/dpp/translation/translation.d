@@ -7,7 +7,7 @@ import dpp.from;
 
 
 alias Translator = string[] function(
-    in from!"clang".Cursor cursor,
+    in from!"dpp.ast.node".Node node,
     ref from!"dpp.runtime.context".Context context,
 ) @safe;
 
@@ -66,6 +66,7 @@ string[] translate(in from!"clang".Cursor cursor,
 {
     import dpp.runtime.context: Language;
     import dpp.translation.exception: UntranslatableException;
+    import dpp.ast.node: Node;
     import std.conv: text;
     import std.algorithm: canFind, any;
     import std.array: join;
@@ -94,7 +95,7 @@ string[] translate(in from!"clang".Cursor cursor,
     context.indent;
 
     try {
-        auto lines = translators[cursor.kind](cursor, context);
+        auto lines = translators[cursor.kind](const Node(cursor), context);
 
         if(lines.any!untranslatable)
             throw new UntranslatableException(
@@ -165,25 +166,26 @@ void debugCursor(in from!"clang".Cursor cursor,
 
 Translator[from!"clang".Cursor.Kind] translators() @safe {
     import dpp.translation;
+    import dpp.ast.node: Node;
     import clang: Cursor;
 
     static string[] ignore(
-        in Cursor cursor,
+        in Node node,
         ref from!"dpp.runtime.context".Context context)
     {
         return [];
     }
 
     static string[] translateUnexposed(
-        in Cursor cursor,
+        in Node node,
         ref from!"dpp.runtime.context".Context context)
     {
         import clang: Type;
         import std.conv: text;
 
-        switch(cursor.type.kind) with(Type.Kind) {
+        switch(node.type.kind) with(Type.Kind) {
             default:
-                throw new Exception(text("Unknown unexposed declaration type ", cursor.type));
+                throw new Exception(text("Unknown unexposed declaration type ", node.type));
             case Invalid:
                 return [];
         }
@@ -191,14 +193,14 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
     }
 
     static string[] translateAccess(
-        in Cursor cursor,
+        in Node node,
         ref from!"dpp.runtime.context".Context context)
     {
         import clang: AccessSpecifier;
 
-        context.accessSpecifier = cursor.accessSpecifier;
+        context.accessSpecifier = node.accessSpecifier;
 
-        final switch(cursor.accessSpecifier) with(AccessSpecifier) {
+        final switch(node.accessSpecifier) with(AccessSpecifier) {
             case InvalidAccessSpecifier: assert(0);
             case Public: return ["    public:"];
             case Protected: return ["    protected:"];
@@ -214,8 +216,13 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
             StructDecl:                         &translateStruct,
             UnionDecl:                          &translateUnion,
             EnumDecl:                           &translateEnum,
-            FunctionDecl:                       &translateFunction,
             FieldDecl:                          &translateField,
+            FunctionDecl:                       &translateFunction,
+            CXXMethod:                          &translateFunction,
+            Constructor:                        &translateFunction,
+            Destructor:                         &translateFunction,
+            ConversionFunction:                 &translateFunction,
+            FunctionTemplate:                   &translateFunction,
             TypedefDecl:                        &translateTypedef,
             MacroDefinition:                    &translateMacro,
             InclusionDirective:                 &ignore,
@@ -223,20 +230,15 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
             VarDecl:                            &translateVariable,
             UnexposedDecl:                      &translateUnexposed,
             CXXAccessSpecifier:                 &translateAccess,
-            CXXMethod:                          &translateFunction,
-            Constructor:                        &translateFunction,
-            Destructor:                         &translateFunction,
             TypeAliasDecl:                      &translateTypedef,
             ClassTemplate:                      &translateClass,
             TemplateTypeParameter:              &ignore,
             NonTypeTemplateParameter:           &ignore,
-            ConversionFunction:                 &translateFunction,
             Namespace:                          &translateNamespace,
             VisibilityAttr:                     &ignore, // ???
             FirstAttr:                          &ignore, // ???
             ClassTemplatePartialSpecialization: &translateClass,
             TypeAliasTemplateDecl:              &translateTypeAliasTemplate,
-            FunctionTemplate:                   &translateFunction,
         ];
     }
 }

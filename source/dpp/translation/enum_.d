@@ -3,9 +3,11 @@
  */
 module dpp.translation.enum_;
 
+
 import dpp.from;
 
-string[] translateEnumConstant(in from!"clang".Cursor cursor,
+
+string[] translateEnumConstant(in from!"dpp.ast.node".Node node,
                                ref from!"dpp.runtime.context".Context context)
     @safe
 {
@@ -13,8 +15,8 @@ string[] translateEnumConstant(in from!"clang".Cursor cursor,
     import clang: Cursor;
     import std.conv: text;
 
-    assert(cursor.kind == Cursor.Kind.EnumConstantDecl);
-    context.log("    Enum Constant Value: ", cursor.enumConstantValue);
-    context.log("    tokens: ", cursor.tokens);
-    return [maybeRename(cursor, context) ~ ` = ` ~ text(cursor.enumConstantValue) ~ `, `];
+    assert(node.kind == Cursor.Kind.EnumConstantDecl);
+    context.log("    Enum Constant Value: ", node.enumConstantValue);
+    context.log("    tokens: ", node.tokens);
+    return [maybeRename(node, context) ~ ` = ` ~ text(node.enumConstantValue) ~ `, `];
 }

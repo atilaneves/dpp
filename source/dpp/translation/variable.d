@@ -1,11 +1,13 @@
 module dpp.translation.variable;
 
+
 import dpp.from;
 
-string[] translateVariable(in from!"clang".Cursor cursor,
+
+string[] translateVariable(in from!"dpp.ast.node".Node node,
                            ref from!"dpp.runtime.context".Context context)
     @safe
-    in(cursor.kind == from!"clang".Cursor.Kind.VarDecl)
+    in(node.kind == from!"clang".Cursor.Kind.VarDecl)
     do
 {
     import dpp.translation.exception: UntranslatableException;
@@ -21,15 +23,15 @@ string[] translateVariable(in from!"clang".Cursor cursor,
 
     string[] ret;
 
-    const isAnonymous = cursor.type.spelling.canFind("(anonymous");
+    const isAnonymous = node.type.spelling.canFind("(anonymous");
     // If the type is anonymous, then we need to define it before we declare
     // ourselves of that type, unless that type is an enum. See #54.
-    if(isAnonymous && cursor.type.canonical.declaration.kind != Cursor.Kind.EnumDecl) {
-        ret ~= translateCursor(cursor.type.canonical.declaration, context);
+    if(isAnonymous && node.type.canonical.declaration.kind != Cursor.Kind.EnumDecl) {
+        ret ~= translateCursor(node.type.canonical.declaration, context);
     }
 
     // variables can be declared multiple times in C but only one in D
-    if(!cursor.isCanonical) return [];
+    if(!node.isCanonical) return [];
 
     // Don't bother if we don't have a definition anywhere - C allows this but D
     // doesn't. See it.compile.projects.ASN1_ITEM or try #including <openssl/ssl.h>.
@@ -39,25 +41,25 @@ string[] translateVariable(in from!"clang".Cursor cursor,
     // that's ok. In D, it's not. Essentially:
     // struct Foo;
     // extern Foo gFoo;
-    if(isRecordWithoutDefinition(cursor, context)) return [];
+    if(isRecordWithoutDefinition(node, context)) return [];
 
-    const spelling = context.rememberLinkable(cursor);
+    const spelling = context.rememberLinkable(node);
 
     // global variable or static member of a struct/class?
-    const static_ = cursor.semanticParent.type.canonical.kind == Type.Kind.Record
+    const static_ = node.semanticParent.type.canonical.kind == Type.Kind.Record
         ? "static  "
         : "";
     // e.g. enum foo = 42;
-    const constexpr = cursor.tokens.canFind(Token(Token.Kind.Keyword, "constexpr"));
+    const constexpr = node.tokens.canFind(Token(Token.Kind.Keyword, "constexpr"));
 
     if(constexpr)
-        ret ~= translateConstexpr(spelling, cursor, context);
+        ret ~= translateConstexpr(spelling, node, context);
     else {
 
         ret ~=
-            maybePragma(cursor, context) ~
+            maybePragma(node, context) ~
             text("extern __gshared ", static_,
-                 translateType(cursor.type, context, No.translatingFunction), " ", spelling, ";");
+                 translateType(node.type, context, No.translatingFunction), " ", spelling, ";");
     }
 
     return ret;

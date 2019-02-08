@@ -9,16 +9,16 @@ import dpp.from;
 enum OPERATOR_PREFIX = "operator";
 
 
-string[] translateFunction(in from!"clang".Cursor cursor,
+string[] translateFunction(in from!"dpp.ast.node".Node node,
                            ref from!"dpp.runtime.context".Context context)
     @safe
     in(
-        cursor.kind == from!"clang".Cursor.Kind.FunctionDecl ||
-        cursor.kind == from!"clang".Cursor.Kind.CXXMethod ||
-        cursor.kind == from!"clang".Cursor.Kind.Constructor ||
-        cursor.kind == from!"clang".Cursor.Kind.Destructor ||
-        cursor.kind == from!"clang".Cursor.Kind.ConversionFunction ||
-        cursor.kind == from!"clang".Cursor.Kind.FunctionTemplate
+        node.kind == from!"clang".Cursor.Kind.FunctionDecl ||
+        node.kind == from!"clang".Cursor.Kind.CXXMethod ||
+        node.kind == from!"clang".Cursor.Kind.Constructor ||
+        node.kind == from!"clang".Cursor.Kind.Destructor ||
+        node.kind == from!"clang".Cursor.Kind.ConversionFunction ||
+        node.kind == from!"clang".Cursor.Kind.FunctionTemplate
     )
     do
 {
@@ -31,24 +31,24 @@ string[] translateFunction(in from!"clang".Cursor cursor,
     import std.algorithm: any, endsWith, canFind;
     import std.typecons: Yes;
 
-    if(ignoreFunction(cursor)) return [];
+    if(ignoreFunction(node)) return [];
 
     // FIXME - stop special casing the move ctor
-    auto moveCtorLines = maybeMoveCtor(cursor, context);
+    auto moveCtorLines = maybeMoveCtor(node, context);
     if(moveCtorLines.length) return moveCtorLines;
 
     string[] lines;
 
-    lines ~= maybeCopyCtor(cursor, context);
-    lines ~= maybeOperator(cursor, context);
+    lines ~= maybeCopyCtor(node, context);
+    lines ~= maybeOperator(node, context);
 
     // never declared types might lurk here
-    maybeRememberStructs(paramTypes(cursor), context);
+    maybeRememberStructs(paramTypes(node), context);
 
-    const spelling = functionSpelling(cursor, context);
+    const spelling = functionSpelling(node, context);
 
     lines ~= [
-        maybePragma(cursor, context) ~ functionDecl(cursor, context, spelling)
+        maybePragma(node, context) ~ functionDecl(node, context, spelling)
     ];
 
     context.log("");

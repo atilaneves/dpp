@@ -266,10 +266,10 @@ private bool isVariadicTemplate(in from!"clang".Cursor cursor) @safe {
 
 
 // e.g. `template <typename T> using foo = bar;`
-string[] translateTypeAliasTemplate(in from!"clang".Cursor cursor,
+string[] translateTypeAliasTemplate(in from!"dpp.ast.node".Node node,
                                     ref from!"dpp.runtime.context".Context context)
     @safe
-    in(cursor.kind == from!"clang".Cursor.Kind.TypeAliasTemplateDecl)
+    in(node.kind == from!"clang".Cursor.Kind.TypeAliasTemplateDecl)
 do
 {
     import dpp.translation.type: translate;
@@ -281,9 +281,9 @@ do
     import std.array: join, replace;
 
     // see contract.templates.using
-    const typeAliasIndex = cursor.children.countUntil!(c => c.kind == Cursor.Kind.TypeAliasDecl);
-    assert(typeAliasIndex != -1, text(cursor.children));
-    const typeAlias = cursor.children[typeAliasIndex];
+    const typeAliasIndex = node.children.countUntil!(c => c.kind == Cursor.Kind.TypeAliasDecl);
+    assert(typeAliasIndex != -1, text(node.children));
+    const typeAlias = node.children[typeAliasIndex];
 
     const underlying = () {
         if(typeAlias.underlyingType.kind == Type.Kind.Unexposed) {
@@ -317,9 +317,9 @@ do
     // but the 2nd one has to be `alias void_t(T...) = void`.
     // The first example has to have the same template arguments on both sides,
     // the second needs it only on the left.
-    const templateParams = isVariadicTemplate(cursor)
-        ? "(" ~ translateTemplateParams(cursor, context).join(", ") ~ ")"
+    const templateParams = isVariadicTemplate(node)
+        ? "(" ~ translateTemplateParams(node, context).join(", ") ~ ")"
         : "";
 
-    return [text("alias ", cursor.spelling, templateParams ~ " = ", underlying, ";")];
+    return [text("alias ", node.spelling, templateParams ~ " = ", underlying, ";")];
 }

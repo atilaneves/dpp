@@ -10,25 +10,25 @@ import std.range: isInputRange;
 enum MAX_BITFIELD_WIDTH = 64;
 
 
-string[] translateStruct(in from!"clang".Cursor cursor,
+string[] translateStruct(in from!"dpp.ast.node".Node node,
                          ref from!"dpp.runtime.context".Context context)
     @safe
 {
-    return translateStrass(cursor, context, "struct");
+    return translateStrass(node, context, "struct");
 }
 
-string[] translateClass(in from!"clang".Cursor cursor,
+string[] translateClass(in from!"dpp.ast.node".Node node,
                         ref from!"dpp.runtime.context".Context context)
     @safe
 {
     import clang: Token;
     import std.algorithm: canFind;
 
-    const cKeyword = cursor.tokens.canFind(Token(Token.Kind.Keyword, "class"))
+    const cKeyword = node.tokens.canFind(Token(Token.Kind.Keyword, "class"))
         ? "class"
         : "struct";
 
-    return translateStrass(cursor, context, cKeyword);
+    return translateStrass(node, context, cKeyword);
 }
 
 // "strass" is a struct or class
@@ -71,21 +71,21 @@ private string[] translateStrass(in from!"clang".Cursor cursor,
 }
 
 
-string[] translateUnion(in from!"clang".Cursor cursor,
+string[] translateUnion(in from!"dpp.ast.node".Node node,
                         ref from!"dpp.runtime.context".Context context)
     @safe
-    in(cursor.kind == from!"clang".Cursor.Kind.UnionDecl)
+    in(node.kind == from!"clang".Cursor.Kind.UnionDecl)
     do
 {
     import clang: Cursor;
-    return translateAggregate(context, cursor, "union");
+    return translateAggregate(context, node, "union");
 }
 
 
-string[] translateEnum(in from!"clang".Cursor cursor,
+string[] translateEnum(in from!"dpp.ast.node".Node node,
                        ref from!"dpp.runtime.context".Context context)
     @safe
-    in(cursor.kind == from!"clang".Cursor.Kind.EnumDecl)
+    in(node.kind == from!"clang".Cursor.Kind.EnumDecl)
     do
 {
     import dpp.translation.dlang: maybeRename;
@@ -93,10 +93,10 @@ string[] translateEnum(in from!"clang".Cursor cursor,
     import std.typecons: nullable;
     import std.algorithm: canFind;
 
-    const enumName = context.spellingOrNickname(cursor);
+    const enumName = context.spellingOrNickname(node);
     string[] lines;
 
-    const isEnumClass = cursor.tokens.canFind(Token(Token.Kind.Keyword, "class"));
+    const isEnumClass = node.tokens.canFind(Token(Token.Kind.Keyword, "class"));
 
     if(!isEnumClass && !context.options.alwaysScopedEnums) {
         // Translate it twice so that C semantics are the same (global names)
@@ -106,7 +106,7 @@ string[] translateEnum(in from!"clang".Cursor cursor,
         // `enum Foo { foo, bar }` _and_
         // `enum foo = Foo.foo; enum bar = Foo.bar;` in D.
 
-        foreach(member; cursor) {
+        foreach(member; node) {
             if(!member.isDefinition) continue;
             auto memName = maybeRename(member, context);
             lines ~= `enum ` ~ memName ~ ` = ` ~ enumName ~ `.` ~ memName ~ `;`;
@@ -114,9 +114,10 @@ string[] translateEnum(in from!"clang".Cursor cursor,
     }
 
     return
-        translateAggregate(context, cursor, "enum", nullable(enumName)) ~
+        translateAggregate(context, node, "enum", nullable(enumName)) ~
         lines;
 }
+
 
 // not pure due to Cursor.opApply not being pure
 string[] translateAggregate(
@@ -345,7 +346,7 @@ private bool skipMember(in from!"clang".Cursor member) @safe @nogc pure nothrow 
 }
 
 
-string[] translateField(in from!"clang".Cursor field,
+string[] translateField(in from!"dpp.ast.node".Node node,
                         ref from!"dpp.runtime.context".Context context)
     @safe
 {
@@ -357,21 +358,21 @@ string[] translateField(in from!"clang".Cursor field,
     import std.typecons: No;
     import std.array: replace;
 
-    assert(field.kind == Cursor.Kind.FieldDecl, text("Field of wrong kind: ", field));
+    assert(node.kind == Cursor.Kind.FieldDecl, text("Field of wrong kind: ", node.cursor));
 
     // The field could be a pointer to an undeclared struct or a function pointer with parameter
     // or return types that are a pointer to an undeclared struct. We have to remember these
     // so as to be able to declare the structs for D consumption after the fact.
-    if(field.type.kind == Type.Kind.Pointer) maybeRememberStructsFromType(field.type, context);
+    if(node.type.kind == Type.Kind.Pointer) maybeRememberStructsFromType(node.type, context);
 
     // Remember the field name in case it ends up clashing with a type.
-    context.rememberField(field.spelling);
+    context.rememberField(node.spelling);
 
-    const type = translate(field.type, context, No.translatingFunction);
+    const type = translate(node.type, context, No.translatingFunction);
 
-    return field.isBitField
-        ? translateBitField(field, context, type)
-        : [text(type, " ", maybeRename(field, context), ";")];
+    return node.isBitField
+        ? translateBitField(node, context, type)
+        : [text(type, " ", maybeRename(node, context), ";")];
 }
 
 string[] translateBitField(in from!"clang".Cursor cursor,

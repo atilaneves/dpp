@@ -2,7 +2,7 @@ module dpp.translation.macro_;
 
 import dpp.from;
 
-string[] translateMacro(in from!"clang".Cursor cursor,
+string[] translateMacro(in from!"dpp.ast.node".Node node,
                         ref from!"dpp.runtime.context".Context context)
     @safe
 {
@@ -12,15 +12,15 @@ string[] translateMacro(in from!"clang".Cursor cursor,
     import std.algorithm: startsWith, canFind;
     import std.conv: text;
 
-    assert(cursor.kind == Cursor.Kind.MacroDefinition);
+    assert(node.kind == Cursor.Kind.MacroDefinition);
 
     // we want non-built-in macro definitions to be defined and then preprocessed
     // again
 
-    auto range = cursor.sourceRange;
+    auto range = node.sourceRange;
 
     if(range.path == "" || !range.path.exists ||
-       cursor.isPredefined || cursor.spelling.startsWith("__STDC_")) { //built-in macro
+       node.isPredefined || node.spelling.startsWith("__STDC_")) { //built-in macro
         return [];
     }
 
@@ -29,19 +29,19 @@ string[] translateMacro(in from!"clang".Cursor cursor,
     // in the meanwhile. Unfortunately, libclang has no way of passing
     // that information to us
     string maybeUndef;
-    if(context.macroAlreadyDefined(cursor))
-        maybeUndef = "#undef " ~ cursor.spelling ~ "\n";
+    if(context.macroAlreadyDefined(node))
+        maybeUndef = "#undef " ~ node.spelling ~ "\n";
 
-    context.rememberMacro(cursor);
-    const spelling = maybeRename(cursor, context);
-    const body_ = range.chars.text[cursor.spelling.length .. $];
+    context.rememberMacro(node);
+    const spelling = maybeRename(node, context);
+    const body_ = range.chars.text[node.spelling.length .. $];
     const dbody = translateToD(body_, context);
 
     auto redefinition = [maybeUndef ~ "#define " ~ spelling ~ dbody ~ "\n"];
 
     // Always redefine the macro, but sometimes also add a D enum
     // See #103 for why.
-    return onlyRedefine(cursor, dbody)
+    return onlyRedefine(node, dbody)
         ? redefinition
         : redefinition ~ [`enum DPP_ENUM_` ~ spelling ~ ` = ` ~ dbody ~ `;`];
 }
