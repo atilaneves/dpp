@@ -145,7 +145,7 @@ string[] translateAggregate(
 {
     import dpp.translation.translation: translate;
     import dpp.ast.node: Node, ClangCursor;
-    import dpp.expansion.libclang: toNode;
+    import dpp.expansion: toNode;
     import clang: Cursor, Type, AccessSpecifier;
     import std.algorithm: map;
     import std.array: array;

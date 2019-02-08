@@ -5,6 +5,9 @@ module dpp.expansion;
 
 
 import dpp.from;
+// default implementation
+public import dpp.expansion.libclang;
+
 
 
 /**
@@ -24,7 +27,6 @@ void expand(in string translUnitFileName,
     import dpp.translation.translation: translateTopLevel;
     import dpp.runtime.context: Language;
     import dpp.ast.node: Node;
-    import dpp.expansion.libclang: tuToNodes;
 
     const extern_ = () {
         final switch(context.language) {

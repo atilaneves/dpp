@@ -36,11 +36,18 @@ auto toNode(T)(T cursor)
 
     alias CursorType = CopyTypeQualifiers!(T, ClangCursor);
 
+    Node node(V, A...)(auto ref A args) {
+        import std.functional: forward;
+        return Node(cursor.spelling, Node.Declaration(V(forward!args)));
+    }
+
     switch(cursor.kind) with(Cursor.Kind) {
+
         default:
-            return Node(cursor.spelling, Node.Declaration(CursorType(cursor)));
+            return node!CursorType(cursor);
+
         case EnumConstantDecl:
-            return Node(cursor.spelling, Node.Declaration(EnumMember(cursor.enumConstantValue)));
+            return node!EnumMember(cursor.enumConstantValue);
     }
 }
 
