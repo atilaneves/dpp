@@ -47,7 +47,7 @@ string[] translateTypedef(in from!"dpp.ast.node".Node node,
 }
 
 
-private string[] translateRegularTypedef(in from!"clang".Cursor typedef_,
+private string[] translateRegularTypedef(in from!"dpp.ast.node".Node node,
                                          ref from!"dpp.runtime.context".Context context,
                                          in from!"clang".Cursor[] children)
     @safe
@@ -55,16 +55,17 @@ private string[] translateRegularTypedef(in from!"clang".Cursor typedef_,
     import dpp.translation.type: translate;
     import dpp.translation.aggregate: isAggregateC;
     import dpp.translation.dlang: maybeRename;
+    import dpp.ast.node: Node;
     import std.typecons: No;
 
     const underlyingSpelling = () {
-        switch(typedef_.spelling) {
+        switch(node.spelling) {
         default:
             // FIXME - still not sure I understand isOnlyAggregateChild here
             const isOnlyAggregateChild = children.length == 1 && isAggregateC(children[0]);
             return isOnlyAggregateChild
-                ? context.spellingOrNickname(children[0])
-                : translate(typedef_.underlyingType, context, No.translatingFunction);
+                ? context.spellingOrNickname(const Node(children[0]))
+                : translate(node.underlyingType, context, No.translatingFunction);
 
         // possible issues on 32-bit
         case "int32_t":  return "int";
@@ -74,7 +75,7 @@ private string[] translateRegularTypedef(in from!"clang".Cursor typedef_,
         }
     }();
 
-    context.rememberType(typedef_.spelling);
+    context.rememberType(node.spelling);
 
     context.log("");
 
@@ -82,9 +83,9 @@ private string[] translateRegularTypedef(in from!"clang".Cursor typedef_,
     // Changing this to always alias however breaks:
     // it.c.compile.projects.const char* const
     // it.c.compile.projects.struct with union
-    return typedef_.spelling == underlyingSpelling
+    return node.spelling == underlyingSpelling
         ? []
-        : [`alias ` ~ maybeRename(typedef_, context) ~ ` = ` ~ underlyingSpelling  ~ `;`];
+        : [`alias ` ~ maybeRename(node, context) ~ ` = ` ~ underlyingSpelling  ~ `;`];
 }
 
 private string[] translateFunctionTypeDef(in from!"clang".Cursor typedef_,

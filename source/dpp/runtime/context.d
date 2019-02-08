@@ -23,9 +23,10 @@ enum Language {
 struct Context {
 
     import dpp.runtime.options: Options;
-    import clang: Cursor, Type, AccessSpecifier;
+    import dpp.ast.node: Node;
+    import clang: Type, AccessSpecifier;
 
-    alias SeenCursors = bool[CursorId];
+    alias SeenNodes = bool[NodeId];
 
     /**
        The lines of output so far. This is needed in order to fix
@@ -40,7 +41,7 @@ struct Context {
        that we track here so as to be able to properly translate
        those typedefs.
     */
-    private string[Cursor.Hash] _nickNames;
+    private string[Node.Hash] _nickNames;
 
     /**
        Remembers the seen struct pointers so that if any are undeclared in C,
@@ -80,7 +81,7 @@ struct Context {
     /**
        All previously seen cursors
      */
-    private SeenCursors _seenCursors;
+    private SeenNodes _seenNodes;
 
     AccessSpecifier accessSpecifier = AccessSpecifier.Public;
 
@@ -136,15 +137,16 @@ struct Context {
         return options.debugOutput;
     }
 
-    bool hasSeen(in Cursor cursor) @safe pure nothrow const {
-        return cast(bool)(CursorId(cursor) in _seenCursors);
+    bool hasSeen(in Node node) @safe pure nothrow const {
+        return cast(bool) (NodeId(node) in _seenNodes);
     }
 
-    void rememberCursor(in Cursor cursor) @safe pure nothrow {
+    void rememberNode(in Node node) @safe pure nothrow {
+        import clang: Cursor;
         // EnumDecl can have no spelling but end up defining an enum anyway
         // See "it.compile.projects.double enum typedef"
-        if(cursor.spelling != "" || cursor.kind == Cursor.Kind.EnumDecl)
-            _seenCursors[CursorId(cursor)] = true;
+        if(node.spelling != "" || node.kind == Cursor.Kind.EnumDecl)
+            _seenNodes[NodeId(node)] = true;
     }
 
     string translation() @safe pure nothrow const {
@@ -161,13 +163,13 @@ struct Context {
     }
 
     // remember a function or variable declaration
-    string rememberLinkable(in Cursor cursor) @safe pure nothrow {
+    string rememberLinkable(in Node node) @safe pure nothrow {
         import dpp.translation.dlang: maybeRename;
 
-        const spelling = maybeRename(cursor, this);
+        const spelling = maybeRename(node, this);
         // since linkables produce one-line translations, the next
         // will be the linkable
-        _linkableDeclarations[spelling] = Linkable(lines.length, cursor.mangling);
+        _linkableDeclarations[spelling] = Linkable(lines.length, node.mangling);
 
         return spelling;
     }
@@ -228,8 +230,8 @@ struct Context {
     /**
        Remember this aggregate cursor
      */
-    void rememberAggregate(in Cursor cursor) @safe pure {
-        const spelling = spellingOrNickname(cursor);
+    void rememberAggregate(in Node node) @safe pure {
+        const spelling = spellingOrNickname(node);
         _aggregateDeclarations[spelling] = true;
         rememberType(spelling);
     }
@@ -254,19 +256,19 @@ struct Context {
     }
 
     /// return the spelling if it exists, or our made-up nickname for it if not
-    string spellingOrNickname(in Cursor cursor) @safe pure {
+    string spellingOrNickname(in Node node) @safe pure {
         import dpp.translation.dlang: rename, isKeyword;
-        if(cursor.spelling == "") return nickName(cursor);
-        return cursor.spelling.isKeyword ? rename(cursor.spelling, this) : cursor.spelling;
+        if(node.spelling == "") return nickName(node);
+        return node.spelling.isKeyword ? rename(node.spelling, this) : node.spelling;
     }
 
-    private string nickName(in Cursor cursor) @safe pure {
-        if(cursor.hash !in _nickNames) {
+    private string nickName(in Node node) @safe pure {
+        if(node.hash !in _nickNames) {
             auto nick = newAnonymousTypeName;
-            _nickNames[cursor.hash] = nick;
+            _nickNames[node.hash] = nick;
         }
 
-        return _nickNames[cursor.hash];
+        return _nickNames[node.hash];
     }
 
     private string newAnonymousTypeName() @safe pure {
@@ -319,14 +321,14 @@ struct Context {
         return regex(regexStr);
     }
 
-    void rememberMacro(in Cursor cursor) @safe pure {
-        _macros[cursor.spelling] = true;
-        if(cursor.isMacroFunction)
-            _functionMacroDeclarations[cursor.spelling] = true;
+    void rememberMacro(in Node node) @safe pure {
+        _macros[node.spelling] = true;
+        if(node.isMacroFunction)
+            _functionMacroDeclarations[node.spelling] = true;
     }
 
-    bool macroAlreadyDefined(in Cursor cursor) @safe pure const {
-        return cast(bool) (cursor.spelling in _macros);
+    bool macroAlreadyDefined(in Node node) @safe pure const {
+        return cast(bool) (node.spelling in _macros);
     }
 
     void pushNamespace(in string ns) @safe pure nothrow {
@@ -353,7 +355,8 @@ struct Context {
 
 
 // to identify a cursor
-private struct CursorId {
+private struct NodeId {
+    import dpp.ast.node: Node;
     import clang: Cursor, Type;
 
     string cursorSpelling;
@@ -361,10 +364,10 @@ private struct CursorId {
     string typeSpelling;
     Type.Kind typeKind;
 
-    this(in Cursor cursor) @safe pure nothrow {
-        cursorSpelling = cursor.spelling;
-        cursorKind = cursor.kind;
-        typeSpelling = cursor.type.spelling;
-        typeKind = cursor.type.kind;
+    this(in Node node) @safe pure nothrow {
+        cursorSpelling = node.spelling;
+        cursorKind = node.kind;
+        typeSpelling = node.type.spelling;
+        typeKind = node.type.kind;
     }
 }

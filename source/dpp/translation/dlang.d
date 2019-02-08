@@ -6,23 +6,23 @@ module dpp.translation.dlang;
 import dpp.from;
 
 
-string maybeRename(in from!"clang".Cursor cursor,
+string maybeRename(in from!"dpp.ast.node".Node node,
                    in from!"dpp.runtime.context".Context context)
     @safe pure nothrow
 {
-    return nameClashes(cursor, context) ? rename(cursor.spelling, context) : cursor.spelling;
+    return nameClashes(node, context) ? rename(node.spelling, context) : node.spelling;
 }
 
-string maybePragma(in from!"clang".Cursor cursor,
+string maybePragma(in from!"dpp.ast.node".Node node,
                    in from!"dpp.runtime.context".Context context)
     @safe pure nothrow
 {
     import clang: Language;
     import std.algorithm: startsWith;
     // FIXME - why are free function operators showing up as Language.C?
-    const isCpp = cursor.language == Language.CPlusPlus || cursor.spelling.startsWith("operator");
-    if(isCpp) return pragmaMangle(cursor.mangling);
-    return nameClashes(cursor, context) ? pragmaMangle(cursor.mangling) : "";
+    const isCpp = node.language == Language.CPlusPlus || node.spelling.startsWith("operator");
+    if(isCpp) return pragmaMangle(node.mangling);
+    return nameClashes(node, context) ? pragmaMangle(node.mangling) : "";
 }
 
 string rename(string spelling,
@@ -40,13 +40,13 @@ string pragmaMangle(in string mangling) @safe pure nothrow {
     return mangling == "" ? "" : `pragma(mangle, "` ~ mangling ~ `") `;
 }
 
-private bool nameClashes(in from!"clang".Cursor cursor,
+private bool nameClashes(in from!"dpp.ast.node".Node node,
                          in from!"dpp.runtime.context".Context context)
     @safe pure nothrow
 {
     return
-        cursor.spelling.isKeyword ||
-        cursor.spelling in context.aggregateDeclarations;
+        node.spelling.isKeyword ||
+        node.spelling in context.aggregateDeclarations;
 }
 
 bool isKeyword(string str) @safe @nogc pure nothrow {

@@ -42,8 +42,10 @@ void expand(in string translUnitFileName,
 
     foreach(cursor; cursors) {
 
-        if(context.hasSeen(cursor)) continue;
-        context.rememberCursor(cursor);
+        auto node = const Node(cursor);
+
+        if(context.hasSeen(node)) continue;
+        context.rememberNode(node);
 
         const indentation = context.indentation;
         const lines = translateTopLevel(const Node(cursor), context, file, line);

@@ -32,15 +32,15 @@ string[] translateClass(in from!"dpp.ast.node".Node node,
 }
 
 // "strass" is a struct or class
-private string[] translateStrass(in from!"clang".Cursor cursor,
+private string[] translateStrass(in from!"dpp.ast.node".Node node,
                                  ref from!"dpp.runtime.context".Context context,
                                  in string cKeyword)
     @safe
     in(
-        cursor.kind == from!"clang".Cursor.Kind.StructDecl ||
-        cursor.kind == from!"clang".Cursor.Kind.ClassDecl ||
-        cursor.kind == from!"clang".Cursor.Kind.ClassTemplate ||
-        cursor.kind == from!"clang".Cursor.Kind.ClassTemplatePartialSpecialization
+        node.kind == from!"clang".Cursor.Kind.StructDecl ||
+        node.kind == from!"clang".Cursor.Kind.ClassDecl ||
+        node.kind == from!"clang".Cursor.Kind.ClassTemplate ||
+        node.kind == from!"clang".Cursor.Kind.ClassTemplatePartialSpecialization
     )
   do
 {
@@ -54,12 +54,12 @@ private string[] translateStrass(in from!"clang".Cursor cursor,
     Nullable!string spelling() {
 
         // full template
-        if(cursor.kind == Cursor.Kind.ClassTemplate)
-            return nullable(templateSpelling(cursor, translateTemplateParams(cursor, context)));
+        if(node.kind == Cursor.Kind.ClassTemplate)
+            return nullable(templateSpelling(node, translateTemplateParams(node, context)));
 
         // partial or full template specialisation
-        if(cursor.type.numTemplateArguments != -1)
-            return nullable(templateSpelling(cursor, translateSpecialisedTemplateParams(cursor, context)));
+        if(node.type.numTemplateArguments != -1)
+            return nullable(templateSpelling(node, translateSpecialisedTemplateParams(node, context)));
 
         // non-template class/struct
         return Nullable!string();
@@ -67,7 +67,7 @@ private string[] translateStrass(in from!"clang".Cursor cursor,
 
     const dKeyword = "struct";
 
-    return translateAggregate(context, cursor, cKeyword, dKeyword, spelling);
+    return translateAggregate(context, node, cKeyword, dKeyword, spelling);
 }
 
 
@@ -89,6 +89,7 @@ string[] translateEnum(in from!"dpp.ast.node".Node node,
     do
 {
     import dpp.translation.dlang: maybeRename;
+    import dpp.ast.node: Node;
     import clang: Cursor, Token;
     import std.typecons: nullable;
     import std.algorithm: canFind;
@@ -108,7 +109,7 @@ string[] translateEnum(in from!"dpp.ast.node".Node node,
 
         foreach(member; node) {
             if(!member.isDefinition) continue;
-            auto memName = maybeRename(member, context);
+            auto memName = maybeRename(const Node(member), context);
             lines ~= `enum ` ~ memName ~ ` = ` ~ enumName ~ `.` ~ memName ~ `;`;
         }
     }
@@ -122,20 +123,20 @@ string[] translateEnum(in from!"dpp.ast.node".Node node,
 // not pure due to Cursor.opApply not being pure
 string[] translateAggregate(
     ref from!"dpp.runtime.context".Context context,
-    in from!"clang".Cursor cursor,
+    in from!"dpp.ast.node".Node node,
     in string keyword,
     in from!"std.typecons".Nullable!string spelling = from!"std.typecons".Nullable!string()
 )
     @safe
 {
-    return translateAggregate(context, cursor, keyword, keyword, spelling);
+    return translateAggregate(context, node, keyword, keyword, spelling);
 }
 
 
 // not pure due to Cursor.opApply not being pure
 string[] translateAggregate(
     ref from!"dpp.runtime.context".Context context,
-    in from!"clang".Cursor cursor,
+    in from!"dpp.ast.node".Node node,
     in string cKeyword,
     in string dKeyword,
     in from!"std.typecons".Nullable!string spelling = from!"std.typecons".Nullable!string()
@@ -149,15 +150,15 @@ string[] translateAggregate(
     import std.array: array;
 
     // remember all aggregate declarations
-    context.rememberAggregate(cursor);
+    context.rememberAggregate(node);
 
-    const name = spelling.isNull ? context.spellingOrNickname(cursor) : spelling.get;
-    const realDlangKeyword = cursor.semanticParent.type.canonical.kind == Type.Kind.Record
+    const name = spelling.isNull ? context.spellingOrNickname(node) : spelling.get;
+    const realDlangKeyword = node.semanticParent.type.canonical.kind == Type.Kind.Record
         ? "static " ~ dKeyword
         : dKeyword;
     const firstLine = realDlangKeyword ~ ` ` ~ name;
 
-    if(!cursor.isDefinition) return [firstLine ~ `;`];
+    if(!node.isDefinition) return [firstLine ~ `;`];
 
     string[] lines;
     lines ~= firstLine;
@@ -172,11 +173,11 @@ string[] translateAggregate(
 
     BitFieldInfo bitFieldInfo;
 
-    lines ~= bitFieldInfo.header(cursor);
+    lines ~= bitFieldInfo.header(node);
 
-    context.log("Children: ", cursor.children);
+    context.log("Children: ", node.children);
 
-    foreach(i, child; cursor.children) {
+    foreach(i, child; node.children) {
 
         if(child.kind == Cursor.Kind.PackedAttr) {
             lines ~= "align(1):";
@@ -201,14 +202,14 @@ string[] translateAggregate(
         lines ~= childTranslation.map!(a => "    " ~ a).array;
 
         // Possibly deal with C11 anonymous structs/unions. See issue #29.
-        lines ~= maybeC11AnonymousRecords(cursor, child, context);
+        lines ~= maybeC11AnonymousRecords(node, child, context);
 
         bitFieldInfo.update(child);
     }
 
     lines ~= bitFieldInfo.finish;
-    lines ~= maybeOperators(cursor, name);
-    lines ~= maybeDisableDefaultCtor(cursor, dKeyword);
+    lines ~= maybeOperators(node, name);
+    lines ~= maybeDisableDefaultCtor(node, dKeyword);
 
     lines ~= `}`;
 
@@ -376,7 +377,7 @@ string[] translateField(in from!"dpp.ast.node".Node node,
         : [text(type, " ", maybeRename(node, context), ";")];
 }
 
-string[] translateBitField(in from!"clang".Cursor cursor,
+string[] translateBitField(in from!"dpp.ast.node".Node node,
                            ref from!"dpp.runtime.context".Context context,
                            in string type)
     @safe
@@ -384,12 +385,12 @@ string[] translateBitField(in from!"clang".Cursor cursor,
     import dpp.translation.dlang: maybeRename;
     import std.conv: text;
 
-    auto spelling = maybeRename(cursor, context);
+    auto spelling = maybeRename(node, context);
     // std.bitmanip.bitfield can't handle successive mixins with
     // no name. See issue #35.
     if(spelling == "") spelling = context.newAnonymousMemberName;
 
-    return [text("    ", type, `, "`, spelling, `", `, cursor.bitWidth, `,`)];
+    return [text("    ", type, `, "`, spelling, `", `, node.bitWidth, `,`)];
 }
 
 // C allows elaborated types to appear in function parameters and member declarations

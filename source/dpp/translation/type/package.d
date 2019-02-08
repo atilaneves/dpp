@@ -124,6 +124,7 @@ private string translateAggregate(in from!"clang".Type type,
     @safe pure
 {
     import dpp.clang: namespace;
+    import dpp.ast.node: Node;
     import std.array: replace, join;
     import std.algorithm: canFind, countUntil, map;
     import std.range: iota;
@@ -132,7 +133,7 @@ private string translateAggregate(in from!"clang".Type type,
     string spelling() {
         // clang names anonymous types with a long name indicating where the type
         // was declared, so we check here with `hasAnonymousSpelling`
-        if(hasAnonymousSpelling(type)) return context.spellingOrNickname(type.declaration);
+        if(hasAnonymousSpelling(type)) return context.spellingOrNickname(const Node(type.declaration));
 
         // If there's a namespace in the name, we have to remove it. To find out
         // what the namespace is called, we look at the type's declaration.

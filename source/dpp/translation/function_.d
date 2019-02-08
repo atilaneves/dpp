@@ -221,6 +221,7 @@ private string functionSpelling(in from!"clang".Cursor cursor,
                                 ref from!"dpp.runtime.context".Context context)
     @safe
 {
+    import dpp.ast.node: Node;
     import clang: Cursor;
 
     if(isConstructor(cursor)) return "this";
@@ -229,7 +230,7 @@ private string functionSpelling(in from!"clang".Cursor cursor,
     if(isOperator(cursor)) return operatorSpellingCpp(cursor, context);
 
     // if no special case
-    return context.rememberLinkable(cursor);
+    return context.rememberLinkable(const Node(cursor));
 }
 
 private bool isConstructor(in from!"clang".Cursor cursor) @safe nothrow {
@@ -401,6 +402,7 @@ private string[] maybeMoveCtor(in from!"clang".Cursor cursor,
 {
     import dpp.translation.dlang: maybeRename, maybePragma;
     import dpp.translation.type: translate;
+    import dpp.ast.node: Node;
     import clang: Cursor, Type;
 
     if(!cursor.isMoveConstructor) return [];
@@ -410,7 +412,7 @@ private string[] maybeMoveCtor(in from!"clang".Cursor cursor,
 
     return [
         // The actual C++ move constructor but declared to take a pointer
-        maybePragma(cursor, context) ~ " this(" ~ pointee ~ "*);",
+        maybePragma(const Node(cursor), context) ~ " this(" ~ pointee ~ "*);",
         // The fake D move constructor
         "this(" ~ translate(paramType, context) ~ " wrapper) {",
         "    this(wrapper.ptr);",
