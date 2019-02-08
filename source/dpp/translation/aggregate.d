@@ -90,11 +90,12 @@ string[] translateEnum(in from!"dpp.ast.node".ClangCursor cursor,
 {
     import dpp.translation.dlang: maybeRename;
     import dpp.ast.node: Node, ClangCursor;
+    import dpp.expansion: toNode;
     import clang: Cursor, Token;
     import std.typecons: nullable;
     import std.algorithm: canFind;
 
-    const enumName = context.spellingOrNickname(const Node(cursor.spelling, const Node.Declaration(cursor)));
+    const enumName = context.spellingOrNickname(cursor.cursor.toNode);
     string[] lines;
 
     const isEnumClass = cursor.tokens.canFind(Token(Token.Kind.Keyword, "class"));
@@ -154,7 +155,7 @@ string[] translateAggregate(
     context.rememberAggregate(node);
 
     const name = spelling.isNull
-        ? context.spellingOrNickname(const Node(node.spelling, const Node.Declaration(node)))
+        ? context.spellingOrNickname(node.cursor.toNode)
         : spelling.get;
     const realDlangKeyword = node.semanticParent.type.canonical.kind == Type.Kind.Record
         ? "static " ~ dKeyword

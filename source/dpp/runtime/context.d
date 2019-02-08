@@ -239,8 +239,9 @@ struct Context {
     /**
        Remember this aggregate cursor
      */
-    void rememberAggregate(in ClangCursor node) @safe pure {
-        const spelling = spellingOrNickname(const Node(node.spelling, const Node.Declaration(node)));
+    void rememberAggregate(in ClangCursor cursor) @safe pure {
+        import dpp.expansion: toNode;
+        const spelling = spellingOrNickname(toNode(cursor.cursor));
         _aggregateDeclarations[spelling] = true;
         rememberType(spelling);
     }
