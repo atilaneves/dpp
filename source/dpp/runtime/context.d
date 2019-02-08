@@ -141,7 +141,6 @@ struct Context {
     }
 
     bool hasSeen(in Cursor cursor) @safe pure nothrow const {
-        if(cursor.kind == Cursor.Kind.Namespace) return false;
         return cast(bool)(CursorId(cursor) in seenCursors);
     }
 
