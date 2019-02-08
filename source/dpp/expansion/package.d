@@ -26,7 +26,15 @@ void expand(in string translUnitFileName,
     import dpp.ast.node: Node;
     import clang: Cursor;
 
-    const extern_ = context.language == Language.Cpp ? "extern(C++)" : "extern(C)";
+    const extern_ = () {
+        final switch(context.language) {
+            case Language.Cpp:
+                return "extern(C++)";
+            case Language.C:
+                return "extern(C)";
+        }
+    }();
+
     context.writeln([extern_, "{"]);
 
     auto translationUnit = parseTU(translUnitFileName, context, includePaths);
@@ -86,7 +94,7 @@ private from!"clang".TranslationUnit parseTU
    take the canonical declaration so as to not repeat ourselves in D.
 */
 from!"clang".Cursor[] canonicalCursors(from!"clang".TranslationUnit translationUnit) @safe {
-    // translationUnit isn't const becaus the cursors need to be sorted
+    // translationUnit isn't const because the cursors need to be sorted
 
     import clang: Cursor;
     import std.algorithm: filter, partition;
