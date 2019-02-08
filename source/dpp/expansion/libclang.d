@@ -15,12 +15,12 @@ package auto tuToNodes(
 )
     @safe
 {
-    import dpp.ast.node: Node;
+    import dpp.ast.node: Node, ClangCursor;
     import std.algorithm: map;
 
     auto translationUnit = parseTU(translUnitFileName, context, includePaths);
     auto cursors = canonicalCursors(translationUnit);
-    return cursors.map!(c => Node(c));
+    return cursors.map!(c => Node(c.spelling, ClangCursor(c)));
 }
 
 

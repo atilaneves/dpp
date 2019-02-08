@@ -10,14 +10,14 @@ import std.range: isInputRange;
 enum MAX_BITFIELD_WIDTH = 64;
 
 
-string[] translateStruct(in from!"dpp.ast.node".Node node,
+string[] translateStruct(in from!"dpp.ast.node".ClangCursor node,
                          ref from!"dpp.runtime.context".Context context)
     @safe
 {
     return translateStrass(node, context, "struct");
 }
 
-string[] translateClass(in from!"dpp.ast.node".Node node,
+string[] translateClass(in from!"dpp.ast.node".ClangCursor node,
                         ref from!"dpp.runtime.context".Context context)
     @safe
 {
@@ -32,7 +32,7 @@ string[] translateClass(in from!"dpp.ast.node".Node node,
 }
 
 // "strass" is a struct or class
-private string[] translateStrass(in from!"dpp.ast.node".Node node,
+private string[] translateStrass(in from!"dpp.ast.node".ClangCursor node,
                                  ref from!"dpp.runtime.context".Context context,
                                  in string cKeyword)
     @safe
@@ -71,7 +71,7 @@ private string[] translateStrass(in from!"dpp.ast.node".Node node,
 }
 
 
-string[] translateUnion(in from!"dpp.ast.node".Node node,
+string[] translateUnion(in from!"dpp.ast.node".ClangCursor node,
                         ref from!"dpp.runtime.context".Context context)
     @safe
     in(node.kind == from!"clang".Cursor.Kind.UnionDecl)
@@ -82,22 +82,22 @@ string[] translateUnion(in from!"dpp.ast.node".Node node,
 }
 
 
-string[] translateEnum(in from!"dpp.ast.node".Node node,
+string[] translateEnum(in from!"dpp.ast.node".ClangCursor cursor,
                        ref from!"dpp.runtime.context".Context context)
     @safe
-    in(node.kind == from!"clang".Cursor.Kind.EnumDecl)
+    in(cursor.kind == from!"clang".Cursor.Kind.EnumDecl)
     do
 {
     import dpp.translation.dlang: maybeRename;
-    import dpp.ast.node: Node;
+    import dpp.ast.node: Node, ClangCursor;
     import clang: Cursor, Token;
     import std.typecons: nullable;
     import std.algorithm: canFind;
 
-    const enumName = context.spellingOrNickname(node);
+    const enumName = context.spellingOrNickname(const Node(cursor.spelling, cursor));
     string[] lines;
 
-    const isEnumClass = node.tokens.canFind(Token(Token.Kind.Keyword, "class"));
+    const isEnumClass = cursor.tokens.canFind(Token(Token.Kind.Keyword, "class"));
 
     if(!isEnumClass && !context.options.alwaysScopedEnums) {
         // Translate it twice so that C semantics are the same (global names)
@@ -107,15 +107,15 @@ string[] translateEnum(in from!"dpp.ast.node".Node node,
         // `enum Foo { foo, bar }` _and_
         // `enum foo = Foo.foo; enum bar = Foo.bar;` in D.
 
-        foreach(member; node) {
+        foreach(member; cursor) {
             if(!member.isDefinition) continue;
-            auto memName = maybeRename(const Node(member), context);
+            auto memName = maybeRename(ClangCursor(member), context);
             lines ~= `enum ` ~ memName ~ ` = ` ~ enumName ~ `.` ~ memName ~ `;`;
         }
     }
 
     return
-        translateAggregate(context, node, "enum", nullable(enumName)) ~
+        translateAggregate(context, cursor, "enum", nullable(enumName)) ~
         lines;
 }
 
@@ -123,7 +123,7 @@ string[] translateEnum(in from!"dpp.ast.node".Node node,
 // not pure due to Cursor.opApply not being pure
 string[] translateAggregate(
     ref from!"dpp.runtime.context".Context context,
-    in from!"dpp.ast.node".Node node,
+    in from!"dpp.ast.node".ClangCursor node,
     in string keyword,
     in from!"std.typecons".Nullable!string spelling = from!"std.typecons".Nullable!string()
 )
@@ -136,7 +136,7 @@ string[] translateAggregate(
 // not pure due to Cursor.opApply not being pure
 string[] translateAggregate(
     ref from!"dpp.runtime.context".Context context,
-    in from!"dpp.ast.node".Node node,
+    in from!"dpp.ast.node".ClangCursor node,
     in string cKeyword,
     in string dKeyword,
     in from!"std.typecons".Nullable!string spelling = from!"std.typecons".Nullable!string()
@@ -144,7 +144,7 @@ string[] translateAggregate(
     @safe
 {
     import dpp.translation.translation: translate;
-    import dpp.ast.node: Node;
+    import dpp.ast.node: Node, ClangCursor;
     import clang: Cursor, Type, AccessSpecifier;
     import std.algorithm: map;
     import std.array: array;
@@ -152,7 +152,9 @@ string[] translateAggregate(
     // remember all aggregate declarations
     context.rememberAggregate(node);
 
-    const name = spelling.isNull ? context.spellingOrNickname(node) : spelling.get;
+    const name = spelling.isNull
+        ? context.spellingOrNickname(const Node(node.spelling, node))
+        : spelling.get;
     const realDlangKeyword = node.semanticParent.type.canonical.kind == Type.Kind.Record
         ? "static " ~ dKeyword
         : dKeyword;
@@ -196,7 +198,7 @@ string[] translateAggregate(
             if(child.kind == Cursor.Kind.CXXBaseSpecifier)
                 return translateBase(i, child, context);
 
-            return translate(const Node(child), context);
+            return translate(const Node(child.spelling, const ClangCursor(child)), context);
         }();
 
         lines ~= childTranslation.map!(a => "    " ~ a).array;
@@ -348,7 +350,7 @@ private bool skipMember(in from!"clang".Cursor member) @safe @nogc pure nothrow 
 }
 
 
-string[] translateField(in from!"dpp.ast.node".Node node,
+string[] translateField(in from!"dpp.ast.node".ClangCursor node,
                         ref from!"dpp.runtime.context".Context context)
     @safe
 {
@@ -377,7 +379,7 @@ string[] translateField(in from!"dpp.ast.node".Node node,
         : [text(type, " ", maybeRename(node, context), ";")];
 }
 
-string[] translateBitField(in from!"dpp.ast.node".Node node,
+string[] translateBitField(in from!"dpp.ast.node".ClangCursor node,
                            ref from!"dpp.runtime.context".Context context,
                            in string type)
     @safe

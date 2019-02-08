@@ -7,7 +7,7 @@ module dpp.translation.enum_;
 import dpp.from;
 
 
-string[] translateEnumConstant(in from!"dpp.ast.node".Node node,
+string[] translateEnumConstant(in from!"dpp.ast.node".ClangCursor node,
                                ref from!"dpp.runtime.context".Context context)
     @safe
     in(node.kind == from!"clang".Cursor.Kind.EnumConstantDecl)

@@ -1,18 +1,20 @@
 module dpp.translation.macro_;
 
+
 import dpp.from;
 
-string[] translateMacro(in from!"dpp.ast.node".Node node,
+
+string[] translateMacro(in from!"dpp.ast.node".ClangCursor node,
                         ref from!"dpp.runtime.context".Context context)
     @safe
+    in(node.kind == from!"clang".Cursor.Kind.MacroDefinition)
+    do
 {
     import dpp.translation.dlang: maybeRename;
     import clang: Cursor;
     import std.file: exists;
     import std.algorithm: startsWith, canFind;
     import std.conv: text;
-
-    assert(node.kind == Cursor.Kind.MacroDefinition);
 
     // we want non-built-in macro definitions to be defined and then preprocessed
     // again

@@ -6,14 +6,14 @@ module dpp.translation.dlang;
 import dpp.from;
 
 
-string maybeRename(in from!"dpp.ast.node".Node node,
+string maybeRename(in from!"dpp.ast.node".ClangCursor node,
                    in from!"dpp.runtime.context".Context context)
     @safe pure nothrow
 {
     return nameClashes(node, context) ? rename(node.spelling, context) : node.spelling;
 }
 
-string maybePragma(in from!"dpp.ast.node".Node node,
+string maybePragma(in from!"dpp.ast.node".ClangCursor node,
                    in from!"dpp.runtime.context".Context context)
     @safe pure nothrow
 {
@@ -40,7 +40,7 @@ string pragmaMangle(in string mangling) @safe pure nothrow {
     return mangling == "" ? "" : `pragma(mangle, "` ~ mangling ~ `") `;
 }
 
-private bool nameClashes(in from!"dpp.ast.node".Node node,
+private bool nameClashes(in from!"dpp.ast.node".ClangCursor node,
                          in from!"dpp.runtime.context".Context context)
     @safe pure nothrow
 {

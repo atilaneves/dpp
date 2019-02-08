@@ -4,7 +4,7 @@ module dpp.translation.namespace;
 import dpp.from;
 
 
-string[] translateNamespace(in from!"dpp.ast.node".Node node,
+string[] translateNamespace(in from!"dpp.ast.node".ClangCursor node,
                             ref from!"dpp.runtime.context".Context context)
     @safe
     in(node.kind == from!"clang".Cursor.Kind.Namespace)
@@ -12,7 +12,7 @@ string[] translateNamespace(in from!"dpp.ast.node".Node node,
 {
     import dpp.translation.translation: translate, ignoredCppCursorSpellings;
     import dpp.translation.exception: UntranslatableException;
-    import dpp.ast.node: Node;
+    import dpp.ast.node: ClangCursor;
     import clang: Cursor;
     import std.conv: text;
     import std.algorithm: map, startsWith;
@@ -38,7 +38,7 @@ string[] translateNamespace(in from!"dpp.ast.node".Node node,
 
         if(child.kind == Cursor.Kind.VisibilityAttr) continue;
 
-        lines ~= translate(const Node(child), context)
+        lines ~= translate(const ClangCursor(child), context)
             .map!(a => (child.kind == Cursor.Kind.Namespace ? "    " : "        ") ~ a)
             .array;
     }

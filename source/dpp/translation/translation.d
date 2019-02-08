@@ -8,7 +8,7 @@ import dpp.from;
 
 
 alias Translator = string[] function(
-    in from!"dpp.ast.node".Node node,
+    in from!"dpp.ast.node".ClangCursor node,
     ref from!"dpp.runtime.context".Context context,
 ) @safe;
 
@@ -22,7 +22,7 @@ string translateTopLevel(in from!"dpp.ast.node".Node node,
     import std.array: join;
     import std.algorithm: map;
 
-    return skipTopLevel(node, context)
+    return skipTopLevel(node.cursor, context)
         ? ""
         : translate(node, context, file, line).map!(a => "    " ~ a).join("\n");
 }
@@ -66,6 +66,16 @@ string[] translate(in from!"dpp.ast.node".Node node,
                    in size_t line = __LINE__)
     @safe
 {
+    return translate(node.cursor, context, file, line);
+}
+
+
+string[] translate(in from!"dpp.ast.node".ClangCursor node,
+                   ref from!"dpp.runtime.context".Context context,
+                   in string file = __FILE__,
+                   in size_t line = __LINE__)
+    @safe
+{
     import dpp.runtime.context: Language;
     import dpp.translation.exception: UntranslatableException;
     import dpp.ast.node: Node;
@@ -73,7 +83,7 @@ string[] translate(in from!"dpp.ast.node".Node node,
     import std.algorithm: canFind, any;
     import std.array: join;
 
-    debugCursor(node, context);
+    debugCursor(node.cursor, context);
 
     if(context.language == Language.Cpp && ignoredCppCursorSpellings.canFind(node.spelling)) {
         return [];
@@ -168,18 +178,18 @@ void debugCursor(in from!"clang".Cursor cursor,
 
 Translator[from!"clang".Cursor.Kind] translators() @safe {
     import dpp.translation;
-    import dpp.ast.node: Node;
+    import dpp.ast.node: ClangCursor;
     import clang: Cursor;
 
     static string[] ignore(
-        in Node node,
+        in ClangCursor node,
         ref from!"dpp.runtime.context".Context context)
     {
         return [];
     }
 
     static string[] translateUnexposed(
-        in Node node,
+        in ClangCursor node,
         ref from!"dpp.runtime.context".Context context)
     {
         import clang: Type;
@@ -195,7 +205,7 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
     }
 
     static string[] translateAccess(
-        in Node node,
+        in ClangCursor node,
         ref from!"dpp.runtime.context".Context context)
     {
         import clang: AccessSpecifier;

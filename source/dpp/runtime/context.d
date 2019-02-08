@@ -23,7 +23,7 @@ enum Language {
 struct Context {
 
     import dpp.runtime.options: Options;
-    import dpp.ast.node: Node;
+    import dpp.ast.node: Node, ClangCursor;
     import clang: Type, AccessSpecifier;
 
     alias SeenNodes = bool[NodeId];
@@ -145,7 +145,7 @@ struct Context {
         import clang: Cursor;
         // EnumDecl can have no spelling but end up defining an enum anyway
         // See "it.compile.projects.double enum typedef"
-        if(node.spelling != "" || node.kind == Cursor.Kind.EnumDecl)
+        if(node.spelling != "" || node.cursor.kind == Cursor.Kind.EnumDecl)
             _seenNodes[NodeId(node)] = true;
     }
 
@@ -166,10 +166,10 @@ struct Context {
     string rememberLinkable(in Node node) @safe pure nothrow {
         import dpp.translation.dlang: maybeRename;
 
-        const spelling = maybeRename(node, this);
+        const spelling = maybeRename(node.cursor, this);
         // since linkables produce one-line translations, the next
         // will be the linkable
-        _linkableDeclarations[spelling] = Linkable(lines.length, node.mangling);
+        _linkableDeclarations[spelling] = Linkable(lines.length, node.cursor.mangling);
 
         return spelling;
     }
@@ -230,8 +230,8 @@ struct Context {
     /**
        Remember this aggregate cursor
      */
-    void rememberAggregate(in Node node) @safe pure {
-        const spelling = spellingOrNickname(node);
+    void rememberAggregate(in ClangCursor node) @safe pure {
+        const spelling = spellingOrNickname(const Node(node.spelling, node));
         _aggregateDeclarations[spelling] = true;
         rememberType(spelling);
     }
@@ -321,13 +321,13 @@ struct Context {
         return regex(regexStr);
     }
 
-    void rememberMacro(in Node node) @safe pure {
+    void rememberMacro(in ClangCursor node) @safe pure {
         _macros[node.spelling] = true;
         if(node.isMacroFunction)
             _functionMacroDeclarations[node.spelling] = true;
     }
 
-    bool macroAlreadyDefined(in Node node) @safe pure const {
+    bool macroAlreadyDefined(in ClangCursor node) @safe pure const {
         return cast(bool) (node.spelling in _macros);
     }
 
@@ -365,9 +365,9 @@ private struct NodeId {
     Type.Kind typeKind;
 
     this(in Node node) @safe pure nothrow {
-        cursorSpelling = node.spelling;
-        cursorKind = node.kind;
-        typeSpelling = node.type.spelling;
-        typeKind = node.type.kind;
+        cursorSpelling = node.cursor.spelling;
+        cursorKind = node.cursor.kind;
+        typeSpelling = node.cursor.type.spelling;
+        typeKind = node.cursor.type.kind;
     }
 }

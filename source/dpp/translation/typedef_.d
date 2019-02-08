@@ -5,7 +5,7 @@ module dpp.translation.typedef_;
 
 import dpp.from;
 
-string[] translateTypedef(in from!"dpp.ast.node".Node node,
+string[] translateTypedef(in from!"dpp.ast.node".ClangCursor node,
                           ref from!"dpp.runtime.context".Context context)
     @safe
 {
@@ -47,7 +47,7 @@ string[] translateTypedef(in from!"dpp.ast.node".Node node,
 }
 
 
-private string[] translateRegularTypedef(in from!"dpp.ast.node".Node node,
+private string[] translateRegularTypedef(in from!"dpp.ast.node".ClangCursor node,
                                          ref from!"dpp.runtime.context".Context context,
                                          in from!"clang".Cursor[] children)
     @safe
@@ -55,7 +55,7 @@ private string[] translateRegularTypedef(in from!"dpp.ast.node".Node node,
     import dpp.translation.type: translate;
     import dpp.translation.aggregate: isAggregateC;
     import dpp.translation.dlang: maybeRename;
-    import dpp.ast.node: Node;
+    import dpp.ast.node: Node, ClangCursor;
     import std.typecons: No;
 
     const underlyingSpelling = () {
@@ -64,7 +64,7 @@ private string[] translateRegularTypedef(in from!"dpp.ast.node".Node node,
             // FIXME - still not sure I understand isOnlyAggregateChild here
             const isOnlyAggregateChild = children.length == 1 && isAggregateC(children[0]);
             return isOnlyAggregateChild
-                ? context.spellingOrNickname(const Node(children[0]))
+                ? context.spellingOrNickname(const Node(children[0].spelling, const ClangCursor(children[0])))
                 : translate(node.underlyingType, context, No.translatingFunction);
 
         // possible issues on 32-bit
@@ -126,7 +126,7 @@ private string[] translateTopLevelAnonymous(in from!"clang".Cursor cursor,
     @safe
 {
     import dpp.translation.translation: translate;
-    import dpp.ast.node: Node;
+    import dpp.ast.node: ClangCursor;
     import clang: Cursor;
 
     // the old cursor has no spelling, so construct a new one
@@ -136,5 +136,5 @@ private string[] translateTopLevelAnonymous(in from!"clang".Cursor cursor,
     newCursor.spelling = cursor.type.spelling;
 
     // delegate to whoever knows what they're doing
-    return translate(const Node(newCursor), context);
+    return translate(const ClangCursor(newCursor), context);
 }

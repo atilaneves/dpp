@@ -266,7 +266,7 @@ private bool isVariadicTemplate(in from!"clang".Cursor cursor) @safe {
 
 
 // e.g. `template <typename T> using foo = bar;`
-string[] translateTypeAliasTemplate(in from!"dpp.ast.node".Node node,
+string[] translateTypeAliasTemplate(in from!"dpp.ast.node".ClangCursor node,
                                     ref from!"dpp.runtime.context".Context context)
     @safe
     in(node.kind == from!"clang".Cursor.Kind.TypeAliasTemplateDecl)

@@ -9,6 +9,20 @@ module dpp.ast.node;
  */
 struct Node {
     import clang: Cursor;
+
+    alias Hash = Cursor.Hash;
+
+    string spelling;
+    ClangCursor cursor;
+
+    auto hash() @safe @nogc pure nothrow const {
+        return cursor.hash;
+    }
+}
+
+
+struct ClangCursor {
+    import clang: Cursor;
     alias cursor this;
     Cursor cursor;
 }
