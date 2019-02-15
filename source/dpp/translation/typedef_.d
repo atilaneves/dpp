@@ -103,10 +103,8 @@ private string[] translateRegular(in from!"dpp.ast.node".ClangCursor node,
 
     context.log("");
 
-    // This used to be due to `typedef struct foo { } foo`, but now it's not.
-    // Changing this to always alias however breaks:
-    // it.c.compile.projects.const char* const
-    // it.c.compile.projects.struct with union
+    // This is to prevent trying to translate `typedef struct Struct Struct;` which
+    // makes no sense in D.
     return node.spelling == underlyingSpelling
         ? []
         : [`alias ` ~ maybeRename(node, context) ~ ` = ` ~ underlyingSpelling  ~ `;`];
