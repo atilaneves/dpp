@@ -80,9 +80,14 @@ private string[] translateRegular(in from!"dpp.ast.node".ClangCursor node,
     const underlyingSpelling = () {
         switch(node.spelling) {
         default:
-            // FIXME - still not sure I understand isOnlyAggregateChild here
-            const isOnlyAggregateChild = children.length == 1 && isAggregateC(children[0]);
-            return isOnlyAggregateChild
+            // The cursor will have a type with spelling despite not having spelling itself.
+            // We use the nickname we've given it in D if it's the case.
+            const isAnonymousAggregate =
+                children.length == 1 &&
+                isAggregateC(children[0]) &&
+                children[0].spelling == "";
+
+            return isAnonymousAggregate
                 ? context.spellingOrNickname(children[0].toNode)
                 : translate(node.underlyingType, context, No.translatingFunction);
 
