@@ -281,7 +281,8 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
             NonTypeTemplateParameter:           &ignore,
             Namespace:                          &translateNamespace,
             VisibilityAttr:                     &ignore, // ???
-            FirstAttr:                          &ignore, // ???
+            // FirstAttr appears when there are compiler-specific attributes on a type
+            FirstAttr:                          &ignore,
             ClassTemplatePartialSpecialization: &translateClass,
             TypeAliasTemplateDecl:              &translateTypeAliasTemplate,
         ];

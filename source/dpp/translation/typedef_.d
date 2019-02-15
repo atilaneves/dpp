@@ -17,8 +17,10 @@ string[] translateTypedef(in from!"dpp.ast.node".ClangCursor node,
         return node
         .children
         .filter!(a => !a.isInvalid)
-        // ???
-        .filter!(a => a.kind != Cursor.Kind.FirstAttr)
+        // ignore compiler attributes
+        // See it.c.compile.projects.__pthread_unwind_buf_t
+        .filter!(a => a.kind != Cursor.Kind.FirstAttr &&
+                      a.kind != Cursor.Kind.VisibilityAttr)
         .array;
     }();
 
