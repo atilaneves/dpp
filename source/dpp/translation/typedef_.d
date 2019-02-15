@@ -9,7 +9,7 @@ string[] translateTypedef(in from!"dpp.ast.node".ClangCursor node,
                           ref from!"dpp.runtime.context".Context context)
     @safe
 {
-    import clang: Cursor;
+    import clang: Cursor, Type;
     import std.algorithm: filter;
     import std.array: array;
 
@@ -17,18 +17,16 @@ string[] translateTypedef(in from!"dpp.ast.node".ClangCursor node,
         return node
         .children
         .filter!(a => !a.isInvalid)
-        // ignore compiler attributes
-        // See it.c.compile.projects.__pthread_unwind_buf_t
-        .filter!(a => a.kind != Cursor.Kind.FirstAttr &&
-                      a.kind != Cursor.Kind.VisibilityAttr)
+        // only interested in the actual type we're typedef'ing
+        .filter!(a => a.type.kind != Type.Kind.Invalid)
         .array;
     }();
 
+    // children might contain 0, 1, or more entries due to libclang particularities
     context.log("Children: ", children);
     context.log("Underlying type: ", node.underlyingType);
 
-    // FIXME - why canonical?
-    if(isSomeFunction(node.underlyingType.canonical))
+    if(isSomeFunction(node.underlyingType))
         return translateFunctionTypeDef(node, context.indent);
 
     const isTopLevelAnonymous =
