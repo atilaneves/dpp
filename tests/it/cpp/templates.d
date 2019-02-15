@@ -187,31 +187,31 @@ import it;
                     struct random_access_iterator_tag;
 
                     template<bool, bool, typename>
-                    struct __copy_move {};
+                    struct copy_move {};
 
                     template<typename _Category>
-                    struct __copy_move<true, false, _Category> {};
+                    struct copy_move<true, false, _Category> {};
 
                     template<>
-                    struct __copy_move<false, false, random_access_iterator_tag> {};
+                    struct copy_move<false, false, random_access_iterator_tag> {};
 
                     template<>
-                    struct __copy_move<true, false, random_access_iterator_tag> {};
+                    struct copy_move<true, false, random_access_iterator_tag> {};
 
                     template<bool _IsMove>
-                    struct __copy_move<_IsMove, true, random_access_iterator_tag> {};
+                    struct copy_move<_IsMove, true, random_access_iterator_tag> {};
                 }
             }
         ),
         D(
             q{
                 struct RandomStruct {}
-                auto c1 = __copy_move!(false, true, int)();
-                auto c2 = __copy_move!(true, false, RandomStruct)();
-                auto c3 = __copy_move!(false, false, random_access_iterator_tag)();
-                auto c4 = __copy_move!(true, false, random_access_iterator_tag)();
-                auto c5 = __copy_move!(false, true, random_access_iterator_tag)();
-                auto c6 = __copy_move!(true, true, random_access_iterator_tag)();
+                auto c1 = copy_move!(false, true, int)();
+                auto c2 = copy_move!(true, false, RandomStruct)();
+                auto c3 = copy_move!(false, false, random_access_iterator_tag)();
+                auto c4 = copy_move!(true, false, random_access_iterator_tag)();
+                auto c5 = copy_move!(false, true, random_access_iterator_tag)();
+                auto c6 = copy_move!(true, true, random_access_iterator_tag)();
             }
         ),
     );

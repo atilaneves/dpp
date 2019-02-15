@@ -94,6 +94,7 @@ private string[] translateRegular(in from!"clang".Cursor cursor,
         case "uint32_t": return "uint";
         case "in64_t":   return "long";
         case "uint64_t": return "ulong";
+        case "nullptr_t": return "typeof(null)";
         }
     }();
 

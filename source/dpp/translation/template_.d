@@ -50,11 +50,17 @@ package string[] translateSpecialisedTemplateParams(
 
         import dpp.translation.exception: UntranslatableException;
 
+        string errorMsg(in string keyword) {
+            import std.conv: text;
+            return text("Cannot translate ", index, "th template arg of ", cursor, " due to `",
+                        keyword, "` template type parameter specialisation");
+        }
+
         if(templateArgType.isConstQualified)
-            throw new UntranslatableException("Cannot translate const template type parameter specialisation");
+            throw new UntranslatableException(errorMsg(`const`));
 
         if(templateArgType.isVolatileQualified)
-            throw new UntranslatableException("Cannot translate volatile template type parameter specialisation");
+            throw new UntranslatableException(errorMsg(`volatile`));
 
         string ret = translatedTemplateParams[index];  // e.g. `T`,  `bool V0`
         const maybeSpecialisation = translateTemplateParamSpecialisation(cursor.type, templateArgType, index, context);

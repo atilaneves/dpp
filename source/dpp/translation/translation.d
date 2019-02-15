@@ -113,7 +113,8 @@ string[] translate(in from!"clang".Cursor cursor,
                     stderr.writeln("\nUntranslatable cursor ", cursor,
                                    "\nmsg: ", e.msg,
                                    "\nsourceRange: ", cursor.sourceRange,
-                                   "\nchildren: ", cursor.children, "\n");
+                                   "\nchildren: ", cursor.children,
+                                   "\n");
                 else
                     stderr.writeln("Untranslatable cursor ", cursor);
             }();
@@ -264,75 +265,35 @@ bool untranslatable(in string line) @safe pure {
 
 
 // blacklist of cursors in the C++ standard library that dpp can't handle
-string[] ignoredCppCursorSpellings() @safe pure nothrow {
+private string[] ignoredCppCursorSpellings() @safe pure nothrow {
     return
         [
             "is_function",  // dmd bug
-            "__is_referenceable",
-            "__is_convertible_helper",
-            "aligned_union",
-            "aligned_union_t",
-            "__expanded_common_type_wrapper",
+            "is_const",
+            "is_volatile",
+            "allocator_traits",  // FIXME
+            "pair",  // FIXME
             "underlying_type",
             "underlying_type_t",
-            "__result_of_memfun_ref",
-            "__result_of_memfun_deref",
-            "__result_of_memfun",
-            "__result_of_impl",
             "result_of",
             "result_of_t",
-            "__detector",
-            "__detected_or",
-            "__detected_or_t",
-            "__is_swappable_with_impl",
-            "__is_nothrow_swappable_with_impl",
+            "pointer_traits", // FIXME
+            "iterator_traits",  // FIXME
+            "piecewise_construct", // FIXME
             "is_rvalue_reference",
-            "__is_member_pointer_helper",
-            "__do_is_implicitly_default_constructible_impl",
             "remove_reference",
             "remove_reference_t",
             "remove_extent",  // FIXME
             "remove_extent_t",  // FIXME
             "remove_all_extents",  // FIXME
             "remove_all_extents_t",  // FIXME
-            "__remove_pointer_helper", // FIXME
-            "__result_of_memobj",
-            "piecewise_construct_t",  // FIXME (@disable ctor)
-            "piecewise_construct",  // FIXME (piecewise_construct_t)
 
-            "hash", // FIXME (stl_bvector.h partial template specialisation)
-            "__is_fast_hash",  // FIXME (hash)
-
-            "move_iterator",  // FIXME (extra type parameters)
-            "__replace_first_arg", // FIXME
-            "pointer_traits", // FIXME
-            "pair",  // FIXME
-            "iterator_traits",  // FIXME
-
-            "_Hash_bytes",  // FIXME (std.size_t)
-            "_Fnv_hash_bytes", // FIXME (std.size_t)
-            "allocator_traits",  // FIXME
-            "__allocator_traits_base",  // FIXME
-            "__is_signed_helper",  // FIXME - inheritance
-            "__is_array_known_bounds",  // FIXME - inheritance
-            "__is_copy_constructible_impl",  // FIXME - inheritance
-            "__is_nothrow_copy_constructible_impl",  // FIXME - inheritance
-            "__is_copy_assignable_impl",  // FIXME - inheritance
-            "__is_move_assignable_impl",  // FIXME - inheritance
-            "__is_nt_copy_assignable_impl",  // FIXME - inheritance
-            "__is_nt_move_assignable_impl",  // FIXME - inheritance
-            "extent",  // FIXME - inheritance
-            "move_if_noexcept",
-            "__do_is_destructible_impl",  // FIXME
-            "__do_is_nt_destructible_impl",  // FIXME
-            "__do_is_default_constructible_impl",  // FIXME
-            "__result_of_memfun_ref_impl",  // FIXME
-            "__result_of_memfun_deref_impl",   // FIXME
-            "__result_of_memobj_ref_impl",
-            "__result_of_memobj_deref_impl",
-            "__result_of_other_impl",
-            "__do_is_swappable_impl",
-            "__do_is_nothrow_swappable_impl",
-            "is_optional_val_init_candidate",
+            // derives from std::iterator, which is untranslatable due to it taking a
+            // reference template parameter
+            "_Bit_iterator_base",
+            "_Bit_iterator",
+            "_Bit_const_iterator",
+            // needs _Bit_iterator and co
+            "_Bvector_base",
         ];
 }

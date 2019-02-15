@@ -10,7 +10,7 @@ string[] translateNamespace(in from!"clang".Cursor cursor,
     in(cursor.kind == from!"clang".Cursor.Kind.Namespace)
     do
 {
-    import dpp.translation.translation: translate, ignoredCppCursorSpellings;
+    import dpp.translation.translation: translate;
     import dpp.translation.exception: UntranslatableException;
     import clang: Cursor;
     import std.conv: text;
@@ -36,6 +36,7 @@ string[] translateNamespace(in from!"clang".Cursor cursor,
     foreach(child; cursor.children) {
 
         if(child.kind == Cursor.Kind.VisibilityAttr) continue;
+        if(cursor.spelling == "std" && child.spelling.startsWith("__")) continue;
 
         lines ~= translate(child, context)
             .map!(a => (child.kind == Cursor.Kind.Namespace ? "    " : "        ") ~ a)
