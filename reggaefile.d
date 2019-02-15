@@ -31,10 +31,13 @@ alias utOld = dubTestTarget!(
     LinkerFlags(),
 );
 
-alias ut = dubLink!(
-    TargetName("ut"),
-    Configuration("unittest"),
-    targetConcat!(lib, testObjs, dubDependencies!(Configuration("unittest"))),
+// alias ut = dubLink!(
+//     TargetName("ut"),
+//     Configuration("unittest"),
+//     targetConcat!(lib, testObjs, dubDependencies!(Configuration("unittest"))),
+// );
+alias ut = dubTestTarget!(
+    CompilerFlags(debugFlags),
 );
 
 alias dpp2 = dubTarget!(
