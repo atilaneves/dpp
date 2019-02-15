@@ -3,53 +3,71 @@
  */
 module dpp.translation.typedef_;
 
+
 import dpp.from;
+
 
 string[] translateTypedef(in from!"dpp.ast.node".ClangCursor node,
                           ref from!"dpp.runtime.context".Context context)
+    @safe
+{
+    return isSomeFunction(node.underlyingType)
+        ? translateFunction(node, context.indent)
+        : translateNonFunction(node, context);
+}
+
+
+string[] translateNonFunction(in from!"dpp.ast.node".ClangCursor node,
+                              ref from!"dpp.runtime.context".Context context)
     @safe
 {
     import clang: Cursor, Type;
     import std.algorithm: filter;
     import std.array: array;
 
-    const children = () @trusted {
-        return node
+    auto childrenRange = node
         .children
         .filter!(a => !a.isInvalid)
-        // only interested in the actual type we're typedef'ing
+        // only interested in the actual type we're aliasing
         .filter!(a => a.type.kind != Type.Kind.Invalid)
-        .array;
-    }();
+        ;
+
+    // who knows why this is @system
+    const children = () @trusted { return childrenRange.array; }();
 
     // children might contain 0, 1, or more entries due to libclang particularities
     context.log("Children: ", children);
     context.log("Underlying type: ", node.underlyingType);
 
-    if(isSomeFunction(node.underlyingType))
-        return translateFunctionTypeDef(node, context.indent);
-
-    const isTopLevelAnonymous =
-        children.length == 1 && // so we can inspect it
-        children[0].spelling == "" && // anonymous
-        children[0].lexicalParent.kind == Cursor.Kind.TranslationUnit; // top-level
-
-    // if the child is a top-level anonymous struct, it's pointless to alias
+    // If the child is a top-level anonymous struct, it's pointless to alias
     // it and give the struct a silly name, instead just define a struct with
     // the typedef name instead. e.g.
     // `typedef struct { int dummy; } Foo` -> `struct Foo { int dummy; }`
     // However, this isn't true for enums since an anonymous enum can be declared
     // with no typedef. See #54.
-    if(isTopLevelAnonymous && children[0].kind != Cursor.Kind.EnumDecl)
-        return translateTopLevelAnonymous(children[0], context);
+    const noName = isTopLevelAnonymous(children) && children[0].kind != Cursor.Kind.EnumDecl;
 
-    return translateRegularTypedef(node, context, children);
+    return noName
+        ? translateTopLevelAnonymous(children[0], context)
+        : translateRegular(node, context, children);
 }
 
 
-private string[] translateRegularTypedef(in from!"dpp.ast.node".ClangCursor node,
-                                         ref from!"dpp.runtime.context".Context context,
-                                         in from!"clang".Cursor[] children)
+private bool isTopLevelAnonymous(in from!"clang".Cursor[] children)
+    @safe nothrow
+{
+    import clang: Cursor;
+    return
+        children.length == 1 && // so we can inspect it
+        children[0].spelling == "" && // anonymous
+        children[0].lexicalParent.kind == Cursor.Kind.TranslationUnit // top-level
+        ;
+}
+
+// non-anonymous non-function typedef
+private string[] translateRegular(in from!"dpp.ast.node".ClangCursor node,
+                                  ref from!"dpp.runtime.context".Context context,
+                                  in from!"clang".Cursor[] children)
     @safe
 {
     import dpp.translation.type: translate;
@@ -89,8 +107,9 @@ private string[] translateRegularTypedef(in from!"dpp.ast.node".ClangCursor node
         : [`alias ` ~ maybeRename(node, context) ~ ` = ` ~ underlyingSpelling  ~ `;`];
 }
 
-private string[] translateFunctionTypeDef(in from!"clang".Cursor typedef_,
-                                          ref from!"dpp.runtime.context".Context context)
+
+private string[] translateFunction(in from!"clang".Cursor typedef_,
+                                   ref from!"dpp.runtime.context".Context context)
     @safe
 {
     import dpp.translation.type: translate;
