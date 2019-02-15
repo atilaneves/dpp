@@ -3,55 +3,71 @@
  */
 module dpp.translation.typedef_;
 
+
 import dpp.from;
 
-string[] translateTypedef(in from!"clang".Cursor typedef_,
+
+string[] translateTypedef(in from!"clang".Cursor cursor,
                           ref from!"dpp.runtime.context".Context context)
     @safe
 {
-    import clang: Cursor;
+    return isSomeFunction(cursor.underlyingType)
+        ? translateFunction(cursor, context.indent)
+        : translateNonFunction(cursor, context);
+}
+
+
+string[] translateNonFunction(in from!"clang".Cursor cursor,
+                              ref from!"dpp.runtime.context".Context context)
+    @safe
+{
+    import clang: Cursor, Type;
     import std.algorithm: filter;
     import std.array: array;
 
-    const children = () @trusted {
-        return typedef_
+    auto childrenRange = cursor
         .children
         .filter!(a => !a.isInvalid)
-        // ignore compiler attributes
-        // See it.c.compile.projects.__pthread_unwind_buf_t
-        .filter!(a => a.kind != Cursor.Kind.FirstAttr &&
-                      a.kind != Cursor.Kind.VisibilityAttr)
-        .array;
-    }();
+        // only interested in the actual type we're aliasing
+        .filter!(a => a.type.kind != Type.Kind.Invalid)
+        ;
 
+    // who knows why this is @system
+    const children = () @trusted { return childrenRange.array; }();
+
+    // children might contain 0, 1, or more entries due to libclang particularities
     context.log("Children: ", children);
-    context.log("Underlying type: ", typedef_.underlyingType);
+    context.log("Underlying type: ", cursor.underlyingType);
 
-    // FIXME - why canonical?
-    if(isSomeFunction(typedef_.underlyingType.canonical))
-        return translateFunctionTypeDef(typedef_, context.indent);
-
-    const isTopLevelAnonymous =
-        children.length == 1 && // so we can inspect it
-        children[0].spelling == "" && // anonymous
-        children[0].lexicalParent.kind == Cursor.Kind.TranslationUnit; // top-level
-
-    // if the child is a top-level anonymous struct, it's pointless to alias
+    // If the child is a top-level anonymous struct, it's pointless to alias
     // it and give the struct a silly name, instead just define a struct with
     // the typedef name instead. e.g.
     // `typedef struct { int dummy; } Foo` -> `struct Foo { int dummy; }`
     // However, this isn't true for enums since an anonymous enum can be declared
     // with no typedef. See #54.
-    if(isTopLevelAnonymous && children[0].kind != Cursor.Kind.EnumDecl)
-        return translateTopLevelAnonymous(children[0], context);
+    const noName = isTopLevelAnonymous(children) && children[0].kind != Cursor.Kind.EnumDecl;
 
-    return translateRegularTypedef(typedef_, context, children);
+    return noName
+        ? translateTopLevelAnonymous(children[0], context)
+        : translateRegular(cursor, context, children);
 }
 
 
-private string[] translateRegularTypedef(in from!"clang".Cursor typedef_,
-                                         ref from!"dpp.runtime.context".Context context,
-                                         in from!"clang".Cursor[] children)
+private bool isTopLevelAnonymous(in from!"clang".Cursor[] children)
+    @safe nothrow
+{
+    import clang: Cursor;
+    return
+        children.length == 1 && // so we can inspect it
+        children[0].spelling == "" && // anonymous
+        children[0].lexicalParent.kind == Cursor.Kind.TranslationUnit // top-level
+        ;
+}
+
+// non-anonymous non-function typedef
+private string[] translateRegular(in from!"clang".Cursor cursor,
+                                  ref from!"dpp.runtime.context".Context context,
+                                  in from!"clang".Cursor[] children)
     @safe
 {
     import dpp.translation.type: translate;
@@ -60,13 +76,18 @@ private string[] translateRegularTypedef(in from!"clang".Cursor typedef_,
     import std.typecons: No;
 
     const underlyingSpelling = () {
-        switch(typedef_.spelling) {
+        switch(cursor.spelling) {
         default:
-            // FIXME - still not sure I understand isOnlyAggregateChild here
-            const isOnlyAggregateChild = children.length == 1 && isAggregateC(children[0]);
-            return isOnlyAggregateChild
+            // The cursor will have a type with spelling despite not having spelling itself.
+            // We use the nickname we've given it in D if it's the case.
+            const isAnonymousAggregate =
+                children.length == 1 &&
+                isAggregateC(children[0]) &&
+                children[0].spelling == "";
+
+            return isAnonymousAggregate
                 ? context.spellingOrNickname(children[0])
-                : translate(typedef_.underlyingType, context, No.translatingFunction);
+                : translate(cursor.underlyingType, context, No.translatingFunction);
 
         // possible issues on 32-bit
         case "int32_t":  return "int";
@@ -76,21 +97,20 @@ private string[] translateRegularTypedef(in from!"clang".Cursor typedef_,
         }
     }();
 
-    context.rememberType(typedef_.spelling);
+    context.rememberType(cursor.spelling);
 
     context.log("");
 
-    // This used to be due to `typedef struct foo { } foo`, but now it's not.
-    // Changing this to always alias however breaks:
-    // it.c.compile.projects.const char* const
-    // it.c.compile.projects.struct with union
-    return typedef_.spelling == underlyingSpelling
+    // This is to prevent trying to translate `typedef struct Struct Struct;` which
+    // makes no sense in D.
+    return cursor.spelling == underlyingSpelling
         ? []
-        : [`alias ` ~ maybeRename(typedef_, context) ~ ` = ` ~ underlyingSpelling  ~ `;`];
+        : [`alias ` ~ maybeRename(cursor, context) ~ ` = ` ~ underlyingSpelling  ~ `;`];
 }
 
-private string[] translateFunctionTypeDef(in from!"clang".Cursor typedef_,
-                                          ref from!"dpp.runtime.context".Context context)
+
+private string[] translateFunction(in from!"clang".Cursor typedef_,
+                                   ref from!"dpp.runtime.context".Context context)
     @safe
 {
     import dpp.translation.type: translate;
