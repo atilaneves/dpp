@@ -315,7 +315,7 @@ import it;
 @("@nogc nothrow")
 unittest {
     shouldCompile(
-        Cpp(
+        C(
             q{
                 void fun(void);
             }
@@ -325,6 +325,26 @@ unittest {
                 static void wrapper() @nogc nothrow {
                     fun();
                 }
+            }
+        ),
+   );
+}
+
+
+@("__printf")
+unittest {
+    shouldCompile(
+        C(
+            `
+                #define __printf(a, b) __attribute__((format(printf, a, b)))
+                __printf(1, 2)
+                void myprintf(const char* fmt, ...);
+            `
+        ),
+        D(
+            q{
+                auto foo = 42;
+                myprintf("%d", foo);
             }
         ),
    );
