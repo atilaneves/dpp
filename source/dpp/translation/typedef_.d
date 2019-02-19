@@ -11,7 +11,8 @@ string[] translateTypedef(in from!"clang".Cursor cursor,
                           ref from!"dpp.runtime.context".Context context)
     @safe
 {
-    return isSomeFunction(cursor.underlyingType)
+    // canonical because otherwise tests fail on Travis's version of libclang
+    return isSomeFunction(cursor.underlyingType.canonical)
         ? translateFunction(cursor, context.indent)
         : translateNonFunction(cursor, context);
 }
