@@ -323,9 +323,10 @@ private bool isPrivateField(in from!"clang".Cursor cursor,
 // Declare an array of equivalent size in D, helps with the untranslatable
 // parts of C++
 private string[] translatePrivateMember(in from!"clang".Cursor cursor) @safe {
-    import std.conv: text;
+    import dpp.translation.type: translateOpaque;
+
     return cursor.type.getSizeof > 0
-        ? [text(`void[`, cursor.type.getSizeof, `] `, cursor.spelling, `;`)]
+        ? [ translateOpaque(cursor.type) ~ ` ` ~ cursor.spelling ~ `;`]
         : [];
 }
 

@@ -548,6 +548,7 @@ private string blob(in from!"clang".Type type,
                     in from!"dpp.runtime.context".Context context)
     @safe
 {
+    import dpp.translation.type: translateOpaque;
     import clang: Type;
     import std.conv: text;
 
@@ -558,7 +559,7 @@ private string blob(in from!"clang".Type type,
        type.kind != Type.Kind.LValueReference &&
        type.kind != Type.Kind.Pointer)
     {
-        return text(`void[`, type.getSizeof, `]`);
+        return translateOpaque(type);
     }
 
     return "";

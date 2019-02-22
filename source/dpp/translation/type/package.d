@@ -514,3 +514,11 @@ string templateParameterSpelling(in from!"clang".Type cursorType,
 
     return templateParams[index].text;
 }
+
+
+string translateOpaque(in from!"clang".Type type)
+    @safe pure
+{
+    import std.conv: text;
+    return text(`void[`, type.getSizeof, `]`);
+}
