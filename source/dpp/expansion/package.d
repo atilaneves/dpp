@@ -73,9 +73,10 @@ private from!"clang".TranslationUnit parseTU
         context.options.defines.map!(a => "-D" ~ a).array
         ;
 
-    if(context.options.parseAsCpp || context.language == Language.Cpp)
-        parseArgs ~= ["-xc++", "-std=c++14"];
-    else
+    if(context.options.parseAsCpp || context.language == Language.Cpp) {
+        const std = "-std=" ~ context.options.cppStandard;
+        parseArgs ~= ["-xc++", std];
+    } else
         parseArgs ~= "-xc";
 
     return parse(translUnitFileName,

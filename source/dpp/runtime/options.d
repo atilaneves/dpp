@@ -34,6 +34,7 @@ struct Options {
     string[] ignoredNamespaces;
     string[] ignoredCursors;
     bool alwaysScopedEnums;
+    string cppStandard = "c++17";
 
     this(string[] args) {
 
@@ -112,6 +113,7 @@ struct Options {
                 "ignore-cursor", "Ignore a C++ cursor", &ignoredCursors,
                 "detailed-untranslatables", "Show details about untranslatable cursors", &detailedUntranslatable,
                 "scoped-enums", "Don't redeclare enums to mimic C", &alwaysScopedEnums,
+                "c++-standard", "The C++ language standard (e.g. \"c++14\")", &cppStandard,
             );
 
         if(helpInfo.helpWanted) {
