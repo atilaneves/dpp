@@ -170,7 +170,7 @@ import it;
         ),
         D(
             q{
-                void[4] forbidden = void;
+                dpp.Opaque!4 forbidden = void;
                 auto foo = Foo();
                 foo.fun(forbidden);
             }
@@ -228,7 +228,7 @@ import it;
             q{
                 auto foo = Foo();
                 auto blob = foo.fun();
-                static assert(is(typeof(blob) == void[4]));
+                static assert(is(typeof(blob.bytes) == void[4]));
             }
         ),
         ["--ignore-ns", "myns"],

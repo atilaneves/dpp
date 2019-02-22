@@ -261,6 +261,10 @@ string preamble() @safe pure {
 
         struct dpp {
 
+            static struct Opaque(int N) {
+                void[N] bytes;
+            }
+
             // Replacement for the gcc/clang intrinsic
             static bool isEmpty(T)() {
                 return T.tupleof.length == 0;

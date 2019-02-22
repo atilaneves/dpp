@@ -520,5 +520,5 @@ string translateOpaque(in from!"clang".Type type)
     @safe pure
 {
     import std.conv: text;
-    return text(`void[`, type.getSizeof, `]`);
+    return text(`dpp.Opaque!(`, type.getSizeof, `)`);
 }
