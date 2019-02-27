@@ -290,11 +290,13 @@ private string translatePointer(in from!"clang".Type type,
     return ptrType;
 }
 
-// currently only getting here from function pointer variables
-// with have kind unexposed but canonical kind FunctionProto
-private string translateFunctionProto(in from!"clang".Type type,
-                                      ref from!"dpp.runtime.context".Context context,
-                                      in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
+// We get here from:
+// * function pointer variables with kind unexposed but canonical kind FunctionProto
+// * template parameter specialisations
+private string translateFunctionProto(
+    in from!"clang".Type type,
+    ref from!"dpp.runtime.context".Context context,
+    in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
     @safe pure
 {
     import std.conv: text;
@@ -305,8 +307,11 @@ private string translateFunctionProto(in from!"clang".Type type,
     const isVariadic = params.length > 0 && type.isVariadicFunction;
     const variadicParams = isVariadic ? ["..."] : [];
     const allParams = params ~ variadicParams;
-    return text(translate(type.returnType, context), " function(", allParams.join(", "), ")");
+    const returnType = translate(type.returnType, context);
+
+    return text(returnType, ` function(`, allParams.join(", "), `)`);
 }
+
 
 private string translateLvalueRef(in from!"clang".Type type,
                                   ref from!"dpp.runtime.context".Context context,
@@ -319,7 +324,7 @@ private string translateLvalueRef(in from!"clang".Type type,
         : pointeeTranslation ~ "*";
 }
 
-// we cheat and pretend it's a value
+
 private string translateRvalueRef(in from!"clang".Type type,
                                   ref from!"dpp.runtime.context".Context context,
                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
