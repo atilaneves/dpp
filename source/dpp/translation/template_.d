@@ -18,8 +18,20 @@ string templateSpelling(R)(in from!"clang".Cursor cursor, R range) {
 
 
 // Deal with full and partial template specialisations
-// returns a range of string
 package string[] translateSpecialisedTemplateParams(
+    in from!"clang".Cursor cursor,
+    ref from!"dpp.runtime.context".Context context)
+    @safe
+    in(cursor.type.numTemplateArguments != -1)
+    do
+{
+    return isFromVariadicTemplate(cursor)
+        ? translateSpecialisedTemplateParamsVariadic(cursor, context)
+        : translateSpecialisedTemplateParamsFinite(cursor, context);
+}
+
+
+private string[] translateSpecialisedTemplateParamsFinite(
     in from!"clang".Cursor cursor,
     ref from!"dpp.runtime.context".Context context)
     @safe
@@ -31,11 +43,6 @@ package string[] translateSpecialisedTemplateParams(
     import std.range: iota;
     import std.array: array, join;
     import std.typecons: No;
-
-    assert(cursor.type.numTemplateArguments != -1);
-
-    if(isFromVariadicTemplate(cursor))
-        return translateSpecialisedTemplateParamsVariadic(cursor, context);
 
     // get the original list of template parameters and translate them
     // e.g. template<bool, bool, typename> -> (bool V0, bool V1, T)
@@ -87,15 +94,15 @@ package string[] translateSpecialisedTemplateParams(
     }();
 }
 
+
 // FIXME: refactor
 private auto translateSpecialisedTemplateParamsVariadic(in from!"clang".Cursor cursor,
                                                         ref from!"dpp.runtime.context".Context context)
     @safe
+    in(isFromVariadicTemplate(cursor) && cursor.type.numTemplateArguments != -1)
+    do
 {
     import dpp.translation.type: translate;
-
-    assert(isFromVariadicTemplate(cursor));
-    assert(cursor.type.numTemplateArguments != -1);
 
     string[] ret;
 
@@ -225,6 +232,7 @@ package auto translateTemplateParams(
     }
 
     auto templateParams = cursor.templateParams;
+    context.log("Children: ", cursor.children);
     context.log("Template Params: ", templateParams);
     auto translated = templateParams
         .enumerate
