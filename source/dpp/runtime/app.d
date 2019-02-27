@@ -253,7 +253,7 @@ string preamble() @safe pure {
 
         struct __locale_data { int dummy; }  // FIXME
     } ~
-          "    #define __gnuc_va_list va_list\n" ~
+          "    #define __gnuc_va_list va_list\n\n" ~
           "    #define __is_empty(_Type) dpp.isEmpty!(_Type)\n" ~
 
           q{
