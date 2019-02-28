@@ -297,3 +297,35 @@ import it;
         shouldCompile("app.d");
     }
 }
+
+
+@ShouldFail
+@("std::function")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                // analogous to std::function
+                namespace oops {
+                    template<typename> struct function;
+                    template<typename R, typename... Args>
+                    struct function<R(Args...)> {};
+                }
+
+                using Func1D = oops::function<double(double)>;
+
+                struct Solver {
+                    double solve(const Func1D&, double, double);
+                };
+            }
+        ),
+        D(
+            q{
+                auto solver = Solver();
+                auto func = Func1D();
+                solver.solve(func, 1.1, 2.2);
+            }
+        ),
+        ["--ignore-ns", "oops"],
+   );
+}
