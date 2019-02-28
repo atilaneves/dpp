@@ -23,11 +23,15 @@ string translate(in from!"clang".Type type,
 {
     import dpp.translation.exception: UntranslatableException;
     import std.conv: text;
+    import std.array: replace;
 
     if(type.kind !in translators)
         throw new UntranslatableException(text("Type kind ", type.kind, " not supported: ", type));
 
-    return translators[type.kind](type, context, translatingFunction);
+    const translation =  translators[type.kind](type, context, translatingFunction);
+
+    // hack for std::function since function is a D keyword
+    return translation.replace(`function!`, `function_!`);
 }
 
 

@@ -299,33 +299,32 @@ import it;
 }
 
 
-@ShouldFail
 @("std::function")
 @safe unittest {
-    shouldCompile(
-        Cpp(
-            q{
-                // analogous to std::function
-                namespace oops {
-                    template<typename> struct function;
-                    template<typename R, typename... Args>
-                    struct function<R(Args...)> {};
-                }
 
-                using Func1D = oops::function<double(double)>;
+    with(immutable IncludeSandbox()) {
+        writeFile("hdr.hpp",
+                  q{
+                      // analogous to std::function
+                      namespace oops {
+                          template<typename> struct function;
+                          template<typename R, typename... Args>
+                              struct function<R(Args...)> {};
+                      }
 
-                struct Solver {
-                    double solve(const Func1D&, double, double);
-                };
-            }
-        ),
-        D(
-            q{
-                auto solver = Solver();
-                auto func = Func1D();
-                solver.solve(func, 1.1, 2.2);
-            }
-        ),
-        ["--ignore-ns", "oops"],
-   );
+                      using Func1D = oops::function<double(double)>;
+
+                      struct Solver {
+                          double solve(const Func1D&, double, double);
+                      };
+                  });
+        writeFile("app.dpp",
+                  `
+                      #include "hdr.hpp"
+                      struct function_(T) {}
+                      void main() { }
+                  `);
+        runPreprocessOnly(["--hard-fail", "--detailed-untranslatable", "--ignore-ns", "oops", "app.dpp"]);
+        shouldCompile("app.d");
+    }
 }
