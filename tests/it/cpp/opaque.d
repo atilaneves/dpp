@@ -299,6 +299,7 @@ import it;
 }
 
 
+@ShouldFail
 @("std::function")
 @safe unittest {
 
@@ -321,7 +322,16 @@ import it;
         writeFile("app.dpp",
                   `
                       #include "hdr.hpp"
+                      import std.traits: Parameters;
+
                       struct function_(T) {}
+
+                      alias FuncPtr = extern(C++) double function(double);
+                      alias FuncType = typeof(*(FuncPtr.init));
+                      alias ParamType = Parameters!(Solver.solve)[0];
+                      pragma(msg, "ParamType: ", ParamType);
+                      static assert(is(ParamType == const(function_!FuncType)));
+
                       void main() { }
                   `);
         runPreprocessOnly(["--hard-fail", "--detailed-untranslatable", "--ignore-ns", "oops", "app.dpp"]);
