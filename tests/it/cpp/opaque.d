@@ -299,6 +299,7 @@ import it;
 }
 
 
+@ShouldFail
 @("std::function")
 @safe unittest {
 
@@ -309,7 +310,7 @@ import it;
                       namespace oops {
                           template<typename> struct function;
                           template<typename R, typename... Args>
-                              struct function<R(Args...)> {};
+                          struct function<R(Args...)> {};
                       }
 
                       using Func1D = oops::function<double(double)>;
@@ -317,6 +318,10 @@ import it;
                       struct Solver {
                           double solve(const Func1D&, double, double);
                       };
+
+                      // It's important that the return type be explicitly
+                      // oops::function* instead of Func1D
+                      oops::function<double(double)>* newFunction1D(int);
                   });
         writeFile("app.dpp",
                   `
@@ -331,7 +336,9 @@ import it;
                       pragma(msg, "ParamType: ", ParamType);
                       static assert(is(ParamType == const(function_!FuncType)));
 
-                      void main() { }
+                      void main() {
+                          auto f = newFunction1D(42);
+                      }
                   `);
         runPreprocessOnly(["--hard-fail", "--detailed-untranslatable", "--ignore-ns", "oops", "app.dpp"]);
         shouldCompile("app.d");
