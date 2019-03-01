@@ -299,7 +299,6 @@ import it;
 }
 
 
-@ShouldFail
 @("std::function")
 @safe unittest {
 
