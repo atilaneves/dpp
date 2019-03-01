@@ -128,7 +128,11 @@ private string[] translateFunction(in from!"clang".Cursor typedef_,
     context.log("Function typedef return type: ", returnType);
     const returnTypeTransl = translate(returnType, context);
 
-    const params = translateParamTypes(typedef_, context.indent).join(", ");
+    const functionType = typedef_.underlyingType.canonical.kind == Type.Kind.Pointer
+        ? typedef_.underlyingType.canonical.pointee
+        : typedef_.underlyingType.canonical;
+
+    const params = translateParamTypes(typedef_, functionType, context.indent).join(", ");
     return [`alias ` ~ typedef_.spelling ~ ` = ` ~ returnTypeTransl ~ ` function(` ~ params ~ `);`];
 
 }

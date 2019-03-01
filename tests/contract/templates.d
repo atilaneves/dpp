@@ -755,6 +755,7 @@ import contract;
 @Tags("contract")
 @("functionproto")
 @safe unittest {
+    import std.array: array;
 
     const tu = parse(
         Cpp(
@@ -773,7 +774,7 @@ import contract;
     foo.shouldMatch(Cursor.Kind.FunctionDecl, "foo");
     foo.type.shouldMatch(Type.Kind.FunctionProto, "void (const Template<double (int)> &)");
 
-    const fooParams = foo.type.paramTypes;
+    const fooParams = foo.type.paramTypes.array;
     fooParams.length.should == 1;
 
     const arg0 = fooParams[0];
@@ -793,7 +794,7 @@ import contract;
     writelnUt("function proto: ", functionProto);
     functionProto.shouldMatch(Type.Kind.FunctionProto, "double (int)");
 
-    const functionProtoParams = functionProto.paramTypes;
+    const functionProtoParams = functionProto.paramTypes.array;
     writelnUt("functionProtoParams: ", functionProtoParams);
     functionProtoParams.length.should == 1;
     const int_ = functionProtoParams[0];

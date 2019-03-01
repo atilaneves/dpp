@@ -2,6 +2,7 @@ module contract.functions;
 
 
 import contract;
+import std.array: array;
 
 
 // See #43
@@ -22,8 +23,8 @@ import contract;
     const binOp = tu.child(0);
     binOp.shouldMatch(Cursor.Kind.FunctionDecl, "binOp");
 
-    binOp.type.paramTypes.length.should == 3;
-    const f = binOp.type.paramTypes[0];
+    binOp.type.paramTypes.array.length.should == 3;
+    const f = binOp.type.paramTypes.array[0];
     f.shouldMatch(Type.Kind.FunctionProto, "int (int, int)");
     writelnUt(f.pointee);
     // presumably, not a pointer
@@ -48,8 +49,8 @@ import contract;
     const binOp = tu.child(0);
     binOp.shouldMatch(Cursor.Kind.FunctionDecl, "binOp");
 
-    binOp.type.paramTypes.length.should == 3;
-    const f = binOp.type.paramTypes[0];
+    binOp.type.paramTypes.array.length.should == 3;
+    const f = binOp.type.paramTypes.array[0];
     // Even though the declaration here is effectively the same as the
     // one in the test above, it shows up as a pointer
     f.shouldMatch(Type.Kind.Pointer, "int (*)(int, int)");
