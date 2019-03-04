@@ -602,6 +602,15 @@ import it;
     shouldCompile(
         C(
             q{
+                // The declaration `int (f)(int x, int y)` is of a function
+                // parameter that has the type of a binary function that
+                // returns int. Because C is C, this is similar to writing
+                // `int f[16]` in a parameter list but actually declaring
+                // `int*`. The result is a parameter that's a function pointer
+                // instead. To make things worse, if you put parens around the
+                // parameter name as is done here, the cursor's type according
+                // to libclang (in older versions) goes from FunctionProto to
+                // Unexposed because "reasons".
                 int binOp(int (f)(int x, int y), int a, int b);
                 int thef(int x, int y);
             }

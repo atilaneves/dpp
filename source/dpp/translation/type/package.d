@@ -23,11 +23,15 @@ string translate(in from!"clang".Type type,
 {
     import dpp.translation.exception: UntranslatableException;
     import std.conv: text;
+    import std.array: replace;
 
     if(type.kind !in translators)
         throw new UntranslatableException(text("Type kind ", type.kind, " not supported: ", type));
 
-    return translators[type.kind](type, context, translatingFunction);
+    const translation =  translators[type.kind](type, context, translatingFunction);
+
+    // hack for std::function since function is a D keyword
+    return translation.replace(`function!`, `function_!`);
 }
 
 
@@ -127,6 +131,7 @@ private string translateAggregate(in from!"clang".Type type,
     import std.array: replace, join;
     import std.algorithm: canFind, countUntil, map;
     import std.range: iota;
+    import std.typecons: No;
 
     // if it's anonymous, find the nickname, otherwise return the spelling
     string spelling() {
@@ -154,7 +159,7 @@ private string translateAggregate(in from!"clang".Type type,
         // template argument (e.g. `unsigned long` is not a D type)
         if(type.numTemplateArguments > 0) {
             const openAngleBracketIndex = tentative.countUntil("<");
-            // this might happen because of alises, e.g. std::string is really std::basic_stream<chas>
+            // this might happen because of alises, e.g. std::string is really std::basic_stream<char>
             if(openAngleBracketIndex == -1) return tentative;
             const baseName = tentative[0 .. openAngleBracketIndex];
             const templateArgsTranslation = type
@@ -165,7 +170,8 @@ private string translateAggregate(in from!"clang".Type type,
                     final switch(kind) with(TemplateArgumentKind) {
                         case GenericType:
                         case SpecialisedType:
-                            return translate(type.typeTemplateArgument(i), context, translatingFunction);
+                            // Never translating function if translating a type template argument
+                            return translate(type.typeTemplateArgument(i), context, No.translatingFunction);
                         case Value:
                             return templateParameterSpelling(type, i);
                     }
@@ -242,31 +248,38 @@ private string translatePointer(in from!"clang".Type type,
                                 ref from!"dpp.runtime.context".Context context,
                                 in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
     @safe pure
+    in(type.kind == from!"clang".Type.Kind.Pointer || type.kind == from!"clang".Type.Kind.MemberPointer)
+    in(!type.pointee.isInvalid)
+    do
 {
     import clang: Type;
     import std.conv: text;
-
-    assert(type.kind == Type.Kind.Pointer || type.kind == Type.Kind.MemberPointer, "type kind not Pointer");
-    assert(!type.pointee.isInvalid, "pointee is invalid");
+    import std.typecons: Yes;
 
     const isFunction =
         type.pointee.canonical.kind == Type.Kind.FunctionProto ||
         type.pointee.canonical.kind == Type.Kind.FunctionNoProto;
 
-    // usually "*" but sometimes not needed if already a reference type
+    // `function` in D is already a pointer, so no need to add a `*`.
+    // Otherwise, add `*`.
     const maybeStar = isFunction ? "" : "*";
     context.log("Pointee:           ", type.pointee);
     context.log("Pointee canonical: ", type.pointee.canonical);
 
+    // FIXME:
+    // If the kind is unexposed, we want to get the canonical type.
+    // Unless it's a type parameter, but that part I don't remember why anymore.
     const translateCanonical =
-        type.pointee.kind == Type.Kind.Unexposed && !isTypeParameter(type.pointee.canonical)
+        type.pointee.kind == Type.Kind.Unexposed &&
+        !isTypeParameter(type.pointee.canonical)
         ;
     context.log("Translate canonical? ", translateCanonical);
+    const pointee = translateCanonical ? type.pointee.canonical : type.pointee;
 
     const indentation = context.indentation;
-    const rawType = translateCanonical
-        ? translate(type.pointee.canonical, context.indent)
-        : translate(type.pointee, context.indent);
+    // We always pretend that we're translating a function because from here it's
+    // always a pointer
+    const rawType = translate(pointee, context.indent, Yes.translatingFunction);
     context.setIndentation(indentation);
 
     context.log("Raw type: ", rawType);
@@ -290,9 +303,10 @@ private string translatePointer(in from!"clang".Type type,
     return ptrType;
 }
 
-// We get here from:
-// * function pointer variables with kind unexposed but canonical kind FunctionProto
-// * template parameter specialisations
+// FunctionProto is the type of a C/C++ function.
+// We usually get here translating function pointers, since this would be the
+// pointee type, but it could also be a C++ type template parameter such as
+// in the case of std::function.
 private string translateFunctionProto(
     in from!"clang".Type type,
     ref from!"dpp.runtime.context".Context context,
@@ -309,7 +323,17 @@ private string translateFunctionProto(
     const allParams = params ~ variadicParams;
     const returnType = translate(type.returnType, context);
 
-    return text(returnType, ` function(`, allParams.join(", "), `)`);
+    // The D equivalent of a function pointer (e.g. `int function(double, short)`)
+    const funcPtrTransl = text(returnType, ` function(`, allParams.join(", "), `)`);
+
+    // The D equivalent of a function type. There is no dedicate syntax for this.
+    // In C/C++ it would be e.g. `int(double, short)`.
+    const funcTransl = `typeof(*(` ~ funcPtrTransl ~ `).init)`;
+
+    // In functions, function prototypes as parameters decay to
+    // pointers similarly to how arrays do, so just return the
+    // function pointer type. Otherwise return the function type.
+    return translatingFunction ? funcPtrTransl : funcTransl;
 }
 
 

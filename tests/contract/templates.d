@@ -750,3 +750,59 @@ import contract;
     other.type.pointee.shouldMatch(Type.Kind.Unexposed, "const Foo<U>");
     other.type.pointee.isConstQualified.should == true;
 }
+
+
+@Tags("contract")
+@("functionproto")
+@safe unittest {
+    import std.array: array;
+
+    const tu = parse(
+        Cpp(
+            q{
+                template<typename T>
+                struct Template {};
+
+                void foo(const Template<double(int)>& arg0);
+            }
+        )
+    );
+
+    tu.children.length.should == 2;
+
+    const foo = tu.child(1);
+    foo.shouldMatch(Cursor.Kind.FunctionDecl, "foo");
+    foo.type.shouldMatch(Type.Kind.FunctionProto, "void (const Template<double (int)> &)");
+
+    const fooParams = foo.type.paramTypes.array;
+    fooParams.length.should == 1;
+
+    const arg0 = fooParams[0];
+    writelnUt("arg0: ", arg0);
+    arg0.shouldMatch(Type.Kind.LValueReference, "const Template<double (int)> &");
+
+    const unexposed = arg0.pointee;
+    writelnUt("unexposed: ", unexposed);
+    unexposed.shouldMatch(Type.Kind.Unexposed, "const Template<double (int)>");
+
+    const record = unexposed.canonical;
+    writelnUt("record: ", record);
+    record.shouldMatch(Type.Kind.Record, "const Template<double (int)>");
+    record.numTemplateArguments.should == 1;
+
+    const functionProto = record.typeTemplateArgument(0);
+    writelnUt("function proto: ", functionProto);
+    functionProto.shouldMatch(Type.Kind.FunctionProto, "double (int)");
+
+    const functionProtoParams = functionProto.paramTypes.array;
+    writelnUt("functionProtoParams: ", functionProtoParams);
+    functionProtoParams.length.should == 1;
+    const int_ = functionProtoParams[0];
+    int_.shouldMatch(Type.Kind.Int, "int");
+
+    const functionProtoReturn = functionProto.returnType;
+    writelnUt("functionProtoReturn: ", functionProtoReturn);
+    functionProtoReturn.shouldMatch(Type.Kind.Double, "double");
+
+    writelnUt("functionProto pointee: ", functionProto.pointee);
+}

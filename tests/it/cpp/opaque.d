@@ -297,3 +297,49 @@ import it;
         shouldCompile("app.d");
     }
 }
+
+
+@("std::function")
+@safe unittest {
+
+    with(immutable IncludeSandbox()) {
+        writeFile("hdr.hpp",
+                  q{
+                      // analogous to std::function
+                      namespace oops {
+                          template<typename> struct function;
+                          template<typename R, typename... Args>
+                          struct function<R(Args...)> {};
+                      }
+
+                      using Func1D = oops::function<double(double)>;
+
+                      struct Solver {
+                          double solve(const Func1D&, double, double);
+                      };
+
+                      // It's important that the return type be explicitly
+                      // oops::function* instead of Func1D
+                      oops::function<double(double)>* newFunction1D(int);
+                  });
+        writeFile("app.dpp",
+                  `
+                      #include "hdr.hpp"
+                      import std.traits: Parameters;
+
+                      struct function_(T) {}
+
+                      alias FuncPtr = extern(C++) double function(double);
+                      alias FuncType = typeof(*(FuncPtr.init));
+                      alias ParamType = Parameters!(Solver.solve)[0];
+                      pragma(msg, "ParamType: ", ParamType);
+                      static assert(is(ParamType == const(function_!FuncType)));
+
+                      void main() {
+                          auto f = newFunction1D(42);
+                      }
+                  `);
+        runPreprocessOnly(["--hard-fail", "--detailed-untranslatable", "--ignore-ns", "oops", "app.dpp"]);
+        shouldCompile("app.d");
+    }
+}

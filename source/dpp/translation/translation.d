@@ -239,10 +239,14 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
             ClassTemplatePartialSpecialization: &translateClass,
             TypeAliasTemplateDecl:              &translateTypeAliasTemplate,
             FunctionTemplate:                   &translateFunction,
+            // For ParmDecl, see it.cpp.opaque.std::function
+            ParmDecl:                           &ignore,
         ];
     }
 }
 
+
+// if this translated line can't be valid D code
 bool untranslatable(in string line) @safe pure {
     import std.algorithm: canFind;
     return
@@ -256,7 +260,6 @@ bool untranslatable(in string line) @safe pure {
         || line.canFind(`}))`)  // ???
         || line.canFind(`(this_)_M_t._M_equal_range_tr(`)
         || line.canFind(`this-`)
-        || line.canFind("function!")
         || line.canFind("_BoundArgs...")
         || line.canFind("sizeof...")
         || line.canFind("template<")  // FIXME: mir_slice

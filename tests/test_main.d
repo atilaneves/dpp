@@ -41,6 +41,7 @@ version(dpp2) {
         "contract.inheritance",
         "contract.issues",
         "contract.methods",
+        "contract.functions",
 
         "it.issues",
         "it.expansion",
