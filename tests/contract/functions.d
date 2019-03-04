@@ -25,7 +25,8 @@ import std.array: array;
 
     binOp.type.paramTypes.array.length.should == 3;
     const f = binOp.type.paramTypes.array[0];
-    f.shouldMatch(Type.Kind.FunctionProto, "int (int, int)");
+    // need canonical for old versions of libclang
+    f.canonical.shouldMatch(Type.Kind.FunctionProto, "int (int, int)");
     writelnUt(f.pointee);
     // presumably, not a pointer
     f.pointee.isInvalid.should == true;
@@ -58,5 +59,5 @@ import std.array: array;
     // it's a pointer
     f.pointee.isInvalid.should == false;
 
-    f.pointee.shouldMatch(Type.Kind.FunctionProto, "int (int, int)");
+    f.pointee.canonical.shouldMatch(Type.Kind.FunctionProto, "int (int, int)");
 }
