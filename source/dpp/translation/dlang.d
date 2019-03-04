@@ -17,12 +17,9 @@ string maybePragma(in from!"clang".Cursor cursor,
                    in from!"dpp.runtime.context".Context context)
     @safe pure nothrow
 {
-    import clang: Language;
+    import dpp.runtime.context: Language;
     import std.algorithm: startsWith;
-    // FIXME - why are free function operators showing up as Language.C?
-    const isCpp = cursor.language == Language.CPlusPlus || cursor.spelling.startsWith("operator");
-    try context.log("*** isCpp ", cursor.spelling, "? ", isCpp);
-    catch(Exception _) {}
+    const isCpp = context.language == Language.Cpp;
     if(isCpp) return pragmaMangle(cursor.mangling);
     return nameClashes(cursor, context) ? pragmaMangle(cursor.mangling) : "";
 }
