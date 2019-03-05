@@ -5,6 +5,7 @@ dist: xenial
 matrix:
   include:
     - d: dmd-nightly
+    - d: dmd-2.085.0
     - d: dmd-2.084.1
   allow_failures:
     - d: dmd-nightly
