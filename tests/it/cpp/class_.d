@@ -259,7 +259,6 @@ import it;
 }
 
 
-@ShouldFail
 @("inner.return")
 @safe unittest {
     shouldCompile(

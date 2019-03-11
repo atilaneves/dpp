@@ -1298,7 +1298,6 @@ unittest {
 }
 
 
-@ShouldFail("The function parameter gets named Enum instead of Struct.Enum")
 @Tags("issue")
 @("119.0")
 @safe unittest {
