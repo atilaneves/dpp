@@ -257,3 +257,25 @@ import it;
         ),
    );
 }
+
+
+@("inner.return")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct Struct {
+                    template<typename V>
+                    struct Inner {};
+                };
+
+                const Struct::Inner<int>& inners();
+            }
+        ),
+        D(
+            q{
+                // just to check that the D code compiles
+            }
+        ),
+   );
+}

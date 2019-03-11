@@ -148,15 +148,11 @@ private string returnType(in from!"clang".Cursor cursor,
     import std.typecons: Yes;
 
     const blob = blob(cursor.returnType, context);
-    if(blob != "")
-        return blob;
+    if(blob != "") return blob;
 
     const indentation = context.indentation;
 
-    const isCtorOrDtor =
-        isConstructor(cursor)
-        || cursor.kind == Cursor.Kind.Destructor
-        ;
+    const isCtorOrDtor = isConstructor(cursor) || cursor.kind == Cursor.Kind.Destructor;
     const dType = isCtorOrDtor
         ? ""
         : translate(cursor.returnType, context, Yes.translatingFunction);

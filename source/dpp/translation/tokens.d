@@ -4,7 +4,7 @@ module dpp.translation.tokens;
 import dpp.from;
 
 
-string translateTokens(in from!"clang".Token[] tokens) @safe pure {
+string translateTokens(in from!"clang".Token[] tokens) @safe {
     import dpp.translation.type: translateString;
     import dpp.runtime.context: Context;
     import clang: Token;
@@ -44,7 +44,7 @@ string translateTokens(in from!"clang".Token[] tokens) @safe pure {
 
 
 // sizeof(foo) -> foo.sizeof, alignof(foo) -> foo.alignof
-private auto translateProperty(const(from!"clang".Token)[] tokens, in string property) @safe pure {
+private auto translateProperty(const(from!"clang".Token)[] tokens, in string property) @safe {
     import dpp.translation.type: translateString;
     import dpp.runtime.context: Context;
     import clang: Token;
