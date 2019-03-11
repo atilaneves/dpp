@@ -127,7 +127,7 @@ private string translateAggregate(in from!"clang".Type type,
                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
     @safe
 {
-    import dpp.clang: namespace;
+    import dpp.clang: namespace, typeNameNoNs;
     import std.array: replace, join;
     import std.algorithm: canFind, countUntil, map;
     import std.range: iota;
@@ -147,25 +147,20 @@ private string translateAggregate(in from!"clang".Type type,
 
             const ns = type.declaration.namespace;
             // no namespace, no problem
-            if(ns.isInvalid)
-                return type.spelling;
+            if(ns.isInvalid) return type.spelling;
 
             // look for the namespace name in the declaration
-            context.log("*** type spelling: ", type.spelling);
-            context.log("*** ns spelling: ", ns.spelling);
-
             const startOfNsIndex = type.spelling.countUntil(ns.spelling);
             if(startOfNsIndex != -1) {
                 // +2 due to `::`
-                const endOfNsIndex =  startOfNsIndex + ns.spelling.length + 2;
+                const endOfNsIndex = startOfNsIndex + ns.spelling.length + 2;
                 // "subtract" the namespace away
                 return type.spelling[endOfNsIndex .. $];
             } else {
-                // look for the base name in the declaration
-                const endOfNsIndex = type.spelling.countUntil(type.declaration.spelling);
+                const noNs = type.declaration.typeNameNoNs;
+                const endOfNsIndex = type.spelling.countUntil(noNs);
                 if(endOfNsIndex == -1)
-                    throw new Exception("Could not find '" ~ type.declaration.spelling ~ "' in '" ~ type.spelling ~ "'");
-                // "subtract" the namespace away
+                    throw new Exception("Could not find '" ~ noNs ~ "' in '" ~ type.spelling ~ "'");
                 return type.spelling[endOfNsIndex .. $];
             }
         }().replace("::", ".");

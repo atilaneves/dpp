@@ -280,7 +280,7 @@ import it;
 }
 
 
-@("inner.return.ns")
+@("inner.return.ns.normal")
 @safe unittest {
     shouldCompile(
         Cpp(
@@ -294,6 +294,34 @@ import it;
                 }
 
                 const lens0::Struct::Inner<int>& inners();
+            }
+        ),
+        D(
+            q{
+                // just to check that the D code compiles
+            }
+        ),
+   );
+}
+
+
+@("inner.return.ns.using")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                // it's important to have two different namespaces
+                namespace lens0 {
+                    struct Struct {
+                        template<typename V>
+                        struct Inner {};
+                    };
+                }
+
+                namespace lens1 {
+                    using namespace lens0;
+                    const Struct::Inner<int>& inners();
+                }
             }
         ),
         D(
