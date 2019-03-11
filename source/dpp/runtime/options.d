@@ -35,6 +35,7 @@ struct Options {
     string[] ignoredCursors;
     bool alwaysScopedEnums;
     string cppStandard = "c++17";
+    string[] clangOptions;
 
     this(string[] args) {
 
@@ -114,6 +115,7 @@ struct Options {
                 "detailed-untranslatables", "Show details about untranslatable cursors", &detailedUntranslatable,
                 "scoped-enums", "Don't redeclare enums to mimic C", &alwaysScopedEnums,
                 "c++-standard", "The C++ language standard (e.g. \"c++14\")", &cppStandard,
+                "clang-option", "Pass option to libclang", &clangOptions,
             );
 
         if(helpInfo.helpWanted) {

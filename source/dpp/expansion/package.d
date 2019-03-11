@@ -67,11 +67,14 @@ private from!"clang".TranslationUnit parseTU
     import clang: parse, TranslationUnitFlags;
     import std.array: array;
     import std.algorithm: map;
+    import std.range: chain;
 
-    auto parseArgs =
-        includePaths.map!(a => "-I" ~ a).array ~
-        context.options.defines.map!(a => "-D" ~ a).array
-        ;
+    auto parseArgs = chain(
+        includePaths.map!(a => "-I" ~ a),
+        context.options.defines.map!(a => "-D" ~ a),
+        context.options.clangOptions
+        )
+        .array;
 
     if(context.options.parseAsCpp || context.language == Language.Cpp) {
         const std = "-std=" ~ context.options.cppStandard;
