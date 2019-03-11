@@ -145,17 +145,30 @@ private string translateAggregate(in from!"clang".Type type,
         // without namespaces.
         const tentative = () {
 
+            const ns = type.declaration.namespace;
             // no namespace, no problem
-            if(type.declaration.namespace.isInvalid)
-                return type.spelling.replace("::", ".");
+            if(ns.isInvalid)
+                return type.spelling;
 
-            // look for the base name in the declaration
-            const endOfNsIndex = type.spelling.countUntil(type.declaration.spelling);
-            if(endOfNsIndex == -1)
-                throw new Exception("Could not find '" ~ type.declaration.spelling ~ "' in '" ~ type.spelling ~ "'");
-            // "subtract" the namespace away
-            return type.spelling[endOfNsIndex .. $];
-        }();
+            // look for the namespace name in the declaration
+            context.log("*** type spelling: ", type.spelling);
+            context.log("*** ns spelling: ", ns.spelling);
+
+            const startOfNsIndex = type.spelling.countUntil(ns.spelling);
+            if(startOfNsIndex != -1) {
+                // +2 due to `::`
+                const endOfNsIndex =  startOfNsIndex + ns.spelling.length + 2;
+                // "subtract" the namespace away
+                return type.spelling[endOfNsIndex .. $];
+            } else {
+                // look for the base name in the declaration
+                const endOfNsIndex = type.spelling.countUntil(type.declaration.spelling);
+                if(endOfNsIndex == -1)
+                    throw new Exception("Could not find '" ~ type.declaration.spelling ~ "' in '" ~ type.spelling ~ "'");
+                // "subtract" the namespace away
+                return type.spelling[endOfNsIndex .. $];
+            }
+        }().replace("::", ".");
 
         // Clang template types have a spelling such as `Foo<unsigned int, unsigned short>`.
         // We need to extract the "base" name (e.g. Foo above) then translate each type
