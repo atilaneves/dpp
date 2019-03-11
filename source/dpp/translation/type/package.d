@@ -127,7 +127,7 @@ private string translateAggregate(in from!"clang".Type type,
                                   in from!"std.typecons".Flag!"translatingFunction" translatingFunction)
     @safe
 {
-    import dpp.clang: namespace;
+    import dpp.clang: namespace, typeNameNoNs;
     import std.array: replace, join;
     import std.algorithm: canFind, countUntil, map;
     import std.range: iota;
@@ -145,17 +145,25 @@ private string translateAggregate(in from!"clang".Type type,
         // without namespaces.
         const tentative = () {
 
+            const ns = type.declaration.namespace;
             // no namespace, no problem
-            if(type.declaration.namespace.isInvalid)
-                return type.spelling.replace("::", ".");
+            if(ns.isInvalid) return type.spelling;
 
-            // look for the base name in the declaration
-            const endOfNsIndex = type.spelling.countUntil(type.declaration.spelling);
-            if(endOfNsIndex == -1)
-                throw new Exception("Could not find '" ~ type.declaration.spelling ~ "' in '" ~ type.spelling ~ "'");
-            // "subtract" the namespace away
-            return type.spelling[endOfNsIndex .. $];
-        }();
+            // look for the namespace name in the declaration
+            const startOfNsIndex = type.spelling.countUntil(ns.spelling);
+            if(startOfNsIndex != -1) {
+                // +2 due to `::`
+                const endOfNsIndex = startOfNsIndex + ns.spelling.length + 2;
+                // "subtract" the namespace away
+                return type.spelling[endOfNsIndex .. $];
+            } else {
+                const noNs = type.declaration.typeNameNoNs;
+                const endOfNsIndex = type.spelling.countUntil(noNs);
+                if(endOfNsIndex == -1)
+                    throw new Exception("Could not find '" ~ noNs ~ "' in '" ~ type.spelling ~ "'");
+                return type.spelling[endOfNsIndex .. $];
+            }
+        }().replace("::", ".");
 
         // Clang template types have a spelling such as `Foo<unsigned int, unsigned short>`.
         // We need to extract the "base" name (e.g. Foo above) then translate each type
