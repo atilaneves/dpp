@@ -216,8 +216,25 @@ private void runCPreProcessor(in string tmpFileName, in string outputFileName) @
     import std.stdio: File;
     import std.algorithm: filter, startsWith;
 
-    const cppArgs = ["cpp", tmpFileName];
-    const ret = execute(cppArgs);
+    version (Windows)
+    {
+        enum cpp = "clang-cpp";
+    } else {
+        enum cpp = "cpp";
+    }
+
+    const cppArgs = [cpp, tmpFileName];
+    const ret = () {
+        try
+        {
+            return execute(cppArgs);
+        }
+        catch (Exception e)
+        {
+            import std.typecons : Tuple;
+            return Tuple!(int, "status", string, "output")(-1, e.msg);
+        }
+    }();
     enforce(ret.status == 0, text("Could not run `", cppArgs.join(" "), "`:\n", ret.output));
 
     {

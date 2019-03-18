@@ -224,3 +224,14 @@ Becomes:
 pragma(mangle, "debug")
 void debug_(const(char)*);
 ```
+
+
+Build Instructions
+------------------
+
+### Windows
+
+1. Install http://releases.llvm.org/6.0.1/LLVM-6.0.1-win64.exe into `C:\Program Files\LLVM\`, making sure to tick the "Add LLVM to the system PATH for all users" option.
+2. Make sure you have [LDC](https://github.com/ldc-developers/ldc/releases) installed somewhere.
+3. Compile with `dub build --compiler=C:\path\to\bin\ldc2.exe`.
+4. Copy `C:\Program Files\LLVM\bin\libclang.dll` next to the `d++.exe` in the `bin` directory.
