@@ -86,7 +86,7 @@ unittest {
 }
 
 
-@("parameter.std.string")
+@("parameter.std.string.rename")
 @safe unittest {
     shouldCompile(
         Cpp(
@@ -113,6 +113,92 @@ unittest {
         ),
    );
 }
+
+
+@("parameter.std.string.original.nousing")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                namespace std {
+                    template<typename CharT>
+                    struct char_traits;
+
+                    template<typename T>
+                    struct allocator;
+
+                    template <typename CharT, typename Traits = std::char_traits<CharT>, typename Allocator = std::allocator<CharT>>
+                    struct basic_string {};
+
+                    // this gets translated as `string` despite the usual
+                    // alias to `immutable(char)[]`
+                    using string = basic_string<char>;
+                }
+
+                struct String {
+                    const std::string& value();
+                };
+
+                void fun(const std::string&);
+            }
+        ),
+        D(
+            q{
+                auto str = String();
+                fun(str.value);
+                auto dstr = "hello";
+                static assert(!__traits(compiles, fun(dstr)));
+            }
+        ),
+   );
+}
+
+
+@("parameter.std.string.original.using")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                namespace std {
+                    template<typename CharT>
+                    struct char_traits;
+
+                    template<typename T>
+                    struct allocator;
+
+                    template <typename CharT, typename Traits = std::char_traits<CharT>, typename Allocator = std::allocator<CharT>>
+                    struct basic_string {};
+
+                    using string = basic_string<char>;
+                }
+
+                /**
+                   When this test was written, adding the using
+                   directive caused the translation to go from
+                   `string` (wrong) to `basic_string!char` (probably
+                   not what we want but at least doesn't use the alias
+                   for immutable(char)[]).
+                 */
+                using namespace std;
+
+                struct String {
+                    const string& value();
+                };
+
+                void fun(const string&);
+            }
+        ),
+        D(
+            q{
+                auto str = String();
+                fun(str.value);
+                auto dstr = "hello";
+                static assert(!__traits(compiles, fun(dstr)));
+            }
+        ),
+   );
+}
+
 
 
 @ShouldFail("Cannot currently handle templated opBinary. See dpp.translation.function_.functionDecl FIXME")
