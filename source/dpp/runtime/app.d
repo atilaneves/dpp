@@ -291,11 +291,11 @@ string preamble() @safe pure {
                 T* ptr;
             }
 
-            // FIXME - crashes if T is passed by value (which we want)
+            // dmd bug causes a crash if T is passed by value.
+            // Works fine with ldc.
             static auto move(T)(ref T value) {
                 return Move!T(&value);
             }
-
 
             mixin template EnumD(string name, T, string prefix) if(is(T == enum)) {
 
