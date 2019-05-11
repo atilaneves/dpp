@@ -148,7 +148,6 @@ private TranslationText translationText(File)(in from!"dpp.runtime.options".Opti
     import std.string: fromStringz;
     import std.path: dirName;
     import std.array: array, join;
-    import core.stdc.stdio: tmpnam;
 
     auto inputFile = File(inputFileName);
     const lines = () @trusted { return inputFile.byLine.map!(a => a.idup).array; }();
@@ -156,8 +155,13 @@ private TranslationText translationText(File)(in from!"dpp.runtime.options".Opti
     auto nonModuleLines = lines.filter!(a => !isModuleLine(a));
     const includePaths = options.includePaths ~ inputFileName.dirName;
     auto includes = nonModuleLines.map!(a => getHeaderName(a, includePaths)).filter!(a => a != "");
-    char[1024] tmpnamBuf;
-    const includesFileName = () @trusted { return cast(string) tmpnam(&tmpnamBuf[0]).fromStringz; }();
+    const includesFileName = () @trusted {
+                                    import std.file: tempDir;
+                                    import core.sys.posix.stdlib: mkstemp;
+                                    char[] tmpnamBuf = tempDir() ~ "/dppXXXXXX\0".dup;
+                                    mkstemp(tmpnamBuf.ptr);
+                                    return tmpnamBuf[0 .. $ - 1].idup;
+                                }();
     auto language = Language.C;
     // write a temporary file with all #included files in it
     () @trusted {
