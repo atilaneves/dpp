@@ -1533,3 +1533,23 @@ unittest {
         ),
    );
 }
+
+@Tags("issue")
+@("168")
+// @("gcc.__extention__")
+// Examples:
+//    /usr/include/netinet/in.h
+//    /usr/include/x86_64-linux-gnu/bits/cpu-set.h
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                #define FOO(bar) {__extension__({bar;})
+            `
+        ),
+        D(
+            q{
+            }
+        )
+    );
+}
