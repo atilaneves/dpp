@@ -385,3 +385,23 @@ import it;
         ),
     );
 }
+
+
+@("virtual.dtor")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                class Class {
+                public:
+                    virtual ~Class();
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(is(Class == class), "Class is not a class");
+            }
+        ),
+    );
+}

@@ -79,7 +79,7 @@ private string dKeywordFromStrass(in from!"clang".Cursor cursor) @safe {
 
     const hasVirtuals = cursor
         .children
-        .any!(a => a.kind == Cursor.Kind.CXXMethod && a.isVirtual)
+        .any!(a => a.isVirtual)
         ;
 
     return hasVirtuals
