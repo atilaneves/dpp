@@ -333,20 +333,54 @@ import it;
 }
 
 
-@ShouldFail
-@("virtual")
+@("virtual.base")
 @safe unittest {
     shouldCompile(
         Cpp(
             q{
                 class Class {
-                    virtual void func();
+                public:
+                    virtual void pureVirtualFunc() = 0;
+                    virtual void virtualFunc();
+                    void normalFunc();
                 };
             }
         ),
         D(
             q{
                 static assert(is(Class == class), "Class is not a class");
+            }
+        ),
+    );
+}
+
+
+@("virtual.child")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                class Base {
+                public:
+                    virtual void pureVirtualFunc() = 0;
+                    virtual void virtualFunc();
+                    void normalFunc();
+                };
+
+                class Derived: public Base {
+                public:
+                    void pureVirtualFunc() override;
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(is(Base == class), "Base is not a class");
+                static assert(is(Derived == class), "Derived is not a class");
+                static assert(is(Derived: Base), "Derived is not a child class of Base");
+
+                auto d = new Derived;
+                d.pureVirtualFunc;
             }
         ),
     );

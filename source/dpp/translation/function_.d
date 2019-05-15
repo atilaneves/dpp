@@ -22,14 +22,8 @@ string[] translateFunction(in from!"clang".Cursor cursor,
     )
     do
 {
-    import dpp.translation.dlang: maybeRename, maybePragma;
+    import dpp.translation.dlang: maybePragma;
     import dpp.translation.aggregate: maybeRememberStructs;
-    import dpp.translation.type: translate;
-    import clang: Cursor, Type;
-    import std.array: join, array;
-    import std.conv: text;
-    import std.algorithm: any, endsWith, canFind;
-    import std.typecons: Yes;
 
     if(ignoreFunction(cursor)) return [];
 
@@ -110,6 +104,7 @@ private string functionDecl(
 {
     import dpp.translation.template_: translateTemplateParams;
     import dpp.translation.exception: UntranslatableException;
+    import dpp.clang: isOverride;
     import std.conv: text;
     import std.algorithm: endsWith, canFind;
     import std.array: join;
@@ -136,7 +131,18 @@ private string functionDecl(
     if(ctParams != "" && spelling.canFind("("))
         throw new UntranslatableException("BUG with templated operators");
 
-    return text(returnType, " ", spelling, ctParams, "(", params, ") @nogc nothrow", const_, ";");
+    string prefix() {
+        if(cursor.isPureVirtual)
+            return "abstract ";
+        else if(!cursor.isVirtual)
+            return "final ";
+        else if(cursor.isOverride)
+            return "override ";
+        else
+            return "";
+    }
+
+    return text(prefix, returnType, " ", spelling, ctParams, "(", params, ") @nogc nothrow", const_, ";");
 }
 
 private string returnType(in from!"clang".Cursor cursor,
