@@ -51,6 +51,7 @@ string[] translateFunction(in from!"clang".Cursor cursor,
 }
 
 private bool ignoreFunction(in from!"clang".Cursor cursor) @safe {
+    import dpp.translation.aggregate: dKeywordFromStrass;
     import clang: Cursor, Type, Token;
     import std.algorithm: countUntil, any, canFind, startsWith;
 
@@ -86,10 +87,13 @@ private bool ignoreFunction(in from!"clang".Cursor cursor) @safe {
         }
     }
 
-    // FIXME - no default contructors for structs in D
-    // We're not even checking if it's a struct here, so classes are being
-    // affected for no reason.
-    if(cursor.kind == Cursor.Kind.Constructor && numParams(cursor) == 0) return true;
+    // No default contructors for structs in D
+    if(
+        cursor.kind == Cursor.Kind.Constructor
+        && numParams(cursor) == 0
+        && dKeywordFromStrass(cursor.semanticParent) == "struct"
+    )
+        return true;
 
     return false;
 }

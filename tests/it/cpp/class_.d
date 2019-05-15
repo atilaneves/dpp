@@ -426,3 +426,34 @@ import it;
         ),
     );
 }
+
+
+@("default.ctor")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                class Base {
+                public:
+                    virtual ~Base();
+                    Base() = default;
+                    // the presence of the move ctor caused the compiler to fail with
+                    // "cannot implicitly generate a default constructor"
+                    // because the default ctor was ignored
+                    Base(Base&&) = default;
+                };
+
+                class Derived: public Base {
+                    virtual void func();
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(is(Base == class), "Base is not a class");
+                static assert(is(Derived == class), "Derived is not a class");
+                static assert(is(Derived: Base), "Derived is not a child class of Base");
+            }
+        ),
+    );
+}
