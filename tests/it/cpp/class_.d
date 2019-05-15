@@ -331,3 +331,23 @@ import it;
         ),
    );
 }
+
+
+@ShouldFail
+@("virtual")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                class Class {
+                    virtual void func();
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(is(Class == class), "Class is not a class");
+            }
+        ),
+    );
+}
