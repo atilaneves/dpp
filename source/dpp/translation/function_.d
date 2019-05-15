@@ -194,14 +194,22 @@ private string[] maybeOperator(in from!"clang".Cursor cursor,
 }
 
 private bool isSupportedOperatorInD(in from!"clang".Cursor cursor) @safe nothrow {
+    import dpp.translation.aggregate: dKeywordFromStrass;
     import clang: Cursor;
     import std.algorithm: map, canFind;
 
     if(!isOperator(cursor)) return false;
+
     // No D support for free function operator overloads
     if(cursor.semanticParent.kind == Cursor.Kind.TranslationUnit) return false;
 
     const cppOperator = cursor.spelling[OPERATOR_PREFIX.length .. $];
+
+    // FIXME - should only check for identity assignment,
+    // not all assignment operators
+    if(dKeywordFromStrass(cursor.semanticParent) == "class" && cppOperator == "=")
+        return false;
+
     const unsupportedSpellings = [`!`, `,`, `&&`, `||`, `->`, `->*`];
     if(unsupportedSpellings.canFind(cppOperator)) return false;
 

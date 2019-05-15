@@ -405,3 +405,24 @@ import it;
         ),
     );
 }
+
+
+@("virtual.opAssign")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                class Class {
+                public:
+                    virtual ~Class();
+                    Class& operator=(const Class&);
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(is(Class == class), "Class is not a class");
+            }
+        ),
+    );
+}

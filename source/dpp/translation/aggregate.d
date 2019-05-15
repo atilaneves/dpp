@@ -72,7 +72,7 @@ private string[] translateStrass(in from!"clang".Cursor cursor,
 
 
 // Decide on whether to emit a D struct or class
-private string dKeywordFromStrass(in from!"clang".Cursor cursor) @safe {
+package string dKeywordFromStrass(in from!"clang".Cursor cursor) @safe nothrow {
     import clang: Cursor;
     import std.algorithm: any;
     import std.range: walkLength;
