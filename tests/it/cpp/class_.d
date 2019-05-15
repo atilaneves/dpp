@@ -331,3 +331,129 @@ import it;
         ),
    );
 }
+
+
+@("virtual.base")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                class Class {
+                public:
+                    virtual void pureVirtualFunc() = 0;
+                    virtual void virtualFunc();
+                    void normalFunc();
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(is(Class == class), "Class is not a class");
+            }
+        ),
+    );
+}
+
+
+@("virtual.child")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                class Base {
+                public:
+                    virtual void pureVirtualFunc() = 0;
+                    virtual void virtualFunc();
+                    void normalFunc();
+                };
+
+                class Derived: public Base {
+                public:
+                    void pureVirtualFunc() override;
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(is(Base == class), "Base is not a class");
+                static assert(is(Derived == class), "Derived is not a class");
+                static assert(is(Derived: Base), "Derived is not a child class of Base");
+
+                auto d = new Derived;
+                d.pureVirtualFunc;
+            }
+        ),
+    );
+}
+
+
+@("virtual.dtor")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                class Class {
+                public:
+                    virtual ~Class();
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(is(Class == class), "Class is not a class");
+            }
+        ),
+    );
+}
+
+
+@("virtual.opAssign")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                class Class {
+                public:
+                    virtual ~Class();
+                    Class& operator=(const Class&);
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(is(Class == class), "Class is not a class");
+            }
+        ),
+    );
+}
+
+
+@("default.ctor")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                class Base {
+                public:
+                    virtual ~Base();
+                    Base() = default;
+                    // the presence of the move ctor caused the compiler to fail with
+                    // "cannot implicitly generate a default constructor"
+                    // because the default ctor was ignored
+                    Base(Base&&) = default;
+                };
+
+                class Derived: public Base {
+                    virtual void func();
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(is(Base == class), "Base is not a class");
+                static assert(is(Derived == class), "Derived is not a class");
+                static assert(is(Derived: Base), "Derived is not a child class of Base");
+            }
+        ),
+    );
+}

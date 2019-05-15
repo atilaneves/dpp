@@ -48,3 +48,18 @@ string typeNameNoNs(in from!"clang".Cursor cursor) @safe {
 
     return parts.join("::");
 }
+
+
+/**
+   If the cursor is a virtual function that overrides
+   another virtual function.
+ */
+bool isOverride(in from!"clang".Cursor cursor) @safe {
+    import clang: Cursor;
+    import std.algorithm: any;
+
+    return cursor
+        .children
+        .any!(a => a.kind == Cursor.Kind.CXXOverrideAttr)
+        ;
+}

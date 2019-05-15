@@ -65,9 +65,26 @@ private string[] translateStrass(in from!"clang".Cursor cursor,
         return Nullable!string();
     }
 
-    const dKeyword = "struct";
+    const dKeyword = dKeywordFromStrass(cursor);
 
     return translateAggregate(context, cursor, cKeyword, dKeyword, spelling);
+}
+
+
+// Decide on whether to emit a D struct or class
+package string dKeywordFromStrass(in from!"clang".Cursor cursor) @safe nothrow {
+    import clang: Cursor;
+    import std.algorithm: any;
+    import std.range: walkLength;
+
+    const hasVirtuals = cursor
+        .children
+        .any!(a => a.isVirtual)
+        ;
+
+    return hasVirtuals
+        ? "class"
+        : "struct";
 }
 
 
@@ -153,7 +170,8 @@ string[] translateAggregate(
     const realDlangKeyword = cursor.semanticParent.type.canonical.kind == Type.Kind.Record
         ? "static " ~ dKeyword
         : dKeyword;
-    const firstLine = realDlangKeyword ~ ` ` ~ name;
+    const parents = maybeParents(cursor, context, dKeyword);
+    const firstLine = realDlangKeyword ~ ` ` ~ name ~ parents;
 
     if(!cursor.isDefinition) return [firstLine ~ `;`];
 
@@ -190,8 +208,8 @@ string[] translateAggregate(
             if(isPrivateField(child, context))
                 return translatePrivateMember(child);
 
-            if(child.kind == Cursor.Kind.CXXBaseSpecifier)
-                return translateBase(i, child, context);
+            if(child.kind == Cursor.Kind.CXXBaseSpecifier && dKeyword == "struct")
+                return translateStructBase(i, child, context);
 
             return translate(child, context);
         }();
@@ -598,9 +616,9 @@ private string[] maybeDisableDefaultCtor(in from!"clang".Cursor cursor, in strin
 }
 
 
-private string[] translateBase(size_t index,
-                               in from!"clang".Cursor cursor,
-                               ref from!"dpp.runtime.context".Context context)
+private string[] translateStructBase(size_t index,
+                                     in from!"clang".Cursor cursor,
+                                     ref from!"dpp.runtime.context".Context context)
     @safe
     in(cursor.kind == from!"clang".Cursor.Kind.CXXBaseSpecifier)
 do
@@ -627,4 +645,30 @@ do
         : [];
 
     return fieldDecl ~ maybeAliasThis;
+}
+
+
+private string maybeParents(
+    in from!"clang".Cursor cursor,
+    ref from!"dpp.runtime.context".Context context,
+    in string dKeyword)
+    @safe
+{
+    import dpp.translation.type: translate;
+    import clang: Cursor;
+    import std.typecons: No;
+    import std.algorithm: filter, map;
+    import std.array: join;
+
+    if(dKeyword != "class") return "";
+
+    auto parents = cursor
+        .children
+        .filter!(a => a.kind == Cursor.Kind.CXXBaseSpecifier)
+        .map!(a => translate(a.type, context, No.translatingFunction))
+        ;
+
+    return parents.empty
+        ? ""
+        : ": " ~ parents.join(", ");
 }

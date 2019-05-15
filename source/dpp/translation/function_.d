@@ -22,14 +22,8 @@ string[] translateFunction(in from!"clang".Cursor cursor,
     )
     do
 {
-    import dpp.translation.dlang: maybeRename, maybePragma;
+    import dpp.translation.dlang: maybePragma;
     import dpp.translation.aggregate: maybeRememberStructs;
-    import dpp.translation.type: translate;
-    import clang: Cursor, Type;
-    import std.array: join, array;
-    import std.conv: text;
-    import std.algorithm: any, endsWith, canFind;
-    import std.typecons: Yes;
 
     if(ignoreFunction(cursor)) return [];
 
@@ -57,6 +51,7 @@ string[] translateFunction(in from!"clang".Cursor cursor,
 }
 
 private bool ignoreFunction(in from!"clang".Cursor cursor) @safe {
+    import dpp.translation.aggregate: dKeywordFromStrass;
     import clang: Cursor, Type, Token;
     import std.algorithm: countUntil, any, canFind, startsWith;
 
@@ -92,10 +87,13 @@ private bool ignoreFunction(in from!"clang".Cursor cursor) @safe {
         }
     }
 
-    // FIXME - no default contructors for structs in D
-    // We're not even checking if it's a struct here, so classes are being
-    // affected for no reason.
-    if(cursor.kind == Cursor.Kind.Constructor && numParams(cursor) == 0) return true;
+    // No default contructors for structs in D
+    if(
+        cursor.kind == Cursor.Kind.Constructor
+        && numParams(cursor) == 0
+        && dKeywordFromStrass(cursor.semanticParent) == "struct"
+    )
+        return true;
 
     return false;
 }
@@ -110,6 +108,7 @@ private string functionDecl(
 {
     import dpp.translation.template_: translateTemplateParams;
     import dpp.translation.exception: UntranslatableException;
+    import dpp.clang: isOverride;
     import std.conv: text;
     import std.algorithm: endsWith, canFind;
     import std.array: join;
@@ -136,7 +135,18 @@ private string functionDecl(
     if(ctParams != "" && spelling.canFind("("))
         throw new UntranslatableException("BUG with templated operators");
 
-    return text(returnType, " ", spelling, ctParams, "(", params, ") @nogc nothrow", const_, ";");
+    string prefix() {
+        if(cursor.isPureVirtual)
+            return "abstract ";
+        else if(!cursor.isVirtual)
+            return "final ";
+        else if(cursor.isOverride)
+            return "override ";
+        else
+            return "";
+    }
+
+    return text(prefix, returnType, " ", spelling, ctParams, "(", params, ") @nogc nothrow", const_, ";");
 }
 
 private string returnType(in from!"clang".Cursor cursor,
@@ -188,14 +198,22 @@ private string[] maybeOperator(in from!"clang".Cursor cursor,
 }
 
 private bool isSupportedOperatorInD(in from!"clang".Cursor cursor) @safe nothrow {
+    import dpp.translation.aggregate: dKeywordFromStrass;
     import clang: Cursor;
     import std.algorithm: map, canFind;
 
     if(!isOperator(cursor)) return false;
+
     // No D support for free function operator overloads
     if(cursor.semanticParent.kind == Cursor.Kind.TranslationUnit) return false;
 
     const cppOperator = cursor.spelling[OPERATOR_PREFIX.length .. $];
+
+    // FIXME - should only check for identity assignment,
+    // not all assignment operators
+    if(dKeywordFromStrass(cursor.semanticParent) == "class" && cppOperator == "=")
+        return false;
+
     const unsupportedSpellings = [`!`, `,`, `&&`, `||`, `->`, `->*`];
     if(unsupportedSpellings.canFind(cppOperator)) return false;
 
