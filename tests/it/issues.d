@@ -1553,3 +1553,27 @@ unittest {
         )
     );
 }
+
+
+@Tags("issue")
+@("172")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct virtual_base {
+                    virtual_base() = default;
+                    virtual ~virtual_base() = default;
+                    virtual_base(virtual_base&&) = default;
+                    virtual_base(const virtual_base&) = default;
+                    virtual_base& operator=(virtual_base&&) = default;
+                    virtual_base& operator=(const virtual_base&) = default;
+                };
+            }
+        ),
+        D(
+            q{
+            }
+        )
+    );
+}
