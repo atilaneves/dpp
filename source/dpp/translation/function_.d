@@ -95,6 +95,15 @@ private bool ignoreFunction(in from!"clang".Cursor cursor) @safe {
     )
         return true;
 
+    // Ignore C++ methods definitions outside of the class
+    // The lexical parent only differs from the semantic parent
+    // in this case.
+    if(
+        cursor.kind == Cursor.Kind.CXXMethod
+        && cursor.semanticParent != cursor.lexicalParent
+    )
+        return true;
+
     return false;
 }
 
@@ -136,6 +145,11 @@ private string functionDecl(
         throw new UntranslatableException("BUG with templated operators");
 
     string prefix() {
+        import dpp.translation.aggregate: dKeywordFromStrass;
+
+        if(cursor.semanticParent.dKeywordFromStrass == "struct")
+            return "";
+
         if(cursor.isPureVirtual)
             return "abstract ";
         else if(!cursor.isVirtual)

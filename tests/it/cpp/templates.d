@@ -1012,3 +1012,62 @@ import it;
         ),
    );
 }
+
+
+
+@("ns.out.longname")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                namespace DasNamespace {
+                    template<typename Idx>
+                    struct Foo {
+                        using Instant = typename Idx::Instant;
+                        const Instant& instant() const;
+                    };
+
+                    template<typename Idx>
+                    const typename Foo<Idx>::Instant& Foo<Idx>::instant() const {
+                        throw 42;
+                    }
+                }
+            }
+        ),
+        D(
+            q{
+
+            }
+        ),
+    );
+}
+
+
+@("ns.out.shortname")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                // namespace `ns` has letters that are in the middle of
+                // `Instant` for potentially hilarious results
+                namespace ns {
+                    template<typename Idx>
+                    struct Foo {
+                        using Instant = typename Idx::Instant;
+                        const Instant& instant() const;
+                    };
+
+                    template<typename Idx>
+                    const typename Foo<Idx>::Instant& Foo<Idx>::instant() const {
+                        throw 42;
+                    }
+                }
+            }
+        ),
+        D(
+            q{
+
+            }
+        ),
+    );
+}

@@ -151,19 +151,37 @@ private string translateAggregate(in from!"clang".Type type,
 
             // look for the namespace name in the declaration
             const startOfNsIndex = type.spelling.countUntil(ns.spelling);
+
+            // The namespace spelling is always what's considered the namespace in the FQN.
+            // The spelling we get from the cursor itself might not contain this namespace
+            // spelling if there's an alias.
+            // See it.cpp.opaque.paramater.exception_ptr
+            const hiddenNS = !type.spelling.canFind(ns.spelling);
+
             if(startOfNsIndex != -1) {
                 // +2 due to `::`
                 const endOfNsIndex = startOfNsIndex + ns.spelling.length + 2;
                 // "subtract" the namespace away
                 return type.spelling[endOfNsIndex .. $];
-            } else {
+            } else if(hiddenNS) {
+                // this block deals with cases where there's a name alias
+                // and the NS doesn't show up how it's spelt but does show up
+                // in the FQN.
+                // See it.cpp.opaque.paramater.exception_ptr
                 const noNs = type.declaration.typeNameNoNs;
                 const endOfNsIndex = type.spelling.countUntil(noNs);
+
                 if(endOfNsIndex == -1)
-                    throw new Exception("Could not find '" ~ noNs ~ "' in '" ~ type.spelling ~ "'");
+                    throw new Exception("Could not find namespaceless '" ~ noNs ~ "' in type '" ~ type.spelling ~ "'");
                 return type.spelling[endOfNsIndex .. $];
+            } else {
+                return type.spelling;
             }
-        }().replace("::", ".");
+        }()
+         // FIXME - why doesn't `translateString` work here?
+         .replace("::", ".")
+         .replace("typename ", "")
+         ;
 
         // Clang template types have a spelling such as `Foo<unsigned int, unsigned short>`.
         // We need to extract the "base" name (e.g. Foo above) then translate each type

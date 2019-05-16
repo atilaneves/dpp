@@ -280,7 +280,7 @@ import it;
                           using le_exception_ptr::exception_ptr;
                       }
 
-                      // make sure the paremeter gets translated correctly
+                      // make sure the parameter gets translated correctly
                       // It's referred to as oops::exception_ptr and that's what
                       // libclang will see, but its real name is
                       // oops::le_exception_ptr::exception_ptr
