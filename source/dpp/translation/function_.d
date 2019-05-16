@@ -33,7 +33,8 @@ string[] translateFunction(in from!"clang".Cursor cursor,
 
     string[] lines;
 
-    lines ~= maybeCopyCtor(cursor, context);
+    // FIXME: this breaks with dmd 2.086.0 due to D's copy ctor
+    //lines ~= maybeCopyCtor(cursor, context);
     lines ~= maybeOperator(cursor, context);
 
     // never declared types might lurk here
