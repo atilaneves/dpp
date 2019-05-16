@@ -3,8 +3,11 @@
  */
 module it.cpp.run;
 
+
 import it;
 
+
+@HiddenTest
 @Tags("run")
 @("ctor")
 @safe unittest {
