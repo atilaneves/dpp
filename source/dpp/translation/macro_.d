@@ -64,7 +64,7 @@ private bool onlyRedefine(in from!"clang".Cursor cursor, in string dbody) @safe 
     import std.string: strip;
     import std.algorithm: canFind;
 
-    const isBodyString = dbody.strip.length >=2 && dbody[0] == '"' && dbody.strip[$-1] == '"';
+    const isBodyString = dbody.strip.length >= 2 && dbody[0] == '"' && dbody.strip[$-1] == '"';
     const isBodyInteger = dbody.isStringRepr!long;
     const isBodyFloating = dbody.isStringRepr!double;
     const isOctal = dbody.strip.canFind("octal!");
