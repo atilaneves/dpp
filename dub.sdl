@@ -30,11 +30,22 @@ configuration "library" {
 
 
 configuration "unittest" {
-    targetName "ut"
+    targetName "all_tests"
     mainSourceFile "tests/test_main.d"
-    sourcePaths "source" "tests"
-    importPaths "source" "tests"
-    excludedSourceFiles "source/main.d" "tests/contract/main.d"
+    sourcePaths "tests"
+    importPaths "tests"
+    excludedSourceFiles "source/main.d" "tests/contract/main.d" "tests/it/main.d"
+    dependency "unit-threaded" version="*"
+}
+
+
+configuration "integration" {
+    targetName "it"
+    mainSourceFile "tests/it/main.d"
+    sourcePaths "tests/it" "tests/common"
+    importPaths "tests"
+
+    excludedSourceFiles "source/main.d"
     dependency "unit-threaded" version="*"
 }
 
@@ -42,7 +53,7 @@ configuration "unittest" {
 configuration "contract" {
     targetName "ct"
     mainSourceFile "tests/contract/main.d"
-    sourcePaths "tests/contract"
+    sourcePaths "tests/contract" "tests/common"
     importPaths "tests"
 
     excludedSourceFiles "source/main.d"

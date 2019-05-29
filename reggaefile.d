@@ -96,6 +96,12 @@ alias utl = dubLink!(
 );
 
 
+alias it = dubConfigurationTarget!(
+    Configuration("integration"),
+    CompilerFlags(debugFlags ~ "-unittest"),
+);
+
+
 alias ct = dubConfigurationTarget!(
     Configuration("contract"),
     CompilerFlags(debugFlags ~ "-unittest"),
@@ -105,6 +111,7 @@ alias ct = dubConfigurationTarget!(
 mixin build!(
     exe,
     optional!ut,  // investigate UT failures
+    optional!it,
     optional!ct,
     optional!utl,  // fast development
     optional!utlPerPackage,  // for benchmarking
