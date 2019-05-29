@@ -36,7 +36,7 @@ alias utOld = dubTestTarget!(
 //     Configuration("unittest"),
 //     targetConcat!(lib, testObjs, dubDependencies!(Configuration("unittest"))),
 // );
-alias ut = dubTestTarget!(
+alias all_tests = dubTestTarget!(
     CompilerFlags(debugFlags),
 );
 
@@ -110,7 +110,7 @@ alias ct = dubConfigurationTarget!(
 
 mixin build!(
     exe,
-    optional!ut,  // investigate UT failures
+    optional!all_tests,
     optional!it,
     optional!ct,
     optional!utl,  // fast development
