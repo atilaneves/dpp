@@ -40,7 +40,7 @@ configuration "unittest" {
 
 
 configuration "dpp2" {
-    targetNAme "dpp2"
+    targetName "dpp2"
     mainSourceFile "tests/test_main.d"
     sourcePaths "dpp2/source" "dpp2/tests" "tests"
     importPaths "dpp2/source" "dpp2/tests" "tests"
