@@ -419,7 +419,6 @@ import it;
 }
 
 
-@ShouldFail
 @("virtual.child.empty.template")
 @safe unittest {
     shouldCompile(

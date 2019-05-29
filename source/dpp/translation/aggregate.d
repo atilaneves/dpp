@@ -88,10 +88,11 @@ package string dKeywordFromStrass(in from!"clang".Cursor cursor) @safe nothrow {
 
     static bool anyVirtualInAncestry(in Cursor cursor) @safe nothrow {
         if(hasVirtuals(cursor)) return true;
+
         auto parents = cursor
             .children
             .filter!(a => a.kind == Cursor.Kind.CXXBaseSpecifier)
-            .map!(a => a.type.declaration)
+            .map!(a => a.children[0].referencedCursor)
             ;
         return parents.any!anyVirtualInAncestry;
     }
