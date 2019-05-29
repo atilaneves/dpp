@@ -34,6 +34,17 @@ configuration "unittest" {
     mainSourceFile "tests/test_main.d"
     sourcePaths "source" "tests"
     importPaths "source" "tests"
+    excludedSourceFiles "source/main.d" "tests/contract/main.d"
+    dependency "unit-threaded" version="*"
+}
+
+
+configuration "contract" {
+    targetName "ct"
+    mainSourceFile "tests/contract/main.d"
+    sourcePaths "tests/contract"
+    importPaths "tests"
+
     excludedSourceFiles "source/main.d"
     dependency "unit-threaded" version="*"
 }
