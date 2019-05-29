@@ -1,9 +1,10 @@
 module ut.old.type;
 
+
 import dpp.from;
-import dpp.test;
 import dpp.translation.type;
 import clang: Type;
+import unit_threaded;
 
 
 string translate(in from!"clang".Type type) @safe {

@@ -8,7 +8,7 @@ import dpp.from;
 
 public import unit_threaded;
 public import clang: Cursor, Type;
-
+public import common: printChildren, shouldMatch;
 
 struct C {
     string value;
@@ -110,27 +110,6 @@ auto parse(T)
     }
 }
 
-
-void printChildren(T)(auto ref in T cursorOrTU) {
-    import clang: TranslationUnit, Cursor;
-    import std.traits: Unqual;
-
-    static if(is(Unqual!T == TranslationUnit) || is(Unqual!T == Cursor)) {
-
-        import unit_threaded.io: writelnUt;
-        import std.algorithm: map;
-        import std.array: join;
-        import std.conv: text;
-
-        static if(is(Unqual!T == TranslationUnit))
-            const children = cursorOrTU.cursor.children;
-        else
-            const children = cursorOrTU.children;
-
-        writelnUt("\n", cursorOrTU, " children:\n[\n", children.map!(a => text("    ", a)).join(",\n"));
-        writelnUt("]\n");
-    }
-}
 
 /**
    Create a variable called `tu` that is either a MockCursor or a real
@@ -475,11 +454,4 @@ private void expectLengthEqualImpl(TestMode mode, R)
         range.length = length;
      else
         static assert(false, "Unknown mode " ~ mode.stringof);
-}
-
-
-void shouldMatch(T, K)(T obj, in K kind, in string spelling, in string file = __FILE__, in size_t line = __LINE__) {
-    static assert(is(K == T.Kind));
-    obj.kind.shouldEqual(kind, file, line);
-    obj.spelling.shouldEqual(spelling, file, line);
 }

@@ -2,7 +2,7 @@ module it.expansion;
 
 
 import it;
-import contract: printChildren, shouldMatch;
+import common: printChildren, shouldMatch;
 import dpp.expansion;
 import clang: parse, TranslationUnit, Cursor, Type;
 import std.conv: text;
