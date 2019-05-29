@@ -387,7 +387,7 @@ import it;
 }
 
 
-@("virtual.child.empty")
+@("virtual.child.empty.normal")
 @safe unittest {
     shouldCompile(
         Cpp(
@@ -409,6 +409,39 @@ import it;
                 static assert(is(Base == class), "Base is not a class");
                 static assert(is(Derived == class), "Derived is not a class");
                 static assert(is(Derived: Base), "Derived is not a child class of Base");
+
+                auto d = new Derived;
+                d.virtualFunc;
+                d.normalFunc;
+            }
+        ),
+    );
+}
+
+
+@ShouldFail
+@("virtual.child.empty.template")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                template<typename T>
+                class Base {
+                public:
+                    virtual void virtualFunc();
+                    void normalFunc();
+                };
+
+                class Derived: public Base<int> {
+                public:
+
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(is(Derived == class), "Derived is not a class");
+                static assert(is(Derived: Base!int), "Derived is not a child class of Base");
 
                 auto d = new Derived;
                 d.virtualFunc;
