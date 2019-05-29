@@ -10,7 +10,7 @@ targetName "d++"
 dflags "-dip25"
 lflags "-L/usr/lib/llvm-6.0/lib" platform="posix" # for Travis CI
 
-dependency "libclang" version="~>0.1.1"
+dependency "libclang" version="~>0.1.6"
 dependency "sumtype"  version="~>0.7.1"
 
 versions "SumTypeNoDefaultCtor"

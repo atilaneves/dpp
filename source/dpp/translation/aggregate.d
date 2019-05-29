@@ -36,12 +36,7 @@ private string[] translateStrass(in from!"clang".Cursor cursor,
                                  ref from!"dpp.runtime.context".Context context,
                                  in string cKeyword)
     @safe
-    in(
-        cursor.kind == from!"clang".Cursor.Kind.StructDecl ||
-        cursor.kind == from!"clang".Cursor.Kind.ClassDecl ||
-        cursor.kind == from!"clang".Cursor.Kind.ClassTemplate ||
-        cursor.kind == from!"clang".Cursor.Kind.ClassTemplatePartialSpecialization
-    )
+  in(isStrass(cursor))
   do
 {
     import dpp.translation.template_: templateSpelling, translateTemplateParams,
@@ -71,18 +66,38 @@ private string[] translateStrass(in from!"clang".Cursor cursor,
 }
 
 
+private bool isStrass(in from!"clang".Cursor cursor) @safe @nogc pure nothrow {
+    return
+        cursor.kind == from!"clang".Cursor.Kind.StructDecl ||
+        cursor.kind == from!"clang".Cursor.Kind.ClassDecl ||
+        cursor.kind == from!"clang".Cursor.Kind.ClassTemplate ||
+        cursor.kind == from!"clang".Cursor.Kind.ClassTemplatePartialSpecialization
+        ;
+}
+
+
 // Decide on whether to emit a D struct or class
 package string dKeywordFromStrass(in from!"clang".Cursor cursor) @safe nothrow {
     import clang: Cursor;
-    import std.algorithm: any;
+    import std.algorithm: any, map, filter;
     import std.range: walkLength;
 
-    const hasVirtuals = cursor
-        .children
-        .any!(a => a.isVirtual)
-        ;
+    static bool hasVirtuals(in Cursor cursor) {
+        return cursor.children.any!(a => a.isVirtual);
+    }
 
-    return hasVirtuals
+    static bool anyVirtualInAncestry(in Cursor cursor) @safe nothrow {
+        if(hasVirtuals(cursor)) return true;
+
+        auto parents = cursor
+            .children
+            .filter!(a => a.kind == Cursor.Kind.CXXBaseSpecifier)
+            .map!(a => a.children[0].referencedCursor)
+            ;
+        return parents.any!anyVirtualInAncestry;
+    }
+
+    return anyVirtualInAncestry(cursor)
         ? "class"
         : "struct";
 }
