@@ -387,7 +387,6 @@ import it;
 }
 
 
-@ShouldFail
 @("virtual.child.empty")
 @safe unittest {
     shouldCompile(
