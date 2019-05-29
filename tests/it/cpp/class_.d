@@ -355,7 +355,7 @@ import it;
 }
 
 
-@("virtual.child")
+@("virtual.child.override")
 @safe unittest {
     shouldCompile(
         Cpp(
@@ -385,6 +385,40 @@ import it;
         ),
     );
 }
+
+
+@ShouldFail
+@("virtual.child.empty")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                class Base {
+                public:
+                    virtual void virtualFunc();
+                    void normalFunc();
+                };
+
+                class Derived: public Base {
+                public:
+
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(is(Base == class), "Base is not a class");
+                static assert(is(Derived == class), "Derived is not a class");
+                static assert(is(Derived: Base), "Derived is not a child class of Base");
+
+                auto d = new Derived;
+                d.virtualFunc;
+                d.normalFunc;
+            }
+        ),
+    );
+}
+
 
 
 @("virtual.dtor")
