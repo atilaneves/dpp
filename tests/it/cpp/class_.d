@@ -386,7 +386,7 @@ import it;
     );
 }
 
-@ShouldFail
+
 @("virtual.child.override.final")
 @safe unittest {
     shouldCompile(
@@ -407,13 +407,12 @@ import it;
         ),
         D(
             q{
-                auto d = new Derived();
-                const bool b = d.has;
+                auto c = new C();
+                const bool res = c.has;
             }
         ),
     );
 }
-
 
 
 @("virtual.child.empty.normal")
