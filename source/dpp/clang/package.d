@@ -56,10 +56,53 @@ string typeNameNoNs(in from!"clang".Cursor cursor) @safe {
  */
 bool isOverride(in from!"clang".Cursor cursor) @safe {
     import clang: Cursor;
+    import std.algorithm: any, map, filter, joiner;
+
+    bool hasOverrideAttr(in Cursor cursor) {
+        return cursor
+            .children
+            .any!(a => a.kind == Cursor.Kind.CXXOverrideAttr)
+            ;
+    }
+
+    if(hasOverrideAttr(cursor)) return true;
+
+    auto parents = baseClasses(cursor.semanticParent);
+    const virtualWithSameName = parents
+        .map!(a => a.children)
+        .joiner
+        .filter!(a => a.spelling == cursor.spelling)
+        .any!(a => a.isVirtual)
+        ;
+
+    return virtualWithSameName;
+}
+
+
+/**
+   If the cursor is a `final` member function.
+ */
+bool isFinal(in from!"clang".Cursor cursor) @safe {
+    import clang: Cursor;
     import std.algorithm: any;
 
     return cursor
         .children
-        .any!(a => a.kind == Cursor.Kind.CXXOverrideAttr)
+        .any!(a => a.kind == Cursor.Kind.CXXFinalAttr)
+        ;
+}
+
+
+/**
+   All base classes this cursor derives from
+ */
+auto baseClasses(in from!"clang".Cursor cursor) @safe {
+    import clang: Cursor;
+    import std.algorithm: map, filter;
+
+    return cursor
+        .children
+        .filter!(a => a.kind == Cursor.Kind.CXXBaseSpecifier)
+        .map!(a => a.children[0].referencedCursor)
         ;
 }

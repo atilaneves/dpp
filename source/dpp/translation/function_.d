@@ -118,7 +118,7 @@ private string functionDecl(
 {
     import dpp.translation.template_: translateTemplateParams;
     import dpp.translation.exception: UntranslatableException;
-    import dpp.clang: isOverride;
+    import dpp.clang: isOverride, isFinal;
     import std.conv: text;
     import std.algorithm: endsWith, canFind;
     import std.array: join;
@@ -153,12 +153,18 @@ private string functionDecl(
 
         if(cursor.isPureVirtual)
             return "abstract ";
-        else if(!cursor.isVirtual)
+
+        if(!cursor.isVirtual)
             return "final ";
-        else if(cursor.isOverride)
-            return "override ";
-        else
-            return "";
+
+        // If we get here it's a virtual member function.
+        // We might need to add D `final` and/or `override`.
+        string ret;
+
+        if(cursor.isOverride) ret ~= "override ";
+        if(cursor.isFinal) ret ~= "final ";
+
+        return ret;
     }
 
     return text(prefix, returnType, " ", spelling, ctParams, "(", params, ") @nogc nothrow", const_, ";");

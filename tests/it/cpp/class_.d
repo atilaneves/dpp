@@ -355,7 +355,7 @@ import it;
 }
 
 
-@("virtual.child.override")
+@("virtual.child.override.normal")
 @safe unittest {
     shouldCompile(
         Cpp(
@@ -385,6 +385,30 @@ import it;
         ),
     );
 }
+
+@("virtual.child.override.final")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct Base {
+                    virtual bool has() const noexcept { return false; }
+                };
+
+                struct Derived: public Base {
+                    bool has() const noexcept final { return  true; }
+                };
+            }
+        ),
+        D(
+            q{
+                auto d = new Derived();
+                const bool b = d.has;
+            }
+        ),
+    );
+}
+
 
 
 @("virtual.child.empty.normal")

@@ -78,6 +78,7 @@ private bool isStrass(in from!"clang".Cursor cursor) @safe @nogc pure nothrow {
 
 // Decide on whether to emit a D struct or class
 package string dKeywordFromStrass(in from!"clang".Cursor cursor) @safe nothrow {
+    import dpp.clang: baseClasses;
     import clang: Cursor;
     import std.algorithm: any, map, filter;
     import std.range: walkLength;
@@ -89,12 +90,7 @@ package string dKeywordFromStrass(in from!"clang".Cursor cursor) @safe nothrow {
     static bool anyVirtualInAncestry(in Cursor cursor) @safe nothrow {
         if(hasVirtuals(cursor)) return true;
 
-        auto parents = cursor
-            .children
-            .filter!(a => a.kind == Cursor.Kind.CXXBaseSpecifier)
-            .map!(a => a.children[0].referencedCursor)
-            ;
-        return parents.any!anyVirtualInAncestry;
+        return cursor.baseClasses.any!anyVirtualInAncestry;
     }
 
     return anyVirtualInAncestry(cursor)
