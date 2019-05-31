@@ -386,16 +386,21 @@ import it;
     );
 }
 
+@ShouldFail
 @("virtual.child.override.final")
 @safe unittest {
     shouldCompile(
         Cpp(
             q{
-                struct Base {
+                struct A {
                     virtual bool has() const noexcept { return false; }
                 };
 
-                struct Derived: public Base {
+                struct B: A {
+                    void foo();
+                };
+
+                struct C: B {
                     bool has() const noexcept final { return  true; }
                 };
             }
