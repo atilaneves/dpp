@@ -16,8 +16,9 @@ string[] translateMacro(in from!"clang".Cursor cursor,
     // we want non-built-in macro definitions to be defined and then preprocessed
     // again
 
-    const tokens = cursor.tokens;
     if(isBuiltinMacro(cursor)) return [];
+
+    const tokens = cursor.tokens;
 
     // the only sane way for us to be able to see a macro definition
     // for a macro that has already been defined is if an #undef happened
@@ -29,10 +30,9 @@ string[] translateMacro(in from!"clang".Cursor cursor,
 
     context.rememberMacro(cursor);
     const spelling = maybeRename(cursor, context);
-    const body_ = cursor.sourceRange.chars.text[cursor.spelling.length .. $];
-    const dbody = translateToD(body_, context);
-
-    auto redefinition = [maybeUndef ~ "#define " ~ spelling ~ dbody ~ "\n"];
+    const dbody = translateToD(cursor, context, tokens);
+    const maybeSpace = cursor.isMacroFunction ? "" : " ";
+    auto redefinition = [maybeUndef ~ "#define " ~ spelling ~ maybeSpace ~ dbody ~ "\n"];
 
     // Always redefine the macro, but sometimes also add a D enum
     // See #103 for why.
@@ -60,33 +60,28 @@ bool isBuiltinMacro(in from!"clang".Cursor cursor)
 }
 
 
-private auto chars(in from!"clang".SourceRange range) @safe {
-    import std.stdio: File;
-
-    const startPos = range.start.offset;
-    const endPos   = range.end.offset;
-
-    auto file = File(range.path);
-    file.seek(startPos);
-    return () @trusted { return file.rawRead(new char[endPos - startPos]); }();
-}
-
-
 // whether the macro should only be re-#defined
-private bool onlyRedefine(in from!"clang".Cursor cursor, in from!"clang".Token[] tokens) @safe {
+private bool onlyRedefine(
+    in from!"clang".Cursor cursor,
+    in from!"clang".Token[] tokens)
+    @safe @nogc pure nothrow
+{
     import clang: Token;
 
     // always redefine function-like macros
     if(cursor.isMacroFunction) return true;
 
-    // otherwise, might be able to use literal macros as-is
-    const isLiteralMacro =
+    return !isLiteralMacro(tokens);
+}
+
+private bool isLiteralMacro(in from!"clang".Token[] tokens) @safe @nogc pure nothrow {
+    import clang: Token;
+
+    return
         tokens.length == 2
         && tokens[0].kind == Token.Kind.Identifier
         && tokens[1].kind == Token.Kind.Literal
         ;
-
-    return !isLiteralMacro;
 }
 
 private bool isStringRepr(T)(in string str) @safe pure {
@@ -97,6 +92,242 @@ private bool isStringRepr(T)(in string str) @safe pure {
     T dummy;
     return str.strip.to!T.collectException(dummy) is null;
 }
+
+
+private string translateToD(
+    in from!"clang".Cursor cursor,
+    in from!"dpp.runtime.context".Context context,
+    in from!"clang".Token[] tokens,
+    )
+    @safe
+{
+
+    if(isLiteralMacro(tokens)) return fixLiteral(tokens[1]);
+    if(tokens.length == 1) return ""; // e.g. `#define FOO`
+
+    return tokens
+        .fixSizeof(cursor)
+        .fixCasts(cursor, context)
+        .fixArrow
+        .fixNull
+        .toString;
+}
+
+
+private string toString(in from!"clang".Token[] tokens) @safe pure {
+    import clang: Token;
+    import std.algorithm: map;
+    import std.array: join;
+
+    // skip the identifier because of DPP_ENUM_
+    return tokens[1..$]
+        .map!(t => t.spelling)
+        .join(" ");
+}
+
+private string fixLiteral(in from!"clang".Token token)
+    @safe pure
+    in(token.kind == from!"clang".Token.Kind.Literal)
+    do
+{
+    return token.spelling
+        .fixOctal
+        .fixLongLong
+        ;
+}
+
+
+private const(from!"clang".Token)[] fixArrow(
+    return scope const(from!"clang".Token[]) tokens
+    )
+    @safe pure
+{
+    import clang: Token;
+    import std.algorithm: map;
+    import std.array: array;
+
+    static const(Token) replace(in Token token) {
+        return token == Token(Token.Kind.Punctuation, "->")
+            ? Token(Token.Kind.Punctuation, ".")
+            : token;
+    }
+
+    return tokens
+        .map!replace
+        .array;
+}
+
+private const(from!"clang".Token)[] fixNull(
+    return scope const(from!"clang".Token[]) tokens
+    )
+    @safe pure
+{
+    import clang: Token;
+    import std.algorithm: map;
+    import std.array: array;
+
+    static const(Token) replace(in Token token) {
+        return token == Token(Token.Kind.Identifier, "NULL")
+            ? Token(Token.Kind.Identifier, "null")
+            : token;
+    }
+
+    return tokens
+        .map!replace
+        .array;
+}
+
+
+
+private const(from!"clang".Token)[] fixCasts(
+    return scope const(from!"clang".Token)[] tokens,
+    in from !"clang".Cursor cursor,
+    in from!"dpp.runtime.context".Context context,
+    )
+    @safe pure
+{
+    import clang: Token;
+    import std.conv: text;
+    import std.algorithm: countUntil;
+
+    // if the token array is a built-in or user-defined type
+    bool isType(in Token[] tokens) {
+
+        if( // fundamental type
+            tokens.length == 1
+            && tokens[0].kind == Token.Kind.Keyword
+            && tokens[0].spelling != "sizeof"
+            && tokens[0].spelling != "alignof"
+            )
+            return true;
+
+        if( // user defined type
+            tokens.length == 1
+            && tokens[0].kind == Token.Kind.Identifier
+            && context.isUserDefinedType(tokens[0].spelling)
+            )
+            return true;
+
+        if(  // pointer to a type
+            tokens.length >= 2
+            && tokens[$-1] == Token(Token.Kind.Punctuation, "*")
+            && isType(tokens[0 .. $-1])
+            )
+            return true;
+
+        if( // const type
+            tokens.length >= 2
+            && tokens[0] == Token(Token.Kind.Keyword, "const")
+            && isType(tokens[1..$])
+            )
+            return true;
+
+        return false;
+    }
+
+    size_t lastIndex = 0;
+    // find the closing paren for the function-like macro's argument list
+    if(cursor.isMacroFunction) {
+        lastIndex = tokens
+            .countUntil!(t => t == Token(Token.Kind.Punctuation, ")"))
+            +1; // skip the right paren
+        if(lastIndex == 0)
+            throw new Exception(text("Can't fix casts in function-like macro with tokens: ", tokens));
+    }
+
+    auto ret = tokens[0 .. lastIndex];
+
+    for(size_t i = lastIndex; i < tokens.length - 1; ++i) {
+        if(tokens[i] == Token(Token.Kind.Punctuation, "(")) {
+            // find closing paren
+            long open = 1;
+            long scanIndex = i + 1;  // skip i + 1 since that's the open paren
+
+            while(open != 0) {
+                if(tokens[scanIndex] == Token(Token.Kind.Punctuation, "("))
+                    ++open;
+                if(tokens[scanIndex] == Token(Token.Kind.Punctuation, ")"))
+                    --open;
+
+                ++scanIndex;
+            }
+            // at this point scanIndex is the 1 + index of closing paren
+
+            // we want to ignore e.g. `(int)(foo).sizeof` even if `foo` is a type
+            const followedByDot =
+                tokens.length > scanIndex
+                && tokens[scanIndex].spelling[0] == '.'
+                ;
+
+            if(isType(tokens[i + 1 .. scanIndex - 1]) && !followedByDot) {
+                ret ~= tokens[lastIndex .. i] ~
+                    Token(Token.Kind.Punctuation, "cast(") ~
+                    tokens[i + 1 .. scanIndex]; // includes closing paren
+                lastIndex = scanIndex;
+                // advance i past the sizeof. -1 because of ++i in the for loop
+                i = lastIndex - 1;
+            }
+        }
+    }
+
+    ret ~= tokens[lastIndex .. $];
+
+    return ret;
+}
+
+private const(from!"clang".Token)[] fixSizeof(
+    return scope const(from!"clang".Token)[] tokens,
+    in from !"clang".Cursor cursor,
+    )
+    @safe pure
+{
+    import clang: Token;
+    import std.conv: text;
+    import std.algorithm: countUntil;
+
+    // find the closing paren for the function-like macro's argument list
+    size_t lastIndex = 0;
+    if(cursor.isMacroFunction) {
+        lastIndex = tokens
+            .countUntil!(t => t == Token(Token.Kind.Punctuation, ")"))
+            +1; // skip the right paren
+
+        if(lastIndex == 0)
+            throw new Exception(text("Can't fix sizeof in function-like macro with tokens: ", tokens));
+    }
+
+    auto ret = tokens[0 .. lastIndex];
+
+    for(size_t i = lastIndex; i < tokens.length - 1; ++i) {
+        if(tokens[i] == Token(Token.Kind.Keyword, "sizeof")
+           && tokens[i + 1] == Token(Token.Kind.Punctuation, "("))
+        {
+            // find closing paren
+            long open = 1;
+            long scanIndex = i + 2;  // skip i + 1 since that's the open paren
+
+            while(open != 0) {
+                if(tokens[scanIndex] == Token(Token.Kind.Punctuation, "("))
+                    ++open;
+                if(tokens[scanIndex] == Token(Token.Kind.Punctuation, ")"))
+                    --open;
+
+                ++scanIndex;
+            }
+
+            ret ~= tokens[lastIndex .. i] ~ tokens[i + 1 .. scanIndex] ~ Token(Token.Kind.Keyword, ".sizeof");
+            lastIndex = scanIndex;
+            // advance i past the sizeof. -1 because of ++i in the for loop
+            i = lastIndex - 1;
+        }
+    }
+
+    ret ~= tokens[lastIndex .. $];
+
+    return ret;
+}
+
+
 
 
 // Some macros define snippets of C code that aren't valid D
@@ -153,26 +384,47 @@ private string replaceNull(in string str) @safe pure nothrow {
     return str.startsWith("NULL") ? str : str.replace("NULL", "null");
 }
 
-private string fixOctal(in string str) @safe pure {
-    import std.string: strip;
-    import std.algorithm: countUntil, all;
-    import std.exception: enforce;
-    import std.uni: isWhite;
+// private string fixOctal(in string str) @safe pure {
+//     import std.string: strip;
+//     import std.algorithm: countUntil, all;
+//     import std.exception: enforce;
+//     import std.uni: isWhite;
 
-    const stripped = str.strip;
+//     const stripped = str.strip;
+//     const isOctal =
+//         stripped.length > 1 &&
+//         stripped[0] == '0' &&
+//         stripped.isStringRepr!long;
+
+//     if(!isOctal) return str;
+
+//     const firstNonZero = stripped.countUntil!(a => a != '0');
+
+//     if(firstNonZero == -1) {
+//         enforce(str.all!(a => a == '0' || a.isWhite), "Cannot fix octal '" ~ str ~ "'");
+//         return "0";
+//     }
+
+//     return ` std.conv.octal!` ~ stripped[firstNonZero .. $];
+// }
+
+
+private string fixOctal(in string spelling) @safe pure {
+    import clang: Token;
+    import std.algorithm: countUntil;
+    import std.uni: isNumber;
+
     const isOctal =
-        stripped.length > 1 &&
-        stripped[0] == '0' &&
-        stripped.isStringRepr!long;
+        spelling.length > 1
+        && spelling[0] == '0'
+        && spelling[1].isNumber
+        //&& token.spelling.isStringRepr!long
+        ;
 
-    if(!isOctal) return str;
+    if(!isOctal) return spelling;
 
-    const firstNonZero = stripped.countUntil!(a => a != '0');
+    const firstNonZero = spelling.countUntil!(a => a != '0');
+    if(firstNonZero == -1) return "0";
 
-    if(firstNonZero == -1) {
-        enforce(str.all!(a => a == '0' || a.isWhite), "Cannot fix octal '" ~ str ~ "'");
-        return "0";
-    }
-
-    return ` std.conv.octal!` ~ stripped[firstNonZero .. $];
+    return `std.conv.octal!` ~ spelling[firstNonZero .. $];
 }

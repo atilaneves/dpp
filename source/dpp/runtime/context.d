@@ -90,12 +90,7 @@ struct Context {
     /*
       Remember all declared types so that C-style casts can be recognised
      */
-    private string[] _types = [
-        `void ?\*`,
-        `char`, `unsigned char`, `signed char`, `short`, `unsigned short`,
-        `int`, `unsigned`, `unsigned int`, `long`, `unsigned long`, `long long`,
-        `unsigned long long`, `float`, `double`, `long double`,
-    ];
+    private string[] _types;
 
     /// to generate unique names
     private int _anonymousIndex;
@@ -317,6 +312,11 @@ struct Context {
         const regexStr = `\(( *?(?:` ~ typeSelectionStr ~ `) *?)\)`;
 
         return regex(regexStr);
+    }
+
+    bool isUserDefinedType(in string spelling) @safe pure const {
+        import std.algorithm: canFind;
+        return _types.canFind(spelling);
     }
 
     void rememberMacro(in Cursor cursor) @safe pure {

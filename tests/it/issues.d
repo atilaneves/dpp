@@ -225,9 +225,8 @@ import it;
     );
 }
 
-@ShouldFail
 @Tags("issue", "preprocessor")
-@("22.3")
+@("22.2")
 @safe unittest {
     shouldCompile(
         C(
@@ -247,7 +246,7 @@ import it;
 }
 
 @Tags("issue", "preprocessor")
-@("22.4")
+@("22.3")
 @safe unittest {
     shouldCompile(
         C(
@@ -570,6 +569,25 @@ import it;
         ),
     );
 }
+
+@Tags("issue", "preprocessor")
+@("39.3")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                #define CAST(x) ( const char* )(x)
+            `
+        ),
+        D(
+            q{
+                auto val = CAST(42);
+                static assert(is(typeof(val) == const char*));
+            }
+        ),
+    );
+}
+
 
 @Tags("issue", "preprocessor")
 @("40")
