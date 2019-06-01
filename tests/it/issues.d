@@ -571,25 +571,6 @@ import it;
 }
 
 @Tags("issue", "preprocessor")
-@("39.3")
-@safe unittest {
-    shouldCompile(
-        C(
-            `
-                #define CAST(x) ( const char* )(x)
-            `
-        ),
-        D(
-            q{
-                auto val = CAST(42);
-                static assert(is(typeof(val) == const char*));
-            }
-        ),
-    );
-}
-
-
-@Tags("issue", "preprocessor")
 @("40")
 @safe unittest {
     with(immutable IncludeSandbox()) {
@@ -613,6 +594,7 @@ import it;
         shouldCompile("src.d");
     }
 }
+
 
 @Tags("issue")
 @("43")

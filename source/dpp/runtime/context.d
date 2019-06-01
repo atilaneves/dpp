@@ -292,28 +292,6 @@ struct Context {
         _types ~= type;
     }
 
-    /// Matches a C-type cast
-    auto castRegex() @safe const {
-        import std.array: join, array;
-        import std.regex: regex;
-        import std.algorithm: map;
-        import std.range: chain;
-
-        // const and non const versions of each type
-        const typesConstOpt = _types.map!(a => `(?:const )?` ~ a).array;
-
-        const typeSelectionStr =
-            chain(typesConstOpt,
-                  // pointers thereof
-                  typesConstOpt.map!(a => a ~ ` ?\*`))
-            .join("|");
-
-        // parens and a type inside, where "a type" is any we know about
-        const regexStr = `\(( *?(?:` ~ typeSelectionStr ~ `) *?)\)`;
-
-        return regex(regexStr);
-    }
-
     bool isUserDefinedType(in string spelling) @safe pure const {
         import std.algorithm: canFind;
         return _types.canFind(spelling);
