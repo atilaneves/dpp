@@ -31,14 +31,20 @@ string[] translateMacro(in from!"clang".Cursor cursor,
     context.rememberMacro(cursor);
     const spelling = maybeRename(cursor, context);
     const dbody = translateToD(cursor, context, tokens);
-    const maybeSpace = cursor.isMacroFunction ? "" : " ";
-    auto redefinition = [maybeUndef ~ "#define " ~ spelling ~ maybeSpace ~ dbody ~ "\n"];
 
-    // Always redefine the macro, but sometimes also add a D enum
-    // See #103 for why.
-    return onlyRedefine(cursor, tokens)
-        ? redefinition
-        : redefinition ~ [`enum DPP_ENUM_` ~ spelling ~ ` = ` ~ dbody ~ `;`];
+    if(isLiteralMacro(tokens))
+        return [
+            `#ifdef ` ~ spelling,
+            `#    undef ` ~ spelling,
+            `#endif`,
+            `#define _DPP_` ~ spelling ~ ` ` ~ dbody,
+            `static if(!is(typeof(` ~ spelling ~ `))) {`,
+            `    enum ` ~ spelling ~ ` = ` ~ dbody ~ `;`,
+            `}`,
+        ];
+
+    const maybeSpace = cursor.isMacroFunction ? "" : " ";
+    return [maybeUndef ~ "#define " ~ spelling ~ maybeSpace ~ dbody ~ "\n"];
 }
 
 
@@ -59,20 +65,6 @@ bool isBuiltinMacro(in from!"clang".Cursor cursor)
         ;
 }
 
-
-// whether the macro should only be re-#defined
-private bool onlyRedefine(
-    in from!"clang".Cursor cursor,
-    in from!"clang".Token[] tokens)
-    @safe @nogc pure nothrow
-{
-    import clang: Token;
-
-    // always redefine function-like macros
-    if(cursor.isMacroFunction) return true;
-
-    return !isLiteralMacro(tokens);
-}
 
 private bool isLiteralMacro(in from!"clang".Token[] tokens) @safe @nogc pure nothrow {
     import clang: Token;

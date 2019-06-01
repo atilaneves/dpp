@@ -803,16 +803,18 @@ unittest {
                           `
                               #include "2nd.h"
                               #define BAR 33
+                              // before the BAR macro, BAR is 42. After, it's 33.
                           `,
                           D(""), // no need for .dpp source code
         );
         writeFile("2nd.h",
                   `
-                      // these empty lines are important, since they push the enum
+                      // These empty lines are important, since they push the enum
                       // declaration down to have a higher line number than the BAR macro.
+                      // The bug had to do with ordering.
                       enum TheEnum { BAR = 42 };
                   `);
-        run("-c", inSandboxPath("app.dpp"));
+        run("-c", inSandboxPath("app.dpp"), "--keep-pre-cpp-files");
     }
 }
 
@@ -1064,7 +1066,7 @@ unittest {
         writeFile("app.d",
                   q{
                       import hdr;
-                      static assert(DPP_ENUM_CONSTANT == 42);
+                      static assert(CONSTANT == 42);
                   });
 
         runPreprocessOnly("hdr.dpp");
@@ -1087,7 +1089,7 @@ unittest {
                   q{
                       import hdr;
                       import std.conv: text;
-                      static assert(DPP_ENUM_OCTAL == 127);
+                      static assert(OCTAL == 127);
                   });
 
         runPreprocessOnly("hdr.dpp");
@@ -1110,7 +1112,7 @@ unittest {
                   q{
                       import hdr;
                       import std.conv: text;
-                      static assert(DPP_ENUM_STRING == "foobar");
+                      static assert(STRING == "foobar");
                   });
 
         runPreprocessOnly("hdr.dpp");
