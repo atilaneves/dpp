@@ -521,7 +521,7 @@ import it;
 }
 
 
-@("default.ctor")
+@("ctor.default")
 @safe unittest {
     shouldCompile(
         Cpp(
@@ -546,6 +546,36 @@ import it;
                 static assert(is(Base == class), "Base is not a class");
                 static assert(is(Derived == class), "Derived is not a class");
                 static assert(is(Derived: Base), "Derived is not a child class of Base");
+            }
+        ),
+    );
+}
+
+
+@ShouldFail
+@("ctor.using")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                class Base {
+                public:
+                    Base(int i);
+                    virtual ~Base();
+                };
+
+                class Derived: public Base {
+                    using Base::Base;
+                };
+            }
+        ),
+        D(
+            q{
+                static assert(is(Base == class), "Base is not a class");
+                static assert(is(Derived == class), "Derived is not a class");
+                static assert(is(Derived: Base), "Derived is not a child class of Base");
+
+                auto d = new Derived(42);
             }
         ),
     );
