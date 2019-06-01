@@ -1096,6 +1096,30 @@ unittest {
 }
 
 
+@Tags("issue")
+@("103.2")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        writeFile("hdr.h",
+                  "#define STRING \"foobar\"\n");
+        writeFile("hdr.dpp",
+                  `
+                      #include "hdr.h"
+                  `);
+        writeFile("app.d",
+                  q{
+                      import hdr;
+                      import std.conv: text;
+                      static assert(DPP_ENUM_STRING == "foobar");
+                  });
+
+        runPreprocessOnly("hdr.dpp");
+        shouldCompile("app.d");
+    }
+}
+
+
+
 @ShouldFail
 @Tags("issue")
 @("104")
