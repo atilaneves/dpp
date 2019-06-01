@@ -3,8 +3,9 @@ import std.array: join;
 import std.typecons: Yes, No;
 
 enum debugFlags = ["-w", "-g", "-debug"];
+enum releaseFlags = ["-O", "-inline", "-release"];
 
-//alias exe = dubDefaultTarget!(CompilerFlags(debugFlags));
+alias exe = dubDefaultTarget!(CompilerFlags(releaseFlags));
 
 alias lib = dubConfigurationTarget!(
     Configuration("library"),
@@ -18,12 +19,6 @@ enum mainObj = objectFile(
     SourceFile("source/main.d"),
     Flags(debugFlags),
     ImportPaths("source")
-);
-
-alias exe = dubLink!(
-    TargetName("d++"),
-    Configuration("library"),
-    targetConcat!(lib, mainObj)
 );
 
 alias utOld = dubTestTarget!(
