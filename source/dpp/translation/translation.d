@@ -164,7 +164,7 @@ void debugCursor(in from!"clang".Cursor cursor,
     }
 }
 
-Translator[from!"clang".Cursor.Kind] translators() @safe {
+Translator[from!"clang".Cursor.Kind] translators() @safe pure {
     import dpp.translation;
     import clang: Cursor;
 
@@ -241,6 +241,8 @@ Translator[from!"clang".Cursor.Kind] translators() @safe {
             FunctionTemplate:                   &translateFunction,
             // For ParmDecl, see it.cpp.opaque.std::function
             ParmDecl:                           &ignore,
+            CXXBaseSpecifier:                   &ignore,
+            UsingDeclaration:                   &translateInheritingConstructor,
         ];
     }
 }

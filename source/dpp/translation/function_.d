@@ -590,3 +590,34 @@ private string blob(in from!"clang".Type type,
 
     return "";
 }
+
+
+string[] translateInheritingConstructor(
+    in from!"clang".Cursor cursor,
+    ref from!"dpp.runtime.context".Context context
+    )
+    @safe
+    in(cursor.kind == from!"clang".Cursor.Kind.UsingDeclaration)
+{
+    import clang: Cursor;
+    import std.algorithm: find, all;
+    import std.array: empty, front;
+
+    auto overloaded = cursor.children.find!(a => a.kind == Cursor.Kind.OverloadedDeclRef);
+    if(overloaded.empty) return [];
+
+    const allCtors = overloaded
+        .front
+        .children
+        .all!(a => a.kind == Cursor.Kind.Constructor)
+        ;
+
+    if(!allCtors) return [];
+
+    return [
+        `this(_Args...)(auto ref _Args args) {`,
+        `    import std.functional: forward;`,
+        `    super(forward!args);`,
+        `}`,
+    ];
+}
