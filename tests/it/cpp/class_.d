@@ -561,6 +561,8 @@ import it;
                 class Base {
                 public:
                     Base(int i);
+                    Base(const Base&) = delete;
+                    Base(Base&&) = delete;
                     virtual ~Base();
                 };
 
@@ -578,5 +580,6 @@ import it;
                 auto d = new Derived(42);
             }
         ),
+        ["--hard-fail"],
     );
 }
