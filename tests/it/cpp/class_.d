@@ -552,7 +552,6 @@ import it;
 }
 
 
-@ShouldFail
 @("ctor.using")
 @safe unittest {
     shouldCompile(

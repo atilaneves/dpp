@@ -242,7 +242,7 @@ Translator[from!"clang".Cursor.Kind] translators() @safe pure {
             // For ParmDecl, see it.cpp.opaque.std::function
             ParmDecl:                           &ignore,
             CXXBaseSpecifier:                   &ignore,
-            UsingDeclaration:                   &ignore,
+            UsingDeclaration:                   &translateInheritingConstructor,
         ];
     }
 }
