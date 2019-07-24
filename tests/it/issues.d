@@ -1603,3 +1603,21 @@ unittest {
         )
     );
 }
+
+
+@HiddenTest("Needs the cl_platform.h header on the machine")
+@Tags("issue")
+@("175")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+#include "CL/cl_platform.h"
+            `
+        ),
+        D(
+            q{
+            }
+        )
+    );
+}
