@@ -471,16 +471,17 @@ private string translateSimdVector(in from!"clang".Type type,
 {
     import std.conv: text;
     import std.algorithm: canFind;
+    import std.string: replace;
 
     const numBytes = type.numElements;
     const dtype =
-        translate(type.elementType, context, translatingFunction) ~
-        text(type.getSizeof / numBytes);
+        translate(type.elementType, context, translatingFunction).replace("c_", "") ~
+        text(numBytes);
 
     const isUnsupportedType =
         [
-            "long8", "short2", "char1", "double8", "ubyte1", "ushort2",
-            "ulong8", "byte1",
+            "long1", "char8", "short4", "ubyte8", "byte8", "ushort4", "short4",
+            "uint2", "int2", "ulong1", "float2", "char16",
         ].canFind(dtype);
 
     return isUnsupportedType ? "int /* FIXME: unsupported SIMD type */" : "core.simd." ~ dtype;
