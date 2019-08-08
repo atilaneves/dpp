@@ -93,7 +93,7 @@ private string translateToD(
     )
     @safe
 {
-
+    import dpp.translation.type: translateElaborated;
     if(isLiteralMacro(tokens)) return fixLiteral(tokens[1]);
     if(tokens.length == 1) return ""; // e.g. `#define FOO`
 
@@ -102,7 +102,9 @@ private string translateToD(
         .fixCasts(cursor, context)
         .fixArrow
         .fixNull
-        .toString;
+        .toString
+        .translateElaborated
+        ;
 }
 
 
