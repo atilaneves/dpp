@@ -77,3 +77,29 @@ import it;
     );
 
 }
+
+
+@("elaborate")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                struct Foo {};
+                #define STRUCT_HEAD \
+                    int count; \
+                    struct Foo *foo;
+            `
+        ),
+        D(
+            q{
+                static struct Derived {
+                    STRUCT_HEAD
+                }
+
+                auto d = Derived();
+                d.count = 42;
+                d.foo = null;
+            }
+        )
+    );
+}
