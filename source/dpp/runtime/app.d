@@ -155,13 +155,7 @@ private TranslationText translationText(File)(in from!"dpp.runtime.options".Opti
     auto nonModuleLines = lines.filter!(a => !isModuleLine(a));
     const includePaths = options.includePaths ~ inputFileName.dirName;
     auto includes = nonModuleLines.map!(a => getHeaderName(a, includePaths)).filter!(a => a != "");
-    const includesFileName = () @trusted {
-                                    import std.file: tempDir;
-                                    import core.sys.posix.stdlib: mkstemp;
-                                    char[] tmpnamBuf = tempDir() ~ "/dppXXXXXX\0".dup;
-                                    mkstemp(tmpnamBuf.ptr);
-                                    return tmpnamBuf[0 .. $ - 1].idup;
-                                }();
+    const includesFileName = getTempFileName();
     auto language = Language.C;
     // write a temporary file with all #included files in it
     () @trusted {
@@ -333,4 +327,24 @@ string preamble() @safe pure {
     .filter!(a => a != "")
     .map!(a => a.length >= 8 ? a[8 .. $] : a) // get rid of leading spaces
     .join("\n");
+}
+
+version (Windows)
+    extern(C) private int _mktemp_s(char* nameTemplate, size_t sizeInChars) nothrow @safe @nogc;
+
+private string getTempFileName() @trusted
+{
+    import std.file : tempDir;
+    import std.path: buildPath;
+
+    char[] tmpnamBuf = "dppXXXXXX\0".dup;
+    version (Posix)
+    {
+        import core.sys.posix.stdlib: mkstemp;
+        mkstemp(tmpnamBuf.ptr);
+    }
+    else version (Windows)
+        _mktemp_s(tmpnamBuf.ptr, tmpnamBuf.length);
+
+    return buildPath(tempDir(), tmpnamBuf[0 .. $-1]);
 }
