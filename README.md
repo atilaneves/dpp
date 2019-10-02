@@ -231,3 +231,9 @@ Build Instructions
 2. Make sure you have [LDC](https://github.com/ldc-developers/ldc/releases) installed somewhere.
 3. Compile with `dub build --compiler=C:\path\to\bin\ldc2.exe`.
 4. Copy `C:\Program Files\LLVM\bin\libclang.dll` next to the `d++.exe` in the `bin` directory.
+
+### Ubuntu
+
+1. Install `libclang-6.0-dev` with apt
+2. `dub install dpp`
+3. `dub run dpp -- yoursourcefilenamehere.dpp`
