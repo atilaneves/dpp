@@ -3,6 +3,6 @@
 	"versions": {
 		"libclang": "0.1.9",
 		"sumtype": "0.7.1",
-		"unit-threaded": "0.9.0"
+		"unit-threaded": "0.10.3"
 	}
 }
