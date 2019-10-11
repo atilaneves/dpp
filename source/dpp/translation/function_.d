@@ -100,7 +100,12 @@ private bool ignoreFunction(in from!"clang".Cursor cursor) @safe {
     // The lexical parent only differs from the semantic parent
     // in this case.
     if(
-        cursor.kind == Cursor.Kind.CXXMethod
+        // the constructor type is for issue 115 test on Windows. 
+        // it didn't trigger the check above because the CompoundStmts
+        // are not present on the Windows builds of libclang for
+        // template member functions (reason unknown)
+        // but this check appears to do the right thing anyway.
+        (cursor.kind == Cursor.Kind.CXXMethod || cursor.kind == Cursor.Kind.Constructor)
         && cursor.semanticParent != cursor.lexicalParent
     )
         return true;

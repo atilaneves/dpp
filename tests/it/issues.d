@@ -5,6 +5,7 @@ module it.issues;
 
 import it;
 
+version(Posix) // because Windows doesn't have signinfo
 @Tags("issue")
 @("3")
 @safe unittest {
@@ -737,6 +738,7 @@ import it;
 }
 
 
+version(linux) // linux specific header in the test
 @Tags("issue")
 @("66")
 @safe unittest {
@@ -1038,11 +1040,18 @@ unittest {
 @Tags("issue")
 @("101")
 @safe unittest {
+    // SO tells me the standard insists upon unsigned long long
+    // and apparently so does MSVC... but linux doesn't. idk why.
+    // see: https://stackoverflow.com/a/16596909/1457000
+    version(Windows)
+        string type = "unsigned long long";
+    else
+        string type = "unsigned long";
     shouldCompile(
         Cpp(
             q{
                 // normally without the underscore
-                int operator "" _s(const wchar_t* __str, unsigned long __len);
+                int operator "" _s(const wchar_t* __str, } ~ type ~ q{ __len);
             }
         ),
         D(
