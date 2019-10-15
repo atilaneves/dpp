@@ -373,7 +373,11 @@ import contract;
     printChildren(ctor);
     ctor.kind.should == Cursor.Kind.Constructor;
 
-    ctor.children.length.should == 2;
+    version(Windows)
+        ctor.children.length.should == 1; // Windows llvm ast doesn't include the body...
+    else
+        ctor.children.length.should == 2;
+
     const ctorParam = ctor.children[0];
     ctorParam.kind.should == Cursor.Kind.ParmDecl;
     ctorParam.type.kind.should == Type.Kind.LValueReference;
@@ -426,7 +430,10 @@ import contract;
     ctor.semanticParent.templateParams.length.should == 1;  // the `T`
     ctor.semanticParent.templateParams[0].spelling.should == "T";
 
-    ctor.children.length.should == 2;
+    version(Windows)
+        ctor.children.length.should == 1; // Windows llvm ast doesn't include the body...
+    else
+        ctor.children.length.should == 2;
     const ctorParam = ctor.children[0];
     ctorParam.kind.should == Cursor.Kind.ParmDecl;
     ctorParam.type.kind.should == Type.Kind.LValueReference;

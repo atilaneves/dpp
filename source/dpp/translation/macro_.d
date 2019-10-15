@@ -126,6 +126,7 @@ private string fixLiteral(in from!"clang".Token token)
 {
     return token.spelling
         .fixOctal
+	.fixMicrosoftSuffixes
         .fixLongLong
         ;
 }
@@ -171,6 +172,24 @@ private const(from!"clang".Token)[] fixNull(
         .array;
 }
 
+version(Windows)
+private string fixMicrosoftSuffixes(in string str) @safe pure nothrow {
+    import std.algorithm: endsWith;
+
+    if(str.endsWith("i64"))
+        return str[0 .. $-3] ~ "L";
+    else if(str.endsWith("i32"))
+        return str[0 .. $-3];
+    else if(str.endsWith("i16"))
+        return str[0 .. $-3];
+    else if(str.endsWith("i8"))
+        return str[0 .. $-3];
+    return str;
+}
+else
+private string fixMicrosoftSuffixes(in string str) @safe pure nothrow {
+    return str;
+}
 
 
 private string fixLongLong(in string str) @safe pure nothrow {
