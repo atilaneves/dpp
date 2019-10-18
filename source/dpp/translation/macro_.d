@@ -251,7 +251,7 @@ private const(from!"clang".Token)[] fixSizeof(
         {
             // find closing paren
             long open = 1;
-            long scanIndex = i + 2;  // skip i + 1 since that's the open paren
+            size_t scanIndex = i + 2;  // skip i + 1 since that's the open paren
 
             while(open != 0) {
                 if(tokens[scanIndex] == Token(Token.Kind.Punctuation, "("))
@@ -337,7 +337,7 @@ private const(from!"clang".Token)[] fixCasts(
         if(tokens[i] == Token(Token.Kind.Punctuation, "(")) {
             // find closing paren
             long open = 1;
-            long scanIndex = i + 1;  // skip i + 1 since that's the open paren
+            size_t scanIndex = i + 1;  // skip i + 1 since that's the open paren
 
             while(open != 0) {
                 if(tokens[scanIndex] == Token(Token.Kind.Punctuation, "("))
