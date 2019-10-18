@@ -95,7 +95,7 @@ struct IncludeSandbox {
         @safe const
     {
         try
-            sandbox.shouldSucceed!(file, line)([dCompiler, "-o-", "-c"] ~ srcFiles);
+            sandbox.shouldSucceed!(file, line)([dCompiler, "-m64", "-o-", "-c"] ~ srcFiles);
         catch(Exception e)
             adjustMessage(e, srcFiles);
     }
@@ -105,7 +105,7 @@ struct IncludeSandbox {
         @safe const
     {
         try
-            sandbox.shouldFail!(file, line)([dCompiler, "-o-", "-c"] ~ srcFiles);
+            sandbox.shouldFail!(file, line)([dCompiler, "-m64", "-o-", "-c"] ~ srcFiles);
         catch(Exception e)
             adjustMessage(e, srcFiles);
     }
@@ -263,8 +263,10 @@ private void shouldCompileAndRun
         const compilerVersion = environment.get("TRAVIS", "") == "" ? "" : "-7";
         const compiler = compilerName ~ compilerVersion;
         const languageStandard =  isCpp ? "-std=c++17" : "-std=c11";
+        const outputFileName = "c" ~ objectFileExtension;
 
-        shouldSucceed(compiler, "-o", "c" ~ objectFileExtension, "-g", languageStandard, "-c", cSourceFileName);
+        shouldSucceed(compiler, "-o", outputFileName, "-g", languageStandard, "-c", cSourceFileName);
+        shouldExist(outputFileName);
 
         runPreprocessOnly("app.dpp");
 
@@ -275,7 +277,7 @@ private void shouldCompileAndRun
             const linkStdLib = isCpp ? ["-L-lstdc++"] : [];
 
         try
-            shouldSucceed!(file, line)([dCompiler, "-g", "app.d", "c" ~ objectFileExtension] ~ linkStdLib);
+            shouldSucceed!(file, line)([dCompiler, "-m64", "-g", "app.d", "c" ~ objectFileExtension] ~ linkStdLib);
         catch(Exception e)
             adjustMessage(e, ["app.d"]);
 
