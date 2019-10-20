@@ -167,3 +167,24 @@ import it;
         ),
     );
 }
+
+@Tags("collision")
+@("struct module and void module() should be renamed differently")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                struct module;
+                void module(struct module const * const ptr);
+                struct module { struct module *module_; };
+            }
+        ),
+        D(
+            q{
+                module_ md;
+                md.module__ = &md;
+                module__(md.module__);
+            }
+        ),
+    );
+}

@@ -60,6 +60,12 @@ struct Context {
     private bool[string] _aggregateDeclarations;
 
     /**
+      Mapping between the original aggregate spelling and the renamed one,
+      if renaming was necessary.
+     */
+    private string[string] _aggregateSpelling;
+
+    /**
        A linkable is a function or a global variable.  We remember all
        the ones we saw here so that if there's a name clash we can
        come back and fix the declarations after the fact with
@@ -226,7 +232,19 @@ struct Context {
     void rememberAggregate(in Cursor cursor) @safe pure {
         const spelling = spellingOrNickname(cursor);
         _aggregateDeclarations[spelling] = true;
+        rememberSpelling(cursor.spelling, spelling);
         rememberType(spelling);
+    }
+
+    void rememberSpelling(in string original, in string spelling) @safe pure {
+        if (original != "" && original != spelling)
+            _aggregateSpelling[original] = spelling;
+    }
+
+    bool isUnknownStruct(in string name) @safe pure const {
+        return name !in _aggregateDeclarations
+            && (name !in _aggregateSpelling
+                || _aggregateSpelling[name] !in _aggregateDeclarations);
     }
 
     /**
@@ -236,10 +254,12 @@ struct Context {
     */
     void declareUnknownStructs() @safe pure {
         foreach(name, _; _fieldStructSpellings) {
-            if(name !in _aggregateDeclarations) {
+            if(isUnknownStruct(name)) {
                 log("Could not find '", name, "' in aggregate declarations, defining it");
-                writeln("struct " ~ name ~ ";");
-                _aggregateDeclarations[name] = true;
+                const spelling = name in _aggregateSpelling ? _aggregateSpelling[name]
+                                                            : name;
+                writeln("struct " ~ spelling ~ ";");
+                _aggregateDeclarations[spelling] = true;
             }
         }
     }
@@ -250,9 +270,20 @@ struct Context {
 
     /// return the spelling if it exists, or our made-up nickname for it if not
     string spellingOrNickname(in Cursor cursor) @safe pure {
+        if (cursor.spelling == "")
+            return nickName(cursor);
+
+        return spelling(cursor.spelling);
+    }
+
+    string spelling(in string cursorSpelling) @safe pure {
         import dpp.translation.dlang: rename, isKeyword;
-        if(cursor.spelling == "") return nickName(cursor);
-        return cursor.spelling.isKeyword ? rename(cursor.spelling, this) : cursor.spelling;
+
+        if (cursorSpelling in _aggregateSpelling)
+            return _aggregateSpelling[cursorSpelling];
+
+        return cursorSpelling.isKeyword ? rename(cursorSpelling, this)
+                                        : cursorSpelling;
     }
 
     private string nickName(in Cursor cursor) @safe pure {

@@ -147,7 +147,16 @@ private string translateAggregate(in from!"clang".Type type,
 
             const ns = type.declaration.namespace;
             // no namespace, no problem
-            if(ns.isInvalid) return type.spelling;
+            if(ns.isInvalid) {
+                import std.array : split;
+
+                string[] elems = type.spelling.split(" ");
+                string typeName = elems[$ - 1];
+                string spelling = context.spelling(typeName);
+                context.rememberSpelling(typeName, spelling);
+                elems[$ - 1] = spelling;
+                return elems.join(" ");
+            }
 
             // look for the namespace name in the declaration
             const startOfNsIndex = type.spelling.countUntil(ns.spelling);
