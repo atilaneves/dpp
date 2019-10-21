@@ -95,6 +95,8 @@ struct Options {
 
     private void parseArgs(ref string[] args) {
         import std.getopt: getopt, defaultGetoptPrinter, config;
+        import std.algorithm : map;
+        import std.array : split, join;
         auto helpInfo =
             getopt(
                 args,
@@ -117,6 +119,8 @@ struct Options {
                 "c++-standard", "The C++ language standard (e.g. \"c++14\")", &cppStandard,
                 "clang-option", "Pass option to libclang", &clangOptions,
             );
+
+        clangOptions = map!(e => e.split(" "))(clangOptions).join();
 
         if(helpInfo.helpWanted) {
             () @trusted {
