@@ -150,6 +150,6 @@ struct Options {
         else             const shouldLog = debugOutput;
 
         if(shouldLog)
-            debug writeln(indentation, args);
+            writeln(indentation, args);
     }
 }

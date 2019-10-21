@@ -167,7 +167,7 @@ struct Context {
         return spelling;
     }
 
-    void fixNames() @safe pure {
+    void fixNames() @safe {
         declareUnknownStructs;
         fixLinkables;
         fixFields;
@@ -234,7 +234,7 @@ struct Context {
         define them now so the D file can compile
         See `it.c.compile.delayed`.
     */
-    void declareUnknownStructs() @safe pure {
+    void declareUnknownStructs() @safe {
         foreach(name, _; _fieldStructSpellings) {
             if(name !in _aggregateDeclarations) {
                 log("Could not find '", name, "' in aggregate declarations, defining it");
