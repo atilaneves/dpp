@@ -36,6 +36,7 @@ struct Options {
     bool alwaysScopedEnums;
     string cppStandard = "c++17";
     string[] clangOptions;
+    bool noSystemHeaders;
 
     this(string[] args) {
 
@@ -79,7 +80,8 @@ struct Options {
             parseAsCpp = true;
         }
 
-        includePaths = systemPaths ~ includePaths;
+        if (!noSystemHeaders)
+            includePaths = systemPaths ~ includePaths;
     }
 
     string[] dFileNames() @safe pure const {
@@ -116,6 +118,7 @@ struct Options {
                 "scoped-enums", "Don't redeclare enums to mimic C", &alwaysScopedEnums,
                 "c++-standard", "The C++ language standard (e.g. \"c++14\")", &cppStandard,
                 "clang-option", "Pass option to libclang", &clangOptions,
+                "no-sys-headers", "Don't include system headers by default", &noSystemHeaders,
             );
 
         if(helpInfo.helpWanted) {
