@@ -66,11 +66,14 @@ struct IncludeSandbox {
         import dpp.runtime.app: dppRun = run;
         import std.algorithm: map;
         import std.array: array;
+        import std.process: environment;
 
         const baseLineArgs = [
             "d++",
             "--include-path",
-            sandboxPath
+            sandboxPath,
+            "--compiler",
+            environment.get("DC", "dmd"),
         ];
         auto options = Options(baseLineArgs ~ args);
         options.dppFileNames[] = options.dppFileNames.map!(a => sandbox.inSandboxPath(a)).array;
