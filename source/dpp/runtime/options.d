@@ -97,6 +97,8 @@ struct Options {
 
     private void parseArgs(ref string[] args) {
         import std.getopt: getopt, defaultGetoptPrinter, config;
+        import std.algorithm : map;
+        import std.array : split, join;
         auto helpInfo =
             getopt(
                 args,
@@ -120,6 +122,8 @@ struct Options {
                 "clang-option", "Pass option to libclang", &clangOptions,
                 "no-sys-headers", "Don't include system headers by default", &noSystemHeaders,
             );
+
+        clangOptions = map!(e => e.split(" "))(clangOptions).join();
 
         if(helpInfo.helpWanted) {
             () @trusted {
