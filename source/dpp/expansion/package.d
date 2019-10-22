@@ -165,12 +165,33 @@ from!"clang".Cursor[] trueCursors(R)(R cursors) @trusted /* who knows */ {
     return ret;
 }
 
+
 bool sortCursors(from!"clang".Cursor lhs, from!"clang".Cursor rhs) @safe {
     import clang: Cursor;
+
+    // Tt's possible that two cursors have canonical cursors at the same location
+    // but that aren't of the same kind. An example is if a struct declaration
+    // shows up in a function declaration via a pointer to an yet undeclared/
+    // undefined struct, e.g.
+    // -----------------
+    // struct Foo* getFoo(void);
+    // -----------------
+    // Above, we get a StructDecl for `Foo` and a FuncDecl for `getFoo`,
+    // both at the same source range starting location.
+
+    bool sortLocation() {
+        const lRange = lhs.canonical.sourceRange;
+        const rRange = rhs.canonical.sourceRange;
+        return lRange.start == rRange.start
+            ? lRange.end < rRange.end
+            : lRange.start < rRange.start;
+    }
+
     return lhs.kind == Cursor.Kind.Namespace && rhs.kind == Cursor.Kind.Namespace
         ? lhs.spelling < rhs.spelling
-        : lhs.canonical.sourceRange.start < rhs.canonical.sourceRange.start;
+        : sortLocation;
 }
+
 
 bool sameCursorForChunking(from!"clang".Cursor lhs, from!"clang".Cursor rhs) @safe {
     import clang: Cursor;
