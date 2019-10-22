@@ -105,8 +105,6 @@ import it;
 }
 
 
-// See https://github.com/atilaneves/dpp/pull/186
-@ShouldFail("https://github.com/atilaneves/dpp/pull/186")
 @("multiline")
 @safe unittest {
     shouldCompile(
@@ -115,9 +113,7 @@ import it;
                 // WARNING: don't attempt to tidy up the formatting here or the
                 // test is actually changed
 #define void_to_int_ptr(x) ( \
-{ \
-    (int *) x; \
-} \
+    (int *) x \
 )
             `
         ),
@@ -126,7 +122,7 @@ import it;
                 import std.stdio: writeln;
                 int a = 7;
                 void *p = &a;
-                writeln(*void_to_int_ptr(p));
+                auto intPtr = void_to_int_ptr(p);
             }
         )
     );

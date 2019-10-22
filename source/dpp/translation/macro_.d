@@ -342,8 +342,9 @@ private const(from!"clang".Token)[] fixCasts(
             while(open != 0) {
                 if(tokens[scanIndex] == Token(Token.Kind.Punctuation, "("))
                     ++open;
-                if(tokens[scanIndex] == Token(Token.Kind.Punctuation, ")")
-                        || tokens[scanIndex] == Token(Token.Kind.Punctuation, "\\\n)"))
+                // for the 2nd condition, esee it.c.compile.preprocessor.multiline
+                if(tokens[scanIndex] == Token(Token.Kind.Punctuation, ")") ||
+                   tokens[scanIndex] == Token(Token.Kind.Punctuation, "\\\n)"))
                     --open;
 
                 ++scanIndex;
