@@ -143,6 +143,7 @@ private TranslationText translationText(File)(in from!"dpp.runtime.options".Opti
         import dpp2.expansion: expand, isCppHeader, getHeaderName;
     else
         import dpp.expansion: expand, isCppHeader, getHeaderName;
+    import clang: getTempFileName;
 
     import std.algorithm: map, filter;
     import std.string: fromStringz;
@@ -327,24 +328,4 @@ string preamble() @safe pure {
     .filter!(a => a != "")
     .map!(a => a.length >= 8 ? a[8 .. $] : a) // get rid of leading spaces
     .join("\n");
-}
-
-version (Windows)
-    extern(C) private int _mktemp_s(char* nameTemplate, size_t sizeInChars) nothrow @safe @nogc;
-
-private string getTempFileName() @trusted
-{
-    import std.file : tempDir;
-    import std.path: buildPath;
-
-    char[] tmpnamBuf = "dppXXXXXX\0".dup;
-    version (Posix)
-    {
-        import core.sys.posix.stdlib: mkstemp;
-        mkstemp(tmpnamBuf.ptr);
-    }
-    else version (Windows)
-        _mktemp_s(tmpnamBuf.ptr, tmpnamBuf.length);
-
-    return buildPath(tempDir(), tmpnamBuf[0 .. $-1]);
 }
