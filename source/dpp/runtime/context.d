@@ -370,7 +370,7 @@ private struct CursorId {
     string typeSpelling;
     Type.Kind typeKind;
 
-    this(in Cursor cursor) @safe pure nothrow {
+    this(in Cursor cursor) @safe @nogc pure nothrow {
         cursorSpelling = cursor.spelling;
         cursorKind = cursor.kind;
         typeSpelling = cursor.type.spelling;
