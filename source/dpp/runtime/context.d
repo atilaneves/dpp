@@ -128,11 +128,6 @@ struct Context {
         options.log(forward!args);
     }
 
-    void indentLog(A...)(auto ref A args) const {
-        import std.functional: forward;
-        options.indent.log(forward!args);
-    }
-
     bool debugOutput() @safe @nogc pure nothrow const {
         return options.debugOutput;
     }
