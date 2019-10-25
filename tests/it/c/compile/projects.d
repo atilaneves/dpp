@@ -45,6 +45,25 @@ import it;
     );
 }
 
+@("lowercase integer suffices")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                #define test 100l
+                #define test2 100ll
+            `
+        ),
+
+        D(
+            q{
+                auto t = test;
+                auto t2 = test2;
+            }
+        )
+    );
+}
+
 @("__io_read_fn")
 @safe unittest {
     shouldCompile(

@@ -125,6 +125,7 @@ private string fixLiteral(in from!"clang".Token token)
     do
 {
     return token.spelling
+        .fixLowercaseSuffix
         .fixMultiCharacterLiterals
         .fixWideCharStrings
         .fixOctal
@@ -224,6 +225,15 @@ private string fixMultiCharacterLiterals(in string str) @safe pure nothrow {
     return str; // not one of these, don't touch
 }
 
+private string fixLowercaseSuffix(in string str) @safe pure nothrow {
+    import std.algorithm: endsWith;
+
+    if(str.endsWith("ll"))
+        return str[0 .. $-2] ~ "LL";
+    if(str.endsWith("l"))
+        return str[0 .. $-1] ~ "L";
+    return str;
+}
 
 private string fixLongLong(in string str) @safe pure nothrow {
     import std.algorithm: endsWith;
