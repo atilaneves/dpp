@@ -28,6 +28,23 @@ import it;
     );
 }
 
+@("Lstring literals (seen in Windows)")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                #define test L"testing"
+            `
+        ),
+
+        D(
+            q{
+                wstring s = test;
+            }
+        )
+    );
+}
+
 @("__io_read_fn")
 @safe unittest {
     shouldCompile(

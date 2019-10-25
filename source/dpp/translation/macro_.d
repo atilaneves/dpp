@@ -126,6 +126,7 @@ private string fixLiteral(in from!"clang".Token token)
 {
     return token.spelling
         .fixMultiCharacterLiterals
+        .fixWideCharStrings
         .fixOctal
 	.fixMicrosoftSuffixes
         .fixLongLong
@@ -189,6 +190,14 @@ private string fixMicrosoftSuffixes(in string str) @safe pure nothrow {
 }
 else
 private string fixMicrosoftSuffixes(in string str) @safe pure nothrow {
+    return str;
+}
+
+private string fixWideCharStrings(in string str) @safe pure nothrow {
+    if(str.length >=3 && str[0] == 'L' && str[1] == '"' && str[$-1] == '"') {
+        return str[1 .. $] ~ "w";
+    }
+
     return str;
 }
 
