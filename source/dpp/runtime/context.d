@@ -111,15 +111,15 @@ struct Context {
     }
 
     ref Context indent() @safe pure return {
-        options = options.indent;
+        options.indent;
         return this;
     }
 
-    string indentation() @safe @nogc pure const {
+    auto indentation() @safe @nogc pure const {
         return options.indentation;
     }
 
-    void setIndentation(in string indentation) @safe pure {
+    void setIndentation(in int indentation) @safe pure {
         options.indentation = indentation;
     }
 

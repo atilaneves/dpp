@@ -16,7 +16,7 @@ struct Options {
     enum usage = "Usage: d++ [options] [D compiler options] <filename.dpp> [D compiler args]";
 
     string[] dppFileNames;
-    string indentation;
+    int indentation;
     bool debugOutput;
     string[] includePaths;
     bool keepPreCppFiles;
@@ -133,7 +133,11 @@ struct Options {
         }
     }
 
-    Options indent() pure nothrow const {
+    void indent() @safe pure nothrow {
+        indentation += 4;
+    }
+
+    Options dup() @safe pure nothrow const {
         Options ret;
         foreach(i, ref elt; ret.tupleof) {
             static if(__traits(compiles, this.tupleof[i].dup))
@@ -144,7 +148,6 @@ struct Options {
 
         ret.includePaths = includePaths.dup;
         ret.defines = defines.dup;
-        ret.indentation = indentation ~ "    ";
 
         return ret;
     }
@@ -153,10 +156,20 @@ struct Options {
         version(unittest) import unit_threaded.io: writeln = writelnUt;
         else import std.stdio: writeln;
 
-        version(unittest) enum shouldLog = true;
-        else             const shouldLog = debugOutput;
+        version(unittest)
+            enum shouldLog = true;
+        else
+            const shouldLog = debugOutput;
 
         if(shouldLog)
-            writeln(indentation, args);
+            writeln(indentationString, args);
+    }
+
+    private auto indentationString() @safe pure nothrow const {
+        import std.array: appender;
+        auto app = appender!(char[]);
+        app.reserve(indentation);
+        foreach(i; 0 .. indentation) app ~= " ";
+        return app.data;
     }
 }

@@ -174,7 +174,7 @@ private TranslationText translationText(File)(in from!"dpp.runtime.options".Opti
        We remember the cursors already seen so as to not try and define
        something twice (legal in C, illegal in D).
     */
-    auto context = Context(options.indent, language);
+    auto context = Context(options.dup, language);
 
     // parse all #includes at once and populate context with
     // D definitions
