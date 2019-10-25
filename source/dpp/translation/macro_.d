@@ -282,7 +282,7 @@ private const(from!"clang".Token)[] fixSizeof(
             .countUntil!(t => t == Token(Token.Kind.Punctuation, ")"))
             +1; // skip the right paren
 
-        if(lastIndex == 0)
+        if(lastIndex == 0)  // given the +1 above, -1 becomes 0
             throw new Exception(text("Can't fix sizeof in function-like macro with tokens: ", tokens));
     }
 
