@@ -125,8 +125,9 @@ private string fixLiteral(in from!"clang".Token token)
     do
 {
     return token.spelling
+        .fixMultiCharacterLiterals
         .fixOctal
-	.fixMicrosoftSuffixes
+        .fixMicrosoftSuffixes
         .fixLongLong
         ;
 }
@@ -189,6 +190,29 @@ private string fixMicrosoftSuffixes(in string str) @safe pure nothrow {
 else
 private string fixMicrosoftSuffixes(in string str) @safe pure nothrow {
     return str;
+}
+
+private string fixMultiCharacterLiterals(in string str) @safe pure nothrow {
+    // multi-character literals are implementation-defined, but allowed,
+    // in C I aim to identify them and then distinguish them from a
+    // non-ASCII character, which I'll just forward to D assuming utf-8 source
+    // moreover, the '\uxxx' or other escape sequences should be forwarded
+    if(str.length > 3 && str[0] == '\'' && str[$-1] == '\'' && str[1] != '\\') {
+        // apparently a multi-char literal, let's translate to int
+        // the way this is typically done in common compilers, e.g.
+        // https://gcc.gnu.org/onlinedocs/cpp/Implementation-defined-behavior.html 
+        int result;
+        foreach(char ch; str[1 .. $-1]) {
+            // any multi-byte character I'm going to assume
+            // is just a single UTF-8 char and punt on it.
+            if(ch > 127) return str;
+            result <<= 8;
+            result |= cast(ubyte) ch;
+        }
+        import std.conv;
+        return to!string(result);
+    }
+    return str; // not one of these, don't touch
 }
 
 

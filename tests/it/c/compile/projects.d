@@ -5,6 +5,23 @@ module it.c.compile.projects;
 
 import it;
 
+@("multicharacter_literal")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                #define test 'ABCD'
+            `
+        ),
+
+        D(
+            q{
+                static assert(test == 1094861636); // determined by printf("%d\n", 'ABCD'); in C
+            }
+        )
+    );
+}
+
 @("nn_get_statistic")
 @safe unittest {
     shouldCompile(

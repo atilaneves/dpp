@@ -334,10 +334,20 @@ private string translatePointer(in from!"clang".Type type,
         return true;
     }
 
-    const ptrType = addConst
-        ? `const(` ~ rawType ~ maybeStar ~ `)`
-        : rawType ~ maybeStar;
+    version(Windows) {
+        // Microsoft extension for pointers that doesn't compile
+        // elsewhere. It tells the pointer may point to an unaligned
+        // structure, for platforms where that is an optimization. Just
+        // ignoring so it works here.
+        import std.string;
+        auto typePart = replace(rawType, "__unaligned ", "");
+    } else {
+        auto typePart = rawType;
+   }
 
+    const ptrType = addConst
+        ? `const(` ~ typePart ~ maybeStar ~ `)`
+        : typePart ~ maybeStar;
     return ptrType;
 }
 
