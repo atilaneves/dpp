@@ -77,12 +77,13 @@ private struct CppBoilerplateCode {
     static void compileSrcFile() @safe {
         import std.process: execute;
         import std.file: exists;
+        import std.exception: enforce;
 
         const args = ["-c", srcFileName];
         const gccArgs = "g++" ~ args;
         const clangArgs = "clang++" ~ args;
 
-        scope(success) assert(exists(objFileName), objFileName ~ " was expected to exist but did not");
+        scope(success) enforce(objFileName.exists, objFileName ~ " was expected to exist but did not");
 
         const gccRet = execute(gccArgs);
         if(gccRet.status == 0) return;
@@ -102,6 +103,8 @@ private struct CppBoilerplateCode {
 
    Params:
         options = The runtime options.
+        inputFileName = the name of the file to read
+        outputFileName = the name of the file to write
  */
 void preprocess(File)(in from!"dpp.runtime.options".Options options,
                       in string inputFileName,
@@ -216,18 +219,14 @@ private void runCPreProcessor(in string tmpFileName, in string outputFileName) @
     import std.algorithm: filter, startsWith;
 
     version (Windows)
-    {
         enum cpp = "clang-cpp";
-    } else {
+    else
         enum cpp = "cpp";
-    }
 
     const cppArgs = [cpp, tmpFileName];
     const ret = () {
         try
-        {
             return execute(cppArgs);
-        }
         catch (Exception e)
         {
             import std.typecons : Tuple;
@@ -248,7 +247,6 @@ private void runCPreProcessor(in string tmpFileName, in string outputFileName) @
             outputFile.writeln(line);
         }
     }
-
 }
 
 
