@@ -127,7 +127,7 @@ private string fixLiteral(in from!"clang".Token token)
     return token.spelling
         .fixMultiCharacterLiterals
         .fixOctal
-	.fixMicrosoftSuffixes
+        .fixMicrosoftSuffixes
         .fixLongLong
         ;
 }
