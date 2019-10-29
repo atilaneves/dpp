@@ -442,7 +442,7 @@ private string translateUnexposed(in from!"clang".Type type,
 /**
    Translate possibly problematic C++ spellings
  */
-string translateString(in string spelling,
+string translateString(scope const string spelling,
                        in from!"dpp.runtime.context".Context context)
     @safe nothrow
 {
@@ -474,7 +474,7 @@ string translateString(in string spelling,
 
 
 // "struct Foo" -> Foo, "union Foo" -> Foo, "enum Foo" -> Foo
-string translateElaborated(in string spelling) @safe nothrow {
+string translateElaborated(const scope string spelling) @safe nothrow {
     import std.array: replace;
     return spelling
         .replace("struct ", "")

@@ -49,7 +49,7 @@ string[] translateMacro(in from!"clang".Cursor cursor,
 
 
 bool isBuiltinMacro(in from!"clang".Cursor cursor)
-    @safe @nogc
+    @safe
 {
     import clang: Cursor;
     import std.file: exists;
@@ -210,7 +210,7 @@ private string fixMultiCharacterLiterals(in string str) @safe pure nothrow {
     if(str.length > 3 && str[0] == '\'' && str[$-1] == '\'' && str[1] != '\\') {
         // apparently a multi-char literal, let's translate to int
         // the way this is typically done in common compilers, e.g.
-        // https://gcc.gnu.org/onlinedocs/cpp/Implementation-defined-behavior.html 
+        // https://gcc.gnu.org/onlinedocs/cpp/Implementation-defined-behavior.html
         int result;
         foreach(char ch; str[1 .. $-1]) {
             // any multi-byte character I'm going to assume

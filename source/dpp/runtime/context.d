@@ -217,7 +217,7 @@ struct Context {
        In C it's possible for a struct field name to have the same name as a struct
        because of elaborated names. We remember them here in case we need to fix them.
      */
-    void rememberField(in string spelling) @safe pure {
+    void rememberField(scope const string spelling) @safe pure {
         _fieldDeclarations[spelling] = lines.length;
     }
 
@@ -231,7 +231,7 @@ struct Context {
         rememberType(spelling);
     }
 
-    void rememberSpelling(in string original, in string spelling) @safe pure {
+    void rememberSpelling(scope const string original, in string spelling) @safe pure {
         if (original != "" && original != spelling)
             _aggregateSpelling[original] = spelling;
     }
@@ -271,14 +271,14 @@ struct Context {
         return spelling(cursor.spelling);
     }
 
-    string spelling(in string cursorSpelling) @safe pure {
+    string spelling(scope const string cursorSpelling) @safe pure {
         import dpp.translation.dlang: rename, isKeyword;
 
         if (cursorSpelling in _aggregateSpelling)
             return _aggregateSpelling[cursorSpelling];
 
         return cursorSpelling.isKeyword ? rename(cursorSpelling, this)
-                                        : cursorSpelling;
+                                        : cursorSpelling.idup;
     }
 
     private string nickName(in Cursor cursor) @safe pure {
@@ -324,9 +324,9 @@ struct Context {
     }
 
     void rememberMacro(in Cursor cursor) @safe pure {
-        _macros[cursor.spelling] = true;
+        _macros[cursor.spelling.idup] = true;
         if(cursor.isMacroFunction)
-            _functionMacroDeclarations[cursor.spelling] = true;
+            _functionMacroDeclarations[cursor.spelling.idup] = true;
     }
 
     bool macroAlreadyDefined(in Cursor cursor) @safe pure const {
@@ -373,10 +373,10 @@ private struct CursorId {
     string typeSpelling;
     Type.Kind typeKind;
 
-    this(in Cursor cursor) @safe @nogc pure nothrow {
-        cursorSpelling = cursor.spelling;
+    this(in Cursor cursor) @safe pure nothrow {
+        cursorSpelling = cursor.spelling.idup;
         cursorKind = cursor.kind;
-        typeSpelling = cursor.type.spelling;
+        typeSpelling = cursor.type.spelling.idup;
         typeKind = cursor.type.kind;
     }
 }

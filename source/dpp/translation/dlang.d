@@ -10,7 +10,9 @@ string maybeRename(in from!"clang".Cursor cursor,
                    in from!"dpp.runtime.context".Context context)
     @safe pure nothrow
 {
-    return nameClashes(cursor, context) ? rename(cursor.spelling, context) : cursor.spelling;
+    return nameClashes(cursor, context)
+        ? rename(cursor.spelling, context)
+        : cursor.spelling.idup;
 }
 
 string maybePragma(in from!"clang".Cursor cursor,
