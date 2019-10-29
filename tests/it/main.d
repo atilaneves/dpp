@@ -16,6 +16,7 @@ mixin runTestsMain!(
     "it.c.compile.projects",
     "it.c.compile.runtime_args",
     "it.c.compile.collision",
+    "it.c.compile.typeof_",
     "it.c.run.struct_",
     "it.c.run.c",
 

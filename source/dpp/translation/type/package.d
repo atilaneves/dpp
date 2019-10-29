@@ -434,9 +434,23 @@ private string translateUnexposed(in from!"clang".Type type,
     const translation =  translateString(spelling, context)
         // we might get template arguments here (e.g. `type-parameter-0-0`)
         .replace("type-parameter-0-", "type_parameter_0_")
+        .maybeTranslateTypeof()
         ;
 
     return addModifiers(type, translation);
+}
+
+string maybeTranslateTypeof(in string spelling)
+    @safe nothrow
+{
+    import std.algorithm : startsWith;
+    import std.string: replace;
+    const typeofStr = "typeof";
+
+    if (!startsWith(spelling, typeofStr))
+        return spelling;
+
+    return typeofStr ~ "(" ~ spelling[typeofStr.length .. $].replace("struct ", "") ~ ".init)";
 }
 
 /**
