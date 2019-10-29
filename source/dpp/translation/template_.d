@@ -122,7 +122,7 @@ private auto translateSpecialisedTemplateParamsVariadic(in from!"clang".Cursor c
 
 // In the case cursor is a partial or full template specialisation,
 // check to see if `maybeSpecialisation` can be converted to the
-// indexth template parater of the cursor's original template.
+// indexth template parameter of the cursor's original template.
 // If it can, then it's a value of that type.
 private bool isValueOfType(
     in from!"clang".Cursor cursor,

@@ -111,26 +111,21 @@ struct Context {
     }
 
     ref Context indent() @safe pure return {
-        options = options.indent;
+        options.indent;
         return this;
     }
 
-    string indentation() @safe @nogc pure const {
+    auto indentation() @safe @nogc pure const {
         return options.indentation;
     }
 
-    void setIndentation(in string indentation) @safe pure {
+    void setIndentation(in int indentation) @safe pure {
         options.indentation = indentation;
     }
 
     void log(A...)(auto ref A args) const {
         import std.functional: forward;
         options.log(forward!args);
-    }
-
-    void indentLog(A...)(auto ref A args) const {
-        import std.functional: forward;
-        options.indent.log(forward!args);
     }
 
     bool debugOutput() @safe @nogc pure nothrow const {
@@ -370,7 +365,7 @@ private struct CursorId {
     string typeSpelling;
     Type.Kind typeKind;
 
-    this(in Cursor cursor) @safe pure nothrow {
+    this(in Cursor cursor) @safe @nogc pure nothrow {
         cursorSpelling = cursor.spelling;
         cursorKind = cursor.kind;
         typeSpelling = cursor.type.spelling;
