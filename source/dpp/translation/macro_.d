@@ -125,7 +125,9 @@ private string fixLiteral(in from!"clang".Token token)
     do
 {
     return token.spelling
+        .fixLowercaseSuffix
         .fixMultiCharacterLiterals
+        .fixWideCharStrings
         .fixOctal
         .fixMicrosoftSuffixes
         .fixLongLong
@@ -192,6 +194,14 @@ private string fixMicrosoftSuffixes(in string str) @safe pure nothrow {
     return str;
 }
 
+private string fixWideCharStrings(in string str) @safe pure nothrow {
+    if(str.length >=3 && str[0] == 'L' && str[1] == '"' && str[$-1] == '"') {
+        return str[1 .. $] ~ "w";
+    }
+
+    return str;
+}
+
 private string fixMultiCharacterLiterals(in string str) @safe pure nothrow {
     // multi-character literals are implementation-defined, but allowed,
     // in C I aim to identify them and then distinguish them from a
@@ -215,6 +225,15 @@ private string fixMultiCharacterLiterals(in string str) @safe pure nothrow {
     return str; // not one of these, don't touch
 }
 
+private string fixLowercaseSuffix(in string str) @safe pure nothrow {
+    import std.algorithm: endsWith;
+
+    if(str.endsWith("ll"))
+        return str[0 .. $-2] ~ "LL";
+    if(str.endsWith("l"))
+        return str[0 .. $-1] ~ "L";
+    return str;
+}
 
 private string fixLongLong(in string str) @safe pure nothrow {
     import std.algorithm: endsWith;
