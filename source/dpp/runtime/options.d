@@ -33,6 +33,9 @@ struct Options {
     bool detailedUntranslatable;
     string[] ignoredNamespaces;
     string[] ignoredCursors;
+    bool ignoreSystemPaths;
+    string[] ignoredPaths;
+    string[string] prebuiltHeaders;
     bool alwaysScopedEnums;
     string cppStandard = "c++17";
     string[] clangOptions;
@@ -116,6 +119,9 @@ struct Options {
                 "ignore-macros", "Ignore preprocessor macros", &ignoreMacros,
                 "ignore-ns", "Ignore a C++ namespace", &ignoredNamespaces,
                 "ignore-cursor", "Ignore a C++ cursor", &ignoredCursors,
+                "ignore-path", "Ignore a file path", &ignoredPaths,
+                "ignore-system-paths", "Adds system paths to the ignore-paths list (you can add them back individually with --include-path)", &ignoreSystemPaths,
+                "prebuilt-header", "Declare a #include can be safely replaced with import. You should also ignore-path to prevent retranslating the file", &prebuiltHeaders,
                 "detailed-untranslatables", "Show details about untranslatable cursors", &detailedUntranslatable,
                 "scoped-enums", "Don't redeclare enums to mimic C", &alwaysScopedEnums,
                 "c++-standard", "The C++ language standard (e.g. \"c++14\")", &cppStandard,
@@ -131,6 +137,13 @@ struct Options {
             }();
             earlyExit = true;
         }
+
+        if(ignoreSystemPaths) {
+            import clang: systemPaths;
+            import std.algorithm: filter, canFind;
+            foreach(sp; systemPaths.filter!(p => !includePaths.canFind(p)))
+                ignoredPaths ~= sp;
+        }
     }
 
     void indent() @safe pure nothrow {
@@ -142,6 +155,13 @@ struct Options {
         foreach(i, ref elt; ret.tupleof) {
             static if(__traits(compiles, this.tupleof[i].dup))
                 elt = this.tupleof[i].dup;
+            else static if(is(typeof(this.tupleof[i]) == const(K[V]), K, V))
+            {
+                try // surprised looping over the AA is not nothrow but meh
+                foreach(k, v; this.tupleof[i])
+                    elt[k] = v;
+                catch(Exception) assert(0);
+            }
             else
                 elt = this.tupleof[i];
         }
