@@ -119,7 +119,7 @@ struct Options {
                 "ignore-macros", "Ignore preprocessor macros", &ignoreMacros,
                 "ignore-ns", "Ignore a C++ namespace", &ignoredNamespaces,
                 "ignore-cursor", "Ignore a C++ cursor", &ignoredCursors,
-                "ignore-path", "Ignore a file path", &ignoredPaths,
+                "ignore-path", "Ignore a file path, note it globs so you will want to use *", &ignoredPaths,
                 "ignore-system-paths", "Adds system paths to the ignore-paths list (you can add them back individually with --include-path)", &ignoreSystemPaths,
                 "prebuilt-header", "Declare a #include can be safely replaced with import. You should also ignore-path to prevent retranslating the file", &prebuiltHeaders,
                 "detailed-untranslatables", "Show details about untranslatable cursors", &detailedUntranslatable,
@@ -142,7 +142,7 @@ struct Options {
             import clang: systemPaths;
             import std.algorithm: filter, canFind;
             foreach(sp; systemPaths.filter!(p => !includePaths.canFind(p)))
-                ignoredPaths ~= sp;
+                ignoredPaths ~= sp ~ "*";
         }
     }
 
