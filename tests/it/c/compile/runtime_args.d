@@ -29,3 +29,57 @@ import it;
         shouldCompile("main.d");
     }
 }
+
+@("rewritten module name")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        writeFile("pretend-windows.h",
+                ``);
+        writeFile("hdr.h",
+                  `
+                      #include "pretend-windows.h"
+                  `);
+        writeFile("main.dpp",
+                  `
+                      #include "hdr.h"
+                      void main() {
+                          writeln(""); // should have imported by include translation
+                      }
+                  `);
+        runPreprocessOnly(
+            "--prebuilt-header",
+            "pretend-windows.h=std.stdio",
+            "main.dpp",
+        );
+
+        shouldCompile("main.d");
+    }
+}
+
+@("ignored paths")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        writeFile("pretend-windows.h",
+                `
+                    #define foo "foo"
+                `);
+        writeFile("hdr.h",
+                  `
+                      #include "pretend-windows.h"
+                  `);
+        writeFile("main.dpp",
+                  `
+                      #include "hdr.h"
+                      void main() {
+                          static assert(!is(typeof(foo)));
+                      }
+                  `);
+        runPreprocessOnly(
+            "--ignore-path",
+            "*pretend-windows.h",
+            "main.dpp",
+        );
+
+        shouldCompile("main.d");
+    }
+}
