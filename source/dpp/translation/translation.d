@@ -167,7 +167,15 @@ void debugCursor(in from!"clang".Cursor cursor,
     }
 }
 
-Translator[from!"clang".Cursor.Kind] translators() @safe pure {
+
+Translator[from!"clang".Cursor.Kind] translators() @safe {
+    static Translator[from!"clang".Cursor.Kind] ret;
+    if(ret == ret.init) ret = translatorsImpl;
+    return ret;
+}
+
+
+private Translator[from!"clang".Cursor.Kind] translatorsImpl() @safe pure {
     import dpp.translation;
     import clang: Cursor;
 

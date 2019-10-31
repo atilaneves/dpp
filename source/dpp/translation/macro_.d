@@ -108,7 +108,7 @@ private string translateToD(
 }
 
 
-private string toString(in from!"clang".Token[] tokens) @safe pure {
+private string toString(R)(R tokens) {
     import clang: Token;
     import std.algorithm: map;
     import std.array: join;
@@ -135,14 +135,9 @@ private string fixLiteral(in from!"clang".Token token)
 }
 
 
-private const(from!"clang".Token)[] fixArrow(
-    return scope const(from!"clang".Token[]) tokens
-    )
-    @safe pure
-{
+private auto fixArrow(R)(R tokens) {
     import clang: Token;
     import std.algorithm: map;
-    import std.array: array;
 
     static const(Token) replace(in Token token) {
         return token == Token(Token.Kind.Punctuation, "->")
@@ -152,13 +147,10 @@ private const(from!"clang".Token)[] fixArrow(
 
     return tokens
         .map!replace
-        .array;
+        ;
 }
 
-private const(from!"clang".Token)[] fixNull(
-    return scope const(from!"clang".Token[]) tokens
-    )
-    @safe pure
+private auto fixNull(R)(R tokens)
 {
     import clang: Token;
     import std.algorithm: map;
@@ -172,7 +164,7 @@ private const(from!"clang".Token)[] fixNull(
 
     return tokens
         .map!replace
-        .array;
+        ;
 }
 
 version(Windows)
@@ -265,11 +257,7 @@ private string fixOctal(in string spelling) @safe pure {
 }
 
 
-private const(from!"clang".Token)[] fixSizeof(
-    return scope const(from!"clang".Token)[] tokens,
-    in from !"clang".Cursor cursor,
-    )
-    @safe pure
+private auto fixSizeof(R)(R tokens, in from !"clang".Cursor cursor)
 {
     import clang: Token;
     import std.conv: text;
@@ -286,7 +274,8 @@ private const(from!"clang".Token)[] fixSizeof(
             throw new Exception(text("Can't fix sizeof in function-like macro with tokens: ", tokens));
     }
 
-    auto ret = tokens[0 .. lastIndex];
+    const beginning = tokens[0 .. lastIndex];
+    const(Token)[] middle;
 
     for(size_t i = lastIndex; i < tokens.length - 1; ++i) {
         if(tokens[i] == Token(Token.Kind.Keyword, "sizeof")
@@ -305,29 +294,28 @@ private const(from!"clang".Token)[] fixSizeof(
                 ++scanIndex;
             }
 
-            ret ~= tokens[lastIndex .. i] ~ tokens[i + 1 .. scanIndex] ~ Token(Token.Kind.Keyword, ".sizeof");
+            middle ~= tokens[lastIndex .. i] ~ tokens[i + 1 .. scanIndex] ~ Token(Token.Kind.Keyword, ".sizeof");
             lastIndex = scanIndex;
             // advance i past the sizeof. -1 because of ++i in the for loop
             i = lastIndex - 1;
         }
     }
 
-    ret ~= tokens[lastIndex .. $];
-
-    return ret;
+    // can't chain here due to fixCasts appending to const(Token)[]
+    return beginning ~ middle ~ tokens[lastIndex .. $];
 }
 
 
-private const(from!"clang".Token)[] fixCasts(
-    return scope const(from!"clang".Token)[] tokens,
+private auto fixCasts(R)(
+    R tokens,
     in from !"clang".Cursor cursor,
     in from!"dpp.runtime.context".Context context,
     )
-    @safe pure
 {
     import clang: Token;
     import std.conv: text;
     import std.algorithm: countUntil;
+    import std.range: chain;
 
     // if the token array is a built-in or user-defined type
     bool isType(in Token[] tokens) {
@@ -374,7 +362,8 @@ private const(from!"clang".Token)[] fixCasts(
             throw new Exception(text("Can't fix casts in function-like macro with tokens: ", tokens));
     }
 
-    auto ret = tokens[0 .. lastIndex];
+    const beginning = tokens[0 .. lastIndex];
+    const(Token)[] middle;
 
     for(size_t i = lastIndex; i < tokens.length - 1; ++i) {
         if(tokens[i] == Token(Token.Kind.Punctuation, "(")) {
@@ -401,7 +390,7 @@ private const(from!"clang".Token)[] fixCasts(
                 ;
 
             if(isType(tokens[i + 1 .. scanIndex - 1]) && !followedByDot) {
-                ret ~= tokens[lastIndex .. i] ~
+                middle ~= tokens[lastIndex .. i] ~
                     Token(Token.Kind.Punctuation, "cast(") ~
                     tokens[i + 1 .. scanIndex]; // includes closing paren
                 lastIndex = scanIndex;
@@ -411,7 +400,5 @@ private const(from!"clang".Token)[] fixCasts(
         }
     }
 
-    ret ~= tokens[lastIndex .. $];
-
-    return ret;
+    return chain(beginning, middle, tokens[lastIndex .. $]);
 }
