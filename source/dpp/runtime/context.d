@@ -353,6 +353,14 @@ struct Context {
         import std.algorithm: canFind, any;
         return options.ignoredNamespaces.any!(a => type.spelling.canFind(a ~ "::"));
     }
+
+    /// Is the file from an ignored path? Note it uses file globbing
+    bool isFromIgnoredPath(in Cursor cursor) @safe const pure {
+        import std.path: globMatch;
+        import std.algorithm: any;
+        string sourcePath = cursor.sourceRange.path;
+        return options.ignoredPaths.any!(a => sourcePath.globMatch(a));
+    }
 }
 
 

@@ -33,6 +33,9 @@ private bool skipTopLevel(in from!"clang".Cursor cursor,
     import clang: Cursor;
     import std.algorithm: startsWith, canFind;
 
+    if(context.isFromIgnoredPath(cursor))
+        return true;
+
     // We want to ignore anonymous structs and unions but not enums. See #54
     if(cursor.spelling == "" && cursor.kind == Cursor.Kind.EnumDecl)
         return false;
@@ -219,7 +222,7 @@ Translator[from!"clang".Cursor.Kind] translators() @safe pure {
             FieldDecl:                          &translateField,
             TypedefDecl:                        &translateTypedef,
             MacroDefinition:                    &translateMacro,
-            InclusionDirective:                 &ignore,
+            InclusionDirective:                 &translateInclude,
             EnumConstantDecl:                   &translateEnumConstant,
             VarDecl:                            &translateVariable,
             UnexposedDecl:                      &translateUnexposed,
@@ -247,6 +250,14 @@ Translator[from!"clang".Cursor.Kind] translators() @safe pure {
     }
 }
 
+string[] translateInclude(in from!"clang".Cursor cursor,
+                          ref from!"dpp.runtime.context".Context context)
+    @safe
+{
+    if(auto ptr = cursor.spelling in context.options.prebuiltHeaders)
+        return ["import " ~ *ptr ~ ";"];
+    return null;
+}
 
 // if this translated line can't be valid D code
 bool untranslatable(in string line) @safe pure {
