@@ -83,3 +83,24 @@ import it;
         shouldCompile("main.d");
     }
 }
+
+@("ignored system paths")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        writeFile("main.dpp",
+                  `
+                      #include <stdio.h>
+                      // since the system path is ignored, the declarations
+                      // should NOT have been generated here
+                      void main() {
+                          static assert(!is(typeof(printf)));
+                      }
+                  `);
+        runPreprocessOnly(
+            "--ignore-system-paths",
+            "main.dpp",
+        );
+
+        shouldCompile("main.d");
+    }
+}
