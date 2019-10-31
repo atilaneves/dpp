@@ -146,7 +146,7 @@ private TranslationText translationText(File)(in from!"dpp.runtime.options".Opti
         import dpp2.expansion: expand, isCppHeader, getHeaderName;
     else
         import dpp.expansion: expand, isCppHeader, getHeaderName;
-    import clang: getTempFileName;
+    import clang.util: getTempFileName;
 
     import std.algorithm: map, filter;
     import std.string: fromStringz;

@@ -27,7 +27,7 @@ string translateTopLevelCursor(in from!"clang".Cursor cursor,
 
 private bool skipTopLevel(in from!"clang".Cursor cursor,
                           in from!"dpp.runtime.context".Context context)
-    @safe pure
+    @safe
 {
     import dpp.translation.aggregate: isAggregateC;
     import clang: Cursor;

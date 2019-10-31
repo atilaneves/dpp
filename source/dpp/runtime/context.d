@@ -355,7 +355,7 @@ struct Context {
     }
 
     /// Is the file from an ignored path? Note it uses file globbing
-    bool isFromIgnoredPath(in Cursor cursor) @safe const pure {
+    bool isFromIgnoredPath(in Cursor cursor) @safe const {
         import std.path: globMatch;
         import std.algorithm: any;
         string sourcePath = cursor.sourceRange.path;
