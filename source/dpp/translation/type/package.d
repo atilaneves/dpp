@@ -28,14 +28,21 @@ string translate(in from!"clang".Type type,
     if(type.kind !in translators)
         throw new UntranslatableException(text("Type kind ", type.kind, " not supported: ", type));
 
-    const translation =  translators[type.kind](type, context, translatingFunction);
+    const translation = translators[type.kind](type, context, translatingFunction);
 
     // hack for std::function since function is a D keyword
     return translation.replace(`function!`, `function_!`);
 }
 
 
-Translators translators() @safe {
+private Translators translators() @safe {
+    static Translators ret;
+    if(ret == ret.init) ret = translatorsImpl;
+    return ret;
+}
+
+
+private Translators translatorsImpl() @safe pure {
     import clang: Type;
 
     with(Type.Kind) {
@@ -442,7 +449,7 @@ private string translateUnexposed(in from!"clang".Type type,
 /**
    Translate possibly problematic C++ spellings
  */
-string translateString(in string spelling,
+string translateString(scope const string spelling,
                        in from!"dpp.runtime.context".Context context)
     @safe nothrow
 {
@@ -474,7 +481,7 @@ string translateString(in string spelling,
 
 
 // "struct Foo" -> Foo, "union Foo" -> Foo, "enum Foo" -> Foo
-string translateElaborated(in string spelling) @safe nothrow {
+string translateElaborated(const scope string spelling) @safe nothrow {
     import std.array: replace;
     return spelling
         .replace("struct ", "")

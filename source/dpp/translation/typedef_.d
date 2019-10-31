@@ -159,7 +159,7 @@ private string[] translateTopLevelAnonymous(in from!"clang".Cursor cursor,
     auto newCursor = Cursor(cursor.cx);
 
     // the type spelling will be the name of the struct, union, or enum
-    newCursor.spelling = cursor.type.spelling;
+    newCursor.setSpelling(cursor.type.spelling);
 
     // delegate to whoever knows what they're doing
     return translate(newCursor, context);

@@ -60,10 +60,12 @@ private bool ignoreFunction(in from!"clang".Cursor cursor) @safe {
     if(cursor.semanticParent.kind == Cursor.Kind.ClassTemplatePartialSpecialization)
         return true;
 
+    const tokens = cursor.tokens;
+
     // C++ deleted functions
-    const deleteIndex = cursor.tokens.countUntil(Token(Token.Kind.Keyword, "delete"));
+    const deleteIndex = tokens.countUntil(Token(Token.Kind.Keyword, "delete"));
     if(deleteIndex != -1 && deleteIndex > 1) {
-        if(cursor.tokens[deleteIndex - 1] == Token(Token.Kind.Punctuation, "="))
+        if(tokens[deleteIndex - 1] == Token(Token.Kind.Punctuation, "="))
             return true;
     }
 
@@ -74,7 +76,6 @@ private bool ignoreFunction(in from!"clang".Cursor cursor) @safe {
 
         // If it has a body, we check that its tokens contain "::" in the right place
 
-        const tokens = cursor.tokens;
         const doubleColonIndex = tokens.countUntil(Token(Token.Kind.Punctuation, "::"));
 
         if(doubleColonIndex != -1) {
@@ -100,7 +101,7 @@ private bool ignoreFunction(in from!"clang".Cursor cursor) @safe {
     // The lexical parent only differs from the semantic parent
     // in this case.
     if(
-        // the constructor type is for issue 115 test on Windows. 
+        // the constructor type is for issue 115 test on Windows.
         // it didn't trigger the check above because the CompoundStmts
         // are not present on the Windows builds of libclang for
         // template member functions (reason unknown)

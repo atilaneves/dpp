@@ -41,7 +41,7 @@ string typeNameNoNs(in from!"clang".Cursor cursor) @safe {
 
     while(isWanted(c.semanticParent)) {
         c = c.semanticParent;
-        parts ~= c.spelling;
+        parts ~= c.spelling.idup;
     }
 
     parts = parts.reverse ~ cursor.spelling;
