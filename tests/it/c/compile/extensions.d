@@ -7,7 +7,6 @@ module it.c.compile.extensions;
 import it;
 
 
-@ShouldFail
 @("typeof")
 @safe unittest {
     shouldCompile(
