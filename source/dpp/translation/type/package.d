@@ -431,15 +431,20 @@ private string translateUnexposed(in from!"clang".Type type,
     import std.string: replace;
     import std.algorithm: canFind;
 
-    if(type.canonical.kind == Type.Kind.Record)
-        return translateAggregate(type.canonical, context, translatingFunction);
+    const canonical = type.canonical;
 
+    // Deal with kinds we know how to deal with here
+    if(canonical.kind != Type.Kind.Unexposed)
+        return translate(canonical, context, translatingFunction);
+
+    // FIXME: there should be a better way
     const spelling = type.spelling.canFind(" &&...")
         ? "auto ref " ~ type.spelling.replace(" &&...", "")
         : type.spelling;
 
     const translation =  translateString(spelling, context)
-        // we might get template arguments here (e.g. `type-parameter-0-0`)
+        // We might get template arguments here (e.g. `type-parameter-0-0`)
+        // FIXME: this is a hack to get around libclang
         .replace("type-parameter-0-", "type_parameter_0_")
         ;
 

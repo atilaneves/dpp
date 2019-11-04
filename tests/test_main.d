@@ -57,6 +57,7 @@ version(dpp2) {
         "it.c.compile.projects",
         "it.c.compile.runtime_args",
         "it.c.compile.collision",
+        "it.c.compile.extensions",
         "it.c.run.struct_",
         "it.c.run.c",
 
