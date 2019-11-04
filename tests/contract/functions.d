@@ -61,3 +61,30 @@ import std.array: array;
 
     f.pointee.canonical.shouldMatch(Type.Kind.FunctionProto, "int (int, int)");
 }
+
+
+@Tags("contract")
+@("typeof")
+@safe unittest {
+
+    const tu = parse(
+        C(
+            q{
+                struct Foo;
+                // typeof is a gcc and clang language extension
+                typeof(struct Foo *) func();
+            }
+        )
+    );
+
+    tu.children.length.should == 2;
+
+    const func = tu.child(1);
+    func.shouldMatch(Cursor.Kind.FunctionDecl, "func");
+    printChildren(func);
+    func.children.length.should == 1;
+
+    func.returnType.shouldMatch(Type.Kind.Unexposed, "typeof(struct Foo *)");
+    func.returnType.canonical.shouldMatch(Type.Kind.Pointer, "struct Foo *");
+    func.returnType.canonical.pointee.shouldMatch(Type.Kind.Record, "struct Foo");
+}
