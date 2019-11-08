@@ -1630,3 +1630,28 @@ unittest {
         )
     );
 }
+
+
+@Tags("issue")
+@("207")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                #define FOO 1
+                #define BAR 2
+                #define BAZ 4
+                #define ALL ( \
+                    FOO | \
+                    BAR | \
+                    BAZ \
+                )
+            `
+        ),
+        D(
+            q{
+                static assert(ALL == 7);
+            }
+        )
+    );
+}
