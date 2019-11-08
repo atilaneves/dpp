@@ -108,7 +108,7 @@ the file to be included with libclang, loops over the definitions of data struct
 therein and expands in-place the relevant D translations. e.g. if a header contains:
 
 ```c
-uint16_t foo(uin32_t a);
+uint16_t foo(uint32_t a);
 ```
 
 The output file will contain:
