@@ -148,10 +148,16 @@ struct Context {
         return lines.join("\n");
     }
 
+    /**
+       Writes a line of translation.
+     */
     void writeln(in string line) @safe pure nothrow {
         lines ~= line.dup;
     }
 
+    /**
+       Writes lines of translation.
+    */
     void writeln(in string[] lines) @safe pure nothrow {
         this.lines ~= lines;
     }
