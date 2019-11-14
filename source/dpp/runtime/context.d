@@ -152,7 +152,7 @@ struct Context {
        Writes a line of translation.
      */
     void writeln(in string line) @safe pure nothrow {
-        lines ~= line.dup;
+        lines ~= line;
     }
 
     /**
