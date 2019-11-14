@@ -422,6 +422,39 @@ version(Posix) // because Windows doesn't have signinfo
     );
 }
 
+@Tags("issue")
+@("29.4")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                struct Struct {
+                    union {
+                        int a;
+                        struct {
+                            int b;
+                            union {
+                                int c;
+                                char d;
+                            };
+                        };
+                    };
+                };
+            }
+        ),
+        D(
+            q{
+                Struct s;
+                s.a = 42;
+                s.b = 1337;
+                s.c = 7;
+                s.d = 'D';
+            }
+        ),
+    );
+}
+
+
 
 @Tags("issue")
 @("33.0")

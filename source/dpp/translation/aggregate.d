@@ -509,7 +509,7 @@ private string[] maybeC11AnonymousRecords(in from!"clang".Cursor cursor,
     if(member.type.kind != Type.Kind.Record || member.spelling != "") return [];
 
     // Either a field or an array of the type we expect
-    bool isFieldOfRightType(in Cursor member, in Cursor child) {
+    static bool isFieldOfRightType(in Cursor member, in Cursor child) {
         const isField =
             child.kind == Cursor.Kind.FieldDecl &&
             child.type.canonical == member.type.canonical;
@@ -530,17 +530,21 @@ private string[] maybeC11AnonymousRecords(in from!"clang".Cursor cursor,
     const dtype = translate(member.type, context);
     lines ~= "    " ~ dtype ~ " " ~  varName ~ ";";
 
-    foreach(subMember; member.children) {
-        if(subMember.kind == Cursor.Kind.FieldDecl)
-            lines ~= innerFieldAccessors(varName, subMember);
-        else if(subMember.type.canonical.kind == Type.Kind.Record &&
-                hasAnonymousSpelling(subMember.type.canonical) &&
-                !member.children.any!(a => isFieldOfRightType(subMember, a))) {
-            foreach(subSubMember; subMember) {
-                lines ~= "        " ~ innerFieldAccessors(varName, subSubMember);
+    static string[] subMemberAccessors(in Cursor member, in string varName) {
+        string[] res;
+        foreach(subMember; member.children) {
+            if(subMember.kind == Cursor.Kind.FieldDecl)
+                res ~= innerFieldAccessors(varName, subMember);
+            else if(subMember.type.canonical.kind == Type.Kind.Record &&
+                    hasAnonymousSpelling(subMember.type.canonical) &&
+                    !member.children.any!(a => isFieldOfRightType(subMember, a))) {
+                res ~= subMemberAccessors(subMember, varName);
             }
         }
+        return res;
     }
+
+    lines ~= subMemberAccessors(member, varName);
 
     return lines;
 }
