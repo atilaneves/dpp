@@ -55,15 +55,31 @@ $ 30
 
 [![Open on run.dlang.io](https://img.shields.io/badge/run.dlang.io-open-blue.svg)](https://run.dlang.io/is/WwpvhT)
 
+C++ support
+-----------
+
+C++ support is currently limited. Including any header from the C++
+standard library is unlikely to work.  Simpler headers might, the
+probability rising with how similar the C++ dialect used is to
+C. Despite that, dpp currently does try to translate classes,
+templates and operator overloading. It's unlikely to work on
+production headers without judicious use of the `--ignore-cursor` and
+`--ignore-namespace` command-line options.  When using these, the user
+can then define their own versions of problematic declarations such as
+`std::vector`.
+
 Limitations
 -----------
 
-* It currently only supports C features, but C++ is planned.
-* Using it on a C++ header will "work" if it's basically technically C, with `extern(C++)` instead of `extern(C)`
-* Only known to work on Linux with libclang.so.6.0. It might work in different conditions.
-* When used on multiple files, there might be problems with duplicate definitions depending on imports. This will be fixed.
+* Only known to work on Linux with libclang versions 6 and up. It might work in different conditions.
+* When used on multiple files, there might be problems with duplicate definitions depending on imports.
+  It is recommended to put all `#include`s in one `.dpp` file and import the resulting D module.
+* Not currently able to translate Linux kernel headers.
 
-This is alpha software. It has however produced programs that compile that #included several "real-life" C headers:
+Success stories
+--------------
+
+Known project headers whose translations produce D code that compiles:
 
 * nanomsg/nn.h, nanomsg/pubsub.h
 * curl/curl.h
@@ -76,6 +92,7 @@ This is alpha software. It has however produced programs that compile that #incl
 * openssl/ssl.h
 * imapfilter.h
 * libetpan/libetpan.h
+* Python.h
 
 Compilation however doesn't guarantee they work as expected and YMMV. Please consult the examples.
 
