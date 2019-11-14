@@ -188,3 +188,28 @@ import it;
         ),
     );
 }
+
+@Tags("collision")
+@("Accessors for members of anonymous records are renamed")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                struct A {
+                    union {
+                        unsigned int version;
+                        char module;
+                    };
+                    int a;
+                };
+            }
+        ),
+        D(
+            q{
+                A a;
+                a.version_ = 7;
+                a.module_ = 'D';
+            }
+        ),
+    );
+}

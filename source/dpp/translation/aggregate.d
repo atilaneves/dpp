@@ -530,36 +530,41 @@ private string[] maybeC11AnonymousRecords(in from!"clang".Cursor cursor,
     const dtype = translate(member.type, context);
     lines ~= "    " ~ dtype ~ " " ~  varName ~ ";";
 
-    static string[] subMemberAccessors(in Cursor member, in string varName) {
+    static string[] subMemberAccessors(in Cursor member,
+                                       in string varName,
+                                       ref from!"dpp.runtime.context".Context context) {
         string[] res;
         foreach(subMember; member.children) {
             if(subMember.kind == Cursor.Kind.FieldDecl)
-                res ~= innerFieldAccessors(varName, subMember);
+                res ~= innerFieldAccessors(varName, subMember, context);
             else if(subMember.type.canonical.kind == Type.Kind.Record &&
                     hasAnonymousSpelling(subMember.type.canonical) &&
                     !member.children.any!(a => isFieldOfRightType(subMember, a))) {
-                res ~= subMemberAccessors(subMember, varName);
+                res ~= subMemberAccessors(subMember, varName, context);
             }
         }
         return res;
     }
 
-    lines ~= subMemberAccessors(member, varName);
+    lines ~= subMemberAccessors(member, varName, context);
 
     return lines;
 }
 
 
 // functions to emulate C11 anonymous structs/unions
-private string[] innerFieldAccessors(in string varName, in from !"clang".Cursor subMember) @safe {
+private string[] innerFieldAccessors(in string varName,
+                                     in from !"clang".Cursor subMember,
+                                     ref from!"dpp.runtime.context".Context context) @safe {
     import std.format: format;
     import std.algorithm: map;
     import std.array: array;
 
     string[] lines;
 
-    const fieldAccess = varName ~ "." ~ subMember.spelling;
-    const funcName = subMember.spelling;
+    const subMemberSpelling = context.spelling(subMember.spelling);
+    const fieldAccess = varName ~ "." ~ subMemberSpelling;
+    const funcName = subMemberSpelling;
 
     lines ~= q{auto %s() @property @nogc pure nothrow { return %s; }}
         .format(funcName, fieldAccess);
