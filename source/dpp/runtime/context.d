@@ -24,15 +24,20 @@ struct Context {
 
     import dpp.runtime.options: Options;
     import clang: Cursor, Type, AccessSpecifier;
+    import std.array: Appender;
 
     alias SeenCursors = bool[CursorId];
+
+    private auto lines(this This)() {
+        return _lines.data;
+    }
 
     /**
        The lines of output so far. This is needed in order to fix
        any name collisions between functions or variables with aggregates
        such as structs, unions and enums.
      */
-    private string[] lines;
+    private Appender!(string[]) _lines;
 
     /**
        Structs can be anonymous in C, and it's even common
@@ -148,12 +153,18 @@ struct Context {
         return lines.join("\n");
     }
 
+    /**
+       Writes a line of translation.
+     */
     void writeln(in string line) @safe pure nothrow {
-        lines ~= line.dup;
+        _lines ~= line;
     }
 
+    /**
+       Writes lines of translation.
+    */
     void writeln(in string[] lines) @safe pure nothrow {
-        this.lines ~= lines;
+        _lines ~= lines;
     }
 
     // remember a function or variable declaration
