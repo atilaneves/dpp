@@ -215,7 +215,7 @@ import it;
 }
 
 @Tags("collision")
-@("Members (pointers to struct) in multiple structures")
+@("Members (pointers to struct) in multiple (possibly anon) structures")
 @safe unittest {
     shouldCompile(
         C(
@@ -229,6 +229,13 @@ import it;
                 struct C {
                     struct A* A;
                 };
+
+                struct D {
+                    union {
+                        struct A* A;
+                        int d;
+                    };
+                };
             }
         ),
         D(
@@ -238,6 +245,8 @@ import it;
                 b.A_ = a;
                 C c;
                 c.A_ = a;
+                D d;
+                d.A_ = a;
             }
         ),
     );
