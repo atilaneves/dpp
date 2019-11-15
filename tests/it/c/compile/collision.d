@@ -213,3 +213,32 @@ import it;
         ),
     );
 }
+
+@Tags("collision")
+@("Members (pointers to struct) in multiple structures")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                struct A;
+
+                struct B {
+                    struct A *A;
+                };
+
+                struct C {
+                    struct A* A;
+                };
+            }
+        ),
+        D(
+            q{
+                A *a;
+                B b;
+                b.A_ = a;
+                C c;
+                c.A_ = a;
+            }
+        ),
+    );
+}

@@ -57,7 +57,7 @@ struct Context {
        Remembers the field spellings in aggregates in case we need to change any
        of them.
      */
-    private LineNumber[string] _fieldDeclarations;
+    private LineNumber[][string] _fieldDeclarations;
 
     /**
        All the aggregates that have been declared
@@ -202,10 +202,27 @@ struct Context {
         import dpp.translation.dlang: pragmaMangle, rename;
         import std.string: replace;
 
-        foreach(spelling, lineNumber; _fieldDeclarations) {
-            if(spelling in _aggregateDeclarations) {
-                lines[lineNumber] = lines[lineNumber]
-                    .replace(spelling ~ `;`, rename(spelling, this) ~ `;`);
+        foreach(spelling, lineNumbers; _fieldDeclarations) {
+            if(spelling in _aggregateDeclarations || spelling in _aggregateSpelling) {
+                const actual = spelling in _aggregateSpelling
+                                            ? _aggregateSpelling[spelling]
+                                            : spelling;
+                const renamed = rename(actual, this);
+                foreach (lineNumber; lineNumbers) {
+                    lines[lineNumber] = lines[lineNumber]
+                        // Member declaration
+                        .replace(" " ~ actual ~ `;`, " " ~ renamed ~ `;`)
+                        // Pointer declaration
+                        .replace(" *" ~ actual ~ `;`, " *" ~ renamed ~ `;`)
+                        // Accessing member in getter (C11 anon records)
+                        .replace("." ~ actual ~ ";", "." ~ renamed ~ ";")
+                        // Accessing member in setter (C11 anon records)
+                        .replace("." ~ actual ~ " =", "." ~ renamed ~ " =")
+                        // Getter function name (C11 anon records)
+                        .replace("auto " ~ actual ~ "()", "auto " ~ renamed ~ "()")
+                        // Setter function name (C11 anon records)
+                        .replace("void " ~ actual ~ "(_T_)", "void " ~ renamed ~ "(_T_)");
+                }
             }
         }
     }
@@ -229,7 +246,7 @@ struct Context {
        because of elaborated names. We remember them here in case we need to fix them.
      */
     void rememberField(scope const string spelling) @safe pure {
-        _fieldDeclarations[spelling] = lines.length;
+        _fieldDeclarations[spelling] ~= lines.length;
     }
 
     /**
