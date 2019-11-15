@@ -232,7 +232,9 @@ private string fixLongLong(in string str) @safe pure nothrow {
 
     return str.endsWith("LL")
         ? str[0 .. $-1]
-        : str;
+        : str.endsWith("LLU")
+            ? str[0 .. $ - 2] ~ "U"
+            : str;
 }
 
 
