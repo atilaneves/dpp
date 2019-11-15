@@ -29,7 +29,7 @@ struct Context {
     alias SeenCursors = bool[CursorId];
 
     private auto lines(this This)() {
-        return _lines[];
+        return _lines.data;
     }
 
     /**
