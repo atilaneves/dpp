@@ -300,3 +300,24 @@ import it;
         )
     );
 }
+
+@("const anonymous struct as field")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                struct A {
+                    const struct {
+                        int version;
+                        int other;
+                    } version;
+                };
+            }
+        ),
+        D(
+            q{
+                A a = { version_ : { version_ : 13, other : 7 } };
+            }
+        )
+    );
+}

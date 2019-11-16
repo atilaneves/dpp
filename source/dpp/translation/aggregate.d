@@ -512,7 +512,8 @@ private string[] maybeC11AnonymousRecords(in from!"clang".Cursor cursor,
     static bool isFieldOfRightType(in Cursor member, in Cursor child) {
         const isField =
             child.kind == Cursor.Kind.FieldDecl &&
-            child.type.canonical == member.type.canonical;
+            (child.type.canonical == member.type.canonical ||
+                child.type.unelaborate == member.type.canonical);
 
         const isArrayOf = child.type.elementType.canonical == member.type.canonical;
         return isField || isArrayOf;
