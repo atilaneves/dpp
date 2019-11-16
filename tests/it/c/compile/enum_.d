@@ -346,3 +346,24 @@ import it;
          ),
     );
 }
+
+@("enumBaseType changed to long")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                enum Promoted { A = 1, B = 68719476704 };
+                enum NotPromoted { C = 1, D = 3 };
+            }
+         ),
+
+        D(
+            q{
+                auto a = Promoted.A;
+                auto b = Promoted.B;
+                static assert(Promoted.sizeof == long.sizeof);
+                static assert(NotPromoted.sizeof == int.sizeof);
+            }
+         ),
+    );
+}

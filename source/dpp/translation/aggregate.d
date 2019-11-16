@@ -182,7 +182,8 @@ string[] translateAggregate(
         ? "static " ~ dKeyword
         : dKeyword;
     const parents = maybeParents(cursor, context, dKeyword);
-    const firstLine = realDlangKeyword ~ ` ` ~ name ~ parents;
+    const enumBaseType = maybeEnumBaseType(cursor, dKeyword);
+    const firstLine = realDlangKeyword ~ ` ` ~ name ~ parents ~ enumBaseType;
 
     if(!cursor.isDefinition) return [firstLine ~ `;`];
 
@@ -699,4 +700,17 @@ private string maybeParents(
     return parents.empty
         ? ""
         : ": " ~ parents.join(", ");
+}
+
+private string maybeEnumBaseType(in from!"clang".Cursor cursor, in string dKeyword)
+    @safe
+{
+    import std.algorithm: map, minElement, maxElement;
+
+    if(dKeyword != "enum") return "";
+
+    auto enumValues = cursor.children.map!(a => a.enumConstantValue);
+    bool shouldPromote = enumValues.maxElement > int.max || enumValues.minElement < int.min;
+
+    return shouldPromote ? " : long" : "";
 }
