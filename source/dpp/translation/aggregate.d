@@ -513,6 +513,12 @@ private string[] maybeC11AnonymousRecords(in from!"clang".Cursor cursor,
         const isField =
             child.kind == Cursor.Kind.FieldDecl &&
             (child.type.canonical == member.type.canonical ||
+                // If the inner struct declaration is 'const struct {...} X;',
+                // then child.type.canonical would be:
+                // Type(Elaborated, "const struct (anonymous struct at fileY)"),
+                // and member.type.canonical would be:
+                // Type(Record, "struct ParentStruct::(anonymous at fileY)").
+                // This is the reason why we unelaborate the child.type.
                 child.type.unelaborate == member.type.canonical);
 
         const isArrayOf = child.type.elementType.canonical == member.type.canonical;
