@@ -95,7 +95,7 @@ version(Posix) // because Windows doesn't have signinfo
 
 
 @Tags("issue", "bitfield")
-@("7")
+@("7.0")
 @safe unittest {
     shouldCompile(
         C(
@@ -123,6 +123,31 @@ version(Posix) // because Windows doesn't have signinfo
         ),
     );
 }
+
+@Tags("issue", "bitfield")
+@("7.1")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                struct other {
+                    int a: 2;
+                    int b: 3;
+                    // field type of pointer to undeclared struct should not
+                    // affect the generated bitfields' syntax
+                    struct A *ptr;
+                };
+            }
+        ),
+        D(
+            q{
+                other o;
+            }
+        ),
+    );
+}
+
+
 
 @Tags("issue")
 @("10")
