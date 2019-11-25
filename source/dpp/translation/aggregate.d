@@ -421,6 +421,18 @@ string[] translateBitField(in from!"clang".Cursor cursor,
     return [text("    ", type, `, "`, spelling, `", `, cursor.bitWidth, `,`)];
 }
 
+private from!"clang".Type pointeeTypeFor(in from!"clang".Type type)
+    @safe
+{
+    import clang: Type;
+
+    Type pointeeType = type.pointee.canonical;
+    while (pointeeType.kind == Type.Kind.Pointer)
+        pointeeType = pointeeType.pointee.canonical;
+
+    return pointeeType;
+}
+
 // C allows elaborated types to appear in function parameters and member declarations
 // if they're pointers and doesn't require a declaration for the referenced type.
 private void maybeRememberStructsFromType(in from!"clang".Type type,
@@ -430,7 +442,7 @@ private void maybeRememberStructsFromType(in from!"clang".Type type,
     import clang: Type;
     import std.range: only, chain;
 
-    const pointeeType = type.pointee.canonical;
+    const pointeeType = pointeeTypeFor(type);
     const isFunction =
         pointeeType.kind == Type.Kind.FunctionProto ||
         pointeeType.kind == Type.Kind.FunctionNoProto;
@@ -454,8 +466,8 @@ void maybeRememberStructs(R)(R types, ref from!"dpp.runtime.context".Context con
     import std.algorithm: map, filter;
 
     auto structTypes = types
-        .filter!(a => a.kind == Type.Kind.Pointer && a.pointee.canonical.kind == Type.Kind.Record)
-        .map!(a => a.pointee.canonical);
+        .filter!(a => a.kind == Type.Kind.Pointer && pointeeTypeFor(a).kind == Type.Kind.Record)
+        .map!(a => pointeeTypeFor(a));
 
     void rememberStruct(scope const Type pointeeCanonicalType) @safe {
         import dpp.translation.type: translateElaborated;

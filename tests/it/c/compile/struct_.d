@@ -321,3 +321,24 @@ import it;
         )
     );
 }
+
+@("Pointer to pointer to undeclared struct should result in a struct declaration")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                struct A {
+                    const struct B** p;
+                };
+
+                void f(struct C***);
+            }
+        ),
+        D(
+            q{
+                B *ptrB;
+                C *ptrC;
+            }
+        )
+    );
+}
