@@ -346,3 +346,27 @@ import it;
          ),
     );
 }
+
+@("enumBaseType changed to long")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                #include <limits.h>
+                enum Promoted { A = 1, B = LONG_MAX };
+                enum NotPromoted { C = 1, D = 3 };
+            `
+         ),
+
+        D(
+            q{
+                import core.stdc.config : c_long;
+                auto a = Promoted.A;
+                auto b = Promoted.B;
+                static assert(c_long.max == Promoted.B);
+                static assert(Promoted.sizeof == c_long.sizeof);
+                static assert(NotPromoted.sizeof == int.sizeof);
+            }
+         ),
+    );
+}
