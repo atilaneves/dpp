@@ -211,9 +211,9 @@ string[] translateAggregate(
             continue;
         }
 
-        lines ~= bitFieldInfo.handle(child);
-
         if(skipMember(child)) continue;
+
+        lines ~= bitFieldInfo.handle(child);
 
         const childTranslation = () {
 
