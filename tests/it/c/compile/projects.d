@@ -819,3 +819,37 @@ import it;
         ),
     );
 }
+
+@("(unsigned) long long C suffixes")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                #define A 1LL
+                #define B 2ll
+                #define C 3LLU
+                #define D 4LLu
+                #define E 5llU
+                #define F 6llu
+                #define G 7ULL
+                #define H 8Ull
+                #define I 9uLL
+                #define J 10ull
+            `
+        ),
+        D(
+            q{
+                auto a = A;
+                auto b = B;
+                auto c = C;
+                auto d = D;
+                auto e = E;
+                auto f = F;
+                auto g = G;
+                auto h = H;
+                auto i = I;
+                auto j = J;
+            }
+        ),
+    );
+}

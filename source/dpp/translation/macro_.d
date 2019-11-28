@@ -227,12 +227,19 @@ private string fixLowercaseSuffix(in string str) @safe pure nothrow {
     return str;
 }
 
-private string fixLongLong(in string str) @safe pure nothrow {
-    import std.algorithm: endsWith;
+private string fixLongLong(in string str) @safe pure {
+    import std.uni : toUpper;
+    const suffix = str.length < 3 ? "" : str[$-3 .. $].toUpper;
 
-    return str.endsWith("LL")
-        ? str[0 .. $-1]
-        : str;
+    if (suffix.length > 0) {
+        if (suffix == "LLU" || suffix == "ULL")
+            return str[0 .. $-3] ~ "LU";
+
+        if (suffix[1 .. $] == "LL")
+            return str[0 .. $-2] ~ "L";
+    }
+
+    return str;
 }
 
 
