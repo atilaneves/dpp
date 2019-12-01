@@ -128,7 +128,7 @@ void preprocess(File)(in from!"dpp.runtime.options".Options options,
         writeDlangLines(inputFileName, outputFile);
     }
 
-    runCPreProcessor(tmpFileName, outputFileName);
+    runCPreProcessor(options.cppPath, tmpFileName, outputFileName);
 }
 
 private struct TranslationText {
@@ -209,7 +209,7 @@ bool isModuleLine(in const(char)[] line) @safe pure {
 }
 
 
-private void runCPreProcessor(in string tmpFileName, in string outputFileName) @safe {
+private void runCPreProcessor(in string cppPath, in string tmpFileName, in string outputFileName) @safe {
 
     import std.exception: enforce;
     import std.process: execute;
@@ -219,9 +219,11 @@ private void runCPreProcessor(in string tmpFileName, in string outputFileName) @
     import std.algorithm: filter, startsWith;
 
     version (Windows)
-        enum cpp = "clang-cpp";
+        enum cppDefault = "clang-cpp";
     else
-        enum cpp = "cpp";
+        enum cppDefault = "cpp";
+
+    const cpp = cppPath == "" ? cppDefault : cppPath;
 
     const cppArgs = [cpp, tmpFileName];
     const ret = () {

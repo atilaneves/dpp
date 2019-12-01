@@ -40,6 +40,7 @@ struct Options {
     string cppStandard = "c++17";
     string[] clangOptions;
     bool noSystemHeaders;
+    string cppPath;
 
     this(string[] args) {
 
@@ -127,6 +128,7 @@ struct Options {
                 "c++-standard", "The C++ language standard (e.g. \"c++14\")", &cppStandard,
                 "clang-option", "Pass option to libclang", &clangOptions,
                 "no-sys-headers", "Don't include system headers by default", &noSystemHeaders,
+                "cpp-path", "Path to the C preprocessor executable", &cppPath,
             );
 
         clangOptions = map!(e => e.split(" "))(clangOptions).join();
