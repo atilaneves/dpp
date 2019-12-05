@@ -57,7 +57,8 @@ echo Testing download etpan
 dpp --include-path "$REPOS_DIR"/libetpan/include "$SCRIPT_DIR"/etpan.dpp -c
 
 echo Testing download nanomsg
-dpp --include-path "$REPOS_DIR" "$SCRIPT_DIR"/nanomsg.dpp -c
+dpp --include-path "$REPOS_DIR" "$SCRIPT_DIR"/nanomsg.dpp -L-lnanomsg -of/tmp/nanomsg -checkaction=context
+/tmp/nanomsg
 
 echo Testing download libxlsxwriter
 dpp --include-path "$REPOS_DIR"/libxlsxwriter/include "$SCRIPT_DIR"/anatomy.dpp -c
