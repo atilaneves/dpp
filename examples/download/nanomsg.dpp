@@ -1,7 +1,23 @@
 #include "nanomsg/nn.h"
-#include "nanomsg/pubsub.h"
+#include "nanomsg/pipeline.h"
+import core.thread: Thread, msecs;
 
 void main() {
-    const sock = nn_socket (AF_SP, NN_PUB);
-    scope(exit) nn_close(sock);
+    enum uri = "inproc://test";
+
+    auto pull = nn_socket(AF_SP, NN_PULL);
+    scope(exit) nn_close(pull);
+    assert(pull >= 0);
+    assert(nn_bind(pull, uri) >= 0);
+    Thread.sleep(50.msecs);
+
+    auto push = nn_socket(AF_SP, NN_PUSH);
+    scope(exit) nn_close(push);
+    assert(push >= 0);
+    assert(nn_connect(push, uri) >= 0);
+    const ubyte[] bytes = [1, 2, 3];
+    assert(nn_send(push, &bytes[0], bytes.length, 0) == bytes.length);
+    ubyte[1024] buf;
+    assert(nn_recv(pull, &buf[0], buf.length, 0) == bytes.length);
+    assert(buf[0 .. bytes.length] == bytes);
 }
