@@ -1155,7 +1155,6 @@ unittest {
         writeFile("app.d",
                   q{
                       import hdr;
-                      import std.conv: text;
                       static assert(OCTAL == 127);
                   });
 
@@ -1178,8 +1177,37 @@ unittest {
         writeFile("app.d",
                   q{
                       import hdr;
-                      import std.conv: text;
                       static assert(STRING == "foobar");
+                  });
+
+        runPreprocessOnly("hdr.dpp");
+        shouldCompile("app.d");
+    }
+}
+
+
+@ShouldFail("Not implemented yet")
+@Tags("issue")
+@("103.3")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        writeFile("hdr.h",
+                  `
+                      #define BASE 5
+                      #define OPT0 (BASE * 16 + 0)
+                      #define OPT1 (BASE * 16 + 1)
+                  `
+        );
+        writeFile("hdr.dpp",
+                  `
+                      #include "hdr.h"
+                  `);
+        writeFile("app.d",
+                  q{
+                      import hdr;
+                      static assert(BASE == 5);
+                      static assert(OPT0 == 80);
+                      static assert(OPT1 == 81);
                   });
 
         runPreprocessOnly("hdr.dpp");
