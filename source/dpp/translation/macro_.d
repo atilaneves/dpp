@@ -32,16 +32,30 @@ string[] translateMacro(in from!"clang".Cursor cursor,
     const spelling = maybeRename(cursor, context);
     const dbody = translateToD(cursor, context, tokens);
 
-    if(isLiteralMacro(tokens))
+    // We try here to make it so that literal macros can be imported from
+    // another D module. We also try and make non-function-like macros
+    // that aren't a literal constant but an expression can be imported
+    // as well. To that end we check that we can mixin a declaration of
+    // an enum with the same name of the macro with the original C code.
+    // If so, we mix it in.
+    // Below that, we declare the macro so the the #including .dpp file
+    // uses the preprocessor.
+    if(!cursor.isMacroFunction && tokens.length > 1) {
+        const defineEnum = `enum ` ~ spelling ~ ` = ` ~ dbody ~ `;`;
+        const enumVarName = `enumMixinStr_` ~ spelling;
         return [
             `#ifdef ` ~ spelling,
             `#    undef ` ~ spelling,
             `#endif`,
-            `#define _DPP_` ~ spelling ~ ` ` ~ dbody,
             `static if(!is(typeof(` ~ spelling ~ `))) {`,
-            `    enum ` ~ spelling ~ ` = ` ~ dbody ~ `;`,
+            "    enum " ~ enumVarName ~ " = `" ~ defineEnum ~ "`;",
+            `    static if(is(typeof({ mixin(` ~ enumVarName ~ `); }))) {`,
+            `        mixin(`  ~ enumVarName ~ `);`,
+            `    }`,
             `}`,
+            `#define ` ~ spelling ~ ` ` ~ dbody,
         ];
+    }
 
     const maybeSpace = cursor.isMacroFunction ? "" : " ";
     return [maybeUndef ~ "#define " ~ spelling ~ maybeSpace ~ dbody ~ "\n"];
