@@ -170,6 +170,8 @@ string[] translateAggregate(
     @safe
 {
     import dpp.translation.translation: translate;
+    import dpp.translation.type: hasAnonymousSpelling;
+    import dpp.runtime.context: Language;
     import clang: Cursor, Type, AccessSpecifier;
     import std.algorithm: map;
     import std.array: array;
@@ -214,6 +216,11 @@ string[] translateAggregate(
         if(skipMember(child)) continue;
 
         lines ~= bitFieldInfo.handle(child);
+
+        if (context.language == Language.C
+                && (child.type.kind == Type.Kind.Record || child.type.kind == Type.Kind.Enum)
+                && !child.type.hasAnonymousSpelling)
+            context.rememberAggregateParent(child, cursor);
 
         const childTranslation = () {
 
@@ -492,7 +499,7 @@ void maybeRememberStructs(R)(R types, ref from!"dpp.runtime.context".Context con
             ? removeConst.replace("volatile ", "")
             : removeConst;
 
-        context.rememberFieldStruct(translateElaborated(removeVolatile));
+        context.rememberFieldStruct(translateElaborated(removeVolatile, context));
     }
 
     foreach(structType; structTypes)

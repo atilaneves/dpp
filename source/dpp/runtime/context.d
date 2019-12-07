@@ -71,6 +71,18 @@ struct Context {
     private string[string] _aggregateSpelling;
 
     /**
+      Mapping between a child aggregate's name and its' parent aggregate's
+      name.
+     */
+    private string[string] _aggregateParents;
+
+    /**
+      Mapping between a line number and an array of strings representing all
+      the aggregate types' names contained at that index.
+     */
+    private string[][LineNumber] _aggregateTypeLines;
+
+    /**
        A linkable is a function or a global variable.  We remember all
        the ones we saw here so that if there's a name clash we can
        come back and fix the declarations after the fact with
@@ -182,6 +194,8 @@ struct Context {
     void fixNames() @safe {
         declareUnknownStructs;
         fixLinkables;
+        if (language == Language.C)
+            fixAggregateTypes;
         fixFields;
     }
 
@@ -227,6 +241,42 @@ struct Context {
         }
     }
 
+    void fixAggregateTypes() @safe pure {
+        import dpp.translation.type : removeDppDecorators;
+        import std.array : join;
+        import std.algorithm : reverse;
+        import std.string : replace;
+
+        string aggregateTypeName(in string spelling) @safe pure {
+            if (spelling !in _aggregateParents)
+                return spelling;
+
+            string[] elems;
+            elems ~= spelling;
+            string curr = _aggregateParents[spelling];
+
+            while (curr in _aggregateParents) {
+                elems ~= curr ~ ".";
+                curr = _aggregateParents[curr];
+            }
+
+            elems ~= curr ~ ".";
+
+            return elems.reverse.join;
+        }
+
+        foreach (elem; _aggregateTypeLines.byKeyValue) {
+            LineNumber lineNumber = elem.key;
+            string[] aggregateTypeNames = elem.value;
+
+            foreach (name; aggregateTypeNames) {
+                const actualName = aggregateTypeName(name);
+                lines[lineNumber] = lines[lineNumber]
+                    .replace("__dpp_aggregate__ " ~ name, actualName);
+            }
+        }
+    }
+
     /**
        Tells the context to remember a struct type encountered in an aggregate field.
        Typically this will be a pointer to a structure but it could also be the return
@@ -253,10 +303,25 @@ struct Context {
        Remember this aggregate cursor
      */
     void rememberAggregate(in Cursor cursor) @safe pure {
+        const spelling = resolveSpelling(cursor);
+        rememberType(spelling);
+    }
+
+    void rememberAggregateParent(in Cursor child, in Cursor parent) @safe pure {
+        const parentSpelling = spelling(parent.spelling);
+        const childSpelling = resolveSpelling(child);
+        _aggregateParents[childSpelling] = parentSpelling;
+    }
+
+    void rememberAggregateTypeLine(in string typeName) @safe pure {
+        _aggregateTypeLines[lines.length] ~= typeName;
+    }
+
+    private string resolveSpelling(in Cursor cursor) @safe pure {
         const spelling = spellingOrNickname(cursor);
         _aggregateDeclarations[spelling] = true;
         rememberSpelling(cursor.spelling, spelling);
-        rememberType(spelling);
+        return spelling;
     }
 
     void rememberSpelling(scope const string original, in string spelling) @safe pure {
@@ -276,7 +341,10 @@ struct Context {
         See `it.c.compile.delayed`.
     */
     void declareUnknownStructs() @safe {
+        import dpp.translation.type : removeDppDecorators;
+
         foreach(name, _; _fieldStructSpellings) {
+            name = name.removeDppDecorators;
             if(isUnknownStruct(name)) {
                 log("Could not find '", name, "' in aggregate declarations, defining it");
                 const spelling = name in _aggregateSpelling ? _aggregateSpelling[name]

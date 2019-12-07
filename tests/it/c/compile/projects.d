@@ -853,3 +853,42 @@ import it;
         ),
     );
 }
+
+@("Accessing nested aggregates")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                struct A {
+                    struct B {
+                        int a;
+                        struct C {
+                            int b;
+                            enum E {Mon, Tue};
+                        } c_obj1;
+                    } b_obj;
+
+                    union U {
+                        int v1;
+                        char v2;
+                    };
+
+                    struct C c_obj2;
+                };
+
+                void f(struct C *);
+                void g(struct B *);
+                void h(union U *);
+                void i(enum E);
+            }
+        ),
+        D(
+            q{
+                A a_obj;
+                a_obj.b_obj.c_obj1.b = 3;
+
+                A.B.C.E day = A.B.C.E.Mon;
+            }
+        ),
+    );
+}
