@@ -1742,60 +1742,34 @@ unittest {
 }
 
 
-@Tags("issue")
-@("229.0")
-@safe unittest {
-    with(immutable IncludeSandbox()) {
-        writeFile(`hdr.h`,
-            `
-                // The issue here is that linux is a built-in preprocessor
-                // macro so it doesn't go through translation, never becoming
-                // a D enum. When the C preprocessor goes through the app.d.tmp
-                // file, it replaces all instances of linux with the token 1,
-                // and chaos ensues.
-
-                #ifndef linux  // Windows for instance
-                    #define linux 2
-                #endif
-            `);
-        writeFile(`app.dpp`,
-                  `
-                      #include "hdr.h"
-                      module foo.linux.bar;
-                  `
-        );
-
-        runPreprocessOnly("app.dpp");
-        shouldNotCompile("app.d");
+version(Linux) {
+    @Tags("issue")
+        @("229.0")
+        @safe unittest {
+        with(immutable IncludeSandbox()) {
+            writeFile(`app.dpp`,
+                      `
+                          module foo.linux.bar;
+                      `
+            );
+            runPreprocessOnly("app.dpp");
+            shouldNotCompile("app.d");
+        }
     }
-}
 
 
-@Tags("issue")
-@("229.1")
-@safe unittest {
-    with(immutable IncludeSandbox()) {
-        writeFile(`hdr.h`,
-            `
-                // The issue here is that linux is a built-in preprocessor
-                // macro so it doesn't go through translation, never becoming
-                // a D enum. When the C preprocessor goes through the app.d.tmp
-                // file, it replaces all instances of linux with the token 1,
-                // and chaos ensues.
-
-                #ifndef linux  // Windows for instance
-                    #define linux 2
-                #endif
-            `);
-        writeFile(`app.dpp`,
-              `
-                  #include "hdr.h"
-                  #undef linux
-                  module foo.linux.bar;
-              `
-        );
-
-        runPreprocessOnly("app.dpp");
-        shouldCompile("app.d");
+    @Tags("issue")
+        @("229.1")
+        @safe unittest {
+        with(immutable IncludeSandbox()) {
+            writeFile(`app.dpp`,
+                      `
+                          #undef linux
+                          module foo.linux.bar;
+                      `
+            );
+            runPreprocessOnly("app.dpp");
+            shouldCompile("app.d");
+        }
     }
 }
