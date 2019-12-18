@@ -24,14 +24,7 @@ addons:
 install:
   # - gem install bundler -v 1.17.3
   # - bundle install
-  # - echo LD_LIBRARY_PATH
-  # - echo $LD_LIBRARY_PATH
-  # - echo thingiemagjig
-  # - find / -name libclang.so 2> /dev/null
 
-env:
-  global:
-    - LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/clang-7.0.0/lib
 
 script:
   - ./ci.sh
