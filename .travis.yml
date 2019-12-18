@@ -24,8 +24,6 @@ addons:
 install:
   # - gem install bundler -v 1.17.3
   # - bundle install
-  - find / -name g++ 2> /dev/null
-  - oops
 
 
 env:
