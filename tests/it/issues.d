@@ -1742,14 +1742,19 @@ unittest {
 }
 
 
-@ShouldFail
 @Tags("issue")
 @("229")
 @safe unittest {
     shouldCompile(
         C(
             `
-                #ifndef linux
+                // The issue here is that linux is a built-in preprocessor
+                // macro so it doesn't go through translation, never becoming
+                // a D enum. When the C preprocessor goes through the app.d.tmp
+                // file, it replaces all instances of linux with the token 1,
+                // and chaos ensues.
+
+                #ifndef linux  // Windows for instance
                     #define linux 2
                 #endif
             `
