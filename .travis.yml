@@ -26,6 +26,11 @@ install:
   # - bundle install
 
 
+env:
+  global:
+    - LD_RUN_PATH=/usr/local/clang-7.0.0/lib
+
+
 script:
   - ./ci.sh
 
