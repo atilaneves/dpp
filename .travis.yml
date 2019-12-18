@@ -26,6 +26,10 @@ install:
   - bundle install
 
 
+env:
+  global:
+    - LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/llvm-6.0/lib
+
 script:
   - ./ci.sh
 
