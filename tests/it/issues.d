@@ -1740,3 +1740,25 @@ unittest {
         )
     );
 }
+
+
+@ShouldFail
+@Tags("issue")
+@("229")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                #ifndef linux
+                    #define linux 2
+                #endif
+            `
+        ),
+        D(
+            q{
+                module foo.linux.bar;
+            }
+        )
+    );
+
+}
