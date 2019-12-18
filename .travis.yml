@@ -22,9 +22,12 @@ addons:
 
 
 install:
-  - gem install bundler -v 1.17.3
-  - bundle install
-
+  # - gem install bundler -v 1.17.3
+  # - bundle install
+  - echo LD_LIBRARY_PATH:
+  - echo $LD_LIBRARY_PATH
+  - echo thingiemagjig
+  - ls /usr/lib/llvm-6.0/lib
 
 env:
   global:
