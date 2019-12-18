@@ -27,6 +27,7 @@ install:
   - echo LD_LIBRARY_PATH
   - echo $LD_LIBRARY_PATH
   - echo thingiemagjig
+  - find / -name libclang.so 2> /dev/null
   - ls /usr/lib/llvm-6.0/lib
 
 env:
