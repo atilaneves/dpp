@@ -24,10 +24,10 @@ addons:
 install:
   # - gem install bundler -v 1.17.3
   # - bundle install
-  - echo LD_LIBRARY_PATH
-  - echo $LD_LIBRARY_PATH
-  - echo thingiemagjig
-  - find / -name libclang.so 2> /dev/null
+  # - echo LD_LIBRARY_PATH
+  # - echo $LD_LIBRARY_PATH
+  # - echo thingiemagjig
+  # - find / -name libclang.so 2> /dev/null
 
 env:
   global:
