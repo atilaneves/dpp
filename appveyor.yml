@@ -74,4 +74,4 @@ test_script:
  - echo %DC%
  - echo %PATH%
  - '%DC% --version'
- - dub test --arch=%Darch%
+ - dub test --arch=%Darch% --registry=http://31.15.67.41
