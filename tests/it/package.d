@@ -263,8 +263,7 @@ private void shouldCompileAndRun
             else
                 return isCpp ? "g++" : "gcc";
         }();
-        const compilerVersion = environment.get("TRAVIS", "") == "" ? "" : "-7";
-        const compiler = compilerName ~ compilerVersion;
+        const compiler = compilerName;
         const languageStandard =  isCpp ? "-std=c++17" : "-std=c11";
         const outputFileName = "c" ~ objectFileExtension;
 
