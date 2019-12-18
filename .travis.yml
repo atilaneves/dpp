@@ -15,11 +15,9 @@ matrix:
 
 addons:
   apt:
-    sources:
-      - ubuntu-toolchain-r-test
     packages:
-      - libclang-6.0-dev
-      - g++-7
+      - libclang-dev
+      - g++
 
 
 install:
