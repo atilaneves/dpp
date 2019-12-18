@@ -1740,3 +1740,36 @@ unittest {
         )
     );
 }
+
+
+version(Linux) {
+    @Tags("issue")
+        @("229.0")
+        @safe unittest {
+        with(immutable IncludeSandbox()) {
+            writeFile(`app.dpp`,
+                      `
+                          module foo.linux.bar;
+                      `
+            );
+            runPreprocessOnly("app.dpp");
+            shouldNotCompile("app.d");
+        }
+    }
+
+
+    @Tags("issue")
+        @("229.1")
+        @safe unittest {
+        with(immutable IncludeSandbox()) {
+            writeFile(`app.dpp`,
+                      `
+                          #undef linux
+                          module foo.linux.bar;
+                      `
+            );
+            runPreprocessOnly("app.dpp");
+            shouldCompile("app.d");
+        }
+    }
+}

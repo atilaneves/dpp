@@ -120,6 +120,8 @@ void preprocess(File)(in from!"dpp.runtime.options".Options options,
 
         const translationText = translationText!File(options, inputFileName);
 
+        writeUndefLines(inputFileName, outputFile);
+
         outputFile.writeln(translationText.moduleDeclaration);
         outputFile.writeln(preamble);
         outputFile.writeln(translationText.dlangDeclarations);
@@ -186,6 +188,20 @@ private TranslationText translationText(File)(in from!"dpp.runtime.options".Opti
 }
 
 // write the original D code that doesn't need translating
+private void writeUndefLines(in string inputFileName, ref from!"std.stdio".File outputFile)
+    @trusted
+{
+    import std.stdio: File;
+    import std.algorithm: filter, canFind;
+
+    auto lines = File(inputFileName).byLine.filter!(l => l.canFind("#undef"));
+    foreach(line; lines) {
+        outputFile.writeln(line);
+    }
+}
+
+
+// write the original D code that doesn't need translating
 private void writeDlangLines(in string inputFileName, ref from!"std.stdio".File outputFile)
     @trusted
 {
@@ -195,19 +211,18 @@ private void writeDlangLines(in string inputFileName, ref from!"std.stdio".File 
     import std.algorithm: filter;
 
     foreach(line; File(inputFileName).byLine.filter!(a => !isModuleLine(a))) {
-        if(getHeaderName(line) == "")
+        if(getHeaderName(line) == "") {
             // not an #include directive, just pass through
             outputFile.writeln(line);
-        // otherwise do nothing
+        }   // otherwise do nothing
     }
 }
 
-bool isModuleLine(in const(char)[] line) @safe pure {
+private bool isModuleLine(in const(char)[] line) @safe pure {
     import std.string: stripLeft;
     import std.algorithm: startsWith;
     return line.stripLeft.startsWith("module ");
 }
-
 
 private void runCPreProcessor(in string cppPath, in string tmpFileName, in string outputFileName) @safe {
 
