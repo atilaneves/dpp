@@ -71,7 +71,7 @@ struct Context {
     private string[string] _aggregateSpelling;
 
     /**
-      Mapping between a child aggregate's name and its' parent aggregate's
+      Mapping between a child aggregate's name and its parent aggregate's
       name.
      */
     private string[string] _aggregateParents;
