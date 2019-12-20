@@ -229,7 +229,7 @@ private string translateAggregate(in from!"clang".Type type,
     }
 
     return addModifiers(type, spelling)
-        .translateElaborated
+        .translateElaborated(context)
         .replace("<", "!(")
         .replace(">", ")")
         ;
@@ -484,14 +484,41 @@ string translateString(scope const string spelling,
         ;
 }
 
+string removeDppDecorators(in string spelling) @safe {
+    import std.string : replace;
+    return spelling.replace("__dpp_aggregate__ ", "");
+}
 
 // "struct Foo" -> Foo, "union Foo" -> Foo, "enum Foo" -> Foo
-string translateElaborated(const scope string spelling) @safe nothrow {
+string translateElaborated(const scope string spelling,
+                           ref from!"dpp.runtime.context".Context context) @safe {
+    import dpp.runtime.context: Language;
     import std.array: replace;
+    import std.algorithm : find;
+    import std.string : split;
+    import std.range.primitives;
+
+    void remember(in string recordType) @safe pure {
+        // '(' and ')' because of the "const(...)" modifier
+        string[] name = spelling.split!(a => a == '(' || a == ')' || a == ' ').find(recordType);
+        while (!name.empty) {
+            context.rememberAggregateTypeLine(name[1]);
+            name = name[1..$-1].find(recordType);
+        }
+    }
+
+    const rep = context.language == Language.C ? "__dpp_aggregate__ " : "";
+
+    if (context.language == Language.C) {
+        remember("struct");
+        remember("union");
+        remember("enum");
+    }
+
     return spelling
-        .replace("struct ", "")
-        .replace("union ", "")
-        .replace("enum ", "")
+        .replace("struct ", rep)
+        .replace("union ", rep)
+        .replace("enum ", rep)
     ;
 }
 

@@ -102,7 +102,7 @@ private bool isStringRepr(T)(in string str) @safe pure {
 
 private string translateToD(
     in from!"clang".Cursor cursor,
-    in from!"dpp.runtime.context".Context context,
+    ref from!"dpp.runtime.context".Context context,
     in from!"clang".Token[] tokens,
     )
     @safe
@@ -117,7 +117,7 @@ private string translateToD(
         .fixArrow
         .fixNull
         .toString
-        .translateElaborated
+        .translateElaborated(context)
         ;
 }
 

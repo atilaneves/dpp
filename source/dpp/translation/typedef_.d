@@ -71,7 +71,7 @@ private string[] translateRegular(in from!"clang".Cursor cursor,
                                   in from!"clang".Cursor[] children)
     @safe
 {
-    import dpp.translation.type: translate;
+    import dpp.translation.type: translate, removeDppDecorators;
     import dpp.translation.aggregate: isAggregateC;
     import dpp.translation.dlang: maybeRename;
     import std.typecons: No;
@@ -88,7 +88,8 @@ private string[] translateRegular(in from!"clang".Cursor cursor,
 
             return isAnonymousAggregate
                 ? context.spellingOrNickname(children[0])
-                : translate(cursor.underlyingType, context, No.translatingFunction);
+                : translate(cursor.underlyingType, context, No.translatingFunction)
+                    .removeDppDecorators;
 
         // possible issues on 32-bit
         case "int32_t":  return "int";
