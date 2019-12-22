@@ -904,11 +904,11 @@ import it;
         ),
         D(
             q{
-                static assert(is(typeof(v) == void*,
+                static assert(is(typeof(v) == void*),
                               "Expected void*, not " ~
                               typeof(v).stringof);
 
-                static assert(is(typeof(cv) == const(void*),
+                static assert(is(typeof(cv) == const(void*)),
                               "Expected const(void*), not " ~
                               typeof(cv).stringof);
             }
