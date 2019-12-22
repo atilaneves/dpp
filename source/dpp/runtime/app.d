@@ -227,7 +227,7 @@ private bool isModuleLine(in const(char)[] line) @safe pure {
 private void runCPreProcessor(in string cppPath, in string tmpFileName, in string outputFileName) @safe {
 
     import std.exception: enforce;
-    import std.process: execute;
+    import std.process: execute, Config;
     import std.conv: text;
     import std.string: join, splitLines;
     import std.stdio: File;
@@ -243,7 +243,7 @@ private void runCPreProcessor(in string cppPath, in string tmpFileName, in strin
     const cppArgs = [cpp, tmpFileName];
     const ret = () {
         try
-            return execute(cppArgs);
+            return execute(cppArgs, null, Config.stderrPassThrough);
         catch (Exception e)
         {
             import std.typecons : Tuple;
