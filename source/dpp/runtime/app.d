@@ -242,9 +242,10 @@ private void runCPreProcessor(in string cppPath, in string tmpFileName, in strin
 
     const cppArgs = [cpp, tmpFileName];
     const ret = () {
-        try
-            return execute(cppArgs, null, Config.stderrPassThrough);
-        catch (Exception e)
+        try {
+            string[string] env;
+            return execute(cppArgs, env, Config.stderrPassThrough);
+        } catch (Exception e)
         {
             import std.typecons : Tuple;
             return Tuple!(int, "status", string, "output")(-1, e.msg);
