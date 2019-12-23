@@ -893,6 +893,27 @@ import it;
     );
 }
 
+@("C preprocessor warnings should not be written to file")
+@safe unittest {
+
+    with(immutable IncludeSandbox()) {
+
+        writeFile("hdr.h",
+                  `
+                  #define A B(__VA_ARGS__)
+                  `);
+
+        writeFile("app.dpp",
+                  `
+                      #include "hdr.h"
+                  `);
+
+        runPreprocessOnly("app.dpp");
+        shouldCompile("app.d");
+    }
+}
+
+
 @("Extern void variable")
 @safe unittest {
     shouldCompile(
