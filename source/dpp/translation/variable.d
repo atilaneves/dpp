@@ -53,14 +53,14 @@ string[] translateVariable(in from!"clang".Cursor cursor,
     if(constexpr)
         ret ~= translateConstexpr(spelling, cursor, context);
     else {
-        const typeSpelling = translateType(cursor.type, context, No.translatingFunction);
+        const maybeTypeSpelling = translateType(cursor.type, context, No.translatingFunction);
         // In C it is possible to have an extern void variable
-        const typeNotVoid = (typeSpelling == "void" || typeSpelling == "const(void)")
-                            ? typeSpelling.replace("void", "void*"): typeSpelling;
+        const typeSpelling = cursor.type.kind == Type.Kind.Void
+            ? maybeTypeSpelling.replace("void", "void*")
+            : maybeTypeSpelling;
         ret ~=
             maybePragma(cursor, context) ~
-            text("extern __gshared ", static_,
-                 typeNotVoid, " ", spelling, ";");
+            text("extern __gshared ", static_, typeSpelling, " ", spelling, ";");
     }
 
     return ret;
