@@ -17,7 +17,7 @@ string[] translateVariable(in from!"clang".Cursor cursor,
     import std.conv: text;
     import std.typecons: No;
     import std.algorithm: canFind, find, map;
-    import std.array: empty, popFront, join;
+    import std.array: empty, popFront, join, replace;
 
     string[] ret;
 
@@ -53,11 +53,14 @@ string[] translateVariable(in from!"clang".Cursor cursor,
     if(constexpr)
         ret ~= translateConstexpr(spelling, cursor, context);
     else {
-
+        const typeSpelling = translateType(cursor.type, context, No.translatingFunction);
+        // In C it is possible to have an extern void variable
+        const typeNotVoid = (typeSpelling == "void" || typeSpelling == "const(void)")
+                            ? typeSpelling.replace("void", "void*"): typeSpelling;
         ret ~=
             maybePragma(cursor, context) ~
             text("extern __gshared ", static_,
-                 translateType(cursor.type, context, No.translatingFunction), " ", spelling, ";");
+                 typeNotVoid, " ", spelling, ";");
     }
 
     return ret;

@@ -892,3 +892,26 @@ import it;
         ),
     );
 }
+
+@("Extern void variable")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                extern void v;
+                extern const void cv;
+            }
+        ),
+        D(
+            q{
+                static assert(is(typeof(v) == void*),
+                              "Expected void*, not " ~
+                              typeof(v).stringof);
+
+                static assert(is(typeof(cv) == const(void*)),
+                              "Expected const(void*), not " ~
+                              typeof(cv).stringof);
+            }
+        ),
+    );
+}
