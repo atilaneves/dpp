@@ -1773,3 +1773,22 @@ version(Linux) {
         }
     }
 }
+
+
+
+@Tags("issue")
+@("237")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+            #define GPIO_AFR(n, af)			((af) << ((n) * 4))
+            #define GPIO_AFR_MASK(n)		(0xf << ((n) * 4))
+            `
+        ),
+        D(
+            q{
+            }
+        )
+    );
+}
