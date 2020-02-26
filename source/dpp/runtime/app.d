@@ -16,7 +16,7 @@ void run(in from!"dpp.runtime.options".Options options) @safe {
     import std.file: remove;
 
     foreach(dppFileName; options.dppFileNames)
-        preprocess!File(options, dppFileName, options.toDFileName(dppFileName));
+        preprocess(options, dppFileName, options.toDFileName(dppFileName));
 
     if(options.preprocessOnly) return;
 
@@ -96,7 +96,7 @@ private struct CppBoilerplateCode {
 
 
 /**
-   Preprocesses a quasi-D file, expanding #include directives inline while
+   Preprocesses a .dpp file, expanding #include directives inline while
    translating all definitions, and redefines any macros defined therein.
 
    The output is a valid D file that can be compiled.
@@ -106,11 +106,17 @@ private struct CppBoilerplateCode {
         inputFileName = the name of the file to read
         outputFileName = the name of the file to write
  */
-void preprocess(File)(in from!"dpp.runtime.options".Options options,
-                      in string inputFileName,
-                      in string outputFileName)
+private void preprocess(in from!"dpp.runtime.options".Options options,
+                        in string inputFileName,
+                        in string outputFileName)
+    @safe
 {
-    import std.file: remove;
+    import std.file: remove, exists, mkdirRecurse;
+    import std.stdio: File;
+    import std.path: dirName;
+
+    const outputPath = outputFileName.dirName;
+    if(!outputPath.exists) mkdirRecurse(outputPath);
 
     const tmpFileName = outputFileName ~ ".tmp";
     scope(exit) if(!options.keepPreCppFiles) remove(tmpFileName);
@@ -118,7 +124,7 @@ void preprocess(File)(in from!"dpp.runtime.options".Options options,
     {
         auto outputFile = File(tmpFileName, "w");
 
-        const translationText = translationText!File(options, inputFileName);
+        const translationText = translationText(options, inputFileName);
 
         writeUndefLines(inputFileName, outputFile);
 
@@ -139,8 +145,9 @@ private struct TranslationText {
 }
 
 // the translated D code from all #included files
-private TranslationText translationText(File)(in from!"dpp.runtime.options".Options options,
-                                              in string inputFileName)
+private TranslationText translationText(in from!"dpp.runtime.options".Options options,
+                                        in string inputFileName)
+    @safe
 {
 
     import dpp.runtime.context: Context, Language;
@@ -154,6 +161,7 @@ private TranslationText translationText(File)(in from!"dpp.runtime.options".Opti
     import std.string: fromStringz;
     import std.path: dirName;
     import std.array: array, join;
+    import std.stdio: File;
 
     auto inputFile = File(inputFileName);
     const lines = () @trusted { return inputFile.byLine.map!(a => a.idup).array; }();

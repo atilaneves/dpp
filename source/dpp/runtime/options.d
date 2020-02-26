@@ -41,6 +41,7 @@ struct Options {
     string[] clangOptions;
     bool noSystemHeaders;
     string cppPath;
+    string srcOutputPath;
 
     this(string[] args) {
 
@@ -91,12 +92,18 @@ struct Options {
     string[] dFileNames() @safe pure const {
         import std.algorithm: map;
         import std.array: array;
-        return dppFileNames.map!toDFileName.array;
+        return dppFileNames.map!(a => toDFileName(a)).array;
     }
 
-    static string toDFileName(in string dppFileName) @safe pure nothrow {
-        import std.path: stripExtension;
-        return dppFileName.stripExtension ~ ".d";
+    string toDFileName(in string dppFileName) @safe pure nothrow const {
+        import std.path: stripExtension, dirName, isAbsolute, buildPath, baseName;
+
+        const outputPath = srcOutputPath == ""
+            ? dppFileName.dirName
+            : srcOutputPath;
+        const fileName = dppFileName.baseName.stripExtension ~ ".d";
+
+        return buildPath(outputPath, fileName);
     }
 
     private void parseArgs(ref string[] args) {
@@ -121,14 +128,21 @@ struct Options {
                 "ignore-ns", "Ignore a C++ namespace", &ignoredNamespaces,
                 "ignore-cursor", "Ignore a C++ cursor", &ignoredCursors,
                 "ignore-path", "Ignore a file path, note it globs so you will want to use *", &ignoredPaths,
-                "ignore-system-paths", "Adds system paths to the ignore-paths list (you can add them back individually with --include-path)", &ignoreSystemPaths,
-                "prebuilt-header", "Declare a #include can be safely replaced with import. You should also ignore-path to prevent retranslating the file", &prebuiltHeaders,
-                "detailed-untranslatables", "Show details about untranslatable cursors", &detailedUntranslatable,
+                "ignore-system-paths",
+                    "Adds system paths to the ignore-paths list (you can add them back individually with --include-path)",
+                    &ignoreSystemPaths,
+                "prebuilt-header",
+                    "Declare a #include can be safely replaced with import. You should also ignore-path to prevent retranslating the file",
+                    &prebuiltHeaders,
+                "detailed-untranslatables",
+                    "Show details about untranslatable cursors",
+                    &detailedUntranslatable,
                 "scoped-enums", "Don't redeclare enums to mimic C", &alwaysScopedEnums,
                 "c++-standard", "The C++ language standard (e.g. \"c++14\")", &cppStandard,
                 "clang-option", "Pass option to libclang", &clangOptions,
                 "no-sys-headers", "Don't include system headers by default", &noSystemHeaders,
                 "cpp-path", "Path to the C preprocessor executable", &cppPath,
+                "source-output-path", "Path to emit the resulting D files to", &srcOutputPath,
             );
 
         clangOptions = map!(e => e.split(" "))(clangOptions).join();
