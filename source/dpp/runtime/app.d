@@ -160,7 +160,10 @@ private TranslationText translationText(File)(in from!"dpp.runtime.options".Opti
     auto moduleLines = () @trusted { return lines.filter!isModuleLine.array; }();
     auto nonModuleLines = lines.filter!(a => !isModuleLine(a));
     const includePaths = options.includePaths ~ inputFileName.dirName;
-    auto includes = nonModuleLines.map!(a => getHeaderName(a, includePaths)).filter!(a => a != "");
+    auto includes = nonModuleLines
+        .map!(a => getHeaderName(a, inputFileName, includePaths))
+        .filter!(a => a != "")
+        ;
     const includesFileName = getTempFileName();
     auto language = Language.C;
     // write a temporary file with all #included files in it

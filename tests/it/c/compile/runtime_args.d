@@ -6,7 +6,8 @@ module it.c.compile.runtime_args;
 
 import it;
 
-@("include paths")
+
+@("include paths absolute")
 @safe unittest {
     with(immutable IncludeSandbox()) {
         writeFile("includes/hdr.h",
@@ -29,6 +30,32 @@ import it;
         shouldCompile("main.d");
     }
 }
+
+
+@("include paths relative")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        writeFile("includes/hdr.h",
+                  q{
+                      int add(int i, int j);
+                  });
+        writeFile("main.dpp",
+                  `
+                      #include "hdr.h"
+                      void main() {
+                          int ret = add(2, 3);
+                      }
+                  `);
+        runPreprocessOnly(
+            "--include-path",
+            "includes",  // notice the lack of `inSandboxPath`
+            "main.dpp",
+        );
+
+        shouldCompile("main.d");
+    }
+}
+
 
 @("rewritten module name")
 @safe unittest {
@@ -55,6 +82,7 @@ import it;
         shouldCompile("main.d");
     }
 }
+
 
 @("ignored paths")
 @safe unittest {
@@ -83,6 +111,7 @@ import it;
         shouldCompile("main.d");
     }
 }
+
 
 @("ignored system paths")
 @safe unittest {
