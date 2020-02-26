@@ -295,11 +295,11 @@ bool isCppHeader(in from!"dpp.runtime.options".Options options, in string header
 }
 
 
-string getHeaderName(in const(char)[] line, in string[] includePaths)
+string getHeaderName(in const(char)[] line, in string inputFileName, in string[] includePaths)
     @safe
 {
     const name = getHeaderName(line);
-    return name == "" ? name : fullPath(includePaths, name);
+    return name == "" ? name : fullPath(inputFileName, includePaths, name);
 }
 
 
@@ -322,19 +322,35 @@ string getHeaderName(const(char)[] line)
 
 // transforms a header name, e.g. stdio.h
 // into a full file path, e.g. /usr/include/stdio.h
-private string fullPath(in string[] includePaths, in string headerName) @safe {
-
+private string fullPath(
+    in string inputFileName,
+    in string[] includePaths,
+    in string headerName
+    ) @safe
+{
     import std.algorithm: map, filter;
-    import std.path: buildPath, absolutePath;
+    import std.path: buildPath, absolutePath, isAbsolute, dirName;
     import std.file: exists;
     import std.conv: text;
     import std.exception: enforce;
 
     if(headerName.exists) return headerName;
 
+    // looks for `headerName` in all of the paths in `includePaths`.
+    // Each path in `includePaths` is checked to see if it's an absolute
+    // path or not, and if not, relativised to be in the input file name's
+    // path.
+    string findHeader(in string includePath) {
+        const path = includePath.isAbsolute
+            ? buildPath(includePath, headerName)
+            : buildPath(inputFileName.dirName, includePath, headerName);
+        return path.absolutePath;
+    }
+
     auto filePaths = includePaths
-        .map!(a => buildPath(a, headerName).absolutePath)
-        .filter!exists;
+        .map!findHeader
+        .filter!exists
+        ;
 
     enforce(!filePaths.empty, text("d++ cannot find file path for header '", headerName, "'"));
 
