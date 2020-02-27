@@ -333,9 +333,10 @@ private auto fixCasts(R)(
     in from!"dpp.runtime.context".Context context,
     )
 {
+    import dpp.translation.exception: UntranslatableException;
     import clang: Token;
     import std.conv: text;
-    import std.algorithm: countUntil;
+    import std.algorithm: countUntil, count;
     import std.range: chain;
 
     // if the token array is a built-in or user-defined type
@@ -385,6 +386,16 @@ private auto fixCasts(R)(
 
     const beginning = tokens[0 .. lastIndex];
     const(Token)[] middle;
+
+    // See #244 - macros can have unbalanced parentheses
+    // Apparently libclang tokenises `\\n)` as including the backslash and the newline
+    const numLeftParens  = tokens.count!(a => a == Token(Token.Kind.Punctuation, "(") ||
+                                         a == Token(Token.Kind.Punctuation, "\\\n("));
+    const numRightParens = tokens.count!(a => a == Token(Token.Kind.Punctuation, ")") ||
+                                         a == Token(Token.Kind.Punctuation, "\\\n)"));
+
+    if(numLeftParens != numRightParens)
+        throw new UntranslatableException("Unbalanced parentheses in macro `" ~ cursor.spelling ~ "`");
 
     for(size_t i = lastIndex; i < tokens.length - 1; ++i) {
         if(tokens[i] == Token(Token.Kind.Punctuation, "(")) {
