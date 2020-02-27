@@ -1744,14 +1744,14 @@ unittest {
 
 version(Linux) {
     @Tags("issue")
-        @("229.0")
-        @safe unittest {
+    @("229.0")
+    @safe unittest {
         with(immutable IncludeSandbox()) {
             writeFile(`app.dpp`,
                       `
                           module foo.linux.bar;
                       `
-            );
+                );
             runPreprocessOnly("app.dpp");
             shouldNotCompile("app.d");
         }
@@ -1759,8 +1759,8 @@ version(Linux) {
 
 
     @Tags("issue")
-        @("229.1")
-        @safe unittest {
+    @("229.1")
+    @safe unittest {
         with(immutable IncludeSandbox()) {
             writeFile(`app.dpp`,
                       `
@@ -1772,4 +1772,26 @@ version(Linux) {
             shouldCompile("app.d");
         }
     }
+}
+
+
+@Tags("issue")
+@("244")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                #define IS_FOO(obj) true
+                #define IS_BAR(obj) true
+                #define IS_PRIM(obj)(IS_FOO(obj) \
+                                   ||IS_BAR(obj))
+                // notice that IS_QUUX doesn't have balanced parens
+                #define IS_QUUX(obj) (!(IS_PRIM(obj))
+            `
+        ),
+        D(
+            q{
+            }
+        )
+    );
 }
