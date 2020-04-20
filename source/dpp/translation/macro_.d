@@ -377,6 +377,13 @@ private auto fixCasts(R)(
             )
             return true;
 
+        if ( // macro attribute (e.g. __force) + type
+            tokens.length >= 2
+            && tokens[0].kind == Token.Kind.Identifier
+            && isType(tokens[1..$])
+            )
+            return true;
+
         return false;
     }
 

@@ -854,6 +854,25 @@ import it;
     );
 }
 
+@("Casting when type has attribute")
+@safe unittest {
+    shouldCompile(
+         C(
+            `
+                typedef unsigned int gfp_t;
+
+                #define DUMMY ((__force gfp_t) 7)
+                #define __force
+            `
+        ),
+        D(
+            q{
+                auto a = DUMMY;
+            }
+        ),
+    );
+}
+
 @("Accessing nested aggregates")
 @safe unittest {
     shouldCompile(
