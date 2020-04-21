@@ -26,3 +26,20 @@ import it;
         ),
     );
 }
+
+@("Type cast with typeof")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                #define DUMMY(x) (sizeof((typeof(x) *)1))
+            `
+        ),
+
+        D(
+            q{
+                auto a = DUMMY(7);
+            }
+        ),
+    );
+}

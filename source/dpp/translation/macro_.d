@@ -371,6 +371,12 @@ private auto fixCasts(R)(
             )
             return true;
 
+        if( // typeof
+            tokens.length >= 2
+            && tokens[0] == Token(Token.Kind.Keyword, "typeof")
+            )
+            return true;
+
         if ( // macro attribute (e.g. __force) + type
             tokens.length >= 2
             && tokens[0].kind == Token.Kind.Identifier
