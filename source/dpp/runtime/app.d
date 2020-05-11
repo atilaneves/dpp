@@ -111,7 +111,7 @@ private void preprocess(in from!"dpp.runtime.options".Options options,
                         in string outputFileName)
     @safe
 {
-    import std.file: remove, exists, mkdirRecurse;
+    import std.file: remove, exists, mkdirRecurse, copy;
     import std.stdio: File;
     import std.path: dirName;
 
@@ -136,7 +136,10 @@ private void preprocess(in from!"dpp.runtime.options".Options options,
         writeDlangLines(inputFileName, outputFile);
     }
 
-    runCPreProcessor(options.cppPath, tmpFileName, outputFileName);
+    if(options.ignoreMacros)
+        copy(tmpFileName, outputFileName);
+    else
+        runCPreProcessor(options.cppPath, tmpFileName, outputFileName);
 }
 
 private struct TranslationText {
