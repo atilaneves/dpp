@@ -30,6 +30,7 @@ struct Options {
     bool hardFail;
     bool cppStdLib;
     bool ignoreMacros;
+    string[] ignoredMacros;
     bool detailedUntranslatable;
     string[] ignoredNamespaces;
     string[] ignoredCursors;
@@ -125,6 +126,7 @@ struct Options {
                 "hard-fail", "Translate nothing if any part fails", &hardFail,
                 "c++-std-lib", "Link to the C++ standard library", &cppStdLib,
                 "ignore-macros", "Ignore preprocessor macros", &ignoreMacros,
+                "ignore-specified-macros", "Ignore the specified preprocessor macros", &ignoredMacros,
                 "ignore-ns", "Ignore a C++ namespace", &ignoredNamespaces,
                 "ignore-cursor", "Ignore a C++ cursor", &ignoredCursors,
                 "ignore-path", "Ignore a file path, note it globs so you will want to use *", &ignoredPaths,
@@ -146,6 +148,7 @@ struct Options {
             );
 
         clangOptions = map!(e => e.split(" "))(clangOptions).join();
+        ignoredMacros = map!(e => e.split(","))(ignoredMacros).join();
 
         if(helpInfo.helpWanted) {
             () @trusted {

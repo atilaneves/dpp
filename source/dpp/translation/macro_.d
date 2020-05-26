@@ -15,8 +15,9 @@ string[] translateMacro(in from!"clang".Cursor cursor,
 
     // we want non-built-in macro definitions to be defined and then preprocessed
     // again
-
     if(isBuiltinMacro(cursor)) return [];
+
+    if (context.options.ignoredMacros.canFind(cursor.spelling)) return [];
 
     const tokens = cursor.tokens;
 
