@@ -721,15 +721,19 @@ private string maybeParents(
         : ": " ~ parents.join(", ");
 }
 
+// change the enum base type depending on actual values used so as to
+// not fail to compile due to narrowing conversions
 private string maybeEnumBaseType(in from!"clang".Cursor cursor, in string dKeyword)
     @safe
 {
     import std.algorithm: map, minElement, maxElement;
+    import std.array: empty;
 
     if(dKeyword != "enum") return "";
 
     auto enumValues = cursor.children.map!(a => a.enumConstantValue);
-    bool shouldPromote = enumValues.maxElement > int.max || enumValues.minElement < int.min;
+    if(enumValues.empty) return "";
+    const shouldPromote = enumValues.maxElement > int.max || enumValues.minElement < int.min;
 
-    return shouldPromote ? " : long" : "";
+     return shouldPromote ? " : long" : "";
 }

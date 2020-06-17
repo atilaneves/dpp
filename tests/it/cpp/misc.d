@@ -39,7 +39,6 @@ import it;
 }
 
 
-@ShouldFail
 @("enum.class.decl")
 @safe unittest {
     shouldCompile(
