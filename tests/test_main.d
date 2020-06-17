@@ -42,6 +42,7 @@ version(dpp2) {
         "contract.issues",
         "contract.methods",
         "contract.functions",
+        "contract.enums",
 
         "it.issues",
         "it.expansion",

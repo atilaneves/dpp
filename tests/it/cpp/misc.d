@@ -37,3 +37,19 @@ import it;
         ),
    );
 }
+
+
+@("enum.class.decl")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                enum class byte : unsigned char;
+            }
+        ),
+        D(
+            q{
+            }
+        ),
+   );
+}

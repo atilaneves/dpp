@@ -14,4 +14,5 @@ mixin runTestsMain!(
     "contract.issues",
     "contract.methods",
     "contract.functions",
+    "contract.enums",
 );
