@@ -27,7 +27,10 @@ import contract;
     printChildren(enum_);
     enum_.children.length.should == 3;
 
-    Type(clang_getEnumDeclIntegerType(enum_.cx)).shouldMatch(Type.Kind.UInt, "unsigned int");
+    version(Windows)
+        Type(clang_getEnumDeclIntegerType(enum_.cx)).shouldMatch(Type.Kind.Int, "int");
+    else
+        Type(clang_getEnumDeclIntegerType(enum_.cx)).shouldMatch(Type.Kind.UInt, "unsigned int");
 }
 
 
