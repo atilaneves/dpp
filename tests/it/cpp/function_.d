@@ -115,7 +115,6 @@ unittest {
 }
 
 
-@ShouldFail("#267")
 @("parameter.std.string.original.nousing")
 @safe unittest {
     shouldCompile(
@@ -131,8 +130,6 @@ unittest {
                     template <typename CharT, typename Traits = std::char_traits<CharT>, typename Allocator = std::allocator<CharT>>
                     struct basic_string {};
 
-                    // this gets translated as `string` despite the usual
-                    // alias to `immutable(char)[]`
                     using string = basic_string<char>;
                 }
 
@@ -155,7 +152,6 @@ unittest {
 }
 
 
-@ShouldFail("#267")
 @("parameter.std.string.original.using")
 @safe unittest {
     shouldCompile(
@@ -194,6 +190,10 @@ unittest {
             q{
                 auto str = String();
                 fun(str.value);
+
+                string_ cppstr;
+                fun(cppstr);
+
                 auto dstr = "hello";
                 static assert(!__traits(compiles, fun(dstr)));
             }

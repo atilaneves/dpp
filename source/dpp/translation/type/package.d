@@ -228,10 +228,10 @@ private string translateAggregate(in from!"clang".Type type,
         return tentative;
     }
 
-    return addModifiers(type, spelling)
+    const cleanSpelling = translateString(spelling, context);
+
+    return addModifiers(type, cleanSpelling)
         .translateElaborated(context)
-        .replace("<", "!(")
-        .replace(">", ")")
         ;
 }
 
@@ -461,13 +461,17 @@ string translateString(scope const string spelling,
     import std.string: replace;
     import std.algorithm: canFind;
 
-    string maybeTranslateTemplateBrackets(in string str) {
+    static string maybeTranslateTemplateBrackets(in string str) {
         return str.canFind("<") && str.canFind(">")
             ? str.replace("<", "!(").replace(">", ")")
             : str;
     }
 
-    return
+    static string maybeTranslateCppString(in string str) {
+        return str == "string" ? "string_" : str;
+    }
+
+    auto ret =
         maybeTranslateTemplateBrackets(spelling)
         .replace(context.namespace, "")
         .replace("decltype", "typeof")
@@ -482,6 +486,8 @@ string translateString(scope const string spelling,
         .replace("&&", "")
         .replace("...", "")  // variadics work differently in D
         ;
+
+    return maybeTranslateCppString(ret);
 }
 
 string removeDppDecorators(in string spelling) @safe {

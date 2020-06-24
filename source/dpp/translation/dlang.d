@@ -185,6 +185,8 @@ bool isKeyword(string str) @safe @nogc pure nothrow {
         case "__TIMESTAMP__":
         case "__VENDOR__":
         case "__VERSION__":
+
+        case "string":
             return true;
     }
 
