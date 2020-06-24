@@ -115,7 +115,6 @@ unittest {
 }
 
 
-@ShouldFail("#267")
 @("parameter.std.string.original.nousing")
 @safe unittest {
     shouldCompile(
