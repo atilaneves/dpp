@@ -1799,6 +1799,28 @@ version(Linux) {
 
 @ShouldFail
 @Tags("issue")
+@("269")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                struct OopsStruct {};
+                namespace Oops {
+                    void fun(OopsStruct);
+                }
+            }
+        ),
+        D(
+            q{
+                fun(OopsStruct());
+            }
+        ),
+    );
+}
+
+
+@ShouldFail
+@Tags("issue")
 @("270")
 @safe unittest {
     shouldRun(
