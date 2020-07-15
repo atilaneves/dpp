@@ -1795,3 +1795,29 @@ version(Linux) {
         )
     );
 }
+
+
+@ShouldFail
+@Tags("issue")
+@("270")
+@safe unittest {
+    shouldRun(
+        Cpp(
+            q{
+                int twice(int i = 1);
+            }
+        ),
+        Cpp(
+            q{
+                int twice(int i) { return i * 2; }
+            }
+        ),
+        D(
+            q{
+                assert(twice(2) == 4);
+                assert(twice(3) == 6);
+                assert(twice() == 2);
+            }
+        ),
+    );
+}
