@@ -593,7 +593,7 @@ private string[] innerFieldAccessors(in string varName,
     const fieldAccess = varName ~ "." ~ subMemberSpelling;
     const funcName = subMemberSpelling;
 
-    lines ~= q{auto %s() @property @nogc pure nothrow { return %s; }}
+    lines ~= q{ref auto %s() @property @nogc pure nothrow { return %s; }}
         .format(funcName, fieldAccess);
 
     lines ~= q{void %s(_T_)(auto ref _T_ val) @property @nogc pure nothrow { %s = val; }}

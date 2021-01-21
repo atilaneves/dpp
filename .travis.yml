@@ -6,7 +6,7 @@ dist: bionic
 matrix:
   include:
     - d: dmd-nightly
-    - d: dmd-2.092.0
+    - d: dmd-2.095.0
   allow_failures:
     - d: dmd-nightly
 
