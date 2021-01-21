@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install libclang
-        run: sudo apt-get install libclang-3.9-dev
+        run: sudo apt-get install libclang-dev
       - name: Install D compiler
         uses: dlang-community/setup-dlang@v1
         with:
