@@ -279,7 +279,7 @@ private void shouldCompileAndRun
             const linkStdLib = isCpp ? ["-L-lstdc++"] : [];
 
         try
-            shouldSucceed!(file, line)([dCompiler, "-fPIC", "-m64", "-g", "app.d", "c" ~ objectFileExtension] ~ linkStdLib);
+            shouldSucceed!(file, line)([dCompiler, "-fPIE", "-m64", "-g", "app.d", "c" ~ objectFileExtension] ~ linkStdLib);
         catch(Exception e)
             adjustMessage(e, ["app.d"]);
 
