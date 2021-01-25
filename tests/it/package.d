@@ -267,7 +267,7 @@ private void shouldCompileAndRun
         const languageStandard =  isCpp ? "-std=c++17" : "-std=c11";
         const outputFileName = "c" ~ objectFileExtension;
 
-        shouldSucceed(compiler, "-o", outputFileName, "-g", languageStandard, "-c", cSourceFileName);
+        shouldSucceed(compiler, "-fPIE", "-o", outputFileName, "-g", languageStandard, "-c", cSourceFileName);
         shouldExist(outputFileName);
 
         runPreprocessOnly("app.dpp");
@@ -279,7 +279,7 @@ private void shouldCompileAndRun
             const linkStdLib = isCpp ? ["-L-lstdc++"] : [];
 
         try
-            shouldSucceed!(file, line)([dCompiler, "-fPIE", "-m64", "-g", "app.d", "c" ~ objectFileExtension] ~ linkStdLib);
+            shouldSucceed!(file, line)([dCompiler, "-m64", "-g", "app.d", "c" ~ objectFileExtension] ~ linkStdLib);
         catch(Exception e)
             adjustMessage(e, ["app.d"]);
 
