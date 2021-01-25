@@ -12,12 +12,16 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
+
       - name: Install libclang
-        run: sudo apt-get install libclang-6.0-dev
+        run: sudo apt-get install libclang-10-dev
+
       - name: Install D compiler
-        uses: dlang-community/setup-dlang@v1
+        uses: dlang-community/setup-dlang@v1.0.5
         with:
           compiler: ${{ matrix.dc }}
 
       - name: Run tests
         run: ./ci.sh
+        env:
+          LIBRARY_PATH: /usr/lib/llvm-10/lib
