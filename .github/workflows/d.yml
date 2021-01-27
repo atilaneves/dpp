@@ -30,7 +30,12 @@ jobs:
           compiler: ${{ matrix.dc }}
 
       - name: Run tests
-        run: ./ci.sh
+        run: dub test -q --build=unittest-cov --compiler=${{ matrix.dc}}
+        env:
+          LIBRARY_PATH: /usr/lib/llvm-10/lib
+
+      - name: Build binary
+        run: dub build -q --compiler=${{ matrix.dc}}
         env:
           LIBRARY_PATH: /usr/lib/llvm-10/lib
 
