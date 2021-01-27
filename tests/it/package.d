@@ -267,7 +267,11 @@ private void shouldCompileAndRun
         const languageStandard =  isCpp ? "-std=c++17" : "-std=c11";
         const outputFileName = "c" ~ objectFileExtension;
 
-        shouldSucceed(compiler, "-fPIE", "-o", outputFileName, "-g", languageStandard, "-c", cSourceFileName);
+        version(Windows)
+            shouldSucceed(compiler, "-o", outputFileName, "-g", languageStandard, "-c", cSourceFileName);
+        else
+            shouldSucceed(compiler, "-fPIE", "-o", outputFileName, "-g", languageStandard, "-c", cSourceFileName);
+
         shouldExist(outputFileName);
 
         runPreprocessOnly("app.dpp");
