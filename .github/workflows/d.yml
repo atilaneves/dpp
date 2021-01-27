@@ -13,8 +13,16 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install libclang
-        run: sudo apt-get install libclang-10-dev
+      - name: Install package dependencies
+        run: |
+          sudo apt-get update -y -qq
+          sudo apt-get install -y -qq libclang-10-dev
+
+      - uses: actions/setup-ruby@v1
+
+      - run: gem install bundler -v 1.17.3
+
+      - run: bundle install
 
       - name: Install D compiler
         uses: dlang-community/setup-dlang@v1.0.5
@@ -25,3 +33,5 @@ jobs:
         run: ./ci.sh
         env:
           LIBRARY_PATH: /usr/lib/llvm-10/lib
+
+      - uses: codecov/codecov-action@v1
