@@ -261,6 +261,7 @@ private string fixOctal(in string spelling) @safe pure {
     import clang: Token;
     import std.algorithm: countUntil;
     import std.uni: isNumber;
+    import std.conv : to;
 
     const isOctal =
         spelling.length > 1
@@ -274,7 +275,16 @@ private string fixOctal(in string spelling) @safe pure {
     const firstNonZero = spelling.countUntil!(a => a != '0');
     if(firstNonZero == -1) return "0";
 
-    return `std.conv.octal!` ~ spelling[firstNonZero .. $];
+    const base8_representation = spelling[firstNonZero .. $];
+    const base8_length = base8_representation.length;
+    int base10_number = 0;
+    foreach(i, c; base8_representation)
+    {
+        const power = base8_length - i - 1;
+        const digit = (c - '0');
+        base10_number += (digit * (8 ^^ power));
+    }
+    return "/+converted from octal '" ~ base8_representation ~ "'+/ " ~ to!string(base10_number);
 }
 
 
