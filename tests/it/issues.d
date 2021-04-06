@@ -1215,6 +1215,28 @@ unittest {
 }
 
 
+@Tags("issue")
+@("103.4")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        writeFile("hdr.h",
+                  "#define OCTAL 00177\n");
+        writeFile("hdr.dpp",
+                  `
+                      #include "hdr.h"
+                  `);
+        writeFile("app.d",
+                  q{
+                      import hdr;
+                      static assert(OCTAL == 127);
+                  });
+
+        runPreprocessOnly("hdr.dpp");
+        shouldCompileWithFlags(["-betterC"], "app.d");
+    }
+}
+
+
 
 @ShouldFail
 @Tags("issue")
