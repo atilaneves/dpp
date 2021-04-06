@@ -104,10 +104,7 @@ struct IncludeSandbox {
                       (in string[] srcFiles...)
         @safe const
     {
-        try
-            sandbox.shouldSucceed!(file, line)([dCompiler, "-m64", "-o-", "-c"] ~ srcFiles);
-        catch(Exception e)
-            adjustMessage(e, srcFiles);
+        shouldCompile!(file, line)(DFlags(), srcFiles);
     }
 
     void shouldCompile(string file = __FILE__, size_t line = __LINE__)
