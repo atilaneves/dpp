@@ -1232,7 +1232,7 @@ unittest {
                   });
 
         runPreprocessOnly("hdr.dpp");
-        shouldCompileWithFlags(["-betterC"], "app.d");
+        shouldCompile(DFlags("-betterC"), "app.d");
     }
 }
 
