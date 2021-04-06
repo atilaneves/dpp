@@ -1,6 +1,8 @@
 module dpp.translation.macro_;
 
+
 import dpp.from;
+
 
 string[] translateMacro(in from!"clang".Cursor cursor,
                         ref from!"dpp.runtime.context".Context context)
@@ -88,15 +90,6 @@ private bool isLiteralMacro(in from!"clang".Token[] tokens) @safe @nogc pure not
         && tokens[0].kind == Token.Kind.Identifier
         && tokens[1].kind == Token.Kind.Literal
         ;
-}
-
-private bool isStringRepr(T)(in string str) @safe pure {
-    import std.conv: to;
-    import std.exception: collectException;
-    import std.string: strip;
-
-    T dummy;
-    return str.strip.to!T.collectException(dummy) is null;
 }
 
 
@@ -261,13 +254,12 @@ private string fixOctal(in string spelling) @safe pure {
     import clang: Token;
     import std.algorithm: countUntil;
     import std.uni: isNumber;
-    import std.conv : to;
+    import std.conv : text;
 
     const isOctal =
         spelling.length > 1
         && spelling[0] == '0'
         && spelling[1].isNumber
-        //&& token.spelling.isStringRepr!long
         ;
 
     if(!isOctal) return spelling;
@@ -281,10 +273,11 @@ private string fixOctal(in string spelling) @safe pure {
     foreach(i, c; base8_representation)
     {
         const power = base8_length - i - 1;
-        const digit = (c - '0');
-        base10_number += (digit * (8 ^^ power));
+        const digit = c - '0';
+        base10_number += digit * 8 ^^ power;
     }
-    return "/+converted from octal '" ~ base8_representation ~ "'+/ " ~ to!string(base10_number);
+
+    return "/+converted from octal '" ~ base8_representation ~ "'+/ " ~ base10_number.text;
 }
 
 
