@@ -49,6 +49,13 @@ struct RuntimeArgs {
     string[] args;
 }
 
+struct DFlags {
+    string[] flags;
+    this(string[] flags...) @safe pure nothrow {
+        this.flags = flags.dup;
+    }
+}
+
 struct IncludeSandbox {
 
     alias sandbox this;
@@ -97,18 +104,15 @@ struct IncludeSandbox {
                       (in string[] srcFiles...)
         @safe const
     {
-        try
-            sandbox.shouldSucceed!(file, line)([dCompiler, "-m64", "-o-", "-c"] ~ srcFiles);
-        catch(Exception e)
-            adjustMessage(e, srcFiles);
+        shouldCompile!(file, line)(DFlags(), srcFiles);
     }
 
-    void shouldCompileWithFlags(string file = __FILE__, size_t line = __LINE__)
-                               (in string[] dFlags, in string[] srcFiles...)
+    void shouldCompile(string file = __FILE__, size_t line = __LINE__)
+                      (in DFlags dflags, in string[] srcFiles...)
         @safe const
     {
         try
-            sandbox.shouldSucceed!(file, line)([dCompiler, "-m64", "-o-", "-c"] ~ dFlags ~ srcFiles);
+            sandbox.shouldSucceed!(file, line)([dCompiler, "-m64", "-o-", "-c"] ~ dflags.flags ~ srcFiles);
         catch(Exception e)
             adjustMessage(e, srcFiles);
     }
