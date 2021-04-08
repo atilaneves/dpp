@@ -11,7 +11,6 @@ alias lib = dubConfigurationTarget!(
     Configuration("library"),
     CompilerFlags(debugFlags),
     LinkerFlags(),
-    No.main,
     CompilationMode.package_,
 );
 
@@ -40,7 +39,6 @@ alias dpp2 = dubTarget!(
     Configuration("dpp2"),
     CompilerFlags(debugFlags ~ "-unittest"),
     LinkerFlags(),
-    Yes.main,
     CompilationMode.all,
 );
 
