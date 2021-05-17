@@ -1865,3 +1865,24 @@ version(Linux) {
         ),
     );
 }
+
+
+@ShouldFail
+@Tags("issue")
+@("282")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                typedef double array[2];
+                void oops(array* a);
+            }
+        ),
+        D(
+            q{
+                double[2] doubles;
+                oops(&doubles);
+            }
+        )
+    );
+}
