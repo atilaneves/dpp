@@ -89,7 +89,7 @@ struct Options {
                     dlangCompilerArgs ~= "-m64";
                 }
                 version(x86) {
-                    dlangCompilerArgs ~= "-m32mscoff";
+                    dlangCompilerArgs ~= (dlangCompiler == "dmd") ? "-m32mscoff" : "-m32";
                 }
             }
             assert(!cppStdLib, "C++ std lib functionality not implemented yet for Windows");
