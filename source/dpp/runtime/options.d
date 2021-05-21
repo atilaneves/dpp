@@ -70,11 +70,7 @@ struct Options {
 
         // if no -of option is given, default to the name of the .dpp file
         if(!dlangCompilerArgs.canFind!(a => a.startsWith("-of")) && !dlangCompilerArgs.canFind("-c")) {
-            auto offlag = "-of=";
-            if (dlangCompiler == "ldc2") {
-                offlag = "--of=";
-            }
-            dlangCompilerArgs ~= offlag ~
+            dlangCompilerArgs ~= ((dlangCompiler == "ldc2") ? "--of=" : "-of=") ~
                 args.
                 filter!(a => a.extension == ".dpp" || a.extension == ".d")
                 .front
