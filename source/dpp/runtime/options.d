@@ -69,15 +69,20 @@ struct Options {
             dFileNames;
 
         // if no -of option is given, default to the name of the .dpp file
-        if(!dlangCompilerArgs.canFind!(a => a.startsWith("-of")) && !dlangCompilerArgs.canFind("-c"))
-            dlangCompilerArgs ~= "-of=" ~
+        if(!dlangCompilerArgs.canFind!(a => a.startsWith("-of")) && !dlangCompilerArgs.canFind("-c")) {
+            auto offlag = "-of=";
+            if (dlangCompiler == "ldc2") {
+                offlag = "--of=";
+            }
+            dlangCompilerArgs ~= offlag ~
                 args.
                 filter!(a => a.extension == ".dpp" || a.extension == ".d")
                 .front
                 .stripExtension
                 ~ exeExtension;
+        }
 
-        version(Windows) {            
+        version(Windows) {
             if(!dlangCompilerArgs.canFind!(a => a == "-m64" || a == "-m32" || a == "-m32mscoff")) {
                 // append the arch flag if not provided manually
                 version(X86_64) {
