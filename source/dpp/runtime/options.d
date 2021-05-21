@@ -77,8 +77,18 @@ struct Options {
                 .stripExtension
                 ~ exeExtension;
 
-        version(Windows)
+        version(Windows) {            
+            if(!dlangCompilerArgs.canFind!(a => a == "-m64" || a == "-m32" || a == "-m32mscoff")) {
+                // append the arch flag if not provided manually
+                version(X86_64) {
+                    dlangCompilerArgs ~= "-m64";
+                }
+                version(x86) {
+                    dlangCompilerArgs ~= "-m32mscoff";
+                }
+            }
             assert(!cppStdLib, "C++ std lib functionality not implemented yet for Windows");
+        }
 
         if(cppStdLib) {
             dlangCompilerArgs ~= "-L-lstdc++";
