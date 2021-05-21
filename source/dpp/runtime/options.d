@@ -28,6 +28,7 @@ struct Options {
     string[] defines;
     bool earlyExit;
     bool hardFail;
+    string mscrtlib;
     bool cppStdLib;
     bool ignoreMacros;
     bool detailedUntranslatable;
@@ -68,6 +69,17 @@ struct Options {
             args[1..$].filter!(a => a.extension != ".dpp").array ~
             dFileNames;
 
+        // use msvcrtd.lib if no other libc is specified
+        bool addNODEFAULTLIB = false;
+        if(mscrtlib) {
+            if(dlangCompiler == "dmd") {
+                dlangCompilerArgs ~= mscrtlib ~ ".lib";
+                addNODEFAULTLIB = true;
+            } else if (dlangCompiler == "ldc2") {
+                dlangCompilerArgs ~= "--mscrtlib=" ~ mscrtlib;
+            }
+        }
+
         // if no -of option is given, default to the name of the .dpp file
         if(!dlangCompilerArgs.canFind!(a => a.startsWith("-of")) && !dlangCompilerArgs.canFind("-c")) {
             dlangCompilerArgs ~= ((dlangCompiler == "ldc2") ? "--of=" : "-of=") ~
@@ -79,14 +91,17 @@ struct Options {
         }
 
         version(Windows) {
+            // append the arch flag if not provided manually
             if(!dlangCompilerArgs.canFind!(a => a == "-m64" || a == "-m32" || a == "-m32mscoff")) {
-                // append the arch flag if not provided manually
                 version(X86_64) {
                     dlangCompilerArgs ~= "-m64";
                 }
                 version(x86) {
                     dlangCompilerArgs ~= (dlangCompiler == "dmd") ? "-m32mscoff" : "-m32";
                 }
+            }
+            if(addNODEFAULTLIB) {
+                dlangCompilerArgs ~= "-L=\"/NODEFAULTLIB:libcmt\"";
             }
             assert(!cppStdLib, "C++ std lib functionality not implemented yet for Windows");
         }
@@ -134,6 +149,9 @@ struct Options {
                 "parse-as-cpp", "Parse header as C++", &parseAsCpp,
                 "define", "C Preprocessor macro", &defines,
                 "hard-fail", "Translate nothing if any part fails", &hardFail,
+                "mscrtlib",
+                    "MS C runtime library to link (e.g. use `--mscrtlib=msvcrtd`, if there are missing references)",
+                     &mscrtlib,
                 "c++-std-lib", "Link to the C++ standard library", &cppStdLib,
                 "ignore-macros", "Ignore preprocessor macros", &ignoreMacros,
                 "ignore-ns", "Ignore a C++ namespace", &ignoredNamespaces,
