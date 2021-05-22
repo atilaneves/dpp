@@ -3,6 +3,7 @@ on: [push, pull_request]
 
 jobs:
   test:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
     name: Dub Test
     strategy:
       fail-fast: false
