@@ -37,27 +37,15 @@ jobs:
         with:
           compiler: ${{ matrix.dc }}
 
-      - name: Set LLVM Installation Path
-        shell: pwsh
-        run: |
-          if ("${{ matrix.os }}" -like 'windows*') {
-            $LLVM_PATH = "C:/Program Files/LLVM"
-          } elseif ("${{ matrix.os }}" -like 'ubuntu*') {
-            $LLVM_PATH = "${{ runner.temp }}/llvm"
-          }
-          echo "$LLVM_PATH" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          echo "$LLVM_PATH/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          echo "LLVM_PATH=$LLVM_PATH" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
       - name: Setup Visual Studio Command Prompt - Windows
         if: startsWith(matrix.os,'windows')
         uses: ilammy/msvc-dev-cmd@v1
 
+      # NOTE use KyleMayes/install-llvm-action once https://github.com/KyleMayes/install-llvm-action/pull/11 is merged
       - name: Setup LLVM
-        uses: KyleMayes/install-llvm-action@v1.3.0
+        uses: aminya/install-llvm-action@defeault-directory
         with:
           version: 10
-          directory: ${{ env.LLVM_PATH }}
 
       - name: Run tests
         run: dub test -q --build=unittest-cov --arch=${{ matrix.arch }}
