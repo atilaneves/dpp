@@ -5,42 +5,67 @@ jobs:
   test:
     name: Dub Test
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-20.04]
+        os: [ubuntu-20.04, windows-latest]
         dc:
           - dmd-2.096.1
           - dmd-2.095.0
           - ldc-1.26.0
           - ldc-1.20.0
+        arch:
+          - x86_64
 
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install package dependencies
-        run: |
-          sudo apt-get update -y -qq
-          sudo apt-get install -y -qq libclang-10-dev
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3
+          bundler-cache: true
 
-      - uses: actions/setup-ruby@v1
+      # Ruby puts this on the path which breaks ldc
+      - name: Rename msys64/link.exe
+        if: startsWith(matrix.os,'windows')
+        shell: pwsh
+        run: mv C:\msys64\usr\bin\link.exe C:\msys64\usr\bin\msys-link.exe
 
-      - run: gem install bundler -v 1.17.3
-
-      - run: bundle install
-
-      - name: Install D compiler
-        uses: dlang-community/setup-dlang@v1.0.5
+      - name: Setup D
+        uses: dlang-community/setup-dlang@v1
         with:
           compiler: ${{ matrix.dc }}
 
+      - name: Set LLVM Installation Path
+        shell: pwsh
+        run: |
+          if ("${{ matrix.os }}" -like 'windows*') {
+            $LLVM_PATH = "C:/Program Files/LLVM"
+          } elseif ("${{ matrix.os }}" -like 'ubuntu*') {
+            $LLVM_PATH = "${{ runner.temp }}/llvm"
+          }
+          echo "$LLVM_PATH" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          echo "$LLVM_PATH/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          echo "LLVM_PATH=$LLVM_PATH" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Setup Visual Studio Command Prompt - Windows
+        if: startsWith(matrix.os,'windows')
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Setup LLVM
+        uses: KyleMayes/install-llvm-action@v1.3.0
+        with:
+          version: 10
+          directory: ${{ env.LLVM_PATH }}
+
       - name: Run tests
-        run: dub test -q --build=unittest-cov
+        run: dub test -q --build=unittest-cov --arch=${{ matrix.arch }}
         env:
-          LIBRARY_PATH: /usr/lib/llvm-10/lib
+          LIBRARY_PATH: "${{ env.LLVM_PATH }}/lib"
 
       - name: Build binary
-        run: dub build -q
+        run: dub build -q --arch=${{ matrix.arch }}
         env:
-          LIBRARY_PATH: /usr/lib/llvm-10/lib
+          LIBRARY_PATH: "${{ env.LLVM_PATH }}/lib"
 
       - uses: codecov/codecov-action@v1
