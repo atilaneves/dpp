@@ -71,12 +71,14 @@ struct Options {
 
         // use msvcrtd.lib if no other libc is specified
         bool addNODEFAULTLIB = false;
-        if(mscrtlib) {
-            if(dlangCompiler == "dmd") {
-                dlangCompilerArgs ~= mscrtlib ~ ".lib";
-                addNODEFAULTLIB = true;
-            } else if (dlangCompiler == "ldc2") {
-                dlangCompilerArgs ~= "--mscrtlib=" ~ mscrtlib;
+        version(Windows) {
+            if(mscrtlib) {
+                if(dlangCompiler == "dmd") {
+                    dlangCompilerArgs ~= mscrtlib ~ ".lib";
+                    addNODEFAULTLIB = true;
+                } else if (dlangCompiler == "ldc2") {
+                    dlangCompilerArgs ~= "--mscrtlib=" ~ mscrtlib;
+                }
             }
         }
 
