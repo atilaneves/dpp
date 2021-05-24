@@ -43,7 +43,7 @@ jobs:
 
       # NOTE use KyleMayes/install-llvm-action once https://github.com/KyleMayes/install-llvm-action/pull/11 is merged
       - name: Setup LLVM
-        uses: aminya/install-llvm-action@defeault-directory
+        uses: aminya/install-llvm-action@default-directory
         with:
           version: 10
 
