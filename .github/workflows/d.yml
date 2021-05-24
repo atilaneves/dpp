@@ -5,6 +5,7 @@ jobs:
   test:
     name: Dub Test
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-20.04]
         dc:
