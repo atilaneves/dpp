@@ -1,8 +1,7 @@
 d++ - #include C and C++ headers in D files
 ====================================================
 
-[![Build Status](https://travis-ci.org/atilaneves/dpp.png?branch=master)](https://travis-ci.org/atilaneves/dpp)
-[![Build Status](https://ci.appveyor.com/api/projects/status/github/atilaneves/dpp?branch=master&svg=true)](https://ci.appveyor.com/project/atilaneves/dpp)
+[![CI](https://github.com/atilaneves/dpp/actions/workflows/d.yml/badge.svg)](https://github.com/atilaneves/dpp/actions/workflows/d.yml)
 [![Coverage](https://codecov.io/gh/atilaneves/dpp/branch/master/graph/badge.svg)](https://codecov.io/gh/atilaneves/dpp)
 [![Open on run.dlang.io](https://img.shields.io/badge/run.dlang.io-open-blue.svg)](https://run.dlang.io/is/JK0CAf)
 
@@ -246,13 +245,13 @@ Build Instructions
 
 ### Windows
 
-1. Install http://releases.llvm.org/6.0.1/LLVM-6.0.1-win64.exe into `C:\Program Files\LLVM\`, making sure to tick the "Add LLVM to the system PATH for all users" option.
+1. Install https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/LLVM-10.0.0-win64.exe into `C:\Program Files\LLVM\`, making sure to tick the "Add LLVM to the system PATH for all users" option (`C:\Program Files\LLVM\bin` and `C:\Program Files\LLVM\` should be on the PATH).
 2. Make sure you have [LDC](https://github.com/ldc-developers/ldc/releases) installed somewhere.
 3. Compile with `dub build --compiler=C:\path\to\bin\ldc2.exe`.
 4. Copy `C:\Program Files\LLVM\bin\libclang.dll` next to the `d++.exe` in the `bin` directory.
 
 ### Ubuntu
 
-1. Install `libclang-6.0-dev` with apt
+1. Install `libclang-10-dev` with apt: `sudo apt-get install -y -qq libclang-10-dev`
 2. `dub install dpp`
 3. `dub run dpp -- yoursourcefilenamehere.dpp`
