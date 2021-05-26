@@ -16,7 +16,8 @@ jobs:
           - ldc-1.20.0
         arch:
           - x86_64
-
+        clang:
+          - 10
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
@@ -45,7 +46,12 @@ jobs:
       - name: Setup LLVM
         uses: aminya/install-llvm-action@default-directory
         with:
-          version: 10
+          version: ${{ matrix.clang }}
+
+      - name: Linux - link libclang.so
+        if: contains(matrix.os, 'ubuntu')
+        run: sudo ln -s libclang-${{ matrix.clang }}.so.1 /lib/x86_64-linux-gnu/libclang.so
+        working-directory: ${{ env.LLVM_PATH }}/lib
 
       - name: Run tests
         run: dub test -q --build=unittest-cov --arch=${{ matrix.arch }}
