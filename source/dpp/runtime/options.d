@@ -80,6 +80,8 @@ struct Options {
                     dlangCompilerArgs ~= "--mscrtlib=" ~ mscrtlib;
                 }
             }
+        } else {
+            assert(mscrtlib == "", "Using --mscrtlib flag on a non-windows platform is not allowed.");
         }
 
         // if no -of option is given, default to the name of the .dpp file
