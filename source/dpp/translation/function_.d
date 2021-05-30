@@ -4,6 +4,7 @@
 module dpp.translation.function_;
 
 import dpp.from;
+import dpp.translation.docs;
 
 
 enum OPERATOR_PREFIX = "operator";
@@ -156,27 +157,19 @@ private string functionDecl(
 
     string prefix() {
         import dpp.translation.aggregate: dKeywordFromStrass;
-        import std.typecons;
-
-        string ret;
-
-        // Add the comment before the function definition
-        Nullable!string nullableComment = cursor.raw_comment();
-        if(!nullableComment.isNull) {
-            ret ~= nullableComment.get() ~ "\n    ";
-        }
 
         if(cursor.semanticParent.dKeywordFromStrass == "struct")
-            return ret ~ "";
+            return "";
 
         if(cursor.isPureVirtual)
-            return ret ~ "abstract ";
+            return "abstract ";
 
         if(!cursor.isVirtual)
-            return ret ~ "final ";
+            return "final ";
 
         // If we get here it's a virtual member function.
         // We might need to add D `final` and/or `override`.
+        string ret;
 
         if(cursor.isOverride) ret ~= "override ";
         if(cursor.isFinal) ret ~= "final ";
@@ -184,7 +177,7 @@ private string functionDecl(
         return ret;
     }
 
-    return text(prefix, returnType, " ", spelling, ctParams, "(", params, ") @nogc nothrow", const_, ";");
+    return text(get_comment(cursor), prefix, returnType, " ", spelling, ctParams, "(", params, ") @nogc nothrow", const_, ";");
 }
 
 private string returnType(in from!"clang".Cursor cursor,
