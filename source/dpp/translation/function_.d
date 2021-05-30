@@ -163,7 +163,7 @@ private string functionDecl(
         // Add the comment before the function definition
         Nullable!string nullableComment = cursor.raw_comment();
         if(!nullableComment.isNull) {
-            ret ~= nullableComment.get();
+            ret ~= nullableComment.get() ~ "\n    ";
         }
 
         if(cursor.semanticParent.dKeywordFromStrass == "struct")
