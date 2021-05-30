@@ -254,7 +254,7 @@ private void runCPreProcessor(in string cppPath, in string tmpFileName, in strin
 
     const cpp = cppPath == "" ? cppDefault : cppPath;
 
-    const cppArgs = [cpp, "-w", tmpFileName];
+    const cppArgs = [cpp, "-w", "--comments", tmpFileName];
     const ret = () {
         try {
             string[string] env;
