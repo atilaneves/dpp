@@ -129,6 +129,9 @@ private string functionDecl(
     import std.algorithm: endsWith, canFind;
     import std.array: join;
 
+    () @trusted {
+        context.log("Comment (raw):  ", cursor.raw_comment());
+    }();
     context.log("Function return type (raw):        ", cursor.type.returnType);
     context.log("Function children: ", cursor.children);
     context.log("Function paramTypes: ", cursor.type.paramTypes);
@@ -153,19 +156,27 @@ private string functionDecl(
 
     string prefix() {
         import dpp.translation.aggregate: dKeywordFromStrass;
+        import std.typecons;
+
+        string ret;
+
+        // Add the comment before the function definition
+        Nullable!string nullableComment = cursor.raw_comment();
+        if(!nullableComment.isNull) {
+            ret ~= nullableComment.get();
+        }
 
         if(cursor.semanticParent.dKeywordFromStrass == "struct")
-            return "";
+            return ret ~ "";
 
         if(cursor.isPureVirtual)
-            return "abstract ";
+            return ret ~ "abstract ";
 
         if(!cursor.isVirtual)
-            return "final ";
+            return ret ~ "final ";
 
         // If we get here it's a virtual member function.
         // We might need to add D `final` and/or `override`.
-        string ret;
 
         if(cursor.isOverride) ret ~= "override ";
         if(cursor.isFinal) ret ~= "final ";
