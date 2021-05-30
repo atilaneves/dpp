@@ -18,5 +18,5 @@ string[] translateEnumConstant(in from!"clang".Cursor cursor,
     context.log("    Enum Constant Value: ", cursor.enumConstantValue);
     context.log("    tokens: ", cursor.tokens);
 
-    return [get_comment(cursor, false), maybeRename(cursor, context) ~ ` = ` ~ text(cursor.enumConstantValue) ~ `, `];
+    return [getComment(cursor), maybeRename(cursor, context) ~ ` = ` ~ text(cursor.enumConstantValue) ~ `, `];
 }

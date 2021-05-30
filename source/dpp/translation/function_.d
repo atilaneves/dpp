@@ -177,7 +177,7 @@ private string functionDecl(
         return ret;
     }
 
-    return text(get_comment(cursor), prefix, returnType, " ", spelling, ctParams, "(", params, ") @nogc nothrow", const_, ";");
+    return text(getComment(cursor, true), prefix, returnType, " ", spelling, ctParams, "(", params, ") @nogc nothrow", const_, ";");
 }
 
 private string returnType(in from!"clang".Cursor cursor,

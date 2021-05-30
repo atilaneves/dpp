@@ -65,7 +65,7 @@ string[] translateVariable(in from!"clang".Cursor cursor,
     }
 
     // attach variable docs
-    ret = get_comment(cursor, false) ~ ret;
+    ret = getComment(cursor) ~ ret;
 
     return ret;
 }
