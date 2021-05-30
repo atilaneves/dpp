@@ -1,6 +1,7 @@
 module dpp.translation.variable;
 
 import dpp.from;
+import dpp.translation.docs;
 
 string[] translateVariable(in from!"clang".Cursor cursor,
                            ref from!"dpp.runtime.context".Context context)
@@ -62,6 +63,9 @@ string[] translateVariable(in from!"clang".Cursor cursor,
             maybePragma(cursor, context) ~
             text("extern __gshared ", static_, typeSpelling, " ", spelling, ";");
     }
+
+    // attach variable docs
+    ret = get_comment(cursor, false) ~ ret;
 
     return ret;
 }
