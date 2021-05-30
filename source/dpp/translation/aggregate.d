@@ -4,6 +4,7 @@
 module dpp.translation.aggregate;
 
 import dpp.from;
+import dpp.translation.docs;
 import std.range: isInputRange;
 
 
@@ -246,6 +247,9 @@ string[] translateAggregate(
     lines ~= maybeDisableDefaultCtor(cursor, dKeyword);
 
     lines ~= `}`;
+
+    // attach struct docs
+    lines = get_comment(cursor, false) ~ lines;
 
     return lines;
 }
