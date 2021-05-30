@@ -4,6 +4,7 @@ import unit_threaded.runner;
 mixin runTestsMain!(
     "it.issues",
     "it.expansion",
+    "it.docs",
 
     // C tests
     "it.c.compile.preprocessor",
