@@ -44,7 +44,7 @@ string[] translateFunction(in from!"clang".Cursor cursor,
     const spelling = functionSpelling(cursor, context);
 
     lines ~= [
-        maybePragma(cursor, context) ~ functionDecl(cursor, context, spelling)
+        getComment(cursor), maybePragma(cursor, context) ~ functionDecl(cursor, context, spelling)
     ];
 
     context.log("");
@@ -177,7 +177,7 @@ private string functionDecl(
         return ret;
     }
 
-    return text(getComment(cursor, true), prefix, returnType, " ", spelling, ctParams, "(", params, ") @nogc nothrow", const_, ";");
+    return text(prefix, returnType, " ", spelling, ctParams, "(", params, ") @nogc nothrow", const_, ";");
 }
 
 private string returnType(in from!"clang".Cursor cursor,
