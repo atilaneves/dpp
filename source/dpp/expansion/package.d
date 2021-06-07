@@ -96,7 +96,7 @@ private from!"clang".TranslationUnit parseTU
    definition, so we prefer to find the definition if it exists, and if not, we
    take the canonical declaration so as to not repeat ourselves in D.
 */
-from!"clang".Cursor[] canonicalCursors(from!"clang".TranslationUnit translationUnit) @safe {
+from!"clang".Cursor[] canonicalCursors(ref from!"clang".TranslationUnit translationUnit) @safe {
     // translationUnit isn't const because the cursors need to be sorted
 
     import clang: Cursor;
