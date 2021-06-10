@@ -4,6 +4,7 @@
 module dpp.translation.aggregate;
 
 import dpp.from;
+import dpp.translation.docs;
 import std.range: isInputRange;
 
 
@@ -247,6 +248,9 @@ string[] translateAggregate(
 
     lines ~= `}`;
 
+    // attach struct docs
+    lines = getComment(cursor) ~ lines;
+
     return lines;
 }
 
@@ -410,7 +414,7 @@ string[] translateField(in from!"clang".Cursor field,
 
     return field.isBitField
         ? translateBitField(field, context, type)
-        : [text(type, " ", maybeRename(field, context), ";")];
+        : [getComment(field), text(type, " ", maybeRename(field, context), ";")];
 }
 
 string[] translateBitField(in from!"clang".Cursor cursor,
@@ -426,7 +430,7 @@ string[] translateBitField(in from!"clang".Cursor cursor,
     // no name. See issue #35.
     if(spelling == "") spelling = context.newAnonymousMemberName;
 
-    return [text("    ", type, `, "`, spelling, `", `, cursor.bitWidth, `,`)];
+    return [getComment(cursor), text("    ", type, `, "`, spelling, `", `, cursor.bitWidth, `,`)];
 }
 
 private from!"clang".Type pointeeTypeFor(in from!"clang".Type type)

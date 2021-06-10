@@ -5,6 +5,7 @@ module dpp.translation.typedef_;
 
 
 import dpp.from;
+import dpp.translation.docs;
 
 
 string[] translateTypedef(in from!"clang".Cursor cursor,
@@ -108,7 +109,7 @@ private string[] translateRegular(in from!"clang".Cursor cursor,
     // makes no sense in D.
     return cursor.spelling == underlyingSpelling
         ? []
-        : [`alias ` ~ maybeRename(cursor, context) ~ ` = ` ~ underlyingSpelling  ~ `;`];
+        : [getComment(cursor), `alias ` ~ maybeRename(cursor, context) ~ ` = ` ~ underlyingSpelling  ~ `;`];
 }
 
 

@@ -1,3 +1,5 @@
+module tests.test_main;
+
 import unit_threaded.runner.runner;
 
 version(dpp2) {
@@ -46,6 +48,7 @@ version(dpp2) {
 
         "it.issues",
         "it.expansion",
+        "it.docs",
 
         // C tests
         "it.c.compile.preprocessor",

@@ -4,6 +4,7 @@
 module dpp.translation.enum_;
 
 import dpp.from;
+import dpp.translation.docs;
 
 string[] translateEnumConstant(in from!"clang".Cursor cursor,
                                ref from!"dpp.runtime.context".Context context)
@@ -16,5 +17,6 @@ string[] translateEnumConstant(in from!"clang".Cursor cursor,
     assert(cursor.kind == Cursor.Kind.EnumConstantDecl);
     context.log("    Enum Constant Value: ", cursor.enumConstantValue);
     context.log("    tokens: ", cursor.tokens);
-    return [maybeRename(cursor, context) ~ ` = ` ~ text(cursor.enumConstantValue) ~ `, `];
+
+    return [getComment(cursor), maybeRename(cursor, context) ~ ` = ` ~ text(cursor.enumConstantValue) ~ `, `];
 }

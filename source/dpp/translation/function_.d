@@ -4,6 +4,7 @@
 module dpp.translation.function_;
 
 import dpp.from;
+import dpp.translation.docs;
 
 
 enum OPERATOR_PREFIX = "operator";
@@ -43,7 +44,7 @@ string[] translateFunction(in from!"clang".Cursor cursor,
     const spelling = functionSpelling(cursor, context);
 
     lines ~= [
-        maybePragma(cursor, context) ~ functionDecl(cursor, context, spelling)
+        getComment(cursor), maybePragma(cursor, context) ~ functionDecl(cursor, context, spelling)
     ];
 
     context.log("");
@@ -129,6 +130,9 @@ private string functionDecl(
     import std.algorithm: endsWith, canFind;
     import std.array: join;
 
+    () @trusted {
+        context.log("Comment (raw):  ", cursor.raw_comment());
+    }();
     context.log("Function return type (raw):        ", cursor.type.returnType);
     context.log("Function children: ", cursor.children);
     context.log("Function paramTypes: ", cursor.type.paramTypes);
