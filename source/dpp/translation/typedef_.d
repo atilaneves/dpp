@@ -47,7 +47,17 @@ string[] translateNonFunction(in from!"clang".Cursor cursor,
     // `typedef struct { int dummy; } Foo` -> `struct Foo { int dummy; }`
     // However, this isn't true for enums since an anonymous enum can be declared
     // with no typedef. See #54.
-    const noName = isTopLevelAnonymous(children) && children[0].kind != Cursor.Kind.EnumDecl;
+    const noName =
+        isTopLevelAnonymous(children)
+        && children[0].kind != Cursor.Kind.EnumDecl
+        ;
+
+    // e.g. `typedef struct { int i; } *StructPtr;`
+    if(noName && cursor.underlyingType.kind == Type.Kind.Pointer) {
+        import dpp.translation.translation: translate;
+        return translate(children[0], context) ~
+         translateRegular(cursor, context, children);
+    }
 
     return noName
         ? translateTopLevelAnonymous(children[0], context)
@@ -75,19 +85,22 @@ private string[] translateRegular(in from!"clang".Cursor cursor,
     import dpp.translation.type: translate, removeDppDecorators;
     import dpp.translation.aggregate: isAggregateC;
     import dpp.translation.dlang: maybeRename;
+    import clang: Type;
     import std.typecons: No;
 
-    const underlyingSpelling = () {
+    auto underlyingSpelling = () {
         switch(cursor.spelling) {
         default:
-            // The cursor will have a type with spelling despite not having spelling itself.
+            // The cursor will have a type with spelling despite not having a spelling itself.
             // We use the nickname we've given it in D if it's the case.
-            const isAnonymousAggregate =
+            const isAnonymousEnum =
                 children.length == 1 &&
                 isAggregateC(children[0]) &&
-                children[0].spelling == "";
+                children[0].spelling == "" &&
+                children[0].type.kind == Type.Kind.Enum
+            ;
 
-            return isAnonymousAggregate
+            return isAnonymousEnum
                 ? context.spellingOrNickname(children[0])
                 : translate(cursor.underlyingType, context, No.translatingFunction)
                     .removeDppDecorators;

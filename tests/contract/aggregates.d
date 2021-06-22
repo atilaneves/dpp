@@ -311,3 +311,69 @@ auto contract_typedef_before(TestMode mode, CursorType)(auto ref CursorType tu) 
 
 
 // TODO: multiple declarations test
+
+
+@("struct.typedef.normal")
+@safe unittest {
+
+    const tu = parse(
+        C(
+            q{
+                typedef struct {
+                    int i;
+                } Struct;
+            }
+        )
+    );
+
+    tu.children.length.should == 2;
+
+    const structDecl = tu.children[0];
+    structDecl.shouldMatch(Cursor.Kind.StructDecl, "");
+    structDecl.type.shouldMatch(Type.Kind.Record, "Struct");
+    printChildren(structDecl);
+
+    structDecl.children.length.should == 1;
+    structDecl.children[0].shouldMatch(Cursor.Kind.FieldDecl, "i");
+    structDecl.children[0].type.shouldMatch(Type.Kind.Int, "int");
+
+    const typedef_ = tu.children[1];
+    typedef_.shouldMatch(Cursor.Kind.TypedefDecl, "Struct");
+    typedef_.type.shouldMatch(Type.Kind.Typedef, "Struct");
+    printChildren(typedef_);
+    typedef_.children.length.should == 1;
+    typedef_.children[0].shouldMatch(Cursor.Kind.StructDecl, "");
+    typedef_.children[0].type.shouldMatch(Type.Kind.Record, "Struct");
+}
+
+@Tags("cpp")
+@("struct.typedef.ptr")
+@safe unittest {
+
+    const tu = parse(
+        C(
+            q{
+                typedef struct {
+                    int i;
+                } *Struct;
+            }
+        )
+    );
+
+    tu.children.length.should == 2;
+
+    const structDecl = tu.children[0];
+    structDecl.shouldMatch(Cursor.Kind.StructDecl, "");
+    structDecl.type.kind.should == Type.Kind.Record;
+    "anonymous at".should.be in structDecl.type.spelling;
+
+    printChildren(structDecl);
+
+    structDecl.children.length.should == 1;
+    structDecl.children[0].shouldMatch(Cursor.Kind.FieldDecl, "i");
+    structDecl.children[0].type.shouldMatch(Type.Kind.Int, "int");
+
+    const typedef_ = tu.children[1];
+    typedef_.shouldMatch(Cursor.Kind.TypedefDecl, "Struct");
+    typedef_.type.shouldMatch(Type.Kind.Typedef, "Struct");
+}

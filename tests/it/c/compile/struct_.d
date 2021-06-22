@@ -344,7 +344,6 @@ import it;
 }
 
 
-@ShouldFail
 @("rpcndr")
 @safe unittest {
     shouldCompile(
@@ -352,12 +351,14 @@ import it;
             q{
                 typedef struct
                 {
-                    void  * pad[2];
-                    void  * userContext;
-                }  * NDR_SCONTEXT;
+                    int i;
+                } *StructPtr;
             }
         ),
         D(
+            q{
+                StructPtr ptr = null;
+            }
         )
     );
 }
