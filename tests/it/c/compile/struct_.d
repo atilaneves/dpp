@@ -342,3 +342,23 @@ import it;
         )
     );
 }
+
+
+@("rpcndr")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                typedef struct
+                {
+                    int i;
+                } *StructPtr;
+            }
+        ),
+        D(
+            q{
+                StructPtr ptr = null;
+            }
+        )
+    );
+}

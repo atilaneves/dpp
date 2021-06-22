@@ -180,7 +180,9 @@ string[] translateAggregate(
     // remember all aggregate declarations
     context.rememberAggregate(cursor);
 
-    const name = spelling.isNull ? context.spellingOrNickname(cursor) : spelling.get;
+    const name = (spelling.isNull || cursor.isAnonymous)
+        ? context.spellingOrNickname(cursor)
+        : spelling.get;
     const realDlangKeyword = cursor.semanticParent.type.canonical.kind == Type.Kind.Record
         ? "static " ~ dKeyword
         : dKeyword;
