@@ -342,3 +342,22 @@ import it;
         )
     );
 }
+
+
+@ShouldFail
+@("rpcndr")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                typedef struct
+                {
+                    void  * pad[2];
+                    void  * userContext;
+                }  * NDR_SCONTEXT;
+            }
+        ),
+        D(
+        )
+    );
+}
