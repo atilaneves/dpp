@@ -247,10 +247,7 @@ private void runCPreProcessor(in string cppPath, in string tmpFileName, in strin
     import std.stdio: File;
     import std.algorithm: filter, startsWith;
 
-    version (Windows)
-        enum cppDefault = "clang-cpp";
-    else
-        enum cppDefault = "cpp";
+    enum cppDefault = "clang-cpp";
 
     const cpp = cppPath == "" ? cppDefault : cppPath;
 
