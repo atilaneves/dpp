@@ -242,16 +242,48 @@ void debug_(const(char)*);
 
 Build Instructions
 ------------------
+```
+dub install dpp
+```
+
+After the instructions for your OS (see below), you can use this commands to run dpp:
+
+```
+dub run dpp -- yoursourcefilenamehere.dpp
+```
 
 ### Windows
 
-1. Install https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/LLVM-10.0.0-win64.exe into `C:\Program Files\LLVM\`, making sure to tick the "Add LLVM to the system PATH for all users" option (`C:\Program Files\LLVM\bin` and `C:\Program Files\LLVM\` should be on the PATH).
-2. Make sure you have [LDC](https://github.com/ldc-developers/ldc/releases) installed somewhere.
-3. Compile with `dub build --compiler=C:\path\to\bin\ldc2.exe`.
-4. Copy `C:\Program Files\LLVM\bin\libclang.dll` next to the `d++.exe` in the `bin` directory.
+Install [LLVM](https://github.com/llvm/llvm-project/releases/download/llvmorg-12.0.0/LLVM-12.0.0-win64.exe) into `C:\Program Files\LLVM\`, making sure to tick the "Add LLVM to the system PATH for all users" option.
 
-### Ubuntu
+If `libclang.lib` was not found, put the `lib` folder of the llvm directory on the PATH.
 
-1. Install `libclang-10-dev` with apt: `sudo apt-get install -y -qq libclang-10-dev`
-2. `dub install dpp`
-3. `dub run dpp -- yoursourcefilenamehere.dpp`
+### Linux
+
+If `libclang` is not installed, install `libclang-10-dev` with apt: `sudo apt-get install -y -qq libclang-10-dev`
+
+If `libclang.so` was not found, link it using the following command (adjust the installation path and the llvm version):
+```
+sudo ln -s path_to_llvm/lib/libclang-12.so.1 /lib/x86_64-linux-gnu/libclang.so
+```
+
+### MacOS
+
+If using an external LLVM installation, add these to your `~/.bash_profile`
+
+```bash
+export PATH="/Users/your_user_name/Downloads/llvm/bin:$PATH"
+export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
+export LD_LIBRARY_PATH="/Users/your_user_name/Downloads/llvm/lib/:$LD_LIBRARY_PATH"
+export DYLD_LIBRARY_PATH="/Users/your_user_name/Downloads/llvm/lib/:$DYLD_LIBRARY_PATH"
+export CPATH="/Users/your_user_name/Downloads/llvm/lib/clang/11.0.0/include/"
+```
+
+(adjust the clang version and the external llvm installation path.)
+
+Then run `source ~/.bash_profile`
+
+If `libclang.dylib` was not found, link it using the following command (adjust the installation path):
+```
+ln -s path_to_llvm/lib/libclang.dylib /usr/local/opt/llvm/lib/libclang.dylib
+```
