@@ -61,9 +61,11 @@ jobs:
         run: sudo ln -s libclang-${{ matrix.clang }}.so.1 /lib/x86_64-linux-gnu/libclang.so
         working-directory: ${{ env.LLVM_PATH }}/lib
 
-      - name: Set SDKROOT on MacOS
+      - name: Set SDKROOT and CPATH on MacOS
         if: contains(matrix.os, 'macos')
-        run: echo "SDKROOT=$(xcrun --sdk macosx --show-sdk-path)" >> $GITHUB_ENV
+        run: |
+          echo "CPATH=${{ env.LLVM_PATH }}/lib/clang/${{ matrix.clang }}.0.0/include" >> $GITHUB_ENV
+          echo "SDKROOT=$(xcrun --sdk macosx --show-sdk-path)" >> $GITHUB_ENV
 
       - name: Run tests
         continue-on-error: ${{ contains(matrix.os, 'macos') }}
