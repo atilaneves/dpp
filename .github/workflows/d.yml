@@ -61,11 +61,21 @@ jobs:
         run: sudo ln -s libclang-${{ matrix.clang }}.so.1 /lib/x86_64-linux-gnu/libclang.so
         working-directory: ${{ env.LLVM_PATH }}/lib
 
-      - name: Set SDKROOT and CPATH on MacOS
+      - name: MacOS - Prepare LLVM
         if: contains(matrix.os, 'macos')
         run: |
-          echo "CPATH=${{ env.LLVM_PATH }}/lib/clang/${{ matrix.clang }}/include" >> $GITHUB_ENV
+          LLVM_PATH=${{ env.LLVM_PATH }}
+          LLVM_VERSION=${{ matrix.clang }}
+          # already done inside install-llvm-action
+          # echo "PATH="$LLVM_PATH:$PATH"
+          # echo "LD_LIBRARY_PATH=$LLVM_PATH/lib/:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+          # echo "DYLD_LIBRARY_PATH=$LLVM_PATH/lib/:$DYLD_LIBRARY_PATH" >> $GITHUB_ENV
           echo "SDKROOT=$(xcrun --sdk macosx --show-sdk-path)" >> $GITHUB_ENV
+          echo "CPATH=$LLVM_PATH/lib/clang/$LLVM_VERSION/include/" >> $GITHUB_ENV
+          echo "LDFLAGS=-L$LLVM_PATH/lib" >> $GITHUB_ENV
+          echo "CPPFLAGS=-I$LLVM_PATH/include" >> $GITHUB_ENV
+          echo "CC=$LLVM_PATH/bin/clang" >> $GITHUB_ENV
+          echo "CXX=$LLVM_PATH/bin/clang++" >> $GITHUB_ENV
 
       - name: Run tests
         continue-on-error: ${{ contains(matrix.os, 'macos') }}

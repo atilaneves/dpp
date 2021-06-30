@@ -272,11 +272,17 @@ sudo ln -s path_to_llvm/lib/libclang-12.so.1 /lib/x86_64-linux-gnu/libclang.so
 If using an external LLVM installation, add these to your `~/.bash_profile`
 
 ```bash
-export PATH="/Users/your_user_name/Downloads/llvm/bin:$PATH"
+LLVM_PATH="/usr/local/opt/llvm/" # or any other path
+LLVM_VERSION="11.0.0"
+export PATH="$LLVM_PATH:$PATH"
 export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
-export LD_LIBRARY_PATH="/Users/your_user_name/Downloads/llvm/lib/:$LD_LIBRARY_PATH"
-export DYLD_LIBRARY_PATH="/Users/your_user_name/Downloads/llvm/lib/:$DYLD_LIBRARY_PATH"
-export CPATH="/Users/your_user_name/Downloads/llvm/lib/clang/11.0.0/include/"
+export LD_LIBRARY_PATH="$LLVM_PATH/lib/:$LD_LIBRARY_PATH"
+export DYLD_LIBRARY_PATH="$LLVM_PATH/lib/:$DYLD_LIBRARY_PATH"
+export CPATH="$LLVM_PATH/lib/clang/$LLVM_VERSION/include/"
+export LDFLAGS="-L$LLVM_PATH/lib"
+export CPPFLAGS="-I$LLVM_PATH/include"
+export CC="$LLVM_PATH/bin/clang"
+export CXX="$LLVM_PATH/bin/clang++"
 ```
 
 (adjust the clang version and the external llvm installation path.)
