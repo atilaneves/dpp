@@ -182,7 +182,7 @@ private auto dropPreamble(R)(R lines) {
     import std.string: splitLines;
 
     const length = lines.save.walkLength;
-    const preambleLength = preamble.splitLines.length + 1;
+    const preambleLength = preamble(false).splitLines.length + 1;
 
     return length > preambleLength ? lines.drop(preambleLength).array : lines.array;
 }

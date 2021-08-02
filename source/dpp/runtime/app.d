@@ -129,7 +129,7 @@ private void preprocess(in from!"dpp.runtime.options".Options options,
         writeUndefLines(inputFileName, outputFile);
 
         outputFile.writeln(translationText.moduleDeclaration);
-        outputFile.writeln(preamble);
+        outputFile.writeln(preamble(options.ignoreMacros));
         outputFile.writeln(translationText.dlangDeclarations);
 
         // write original D code
@@ -282,10 +282,15 @@ private void runCPreProcessor(in string cppPath, in string tmpFileName, in strin
 }
 
 
-string preamble() @safe pure {
+string preamble(bool ignoreMacros) @safe pure {
     import std.array: replace, join;
     import std.algorithm: map, filter;
     import std.string: splitLines;
+
+    const vaArgs = ignoreMacros
+        ? ""
+        : "    #define __gnuc_va_list va_list\n\n" ~
+          "    #define __is_empty(_Type) dpp.isEmpty!(_Type)\n";
 
     return q{
 
@@ -299,8 +304,7 @@ string preamble() @safe pure {
 
         struct __locale_data { int dummy; }  // FIXME
     } ~
-          "    #define __gnuc_va_list va_list\n\n" ~
-          "    #define __is_empty(_Type) dpp.isEmpty!(_Type)\n" ~
+          vaArgs ~
 
           q{
         alias _Bool = bool;
