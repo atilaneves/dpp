@@ -287,8 +287,10 @@ string preamble(bool ignoreMacros) @safe pure {
     import std.algorithm: map, filter;
     import std.string: splitLines;
 
-    string vaArgs = ignoreMacros ? "" : "    #define __gnuc_va_list va_list\n\n" ~
-        "    #define __is_empty(_Type) dpp.isEmpty!(_Type)\n";
+    const vaArgs = ignoreMacros
+        ? ""
+        : "    #define __gnuc_va_list va_list\n\n" ~
+          "    #define __is_empty(_Type) dpp.isEmpty!(_Type)\n";
 
     return q{
 
