@@ -56,6 +56,31 @@ import it;
     }
 }
 
+@("--ignore-macros")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        writeFile("includes/hdr.h",
+                  q{
+                      int add(int i, int j);
+                  });
+        writeFile("main.dpp",
+                  `
+                      #include "hdr.h"
+                      void main() {
+                          int ret = add(10, 20);
+                      }
+                  `);
+        runPreprocessOnly(
+            "--include-path",
+            "includes",
+            "--ignore-macros",
+            "main.dpp",
+        );
+
+        shouldCompile("main.d");
+    }
+}
+
 
 @("src output path")
 @safe unittest {
