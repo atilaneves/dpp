@@ -55,8 +55,12 @@ string[] translateNonFunction(in from!"clang".Cursor cursor,
     // e.g. `typedef struct { int i; } *StructPtr;`
     if(noName && cursor.underlyingType.kind == Type.Kind.Pointer) {
         import dpp.translation.translation: translate;
-        return translate(children[0], context) ~
-         translateRegular(cursor, context, children);
+
+        auto translation = context.hasNickname(children[0]) ? [] : translate(children[0], context);
+        auto regularTranslation = translateRegular(cursor, context, children);
+
+        return translation ~ regularTranslation;
+
     }
 
     return noName

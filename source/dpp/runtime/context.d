@@ -377,6 +377,10 @@ struct Context {
                                         : cursorSpelling.idup;
     }
 
+    bool hasNickname(in Cursor cursor) @safe pure {
+        return cast(bool) (cursor.hash in _nickNames);
+    }
+
     private string nickName(in Cursor cursor) @safe pure {
         if(cursor.hash !in _nickNames) {
             auto nick = newAnonymousTypeName;

@@ -164,3 +164,42 @@ unittest {
         )
     );
 }
+
+@("typedef multiple definitions")
+@safe unittest {
+    // See https://github.com/tpn/winsdk-10/blob/9b69fd26ac0c7d0b83d378dba01080e93349c2ed/Include/10.0.16299.0/um/winscard.h#L504-L528
+    with(immutable IncludeSandbox()) {
+        writeFile("hdr.h",
+                `
+                    typedef struct {
+                        int dwStructSize;
+                        int lpstrGroupNames;
+                    } a, *b, *c;
+
+                    typedef struct {
+                        int dwStructSize;
+                        int lpstrGroupNames;
+                    } x, *y, *z;
+
+                    #ifdef SOMETHING
+                    typedef x X;
+                    typedef y Y;
+                    typedef z Z;
+                    #else
+                    typedef a X;
+                    typedef b Y;
+                    typedef c Z;
+                    #endif
+                `);
+
+        writeFile("main.dpp",
+                `
+                    #include "hdr.h"
+                    void main() { }
+                `);
+
+        runPreprocessOnly("main.dpp");
+
+        shouldCompile("main.d");
+    }
+}
