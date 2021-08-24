@@ -56,7 +56,7 @@ string[] translateNonFunction(in from!"clang".Cursor cursor,
     if(noName && cursor.underlyingType.kind == Type.Kind.Pointer) {
         import dpp.translation.translation: translate;
 
-        auto translation = context.hasNickname(children[0]) ? [] : translate(children[0], context);
+        auto translation = context.aggregateIsRemembered(children[0]) ? [] : translate(children[0], context);
         auto regularTranslation = translateRegular(cursor, context, children);
 
         return translation ~ regularTranslation;

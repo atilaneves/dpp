@@ -307,6 +307,12 @@ struct Context {
         rememberType(spelling);
     }
 
+    bool aggregateIsRemembered(in Cursor cursor) @safe pure {
+        import std.algorithm: canFind;
+        const spelling = resolveSpelling(cursor);
+        return _types.canFind(spelling);
+    }
+
     void rememberAggregateParent(in Cursor child, in Cursor parent) @safe pure {
         const parentSpelling = spelling(parent.spelling);
         const childSpelling = resolveSpelling(child);
@@ -375,10 +381,6 @@ struct Context {
 
         return cursorSpelling.isKeyword ? rename(cursorSpelling, this)
                                         : cursorSpelling.idup;
-    }
-
-    bool hasNickname(in Cursor cursor) @safe pure {
-        return cast(bool) (cursor.hash in _nickNames);
     }
 
     private string nickName(in Cursor cursor) @safe pure {
