@@ -203,3 +203,31 @@ unittest {
         shouldCompile("main.d");
     }
 }
+
+
+@("check anonymous struct is defined")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        writeFile("hdr.h",
+                `
+                    typedef struct {
+                        void * pad[2];
+                        void * userContext;
+                    } * NDR_SCONTEXT;
+
+                    typedef struct A {
+                        NDR_SCONTEXT k;
+                    };
+                `);
+
+        writeFile("main.dpp",
+                `
+                    #include "hdr.h"
+                    void main() { }
+                `);
+
+        runPreprocessOnly("main.dpp");
+
+        shouldCompile("main.d");
+    }
+}
