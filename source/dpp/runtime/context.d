@@ -336,9 +336,11 @@ struct Context {
     }
 
     bool isUnknownStruct(in string name) @safe pure const {
+        import std.algorithm: canFind;
         return name !in _aggregateDeclarations
             && (name !in _aggregateSpelling
-                || _aggregateSpelling[name] !in _aggregateDeclarations);
+                || _aggregateSpelling[name] !in _aggregateDeclarations)
+            && !name.canFind("anonymous at");
     }
 
     /**
