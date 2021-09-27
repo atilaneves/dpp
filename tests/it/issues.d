@@ -1886,3 +1886,30 @@ version(Linux) {
         )
     );
 }
+
+
+@ShouldFail
+@Tags("issue")
+@("297")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                struct B
+                {
+                    union
+                    {
+                        int a;
+                        char c;
+                    };
+                };
+            }
+        ),
+        D(
+            q{
+                B b;
+                int* a = &b.a;
+            }
+        )
+    );
+}
