@@ -454,7 +454,7 @@ private string translateUnexposed(in from!"clang".Type type,
 /**
    Translate possibly problematic C++ spellings
  */
-string translateString(scope const string spelling,
+string translateString(const string spelling,
                        in from!"dpp.runtime.context".Context context)
     @safe nothrow
 {
@@ -496,7 +496,7 @@ string removeDppDecorators(in string spelling) @safe {
 }
 
 // "struct Foo" -> Foo, "union Foo" -> Foo, "enum Foo" -> Foo
-string translateElaborated(const scope string spelling,
+string translateElaborated(const string spelling,
                            ref from!"dpp.runtime.context".Context context) @safe {
     import dpp.runtime.context: Language;
     import std.array: replace;

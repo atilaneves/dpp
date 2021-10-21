@@ -10,10 +10,10 @@ jobs:
       matrix:
         os: [ubuntu-20.04, windows-latest, macos-10.15]
         dc:
-          - dmd-2.096.1
-          - dmd-2.095.0
-          - ldc-1.26.0
-          - ldc-1.20.0
+          - dmd-2.098.0
+          - dmd-2.097.2
+          - ldc-1.28.0
+          - ldc-1.27.1
         arch:
           - x86_64
         clang:

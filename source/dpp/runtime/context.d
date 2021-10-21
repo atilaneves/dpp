@@ -375,14 +375,14 @@ struct Context {
         return spelling(cursor.spelling);
     }
 
-    string spelling(scope const string cursorSpelling) @safe pure {
+    string spelling(const string cursorSpelling) @safe pure {
         import dpp.translation.dlang: rename, isKeyword;
 
         if (cursorSpelling in _aggregateSpelling)
             return _aggregateSpelling[cursorSpelling];
 
         return cursorSpelling.isKeyword ? rename(cursorSpelling, this)
-                                        : cursorSpelling.idup;
+                                        : cursorSpelling;
     }
 
     private string nickName(in Cursor cursor) @safe pure {

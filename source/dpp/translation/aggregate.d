@@ -483,7 +483,7 @@ void maybeRememberStructs(R)(R types, ref from!"dpp.runtime.context".Context con
         .filter!(a => a.kind == Type.Kind.Pointer && pointeeTypeFor(a).kind == Type.Kind.Record)
         .map!(a => pointeeTypeFor(a));
 
-    void rememberStruct(scope const Type pointeeCanonicalType) @safe {
+    void rememberStruct(const Type pointeeCanonicalType) @safe {
         import dpp.translation.type: translateElaborated;
         import std.array: replace;
         import std.algorithm: canFind;

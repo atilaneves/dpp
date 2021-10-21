@@ -29,7 +29,7 @@ buildType "profile-gc" {
 
 
 configuration "executable" {
-    dflags "-dip1000" platform="dmd"
+    dflags "-dip1000"
     mainSourceFile "source/main.d"
 }
 
