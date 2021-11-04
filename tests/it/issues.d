@@ -1913,3 +1913,24 @@ version(Linux) {
         )
     );
 }
+
+
+@Tags("issue")
+@("303")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                #include <stdint.h>
+                typedef uint64_t Index;
+                #define INDEX_MAX ((Index) (1ULL << 60))
+            `
+        ),
+        D(
+            q{
+                static assert(INDEX_MAX == (1UL << 60));
+            }
+        )
+    );
+
+}

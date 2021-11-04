@@ -101,14 +101,24 @@ private string translateToD(
     @safe
 {
     import dpp.translation.type: translateElaborated;
+    import clang: Token;
+    import std.algorithm: map;
+
     if(isLiteralMacro(tokens)) return fixLiteral(tokens[1]);
     if(tokens.length == 1) return ""; // e.g. `#define FOO`
+
+    auto fixLiteralOrPassThrough(in Token t) {
+        return t.kind == Token.Kind.Literal
+            ? Token(Token.Kind.Literal, fixLiteral(t))
+            : t;
+    }
 
     return tokens
         .fixSizeof(cursor)
         .fixCasts(cursor, context)
         .fixArrow
         .fixNull
+        .map!fixLiteralOrPassThrough
         .toString
         .translateElaborated(context)
         ;
