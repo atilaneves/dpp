@@ -12,7 +12,7 @@ string[] translateVariable(in from!"clang".Cursor cursor,
     import dpp.translation.exception: UntranslatableException;
     import dpp.translation.dlang: maybePragma;
     import dpp.translation.translation: translateCursor = translate;
-    import dpp.translation.type: translateType = translate;
+    import dpp.translation.type: translateType = translate, hasAnonymousSpelling;
     import dpp.translation.tokens: translateTokens;
     import clang: Cursor, Type, Token;
     import std.conv: text;
@@ -22,7 +22,7 @@ string[] translateVariable(in from!"clang".Cursor cursor,
 
     string[] ret;
 
-    const isAnonymous = cursor.type.spelling.canFind("(anonymous");
+    const isAnonymous = cursor.type.hasAnonymousSpelling;
     // If the type is anonymous, then we need to define it before we declare
     // ourselves of that type, unless that type is an enum. See #54.
     if(isAnonymous && cursor.type.canonical.declaration.kind != Cursor.Kind.EnumDecl) {

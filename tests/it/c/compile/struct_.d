@@ -272,7 +272,7 @@ import it;
 
 
 @WIP2
-@("var.anonymous")
+@("var.anonymous.notypedef")
 @safe unittest {
     shouldCompile(
         C(`struct { int i; } var;`),
