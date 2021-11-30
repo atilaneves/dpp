@@ -113,3 +113,8 @@ from!"clang".Cursor[] baseClasses(in from!"clang".Cursor cursor) @safe nothrow {
         baseCursors.map!baseClasses.joiner,
     ).array;
 }
+
+bool hasAnonymousSpelling(in string spelling) @safe pure nothrow {
+    import std.algorithm : canFind;
+    return spelling.canFind("(anonymous") || spelling.canFind("(unnamed");
+}
