@@ -561,8 +561,8 @@ private string addModifiers(in from!"clang".Type type, in string translation) @s
 }
 
 bool hasAnonymousSpelling(in from!"clang".Type type) @safe pure nothrow {
-    import std.algorithm: canFind;
-    return type.spelling.canFind("(anonymous");
+    import dpp.clang: hasAnonymousSpelling;
+    return type.spelling.hasAnonymousSpelling;
 }
 
 
