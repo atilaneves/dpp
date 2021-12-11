@@ -47,7 +47,9 @@ jobs:
 
       - name: Setup Visual Studio Command Prompt - Windows
         if: startsWith(matrix.os,'windows')
-        uses: ilammy/msvc-dev-cmd@v1
+        uses: aminya/setup-cpp@v1
+        with:
+          vcvarsall: true
 
       - name: Setup LLVM
         if: "!${{ steps.cache.outputs.cache-hit }}"
