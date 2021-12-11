@@ -8,7 +8,6 @@ targetType "executable"
 targetPath "bin"
 targetName "d++"
 dflags "-dip25"
-dflags "--link-internally" platform="ldc"
 
 dependency "libclang" version="~>0.2.0"
 dependency "sumtype"  version="~>0.7.1"
