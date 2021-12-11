@@ -252,6 +252,8 @@ After the instructions for your OS (see below), you can use this commands to run
 dub run dpp -- yoursourcefilenamehere.dpp
 ```
 
+Note: to reproduce the environment of dpp's CI, you can run [setup-cpp](https://github.com/aminya/setup-cpp) with `--llvm=11.0.0` and `--vcvarsall=true`. This will set up LLVM 11.0.0 and the proper environment variables.
+
 ### Windows
 
 Install [LLVM](https://github.com/llvm/llvm-project/releases/download/llvmorg-12.0.0/LLVM-12.0.0-win64.exe) into `C:\Program Files\LLVM\`, making sure to tick the "Add LLVM to the system PATH for all users" option.
