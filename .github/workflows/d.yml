@@ -49,7 +49,6 @@ jobs:
         uses: aminya/setup-cpp@v1
         with:
           llvm: ${{ matrix.clang }}
-          vcvarsall: ${{ startsWith(matrix.os,'windows') }}
 
       - name: Run tests
         continue-on-error: ${{ contains(matrix.os, 'macos') }}
