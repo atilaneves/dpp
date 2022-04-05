@@ -213,7 +213,23 @@ version(Posix)  // FIXME
             q{
             }
         ),
-        ["--function-macros"]
+        ["--function-macros"],
     );
 
+}
+
+@("vartype")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                #define DOC_VAR(name) static const char name[]
+            `
+        ),
+        D(
+            q{
+            }
+        ),
+        ["--function-macros"],
+    );
 }

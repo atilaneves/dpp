@@ -62,7 +62,11 @@ string[] translateMacro(in from!"clang".Cursor cursor,
     // Define a template function with the same name as the macro
     // in an attempt to make it importable from outside the .dpp file.
     enum prefix = "_dpp_impl_"; // can't use the macro name as-is
-    const isWanted = !dbody.canFind("__extension__") && context.options.functionMacros;
+    const isWanted =
+        !dbody.canFind("__extension__")
+        && !dbody.canFind("__builtin_")
+        && context.options.functionMacros
+        ;
     const emitFunction = cursor.isMacroFunction && isWanted;
     auto maybeFunction = emitFunction
         ? macroToTemplateFunction(cursor, prefix, spelling)
@@ -108,10 +112,18 @@ private string[] macroToTemplateFunction(in from!"clang".Cursor cursor, in strin
     const runtimeParams = `(` ~ numArgs.iota.map!(i => text(`A`, i, ` arg`, i)).join(`, `) ~ maybeVarParam ~ `)`;
     const maybeVarArg = isVariadic ? ", rest" : "";
     const runtimeArgs = numArgs.iota.map!(i => text(`arg`, i)).join(`, `) ~ maybeVarArg;
-    return [
+    auto lines = [
         `auto ` ~ spelling ~ templateParams ~ runtimeParams ~ ` {`,
         `    return ` ~ prefix ~ spelling ~ `(` ~ runtimeArgs ~ `);`,
         `}`,
+    ];
+    const functionMixinStr = lines.map!(l => "    " ~ l).join("\n");
+    const enumName = prefix ~ spelling ~ `_mixin`;
+    return [
+        `enum ` ~ enumName ~ " = `" ~ functionMixinStr ~ "`;",
+        `static if(__traits(compiles, { mixin(` ~  enumName ~ `); })) {`,
+        `    mixin(` ~ enumName ~ `);`,
+        `}`
     ];
 }
 
