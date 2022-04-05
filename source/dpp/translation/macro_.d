@@ -398,14 +398,15 @@ private auto fixCasts(R)(
     )
 {
     import dpp.translation.exception: UntranslatableException;
+    import dpp.translation.type : translateString;
     import clang: Token;
     import std.conv: text;
-    import std.algorithm: countUntil, count, canFind;
+    import std.algorithm: countUntil, count, canFind, all, map;
     import std.range: chain;
+    import std.array: split, join;
 
     // If the cursor is a macro function return its parameters
     Token[] macroFunctionParams() {
-        import std.array : split, join;
         assert(cursor.tokens[0].kind == Token.Kind.Identifier);
         assert(cursor.tokens[1] == Token(Token.Kind.Punctuation, "("));
         enum fromParen = 2;
@@ -424,6 +425,10 @@ private auto fixCasts(R)(
             && tokens[0].spelling != "sizeof"
             && tokens[0].spelling != "alignof"
             )
+            return true;
+
+        // fundamental type like `unsigned char`
+        if(tokens.length > 1 && tokens.all!(t => t.kind == Token.Kind.Keyword))
             return true;
 
         if( // user defined type
@@ -511,9 +516,14 @@ private auto fixCasts(R)(
                 ;
 
             if(isType(tokens[i + 1 .. scanIndex - 1]) && !followedByDot) {
+                // -1 to not include the closing paren
+                const cTypeString = tokens[i + 1 .. scanIndex - 1].map!(t => t.spelling).join(" ");
+                const dTypeString = translateString(cTypeString, context);
                 middle ~= tokens[lastIndex .. i] ~
                     Token(Token.Kind.Punctuation, "cast(") ~
-                    tokens[i + 1 .. scanIndex]; // includes closing paren
+                    Token(Token.Kind.Keyword, dTypeString) ~
+                    Token(Token.Kind.Punctuation, ")");
+
                 lastIndex = scanIndex;
                 // advance i past the sizeof. -1 because of ++i in the for loop
                 i = lastIndex - 1;
