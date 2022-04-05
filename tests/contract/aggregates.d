@@ -365,7 +365,10 @@ auto contract_typedef_before(TestMode mode, CursorType)(auto ref CursorType tu) 
     const structDecl = tu.children[0];
     structDecl.shouldMatch(Cursor.Kind.StructDecl, "");
     structDecl.type.kind.should == Type.Kind.Record;
-    "anonymous at".should.be in structDecl.type.spelling;
+    try
+        "anonymous at".should.be in structDecl.type.spelling;
+    catch (Exception _)
+        "unnamed at".should.be in structDecl.type.spelling;
 
     printChildren(structDecl);
 

@@ -47,6 +47,8 @@ import contract;
                 #define DOUBLE 33.3
                 #define OCTAL 00177
                 #define STRING "foobar"
+                #define FUN(x) x
+                #define GUN(y, ...) y(__VA_ARGS__)
             `
         ),
         TranslationUnitFlags.DetailedPreprocessingRecord,
@@ -54,7 +56,7 @@ import contract;
 
     auto childrenRange = tu.children.filter!(a => !isBuiltinMacro(a));
     const children = () @trusted { return childrenRange.array; }();
-    children.length.should == 4;
+    children.length.should == 6;
 
     const int_ = children[0];
     int_.tokens.should == [
@@ -78,5 +80,28 @@ import contract;
     string_.tokens.should == [
         Token(Token.Kind.Identifier, "STRING"),
         Token(Token.Kind.Literal, `"foobar"`),
+    ];
+
+    const fun = children[4];
+    fun.tokens.should == [
+        Token(Token.Kind.Identifier, "FUN"),
+        Token(Token.Kind.Punctuation, "("),
+        Token(Token.Kind.Identifier, "x"),
+        Token(Token.Kind.Punctuation, ")"),
+        Token(Token.Kind.Identifier, "x"),
+    ];
+
+    const gun = children[5];
+    gun.tokens.should == [
+        Token(Token.Kind.Identifier, "GUN"),
+        Token(Token.Kind.Punctuation, "("),
+        Token(Token.Kind.Identifier, "y"),
+        Token(Token.Kind.Punctuation, ","),
+        Token(Token.Kind.Punctuation, "..."),
+        Token(Token.Kind.Punctuation, ")"),
+        Token(Token.Kind.Identifier, "y"),
+        Token(Token.Kind.Punctuation, "("),
+        Token(Token.Kind.Identifier, "__VA_ARGS__"),
+        Token(Token.Kind.Punctuation, ")"),
     ];
 }
