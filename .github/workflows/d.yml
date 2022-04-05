@@ -15,7 +15,7 @@ jobs:
         arch:
           - x86_64
         clang:
-          - 13.0.1
+          - 12.0.0
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
