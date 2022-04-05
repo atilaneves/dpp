@@ -481,6 +481,7 @@ string translateString(const string spelling,
         .replace("volatile ", "")
         .replace("long long", "long")
         .replace("long double", "double")
+        .replace("unsigned char", "ubyte")
         .replace("unsigned ", "u")
         .replace("signed char", "char")  // FIXME?
         .replace("&&", "")

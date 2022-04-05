@@ -130,3 +130,106 @@ version(Posix)  // FIXME
         )
     );
 }
+
+@("func")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        writeFile("hdr.h",
+                  `#define FOO(x) ((x) * 2)
+                   #define BAR(x, y) ((x) + (y))
+                   #define BAZ(prefix, ...) text(prefix, __VA_ARGS__)
+                   #define STR(x) #x
+                   #define ARGH(x) STR(I like spaces x)
+                   #define NOARGS() ((short) 42)`);
+
+        writeFile("foo.dpp",
+                  [`#include "hdr.h"`,
+                   `import std.conv : text;`]);
+        writeFile("bar.d",
+                  q{
+                      import foo;
+                      static assert(FOO(2) == 4);
+                      static assert(FOO(3) == 6);
+                      static assert(BAR(2, 3) == 5);
+                      static assert(BAR(3, 4) == 7);
+                      static assert(BAZ("prefix_", 42, "foo") == "prefix_42foo");
+                      static assert(BAZ("prefix_", 42, "foo", "bar") == "prefix_42foobar");
+                      static assert(NOARGS() == 42);
+                  });
+
+        runPreprocessOnly("--function-macros", "foo.dpp");
+        shouldCompile("foo.d");
+        shouldCompile("bar.d");
+    }
+}
+
+@("cast.param")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                #define MEMBER_SIZE(T, member) sizeof(((T*)0)-> member)
+                struct Struct { int i; };
+            `
+        ),
+        D(
+            q{
+                static assert(MEMBER_SIZE(Struct, i) == 4);
+            }
+        ),
+    );
+}
+
+@("cast.uchar")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                #define CHAR_MASK(c) ((unsigned char)((c) & 0xff))
+            `
+        ),
+        D(
+            q{
+                static assert(CHAR_MASK(0xab) == 0xab);
+                static assert(CHAR_MASK(0xf1) == 0xf1);
+                static assert(CHAR_MASK(0x1f) == 0x1f);
+                static assert(CHAR_MASK(0xff) == 0xff);
+            }
+        ),
+    );
+}
+
+@("dowhile")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+#define Py_BUILD_ASSERT(cond)  do {         \
+        (void)Py_BUILD_ASSERT_EXPR(cond);   \
+    } while(0)
+            `
+        ),
+        D(
+            q{
+            }
+        ),
+        ["--function-macros"],
+    );
+
+}
+
+@("vartype")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                #define DOC_VAR(name) static const char name[]
+            `
+        ),
+        D(
+            q{
+            }
+        ),
+        ["--function-macros"],
+    );
+}

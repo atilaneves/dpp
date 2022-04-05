@@ -43,6 +43,7 @@ struct Options {
     bool noSystemHeaders;
     string cppPath;
     string srcOutputPath;
+    bool functionMacros;
 
     this(string[] args) {
 
@@ -176,6 +177,7 @@ struct Options {
                 "no-sys-headers", "Don't include system headers by default", &noSystemHeaders,
                 "cpp-path", "Path to the C preprocessor executable", &cppPath,
                 "source-output-path", "Path to emit the resulting D files to", &srcOutputPath,
+                "function-macros", "Emit templated functions for macros", &functionMacros,
             );
 
         clangOptions = map!(e => e.split(" "))(clangOptions).join();
