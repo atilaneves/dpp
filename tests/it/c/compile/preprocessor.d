@@ -198,3 +198,22 @@ version(Posix)  // FIXME
         ),
     );
 }
+
+@("dowhile")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+#define Py_BUILD_ASSERT(cond)  do {         \
+        (void)Py_BUILD_ASSERT_EXPR(cond);   \
+    } while(0)
+            `
+        ),
+        D(
+            q{
+            }
+        ),
+        ["--function-macros"]
+    );
+
+}

@@ -94,6 +94,9 @@ private string[] macroToTemplateFunction(in from!"clang".Cursor cursor, in strin
     assert(tokens[0].kind == Token.Kind.Identifier);
     assert(tokens[1] == Token(Token.Kind.Punctuation, "("));
 
+    if(tokens.canFind(Token(Token.Kind.Keyword, "do"))) return [];
+    if(tokens.canFind(Token(Token.Kind.Keyword, "while"))) return [];
+
     const closeParenIndex = tokens[2 .. $].countUntil(Token(Token.Kind.Punctuation, ")")) + 2;
     const numCommas = tokens[2 .. closeParenIndex].count(Token(Token.Kind.Punctuation, ","));
     const numElements = closeParenIndex == 2 ? 0 : numCommas + 1;
