@@ -26,9 +26,9 @@ string[] translateMacro(in from!"clang".Cursor cursor,
     // for a macro that has already been defined is if an #undef happened
     // in the meanwhile. Unfortunately, libclang has no way of passing
     // that information to us
-    string maybeUndef;
-    if(context.macroAlreadyDefined(cursor))
-        maybeUndef = "#undef " ~ cursor.spelling ~ "\n";
+    const maybeUndef = context.macroAlreadyDefined(cursor)
+        ? "#undef " ~ cursor.spelling
+        : "";
 
     context.rememberMacro(cursor);
     const spelling = maybeRename(cursor, context);
@@ -59,8 +59,57 @@ string[] translateMacro(in from!"clang".Cursor cursor,
         ];
     }
 
+    // Define a template function with the same name as the macro
+    // in an attempt to make it importable from outside the .dpp file.
+    enum prefix = "_dpp_impl_"; // can't use the macro name as-is
+    const isWanted = !dbody.canFind("__extension__") && context.options.functionMacros;
+    const emitFunction = cursor.isMacroFunction && isWanted;
+    auto maybeFunction = emitFunction
+        ? macroToTemplateFunction(cursor, prefix, spelling)
+        : [];
     const maybeSpace = cursor.isMacroFunction ? "" : " ";
-    return [maybeUndef ~ "#define " ~ spelling ~ maybeSpace ~ dbody ~ "\n"];
+    const restOfLine = spelling ~ maybeSpace ~ dbody;
+    const maybeDefineWithPrefix = emitFunction
+        ? `#define ` ~ prefix ~ restOfLine
+        : "";
+    const define = `#define ` ~ restOfLine;
+
+    return maybeUndef ~ maybeDefineWithPrefix ~ maybeFunction ~ define;
+}
+
+private string[] macroToTemplateFunction(in from!"clang".Cursor cursor, in string prefix, in string spelling)
+    @safe
+    in(cursor.kind == from!"clang".Cursor.Kind.MacroDefinition)
+    in(cursor.isMacroFunction)
+{
+    import clang : Token;
+    import std.algorithm : countUntil, count, map, startsWith, canFind;
+    import std.range: iota;
+    import std.conv: text;
+    import std.array : join;
+
+    if(spelling.startsWith("__")) return [];
+
+    const tokens = cursor.tokens;
+    assert(tokens[0].kind == Token.Kind.Identifier);
+    assert(tokens[1] == Token(Token.Kind.Punctuation, "("));
+
+    const closeParenIndex = tokens[2 .. $].countUntil(Token(Token.Kind.Punctuation, ")")) + 2;
+    const numCommas = tokens[2 .. closeParenIndex].count(Token(Token.Kind.Punctuation, ","));
+    const numElements = closeParenIndex == 2 ? 0 : numCommas + 1;
+    const isVariadic = tokens[closeParenIndex - 1] == Token(Token.Kind.Punctuation, "...");
+    const numArgs = isVariadic ? numElements - 1 : numElements;
+    const maybeVarTemplate = isVariadic ? ", REST..." : "";
+    const templateParams = `(` ~ numArgs.iota.map!(i => text(`A`, i)).join(`, `) ~ maybeVarTemplate ~ `)`;
+    const maybeVarParam = isVariadic ? ", REST rest" : "";
+    const runtimeParams = `(` ~ numArgs.iota.map!(i => text(`A`, i, ` arg`, i)).join(`, `) ~ maybeVarParam ~ `)`;
+    const maybeVarArg = isVariadic ? ", rest" : "";
+    const runtimeArgs = numArgs.iota.map!(i => text(`arg`, i)).join(`, `) ~ maybeVarArg;
+    return [
+        `auto ` ~ spelling ~ templateParams ~ runtimeParams ~ ` {`,
+        `    return ` ~ prefix ~ spelling ~ `(` ~ runtimeArgs ~ `);`,
+        `}`,
+    ];
 }
 
 
@@ -133,7 +182,9 @@ private string toString(R)(R tokens) {
     // skip the identifier because of DPP_ENUM_
     return tokens[1..$]
         .map!(t => t.spelling)
-        .join(" ");
+        .join(" ")
+        ;
+
 }
 
 private string fixLiteral(in from!"clang".Token token)

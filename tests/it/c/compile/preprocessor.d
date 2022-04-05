@@ -130,3 +130,34 @@ version(Posix)  // FIXME
         )
     );
 }
+
+@("func")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        writeFile("hdr.h",
+                  `#define FOO(x) ((x) * 2)
+                   #define BAR(x, y) ((x) + (y))
+                   #define BAZ(prefix, ...) text(prefix, __VA_ARGS__)
+                   #define STR(x) #x
+                   #define ARGH(x) STR(I like spaces x)
+                   #define NOARGS() ((short) 42)`);
+
+        writeFile("foo.dpp",
+                  [`#include "hdr.h"`,
+                   `import std.conv : text;`]);
+        writeFile("bar.d",
+                  q{
+                      import foo;
+                      static assert(FOO(2) == 4);
+                      static assert(FOO(3) == 6);
+                      static assert(BAR(2, 3) == 5);
+                      static assert(BAR(3, 4) == 7);
+                      static assert(BAZ("prefix_", 42, "foo") == "prefix_42foo");
+                      static assert(BAZ("prefix_", 42, "foo", "bar") == "prefix_42foobar");
+                      static assert(NOARGS() == 42);
+                  });
+
+        runPreprocessOnly("--function-macros", "foo.dpp");
+        shouldCompile("bar.d");
+    }
+}

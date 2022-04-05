@@ -49,6 +49,7 @@ import contract;
                 #define STRING "foobar"
                 #define FUN(x) x
                 #define GUN(y, ...) y(__VA_ARGS__)
+                #define STR(x) #x
             `
         ),
         TranslationUnitFlags.DetailedPreprocessingRecord,
@@ -56,7 +57,7 @@ import contract;
 
     auto childrenRange = tu.children.filter!(a => !isBuiltinMacro(a));
     const children = () @trusted { return childrenRange.array; }();
-    children.length.should == 6;
+    children.length.should == 7;
 
     const int_ = children[0];
     int_.tokens.should == [
@@ -104,4 +105,15 @@ import contract;
         Token(Token.Kind.Identifier, "__VA_ARGS__"),
         Token(Token.Kind.Punctuation, ")"),
     ];
+
+    const str = children[6];
+    str.tokens.should == [
+        Token(Token.Kind.Identifier, "STR"),
+        Token(Token.Kind.Punctuation, "("),
+        Token(Token.Kind.Identifier, "x"),
+        Token(Token.Kind.Punctuation, ")"),
+        Token(Token.Kind.Punctuation, "#"),
+        Token(Token.Kind.Identifier, "x"),
+    ];
+
 }
