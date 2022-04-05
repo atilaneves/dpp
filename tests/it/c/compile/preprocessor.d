@@ -158,6 +158,24 @@ version(Posix)  // FIXME
                   });
 
         runPreprocessOnly("--function-macros", "foo.dpp");
+        shouldCompile("foo.d");
         shouldCompile("bar.d");
     }
+}
+
+@("sizeof.cast")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                #define MEMBER_SIZE(T, member) sizeof(((T*)0)-> member)
+                struct Struct { int i; };
+            `
+        ),
+        D(
+            q{
+                static assert(MEMBER_SIZE(Struct, i) == 4);
+            }
+        ),
+    );
 }
