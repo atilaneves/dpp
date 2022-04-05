@@ -12,7 +12,7 @@ string[] translateMacro(in from!"clang".Cursor cursor,
     import dpp.translation.dlang: maybeRename;
     import clang: Cursor;
     import std.file: exists;
-    import std.algorithm: startsWith, canFind;
+    import std.algorithm: startsWith;
     import std.conv: text;
 
     // we want non-built-in macro definitions to be defined and then preprocessed
@@ -62,12 +62,7 @@ string[] translateMacro(in from!"clang".Cursor cursor,
     // Define a template function with the same name as the macro
     // in an attempt to make it importable from outside the .dpp file.
     enum prefix = "_dpp_impl_"; // can't use the macro name as-is
-    const isWanted =
-        !dbody.canFind("__extension__")
-        && !dbody.canFind("__builtin_")
-        && context.options.functionMacros
-        ;
-    const emitFunction = cursor.isMacroFunction && isWanted;
+    const emitFunction = cursor.isMacroFunction && context.options.functionMacros;
     auto maybeFunction = emitFunction
         ? macroToTemplateFunction(cursor, prefix, spelling)
         : [];
@@ -87,7 +82,7 @@ private string[] macroToTemplateFunction(in from!"clang".Cursor cursor, in strin
     in(cursor.isMacroFunction)
 {
     import clang : Token;
-    import std.algorithm : countUntil, count, map, startsWith, canFind;
+    import std.algorithm : countUntil, count, map, startsWith;
     import std.range: iota;
     import std.conv: text;
     import std.array : join;
@@ -97,9 +92,6 @@ private string[] macroToTemplateFunction(in from!"clang".Cursor cursor, in strin
     const tokens = cursor.tokens;
     assert(tokens[0].kind == Token.Kind.Identifier);
     assert(tokens[1] == Token(Token.Kind.Punctuation, "("));
-
-    if(tokens.canFind(Token(Token.Kind.Keyword, "do"))) return [];
-    if(tokens.canFind(Token(Token.Kind.Keyword, "while"))) return [];
 
     const closeParenIndex = tokens[2 .. $].countUntil(Token(Token.Kind.Punctuation, ")")) + 2;
     const numCommas = tokens[2 .. closeParenIndex].count(Token(Token.Kind.Punctuation, ","));
