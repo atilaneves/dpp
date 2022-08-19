@@ -1934,3 +1934,53 @@ version(Linux) {
     );
 
 }
+
+@Tags("issue")
+@("307")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        import std.process : environment;
+        import std.string : join;
+
+        writeFile("includes/dir1/issue307.h",
+                  `
+                    #ifndef ISSUE307_H
+                        #define ISSUE307_H
+                        #if __has_include_next(<issue307.h>)
+                            #include_next <issue307.h>
+                        #else // fallback for cpp that does not support include_next
+                            typedef int myint_t;
+                        #endif
+                    #endif
+                  `);
+        writeFile("includes/dir2/issue307.h",
+                  `
+                    typedef int myint_t;
+                  `);
+        writeFile("issue307.dpp",
+                  `
+                   #include <issue307.h>
+                  `);
+
+        auto original_cpath = environment.get("CPATH", "");
+        environment["CPATH"] = [
+            inSandboxPath("includes/dir1"),
+            inSandboxPath("includes/dir2"),
+            original_cpath,
+        ].join(":");
+        scope(exit)
+        {
+            if (original_cpath == "")
+            {
+                environment.remove("CPATH");
+            }
+            else
+            {
+                environment["CPATH"] = original_cpath;
+            }
+        }
+
+        runPreprocessOnly("issue307.dpp");
+        fileShouldContain("issue307.d", q{alias myint_t = int;});
+    }
+}
