@@ -160,7 +160,7 @@ private TranslationText translationText(in from!"dpp.runtime.options".Options op
         import dpp.expansion: expand, isCppHeader, getHeaderName;
     import clang.util: getTempFileName;
 
-    import std.algorithm: map, filter;
+    import std.algorithm: map, filter, find, startsWith;
     import std.string: fromStringz;
     import std.path: dirName;
     import std.array: array, join;
@@ -181,7 +181,15 @@ private TranslationText translationText(in from!"dpp.runtime.options".Options op
     () @trusted {
         auto includesFile = File(includesFileName, "w");
         foreach(include; includes) {
-            includesFile.writeln(`#include "`, include, `"`);
+            auto paths = includePaths.find!(p => include.startsWith(p));
+            if (paths.length)
+            {
+                includesFile.writeln(`#include <`, include[paths[0].length+1..$], `>`);
+            }
+            else
+            {
+                includesFile.writeln(`#include "`, include, `"`);
+            }
             if(isCppHeader(options, include)) language = Language.Cpp;
         }
     }();
