@@ -1939,6 +1939,7 @@ version(Linux) {
 @("307")
 @safe unittest {
     with(immutable IncludeSandbox()) {
+        import std.path : pathSeparator;
         import std.process : environment;
         import std.string : join;
 
@@ -1967,7 +1968,7 @@ version(Linux) {
             inSandboxPath("includes/dir1"),
             inSandboxPath("includes/dir2"),
             original_cpath,
-        ].join(":");
+        ].join(pathSeparator);
         scope(exit)
         {
             if (original_cpath == "")
