@@ -96,8 +96,8 @@ import it;
                 inf.headers[63].name = "name".ptr;
                 inf.headers[63].value = "value".ptr;
 
-                static assert( __traits(compiles, inf.headers[63].value));
-                static assert(!__traits(compiles, inf.headers[64].value));
+                static assert( __traits(compiles, () => inf.headers[63].value));
+                static assert(!__traits(compiles, () => inf.headers[64].value));
             }
         ),
     );
