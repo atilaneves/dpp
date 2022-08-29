@@ -267,6 +267,7 @@ import it;
 }
 
 
+@HiddenTest("Failing with dmd 2.100.1")
 @("parameter.exception_ptr")
 @safe unittest {
 
