@@ -253,7 +253,8 @@ private void runCPreProcessor(in string cppPath, in string tmpFileName, in strin
     import std.conv: text;
     import std.string: join, splitLines;
     import std.stdio: File;
-    import std.algorithm: filter, startsWith;
+    import std.algorithm: filter;
+    import std.regex: matchFirst;
 
     const cpp = cppPath == ""
         ? (executeShell("clang-cpp --version").status == 0 ? "clang-cpp" : "cpp")
@@ -277,7 +278,7 @@ private void runCPreProcessor(in string cppPath, in string tmpFileName, in strin
         auto lines = ret.
             output
             .splitLines
-            .filter!(a => !a.startsWith("#"))
+            .filter!(a => !a.matchFirst(`^\s*#`))
             ;
 
         foreach(line; lines) {
