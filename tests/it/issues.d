@@ -1985,3 +1985,23 @@ version(Linux) {
         fileShouldContain("issue307.d", q{alias myint_t = int;});
     }
 }
+
+@Tags("issue")
+@("312")
+@safe unittest {
+    shouldCompile(
+        C(
+            q{
+                /**
+                 * & enable_if_c // see untranslatable
+                 */
+                int foo(int);
+            }
+        ),
+        D(
+            q{
+                int f = foo(42);
+            }
+        )
+    );
+}
