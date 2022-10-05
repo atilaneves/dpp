@@ -270,6 +270,11 @@ string[] translateInclude(in from!"clang".Cursor cursor,
 // if this translated line can't be valid D code
 bool untranslatable(in string line) @safe pure {
     import std.algorithm: canFind;
+
+    // now that comments are preserved...
+    if (line.canFind("/*") || line.canFind("//"))
+        return false;
+
     return
         line.canFind(`&)`)
         || line.canFind("&,")
