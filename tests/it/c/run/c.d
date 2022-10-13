@@ -76,3 +76,28 @@ import it;
         ),
     );
 }
+
+@ShouldFail
+@Tags("run")
+@("static.inline")
+@safe unittest {
+    shouldCompileAndRun(
+        C(
+            `
+                static inline int add(int i, int j) {
+                    return i + j;
+                }
+                #define add1(i, j) add(i, j) + 1
+            `
+        ),
+        C(
+            q{
+            }
+        ),
+        D(
+            q{
+                assert(add1(2, 3) == 6);
+            }
+        ),
+    );
+}
