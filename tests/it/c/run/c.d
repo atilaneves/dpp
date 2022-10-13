@@ -76,3 +76,29 @@ import it;
         ),
     );
 }
+
+@Tags("run")
+@("static.inline")
+@safe unittest {
+    shouldCompileAndRun(
+        C(
+            `
+                static inline int _add(int i, int j) {
+                    return i + j;
+                }
+                #define add(i, j) _add(i, j)
+            `
+        ),
+        C(
+            q{
+            }
+        ),
+        D(
+            q{
+                // this is a workaround for not translating the static inline function
+                int _add(int i, int j) { return i + j + 1; }
+                assert(add(2, 3) == 6);
+            }
+        ),
+    );
+}
