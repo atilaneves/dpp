@@ -28,6 +28,8 @@ string[] translateFunction(in from!"clang".Cursor cursor,
 
     if(ignoreFunction(cursor)) return [];
 
+    context.log("Linkage: ", cursor.linkage);
+
     // FIXME - stop special casing the move ctor
     auto moveCtorLines = maybeMoveCtor(cursor, context);
     if(moveCtorLines.length) return moveCtorLines;
@@ -54,8 +56,11 @@ string[] translateFunction(in from!"clang".Cursor cursor,
 
 private bool ignoreFunction(in from!"clang".Cursor cursor) @safe {
     import dpp.translation.aggregate: dKeywordFromStrass;
-    import clang: Cursor, Type, Token;
+    import clang: Cursor, Type, Token, Linkage;
     import std.algorithm: countUntil, any, canFind, startsWith;
+
+    if (cursor.linkage == Linkage.Internal)
+        return true;
 
     // C++ partial specialisation function bodies
     if(cursor.semanticParent.kind == Cursor.Kind.ClassTemplatePartialSpecialization)
