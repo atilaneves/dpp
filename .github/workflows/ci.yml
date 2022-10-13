@@ -8,9 +8,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, windows-2019, macos-10.15]
+        os:
+          - ubuntu-20.04
+          - windows-2022
+          - macos-10.15
         dc:
-          - dmd-2.100.0
+          - dmd-2.100.2
           - dmd-2.099.0
           - ldc-1.30.0
           - ldc-1.28.1
@@ -20,7 +23,7 @@ jobs:
           - 12.0.0
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - uses: ruby/setup-ruby@v1
         with:
@@ -34,14 +37,14 @@ jobs:
 
       - name: Cache
         id: cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/llvm
           key: cache-os:${{ matrix.os }}-clang:${{ matrix.clang }}
 
       - name: Setup D
-        uses: dlang-community/setup-dlang@v1.1.1
+        uses: dlang-community/setup-dlang@v1.2.1
         with:
           compiler: ${{ matrix.dc }}
 
