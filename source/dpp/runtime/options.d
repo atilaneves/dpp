@@ -118,6 +118,8 @@ struct Options {
 
         if (!noSystemHeaders)
             includePaths = systemPaths ~ includePaths;
+
+        includePaths = includePaths.map!(d => d.stripSeparators).array;
     }
 
     string[] dFileNames() @safe pure const {
@@ -243,4 +245,15 @@ struct Options {
         foreach(i; 0 .. indentation) app ~= " ";
         return app.data;
     }
+}
+
+/// Removes trailing dir separators
+private auto stripSeparators(string dirPath) {
+    import std.algorithm.mutation;
+    import std.conv: to;
+    import std.path;
+
+    char sep = dirSeparator.to!char;
+
+    return dirPath.stripRight(sep).to!string;
 }
