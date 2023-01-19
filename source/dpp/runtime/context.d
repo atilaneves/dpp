@@ -296,7 +296,7 @@ struct Context {
        because of elaborated names. We remember them here in case we need to fix them.
      */
     void rememberField(scope const string spelling) @safe pure {
-        _fieldDeclarations[spelling] ~= lines.length;
+        _fieldDeclarations[spelling.idup] ~= lines.length;
     }
 
     /**
@@ -332,7 +332,7 @@ struct Context {
 
     void rememberSpelling(scope const string original, in string spelling) @safe pure {
         if (original != "" && original != spelling)
-            _aggregateSpelling[original] = spelling;
+            _aggregateSpelling[original.idup] = spelling;
     }
 
     bool isUnknownStruct(in string name) @safe pure const {
