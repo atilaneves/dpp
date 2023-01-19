@@ -1963,26 +1963,40 @@ version(Linux) {
                    #include <issue307.h>
                   `);
 
-        auto original_cpath = environment.get("CPATH", "");
-        environment["CPATH"] = [
-            inSandboxPath("includes/dir1"),
-            inSandboxPath("includes/dir2"),
-            original_cpath,
-        ].join(pathSeparator);
-        scope(exit)
-        {
-            if (original_cpath == "")
-            {
-                environment.remove("CPATH");
-            }
-            else
-            {
-                environment["CPATH"] = original_cpath;
-            }
-        }
+        auto tp = TemporaryCPATH(sandbox, ["includes/dir1", "includes/dir2"]);
 
         runPreprocessOnly("issue307.dpp");
         fileShouldContain("issue307.d", q{alias myint_t = int;});
+    }
+}
+
+private struct TemporaryCPATH
+{
+@safe:
+    import std.path : pathSeparator;
+    import std.process : environment;
+    import std.string : join;
+
+    private const string original_cpath;
+
+    scope this(in Sandbox sb, string[] additions)
+    {
+        original_cpath = environment.get("CPATH", "");
+        string[] toAdd;
+
+        foreach(a; additions)
+            toAdd ~= sb.inSandboxPath(a);
+
+        toAdd ~= original_cpath,
+        environment["CPATH"] = toAdd.join(pathSeparator);
+    }
+
+    ~this()
+    {
+        if (original_cpath == "")
+            environment.remove("CPATH");
+        else
+            environment["CPATH"] = original_cpath;
     }
 }
 
@@ -2004,4 +2018,31 @@ version(Linux) {
             }
         )
     );
+}
+
+@Tags("issue")
+@("320")
+@safe unittest {
+    import std.path: dirSeparator;
+
+    with(immutable IncludeSandbox()) {
+        /*
+        It is necessary to explain why it was done through `TemporaryCPATH`:
+        this is because if we try to use for testing CLI arguments like:
+
+        runPreprocessOnly("issue320.dpp", "--include-path="~buildPath(sandbox.sandboxPath, "some/include/path");
+
+        then this leads to that directory will be added as latest into
+        include dirs list, and first matching directory will always be
+        a root of testing sandbox, thus test always passes as good. So
+        here is need trick for passing include path directly to compiler.
+        */
+        auto tp = TemporaryCPATH(sandbox, ["include"~dirSeparator~dirSeparator]);
+
+        writeFile("issue320.dpp", "#include <dir/header.h>");
+        writeFile("include/dir/header.h", `typedef int myint_t;`);
+
+        runPreprocessOnly("issue320.dpp");
+        fileShouldContain("issue320.d", q{alias myint_t = int;});
+    }
 }
