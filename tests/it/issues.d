@@ -1987,7 +1987,7 @@ private struct TemporaryCPATH
         foreach(a; additions)
             toAdd ~= sb.inSandboxPath(a);
 
-        toAdd ~= original_cpath,
+        toAdd ~= original_cpath.dup,
         environment["CPATH"] = toAdd.join(pathSeparator);
     }
 
