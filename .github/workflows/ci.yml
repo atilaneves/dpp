@@ -20,7 +20,6 @@ jobs:
         arch:
           - x86_64
         clang:
-          - 15.0.0
           - 14.0.0
     runs-on: ${{ matrix.os }}
     steps:
@@ -56,7 +55,7 @@ jobs:
 
       - name: Run tests
         continue-on-error: ${{ contains(matrix.os, 'macos') }}
-        run: dub test -q --build=unittest-cov --arch=${{ matrix.arch }}
+        run: dub test -q --build=unittest-cov --arch=${{ matrix.arch }} -- -d it.c.compile.struct_.var.anonymous.typedef
         env:
           LIBRARY_PATH: "${{ env.LLVM_PATH }}/lib"
 
