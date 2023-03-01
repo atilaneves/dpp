@@ -20,6 +20,7 @@ jobs:
         arch:
           - x86_64
         clang:
+          - 15.0.0
           - 14.0.0
     runs-on: ${{ matrix.os }}
     steps:
