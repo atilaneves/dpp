@@ -41,6 +41,7 @@ string[] translateNonFunction(in from!"clang".Cursor cursor,
     context.log("Children: ", children);
     context.log("Underlying type: ", cursor.underlyingType);
 
+    context.log("!!! top level anon? ", isTopLevelAnonymous(children));
     // If the child is a top-level anonymous struct, it's pointless to alias
     // it and give the struct a silly name, instead just define a struct with
     // the typedef name instead. e.g.
@@ -73,6 +74,15 @@ private bool isTopLevelAnonymous(in from!"clang".Cursor[] children)
     @safe nothrow
 {
     import clang: Cursor;
+    import unit_threaded.io;
+
+    debug writelnUt("!!! length: ", children.length);
+    if (children.length) {
+        debug writelnUt("!!! spelling: '", children[0].spelling, "'");
+        debug writelnUt("!!! lexical parent: '", children[0].lexicalParent);
+        debug writelnUt("!!! semantic parent: '", children[0].semanticParent);
+    }
+
     return
         children.length == 1 && // so we can inspect it
         children[0].spelling == "" && // anonymous
