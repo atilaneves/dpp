@@ -11,11 +11,11 @@ jobs:
         os:
           - ubuntu-20.04
           - windows-2022
-          - macos-10.15
+          #- macos-10.15
         dc:
-          - dmd-2.100.2
+          - dmd-2.102.1
           - dmd-2.099.0
-          - ldc-1.30.0
+          - ldc-1.31.0
           - ldc-1.28.1
         arch:
           - x86_64

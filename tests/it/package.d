@@ -102,25 +102,25 @@ struct IncludeSandbox {
 
     void shouldCompile(string file = __FILE__, size_t line = __LINE__)
                       (in string[] srcFiles...)
-        @safe const
+        @safe const scope
     {
         shouldCompile!(file, line)(DFlags(), srcFiles);
     }
 
     void shouldCompile(string file = __FILE__, size_t line = __LINE__)
                       (in DFlags dflags, in string[] srcFiles...)
-        @safe const
+        @safe const scope
     {
         try
             sandbox.shouldSucceed!(file, line)([dCompiler, "-m64", "-o-", "-c"] ~ dflags.flags ~ srcFiles);
         catch(Exception e)
-            adjustMessage(e, srcFiles);
+            adjustMessage(e, srcFiles.dup);
     }
 
 
     void shouldNotCompile(string file = __FILE__, size_t line = __LINE__)
                          (in string[] srcFiles...)
-        @safe const
+        @safe const scope
     {
         try
             sandbox.shouldFail!(file, line)([dCompiler, "-m64", "-o-", "-c"] ~ srcFiles);
@@ -130,7 +130,7 @@ struct IncludeSandbox {
 
     void shouldCompileButNotLink(string file = __FILE__, size_t line = __LINE__)
                                 (in string[] srcFiles...)
-        @safe const
+        @safe const scope
     {
         try
             sandbox.shouldSucceed!(file, line)([dCompiler, "-c", "-ofblob" ~ objectFileExtension] ~ srcFiles);
@@ -140,7 +140,7 @@ struct IncludeSandbox {
         shouldFail(dCompiler, "-ofblob", "blob" ~ objectFileExtension);
     }
 
-    private void adjustMessage(Exception e, in string[] srcFiles) @safe const {
+    private void adjustMessage(Exception e, in string[] srcFiles) @safe scope const {
         import std.algorithm: map;
         import std.array: join;
         import std.file: readText;
