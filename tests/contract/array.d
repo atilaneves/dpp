@@ -23,9 +23,15 @@ import contract;
 
     const type = cursor.type;
     type.kind.should == Type.Kind.ConstantArray;
-    type.spelling.should == "int [4]";
+    try
+        type.spelling.should == "int [4]";
+    catch(Exception _)
+        type.spelling.should == "int[4]";
     type.canonical.kind.should == Type.Kind.ConstantArray;
-    type.canonical.spelling.should == "int [4]";
+    try
+        type.canonical.spelling.should == "int [4]";
+    catch(Exception _)
+        type.canonical.spelling.should == "int[4]";
 }
 
 
@@ -58,7 +64,14 @@ import contract;
     structChildren[1].kind.should == Cursor.Kind.FieldDecl;
     structChildren[1].spelling.should == "arr";
     structChildren[1].type.kind.should == Type.Kind.IncompleteArray;
-    structChildren[1].type.spelling.should == "unsigned char []";
+    try
+        structChildren[1].type.spelling.should == "unsigned char []";
+    catch(Exception _)
+        structChildren[1].type.spelling.should == "unsigned char[]";
+
     structChildren[1].type.canonical.kind.should == Type.Kind.IncompleteArray;
-    structChildren[1].type.canonical.spelling.should == "unsigned char []";
+    try
+        structChildren[1].type.canonical.spelling.should == "unsigned char []";
+    catch(Exception _)
+        structChildren[1].type.canonical.spelling.should == "unsigned char[]";
 }

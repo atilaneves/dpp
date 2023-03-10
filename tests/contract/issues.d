@@ -65,7 +65,11 @@ import contract;
 
     const fieldDecl = foo.child(1);
     fieldDecl.shouldMatch(Cursor.Kind.FieldDecl, "ts");
-    fieldDecl.type.shouldMatch(Type.Kind.ConstantArray, "T [42]");
+    try
+        fieldDecl.type.shouldMatch(Type.Kind.ConstantArray, "T [42]");
+    catch(Exception _)
+        fieldDecl.type.shouldMatch(Type.Kind.ConstantArray, "T[42]");
+
     printChildren(fieldDecl);
     fieldDecl.children.length.should == 2;
     // This is why the issue was filed
