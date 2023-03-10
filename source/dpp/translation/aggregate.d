@@ -78,7 +78,7 @@ private bool isStrass(in from!"clang".Cursor cursor) @safe @nogc pure nothrow {
 
 
 // Decide on whether to emit a D struct or class
-package string dKeywordFromStrass(in from!"clang".Cursor cursor) @safe nothrow {
+package string dKeywordFromStrass(in from!"clang".Cursor cursor) @safe {
     import dpp.clang: baseClasses;
     import clang: Cursor;
     import std.algorithm: any, map, filter;
@@ -88,7 +88,7 @@ package string dKeywordFromStrass(in from!"clang".Cursor cursor) @safe nothrow {
         return cursor.children.any!(a => a.isVirtual);
     }
 
-    static bool anyVirtualInAncestry(in Cursor cursor) @safe nothrow {
+    static bool anyVirtualInAncestry(in Cursor cursor) @safe {
         if(hasVirtuals(cursor)) return true;
 
         return cursor.baseClasses.any!anyVirtualInAncestry;
@@ -268,7 +268,7 @@ private struct BitFieldInfo {
     /// to generate new names
     private int paddingNameIndex;
 
-    string[] header(in Cursor cursor) @safe nothrow {
+    string[] header(in Cursor cursor) @safe {
         import std.algorithm: any;
 
         if(cursor.children.any!(a => a.isBitField)) {

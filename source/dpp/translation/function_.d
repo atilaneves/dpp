@@ -233,7 +233,7 @@ private string[] maybeOperator(in from!"clang".Cursor cursor,
     ];
 }
 
-private bool isSupportedOperatorInD(in from!"clang".Cursor cursor) @safe nothrow {
+private bool isSupportedOperatorInD(in from!"clang".Cursor cursor) @safe {
     import dpp.translation.aggregate: dKeywordFromStrass;
     import clang: Cursor;
     import std.algorithm: map, canFind;

@@ -82,7 +82,7 @@ bool isOverride(in from!"clang".Cursor cursor) @safe {
 /**
    If the cursor is a `final` member function.
  */
-bool isFinal(in from!"clang".Cursor cursor) @safe nothrow {
+bool isFinal(in from!"clang".Cursor cursor) @safe {
     import clang: Cursor;
     import std.algorithm: any;
 
@@ -96,7 +96,7 @@ bool isFinal(in from!"clang".Cursor cursor) @safe nothrow {
 /**
    All base classes this cursor derives from
  */
-from!"clang".Cursor[] baseClasses(in from!"clang".Cursor cursor) @safe nothrow {
+from!"clang".Cursor[] baseClasses(in from!"clang".Cursor cursor) @safe {
     import clang: Cursor;
     import std.algorithm: map, filter, joiner;
     import std.array: array;
