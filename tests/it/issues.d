@@ -290,6 +290,31 @@ version(Posix) // because Windows doesn't have signinfo
     );
 }
 
+@Tags("issue", "preprocessor")
+@("22.4")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                typedef struct { } PyTypeObject;
+                typedef struct { PyTypeObject* ob_type; } PyObject;
+
+                // macro has same name as function
+                inline PyTypeObject* Py_TYPE(PyObject *ob) {
+                    return ob->ob_type;
+                }
+
+                #define Py_TYPE(ob) Py_TYPE((PyObject*)(ob))
+            `
+        ),
+        D(
+            q{
+                void* obj;
+                PyTypeObject* type = Py_TYPE(obj);
+            }
+        ),
+    );
+}
 
 
 @Tags("issue", "collision", "issue24")
@@ -752,7 +777,7 @@ version(Posix) // because Windows doesn't have signinfo
         D(
             q{
                 // it gets renamed
-                func_();
+                func();
             }
         ),
     );
