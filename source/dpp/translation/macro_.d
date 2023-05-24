@@ -171,6 +171,7 @@ private string translateToD(
 
     return tokens
         .fixSizeof(cursor)
+        .fixSelfCall(cursor, context)
         .fixCasts(cursor, context)
         .fixArrow
         .fixNull
@@ -397,6 +398,31 @@ private auto fixSizeof(R)(R tokens, in from !"clang".Cursor cursor)
     return beginning ~ middle ~ tokens[lastIndex .. $];
 }
 
+
+private auto fixSelfCall(
+    const(from!"clang".Token)[] tokens,
+    in from !"clang".Cursor cursor,
+    in from!"dpp.runtime.context".Context context,
+    )
+{
+    import clang : Token;
+    import std.algorithm : any, map;
+    import std.array : array;
+
+    if (cursor.isMacroFunction && context.options.functionMacros)
+    {
+        auto macroName = cursor.spelling;
+        if (tokens.any!(t => t == Token(Token.Kind.Identifier, macroName)))
+        {
+            string renamedName = macroName ~ "_";
+            return tokens.map!(t =>
+                t == Token(Token.Kind.Identifier, macroName)
+                    ? Token(Token.Kind.Identifier, renamedName)
+                    : t).array;
+        }
+    }
+    return tokens;
+}
 
 private auto fixCasts(R)(
     R tokens,
