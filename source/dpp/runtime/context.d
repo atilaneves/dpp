@@ -430,7 +430,7 @@ struct Context {
 
     void rememberMacro(in Cursor cursor) @safe pure {
         _macros[cursor.spelling.idup] = true;
-        if(cursor.isMacroFunction)
+        if(cursor.isMacroFunction && options.functionMacros)
             _functionMacroDeclarations[cursor.spelling.idup] = true;
     }
 

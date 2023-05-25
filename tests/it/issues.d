@@ -290,6 +290,60 @@ version(Posix) // because Windows doesn't have signinfo
     );
 }
 
+@Tags("issue", "preprocessor")
+@("22.4.0")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                typedef struct { } PyTypeObject;
+                typedef struct { PyTypeObject* ob_type; } PyObject;
+                typedef struct { PyObject* convert; } PyObject2;
+
+                // macro has same name as function
+                inline PyTypeObject* Py_TYPE(PyObject *ob) {
+                    return ob->ob_type;
+                }
+
+                #define Py_TYPE(ob) Py_TYPE(ob->convert)
+            `
+        ),
+        D(
+            q{
+                PyObject2* obj;
+                PyTypeObject* type = Py_TYPE(obj);
+            }
+        ),
+    );
+}
+
+@Tags("issue", "preprocessor")
+@("22.4.1")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                typedef struct { } PyTypeObject;
+                typedef struct { PyTypeObject* ob_type; } PyObject;
+                typedef struct { PyObject* convert; } PyObject2;
+
+                // macro has same name as function
+                inline PyTypeObject* Py_TYPE(PyObject *ob) {
+                    return ob->ob_type;
+                }
+
+                #define Py_TYPE(ob) Py_TYPE(ob->convert)
+            `
+        ),
+        D(
+            q{
+                PyObject2* obj;
+                PyTypeObject* type = Py_TYPE(obj);
+            }
+        ),
+        ["--function-macros"]
+    );
+}
 
 
 @Tags("issue", "collision", "issue24")
@@ -752,7 +806,7 @@ version(Posix) // because Windows doesn't have signinfo
         D(
             q{
                 // it gets renamed
-                func_();
+                func();
             }
         ),
     );
