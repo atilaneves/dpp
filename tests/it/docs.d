@@ -103,11 +103,11 @@ version(Windows) {
                     pragma(mangle, "?method1@Struct1@@QEAAXXZ") void method1() @nogc nothrow;
                 }
 
-                pragma(mangle, "?variable3@@3HA") extern __gshared int variable3;
+                pragma(mangle, "?variable3@@3HA") extern export __gshared int variable3;
                 /// variable2 doc
-                pragma(mangle, "?variable2@@3HA") extern __gshared int variable2;
+                pragma(mangle, "?variable2@@3HA") extern export __gshared int variable2;
                 /** variable1 doc */
-                pragma(mangle, "?variable1@@3HA") extern __gshared int variable1;
+                pragma(mangle, "?variable1@@3HA") extern export __gshared int variable1;
                 /// f3 doc
                 pragma(mangle, "?f3@@YAXXZ") void f3() @nogc nothrow;
 
@@ -201,11 +201,11 @@ version(Windows) {
                 int prop1;
             }
 
-            extern __gshared int variable3;
+            extern export __gshared int variable3;
             /// variable2 doc
-            extern __gshared int variable2;
+            extern export __gshared int variable2;
             /** variable1 doc */
-            extern __gshared int variable1;
+            extern export __gshared int variable1;
             /// f3 doc
             void f3() @nogc nothrow;
 

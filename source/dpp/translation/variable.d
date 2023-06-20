@@ -14,7 +14,7 @@ string[] translateVariable(in from!"clang".Cursor cursor,
     import dpp.translation.translation: translateCursor = translate;
     import dpp.translation.type: translateType = translate, hasAnonymousSpelling;
     import dpp.translation.tokens: translateTokens;
-    import clang: Cursor, Type, Token;
+    import clang: Cursor, Type, Token, Linkage;
     import std.conv: text;
     import std.typecons: No;
     import std.algorithm: canFind, find, map;
@@ -50,6 +50,8 @@ string[] translateVariable(in from!"clang".Cursor cursor,
         : "";
     // e.g. enum foo = 42;
     const constexpr = cursor.tokens.canFind(Token(Token.Kind.Keyword, "constexpr"));
+    const dllexport = cursor.linkage == Linkage.External
+        ? "export " : "";
 
     if(constexpr)
         ret ~= translateConstexpr(spelling, cursor, context);
@@ -61,7 +63,7 @@ string[] translateVariable(in from!"clang".Cursor cursor,
             : maybeTypeSpelling;
         ret ~=
             maybePragma(cursor, context) ~
-            text("extern __gshared ", static_, typeSpelling, " ", spelling, ";");
+            text("extern ", dllexport, "__gshared ", static_, typeSpelling, " ", spelling, ";");
     }
 
     // attach variable docs

@@ -219,7 +219,7 @@ avoid linker failures:
 
 ```d
 struct foo { int i; }
-pragma(mangle, "foo") extern __gshared int foo_;
+pragma(mangle, "foo") extern export __gshared int foo_;
 ```
 
 ### Functions or variables with a name that is a D keyword
