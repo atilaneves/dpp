@@ -2108,9 +2108,9 @@ version(Windows)
     with(immutable IncludeSandbox()) {
         writeFile("hdr.h",
                   `
-                      extern __declspec(dllexport) long ExportData;
+                      extern __declspec(dllimport) long ExportData;
 
-                      __declspec(dllexport) long* CAddress();
+                      __declspec(dllimport) long* CAddress();
                   `);
         writeFile("hdr.c",
                   `
