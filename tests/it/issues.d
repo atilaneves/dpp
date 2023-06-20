@@ -41,7 +41,7 @@ version(Posix) // because Windows doesn't have signinfo
                    #include "issue4.h"
                   `);
         runPreprocessOnly("issue4.dpp");
-        fileShouldContain("issue4.d", q{extern __gshared char*[9] arr;});
+        fileShouldContain("issue4.d", q{extern export __gshared char*[9] arr;});
     }
 }
 
