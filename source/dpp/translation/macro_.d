@@ -577,6 +577,31 @@ out (r; r == -1
     return i;
 }
 
+///
+@("findMatchingParentheses")
+@safe unittest
+{
+    import clang : Token;
+
+    auto tokens = [
+        /* 0 */ Token(Token.Kind.Identifier, "myFunc"),
+        /* 1 */ Token(Token.Kind.Punctuation, "("),
+        /* 2 */ Token(Token.Kind.Identifier, "a"),
+        /* 3 */ Token(Token.Kind.Punctuation, "("),
+        /* 4 */ Token(Token.Kind.Identifier, "b"),
+        /* 5 */ Token(Token.Kind.Punctuation, ")"),
+        /* 6 */ Token(Token.Kind.Punctuation, ","),
+        /* 7 */ Token(Token.Kind.Identifier, "c"),
+        /* 8 */ Token(Token.Kind.Punctuation, ")"),
+        /* 9 */ Token(Token.Kind.Punctuation, ";"),
+    ];
+
+    assert(findMatchingParentheses(tokens, 1) == 8);
+    assert(findMatchingParentheses(tokens, 3) == 5);
+    assert(findMatchingParentheses(tokens[0 .. 6], 1) == -1);
+    assert(findMatchingParentheses(tokens[0 .. 6], 3) == 5);
+}
+
 private bool isPunctuation(const from!"clang".Token token, string expected) @safe
 {
     // Apparently libclang sometimes tokenises `\\n)` as including the backslash and the newline
@@ -586,4 +611,17 @@ private bool isPunctuation(const from!"clang".Token token, string expected) @saf
 
     return token.kind == Token.Kind.Punctuation
         && token.spelling.replace("\\\n", "").strip == expected;
+}
+
+///
+@("isPunctuation")
+@safe unittest
+{
+    import clang : Token;
+
+    assert(Token(Token.Kind.Punctuation, "(").isPunctuation("("));
+    assert(!Token(Token.Kind.Punctuation, "(").isPunctuation(")"));
+    assert(Token(Token.Kind.Punctuation, "(\\\n ").isPunctuation("("));
+    assert(Token(Token.Kind.Punctuation, "\t\\\n  )").isPunctuation(")"));
+    assert(!Token(Token.Kind.Punctuation, "\t\\\n  )").isPunctuation("("));
 }
