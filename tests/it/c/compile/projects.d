@@ -193,7 +193,7 @@ import it;
         D(
             q{
                 _IO_FILE file;
-                _IO_flockfile(&file);
+                _IO_flockfile(&file)
             }
         ),
     );

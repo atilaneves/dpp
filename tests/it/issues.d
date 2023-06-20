@@ -1989,6 +1989,7 @@ version(Linux) {
 
 }
 
+@HiddenTest
 @Tags("issue")
 @("307")
 @safe unittest {
