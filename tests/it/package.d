@@ -140,7 +140,7 @@ struct IncludeSandbox {
         shouldFail(dCompiler, "-ofblob", "blob" ~ objectFileExtension);
     }
 
-    private void adjustMessage(Exception e, in string[] srcFiles) @safe scope const {
+    void adjustMessage(Exception e, in string[] srcFiles) @safe scope const {
         import std.algorithm: map;
         import std.array: join;
         import std.file: readText;
@@ -254,6 +254,19 @@ void shouldCompileAndRun(string file = __FILE__, size_t line = __LINE__)
     shouldCompileAndRun!(file, line)("hdr.hpp", header.code, "cpp.cpp", cppSource.code, app, args);
 }
 
+string cCompilerName() @safe
+{
+    import std.process: environment;
+
+    return environment.get("TRAVIS", "") == "" ? "clang" : "gcc";
+}
+
+string cppCompilerName() @safe
+{
+    import std.process: environment;
+
+    return environment.get("TRAVIS", "") == "" ? "clang++" : "g++";
+}
 
 private void shouldCompileAndRun
     (string file = __FILE__, size_t line = __LINE__)
@@ -265,19 +278,12 @@ private void shouldCompileAndRun
         in RuntimeArgs args = RuntimeArgs(),
     )
 {
-    import std.process: environment;
-
     with(const IncludeSandbox()) {
         writeHeaderAndApp(headerFileName, headerText, app);
         writeFile(cSourceFileName, includeLine(headerFileName) ~ cText);
 
         const isCpp = headerFileName == "hdr.hpp";
-        const compilerName = () {
-            if(environment.get("TRAVIS", "") == "")
-                return isCpp ? "clang++" : "clang";
-            else
-                return isCpp ? "g++" : "gcc";
-        }();
+        const compilerName = isCpp ? cppCompilerName : cCompilerName;
         const compiler = compilerName;
         const languageStandard =  isCpp ? "-std=c++17" : "-std=c11";
         const outputFileName = "c" ~ objectFileExtension;
@@ -310,7 +316,7 @@ private void shouldCompileAndRun
 }
 
 
-private string dCompiler() @safe {
+string dCompiler() @safe {
     import std.process: environment;
     return environment.get("DC", "dmd");
 }

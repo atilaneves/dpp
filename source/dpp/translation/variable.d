@@ -50,6 +50,9 @@ string[] translateVariable(in from!"clang".Cursor cursor,
         : "";
     // e.g. enum foo = 42;
     const constexpr = cursor.tokens.canFind(Token(Token.Kind.Keyword, "constexpr"));
+    const dllexport = cursor.tokens.canFind!(t =>
+            t.spelling == "dllexport" || t.spelling == "dllimport")
+        ? "export " : "";
 
     if(constexpr)
         ret ~= translateConstexpr(spelling, cursor, context);
@@ -61,7 +64,7 @@ string[] translateVariable(in from!"clang".Cursor cursor,
             : maybeTypeSpelling;
         ret ~=
             maybePragma(cursor, context) ~
-            text("extern __gshared ", static_, typeSpelling, " ", spelling, ";");
+            text("extern ", dllexport, "__gshared ", static_, typeSpelling, " ", spelling, ";");
     }
 
     // attach variable docs

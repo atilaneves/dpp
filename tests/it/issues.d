@@ -2100,3 +2100,48 @@ private struct TemporaryCPATH
         fileShouldContain("issue320.d", q{alias myint_t = int;});
     }
 }
+
+version(Windows)
+@Tags("issue")
+@("333")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        writeFile("hdr.h",
+                  `
+                      extern __declspec(dllexport) long ExportData;
+
+                      __declspec(dllexport) long* CAddress();
+                  `);
+        writeFile("hdr.c",
+                  `
+                      __declspec(dllexport) long ExportData;
+
+                      __declspec(dllexport) long* CAddress()
+                      {
+                          return &ExportData;
+                      }
+                  `);
+        writeFile("hdr.dpp",
+                  `
+                      #include "hdr.h"
+                  `);
+        writeFile("app.d",
+                  q{
+                      import hdr;
+
+                      void main()
+                      {
+                          assert(CAddress() is &ExportData);
+                      }
+                  });
+
+        shouldSucceed(cCompilerName, "-o", inSandboxPath("hdr.o"), "-g", "-std=c11", "-c", inSandboxPath("hdr.c"));
+        shouldSucceed(cCompilerName, "-shared", "-o", inSandboxPath("hdr.dll"), inSandboxPath("hdr.o"));
+
+        runPreprocessOnly("hdr.dpp");
+        try
+            shouldSucceed(dCompiler, "-m64", "-g", inSandboxPath("app.d"), inSandboxPath("hdr.lib"));
+        catch(Exception e)
+            adjustMessage(e, ["hdr.d"]);
+    }
+}
