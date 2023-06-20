@@ -32,7 +32,7 @@ string[] translateMacro(in from!"clang".Cursor cursor,
 
     context.rememberMacro(cursor);
     const spelling = maybeRename(cursor, context);
-    const dbody = translateToD(cursor, context, tokens);
+    const translation = translateToD(cursor, context, tokens);
 
     // We try here to make it so that literal macros can be imported from
     // another D module. We also try and make non-function-like macros
@@ -43,19 +43,33 @@ string[] translateMacro(in from!"clang".Cursor cursor,
     // Below that, we declare the macro so the the #including .dpp file
     // uses the preprocessor.
     if(!cursor.isMacroFunction && tokens.length > 1) {
-        const defineEnum = `enum ` ~ spelling ~ ` = ` ~ dbody ~ `;`;
-        const enumVarName = `enumMixinStr_` ~ spelling;
+        string[] ret;
+        const defineEnum = `enum ` ~ spelling ~ ` = ` ~ translation.dcode ~ `;`;
+        if (translation.isLiteral)
+        {
+            // no need to have compiles checks with literals
+            ret = [
+                "    " ~ defineEnum,
+            ];
+        }
+        else
+        {
+            const enumVarName = `enumMixinStr_` ~ spelling;
+            ret = [
+                "    private enum " ~ enumVarName ~ " = `" ~ defineEnum ~ "`;",
+                `    static if(is(typeof({ mixin(` ~ enumVarName ~ `); }))) {`,
+                `        mixin(`  ~ enumVarName ~ `);`,
+                `    }`,
+            ];
+        }
         return [
             `#ifdef ` ~ spelling,
             `#    undef ` ~ spelling,
             `#endif`,
             `static if(!is(typeof(` ~ spelling ~ `))) {`,
-            "    private enum " ~ enumVarName ~ " = `" ~ defineEnum ~ "`;",
-            `    static if(is(typeof({ mixin(` ~ enumVarName ~ `); }))) {`,
-            `        mixin(`  ~ enumVarName ~ `);`,
-            `    }`,
+            ] ~ ret ~ [
             `}`,
-            `#define ` ~ spelling ~ ` ` ~ dbody,
+            `#define ` ~ spelling ~ ` ` ~ translation.dcode,
         ];
     }
 
@@ -67,7 +81,7 @@ string[] translateMacro(in from!"clang".Cursor cursor,
         ? macroToTemplateFunction(cursor, prefix, spelling)
         : [];
     const maybeSpace = cursor.isMacroFunction ? "" : " ";
-    const restOfLine = spelling ~ maybeSpace ~ dbody;
+    const restOfLine = spelling ~ maybeSpace ~ translation.dcode;
     const maybeDefineWithPrefix = emitFunction
         ? `#define ` ~ prefix ~ restOfLine
         : "";
@@ -148,8 +162,14 @@ private bool isLiteralMacro(in from!"clang".Token[] tokens) @safe @nogc pure not
         ;
 }
 
+private struct MacroTranslation
+{
+    string dcode;
+    bool isLiteral;
+}
 
-private string translateToD(
+
+private MacroTranslation translateToD(
     in from!"clang".Cursor cursor,
     ref from!"dpp.runtime.context".Context context,
     in from!"clang".Token[] tokens,
@@ -160,8 +180,8 @@ private string translateToD(
     import clang: Token;
     import std.algorithm: map;
 
-    if(isLiteralMacro(tokens)) return fixLiteral(tokens[1]);
-    if(tokens.length == 1) return ""; // e.g. `#define FOO`
+    if(isLiteralMacro(tokens)) return MacroTranslation(fixLiteral(tokens[1]), true);
+    if(tokens.length == 1) return MacroTranslation.init; // e.g. `#define FOO`
 
     auto fixLiteralOrPassThrough(in Token t) {
         return t.kind == Token.Kind.Literal
@@ -169,7 +189,8 @@ private string translateToD(
             : t;
     }
 
-    return tokens
+    return MacroTranslation(
+        tokens
         .fixSizeof(cursor)
         .fixSelfCall(cursor, context)
         .fixCasts(cursor, context)
@@ -178,7 +199,7 @@ private string translateToD(
         .map!fixLiteralOrPassThrough
         .toString
         .translateElaborated(context)
-        ;
+    );
 }
 
 
