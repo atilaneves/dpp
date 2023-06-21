@@ -328,11 +328,15 @@ private string fullPath(
     in string headerName
     ) @safe
 {
-    import std.algorithm: map, filter;
+    import std.algorithm: map, filter, splitter;
     import std.path: buildPath, absolutePath, isAbsolute, dirName;
     import std.file: exists;
     import std.conv: text;
     import std.exception: enforce;
+    import std.array: join;
+    import std.process: environment;
+    import std.range: chain;
+    import std.path: pathSeparator;
 
     if(headerName.exists) return headerName;
 
@@ -347,12 +351,21 @@ private string fullPath(
         return path.absolutePath;
     }
 
-    auto filePaths = includePaths
+    auto pathsToSearch = chain(
+        includePaths,
+        environment.get("CPATH", "").splitter(pathSeparator)
+    );
+
+    auto filePaths = pathsToSearch
         .map!findHeader
         .filter!exists
         ;
 
-    enforce(!filePaths.empty, text("d++ cannot find file path for header '", headerName, "'"));
+    enforce(!filePaths.empty,
+            text("d++ cannot find file path for header '", headerName, "' after searching in: ",
+                 pathsToSearch.join("\n")));
+    import std.stdio;
+    writeln("!!!\nfilePaths: ", filePaths, "\n!!!");
 
     return filePaths.front;
 }
