@@ -563,11 +563,12 @@ out (r; r == -1
     || tokens[r].isPunctuation(")")) //" quote is just here to unconfuse my syntax highlighter
 {
     int depth = 1;
-    while (depth != 0 && i + 1 < tokens.length) {
+    while (depth != 0) {
         ++i;
+        if (i >= tokens.length)
+            break;
         if(tokens[i].isPunctuation("("))
             ++depth;
-        // for the 2nd condition, esee it.c.compile.preprocessor.multiline
         if(tokens[i].isPunctuation(")"))
             --depth;
     }
@@ -581,6 +582,7 @@ out (r; r == -1
 @("findMatchingParentheses")
 @safe unittest
 {
+    import unit_threaded: shouldEqual;
     import clang : Token;
 
     auto tokens = [
@@ -596,10 +598,10 @@ out (r; r == -1
         /* 9 */ Token(Token.Kind.Punctuation, ";"),
     ];
 
-    assert(findMatchingParentheses(tokens, 1) == 8);
-    assert(findMatchingParentheses(tokens, 3) == 5);
-    assert(findMatchingParentheses(tokens[0 .. 6], 1) == -1);
-    assert(findMatchingParentheses(tokens[0 .. 6], 3) == 5);
+    findMatchingParentheses(tokens, 1).shouldEqual(8);
+    findMatchingParentheses(tokens, 3).shouldEqual(5);
+    findMatchingParentheses(tokens[0 .. 6], 1).shouldEqual(-1);
+    findMatchingParentheses(tokens[0 .. 6], 3).shouldEqual(5);
 }
 
 private bool isPunctuation(const from!"clang".Token token, string expected) @safe

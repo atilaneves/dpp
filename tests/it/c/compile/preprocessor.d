@@ -107,7 +107,6 @@ import it;
 }
 
 
-version(Posix)  // FIXME
 @("multiline")
 @safe unittest {
     shouldCompile(
