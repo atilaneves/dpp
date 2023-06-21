@@ -1873,6 +1873,56 @@ version(Linux) {
 }
 
 
+@Tags("issue")
+@("263")
+@safe unittest {
+    with(immutable IncludeSandbox()) {
+        writeFile("issue263.h",
+                  `
+                  #define V1 1
+                  #define V2 "hello"
+                  #define V3 3.4
+                  #define V4 3.4f
+                  #define V5 nonExistantVariable
+                  `);
+        writeFile("issue263.dpp",
+                  `
+                   #include "issue263.h"
+
+                   enum V1D = V1;
+                   enum V2D = V2;
+                   enum V3D = V3;
+                   enum V4D = V4;
+                  `);
+        runPreprocessOnly("issue263.dpp");
+        // we check if there is whitespace before the enum, because just the
+        // enum definition alone would always match, since it's written in the
+        // mixin string variable as well. We don't check for line ending due to
+        // possible LF/CRLF differences.h
+        fileShouldContain("issue263.d", "    enum V1 = 1;");
+        fileShouldContain("issue263.d", "    enum V2 = \"hello\";");
+        fileShouldContain("issue263.d", "    enum V3 = 3.4;");
+        fileShouldContain("issue263.d", "    enum V4 = 3.4f;");
+
+        writeFile("app.d",
+                  q{
+                  import issue263;
+
+                  void main()
+                  {
+                      int v1 = V1; int v1d = V1D;
+                      string v2 = V2; string v2d = V2D;
+                      double v3 = V3; enum v3d = V3D;
+                      float v4 = V4; float v4d = V4D;
+                      static assert(!is(typeof(V5)));
+                  }
+                  });
+
+        shouldCompile("app.d");
+    }
+}
+
+
 @ShouldFail
 @Tags("issue")
 @("269")
