@@ -505,7 +505,7 @@ private auto fixCasts(R)(
     // find the closing paren for the function-like macro's argument list
     if(cursor.isMacroFunction) {
         lastIndex = tokens
-            .countUntil!(t => t == Token(Token.Kind.Punctuation, ")"))
+            .countUntil!(t => t.isPunctuation(")"))
             +1; // skip the right paren
         if(lastIndex == 0)
             throw new Exception(text("Can't fix casts in function-like macro with tokens: ", tokens));
@@ -515,49 +515,33 @@ private auto fixCasts(R)(
     const(Token)[] middle;
 
     // See #244 - macros can have unbalanced parentheses
-    // Apparently libclang tokenises `\\n)` as including the backslash and the newline
-    const numLeftParens  = tokens.count!(a => a == Token(Token.Kind.Punctuation, "(") ||
-                                         a == Token(Token.Kind.Punctuation, "\\\n("));
-    const numRightParens = tokens.count!(a => a == Token(Token.Kind.Punctuation, ")") ||
-                                         a == Token(Token.Kind.Punctuation, "\\\n)"));
+    const numLeftParens  = tokens.count!(a => a.isPunctuation("("));
+    const numRightParens = tokens.count!(a => a.isPunctuation(")"));
 
     if(numLeftParens != numRightParens)
         throw new UntranslatableException("Unbalanced parentheses in macro `" ~ cursor.spelling ~ "`");
 
     for(size_t i = lastIndex; i < tokens.length - 1; ++i) {
-        if(tokens[i] == Token(Token.Kind.Punctuation, "(")) {
-            // find closing paren
-            long open = 1;
-            size_t scanIndex = i + 1;  // skip i + 1 since that's the open paren
-
-            while(open != 0) {
-                if(tokens[scanIndex] == Token(Token.Kind.Punctuation, "("))
-                    ++open;
-                // for the 2nd condition, esee it.c.compile.preprocessor.multiline
-                if(tokens[scanIndex] == Token(Token.Kind.Punctuation, ")") ||
-                   tokens[scanIndex] == Token(Token.Kind.Punctuation, "\\\n)"))
-                    --open;
-
-                ++scanIndex;
-            }
-            // at this point scanIndex is the 1 + index of closing paren
+        if(tokens[i].isPunctuation("(")) {
+            auto closingParen = findMatchingParentheses(tokens, i);
+            assert(closingParen != -1, "shouldn't panic with balanced parens");
 
             // we want to ignore e.g. `(int)(foo).sizeof` even if `foo` is a type
             const followedByDot =
-                tokens.length > scanIndex
-                && tokens[scanIndex].spelling[0] == '.'
+                closingParen + 1 < tokens.length
+                && tokens[closingParen + 1].spelling[0] == '.'
                 ;
 
-            if(isType(tokens[i + 1 .. scanIndex - 1]) && !followedByDot) {
+            if(isType(tokens[i + 1 .. closingParen]) && !followedByDot) {
                 // -1 to not include the closing paren
-                const cTypeString = tokens[i + 1 .. scanIndex - 1].map!(t => t.spelling).join(" ");
+                const cTypeString = tokens[i + 1 .. closingParen].map!(t => t.spelling).join(" ");
                 const dTypeString = translateString(cTypeString, context);
                 middle ~= tokens[lastIndex .. i] ~
                     Token(Token.Kind.Punctuation, "cast(") ~
                     Token(Token.Kind.Keyword, dTypeString) ~
                     Token(Token.Kind.Punctuation, ")");
 
-                lastIndex = scanIndex;
+                lastIndex = closingParen + 1;
                 // advance i past the sizeof. -1 because of ++i in the for loop
                 i = lastIndex - 1;
             }
@@ -565,4 +549,81 @@ private auto fixCasts(R)(
     }
 
     return chain(beginning, middle, tokens[lastIndex .. $]);
+}
+
+/// Returns: `token index` for the matching closing parentheses. If no
+/// matching closing parentheses is found, `-1` is returned.
+private ptrdiff_t findMatchingParentheses(
+    const(from!"clang".Token)[] tokens,
+    ptrdiff_t i
+    )
+    @safe
+in (tokens[i].isPunctuation("("))
+out (r; r == -1
+    || tokens[r].isPunctuation(")")) //" quote is just here to unconfuse my syntax highlighter
+{
+    int depth = 1;
+    while (depth != 0) {
+        ++i;
+        if (i >= tokens.length)
+            break;
+        if(tokens[i].isPunctuation("("))
+            ++depth;
+        if(tokens[i].isPunctuation(")"))
+            --depth;
+    }
+
+    if (i >= tokens.length)
+        return -1;
+    return i;
+}
+
+///
+@("findMatchingParentheses")
+@safe unittest
+{
+    import unit_threaded: shouldEqual;
+    import clang : Token;
+
+    auto tokens = [
+        /* 0 */ Token(Token.Kind.Identifier, "myFunc"),
+        /* 1 */ Token(Token.Kind.Punctuation, "("),
+        /* 2 */ Token(Token.Kind.Identifier, "a"),
+        /* 3 */ Token(Token.Kind.Punctuation, "("),
+        /* 4 */ Token(Token.Kind.Identifier, "b"),
+        /* 5 */ Token(Token.Kind.Punctuation, ")"),
+        /* 6 */ Token(Token.Kind.Punctuation, ","),
+        /* 7 */ Token(Token.Kind.Identifier, "c"),
+        /* 8 */ Token(Token.Kind.Punctuation, ")"),
+        /* 9 */ Token(Token.Kind.Punctuation, ";"),
+    ];
+
+    findMatchingParentheses(tokens, 1).shouldEqual(8);
+    findMatchingParentheses(tokens, 3).shouldEqual(5);
+    findMatchingParentheses(tokens[0 .. 6], 1).shouldEqual(-1);
+    findMatchingParentheses(tokens[0 .. 6], 3).shouldEqual(5);
+}
+
+private bool isPunctuation(const from!"clang".Token token, string expected) @safe
+{
+    // Apparently libclang sometimes tokenises `\\n)` as including the backslash and the newline
+
+    import clang : Token;
+    import std.string : replace, strip;
+
+    return token.kind == Token.Kind.Punctuation
+        && token.spelling.replace("\r", "\n").replace("\\\n", "").strip == expected;
+}
+
+///
+@("isPunctuation")
+@safe unittest
+{
+    import clang : Token;
+
+    assert(Token(Token.Kind.Punctuation, "(").isPunctuation("("));
+    assert(!Token(Token.Kind.Punctuation, "(").isPunctuation(")"));
+    assert(Token(Token.Kind.Punctuation, "(\\\n ").isPunctuation("("));
+    assert(Token(Token.Kind.Punctuation, "\t\\\n  )").isPunctuation(")"));
+    assert(!Token(Token.Kind.Punctuation, "\t\\\n  )").isPunctuation("("));
 }

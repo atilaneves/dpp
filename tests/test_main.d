@@ -24,6 +24,7 @@ version(dpp2) {
         // in-file
         "dpp.runtime",
         "dpp.translation",
+        "dpp.translation.macro_",
         "dpp.expansion",
 
         // unit tests
