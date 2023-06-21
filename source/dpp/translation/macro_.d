@@ -54,13 +54,25 @@ string[] translateMacro(in from!"clang".Cursor cursor,
         }
         else
         {
-            const enumVarName = `enumMixinStr_` ~ spelling;
-            ret = [
-                "    private enum " ~ enumVarName ~ " = `" ~ defineEnum ~ "`;",
-                `    static if(is(typeof({ mixin(` ~ enumVarName ~ `); }))) {`,
-                `        mixin(`  ~ enumVarName ~ `);`,
-                `    }`,
-            ];
+            if (translation.needsWrapperFunction)
+            {
+                ret = [
+                    "    auto " ~ spelling ~ "()() @property {",
+                    "        pragma(inline, true);",
+                    "        return mixin(`"  ~ translation.dcode ~ "`);",
+                    "    }",
+                ];
+            }
+            else
+            {
+                const enumVarName = `enumMixinStr_` ~ spelling;
+                ret = [
+                    "    private enum " ~ enumVarName ~ " = `" ~ defineEnum ~ "`;",
+                    `    static if(is(typeof({ mixin(` ~ enumVarName ~ `); }))) {`,
+                    `        mixin(`  ~ enumVarName ~ `);`,
+                    `    }`,
+                ];
+            }
         }
         return [
             `#ifdef ` ~ spelling,
@@ -166,6 +178,7 @@ private struct MacroTranslation
 {
     string dcode;
     bool isLiteral;
+    bool needsWrapperFunction;
 }
 
 
@@ -199,8 +212,39 @@ private MacroTranslation translateToD(
         .fixNull
         .map!fixLiteralOrPassThrough
         .toString
-        .translateElaborated(context)
+        .translateElaborated(context),
+        false,
+        checkEnumNeedsWrapperFunction(cursor, context, tokens)
     );
+}
+
+private bool checkEnumNeedsWrapperFunction(
+    in from!"clang".Cursor cursor,
+    ref from!"dpp.runtime.context".Context context,
+    in from!"clang".Token[] tokens,
+    )
+    @safe
+{
+    import std.algorithm : countUntil;
+    import clang : Token;
+
+    auto deref = tokens.countUntil!(a => a.isPunctuation("&"));
+    if (deref != -1)
+    {
+        bool isPunctuationBefore = deref == 1 || tokens[deref - 1].kind == Token.Kind.Punctuation;
+        bool isIdentifierAfter = tokens.length > deref + 1 && tokens[deref + 1].kind == Token.Kind.Identifier;
+        if (isPunctuationBefore && isIdentifierAfter)
+        {
+            // probably taking address of something, wrap this in a property
+            // function in case we try to access imported variables!
+
+            // TODO: lookup symbol with identifier `tokens[deref + 1].spelling`
+            // and only return true if it's `linkage == Linkage.External`
+            return true;
+        }
+    }
+
+    return false;
 }
 
 

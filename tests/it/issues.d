@@ -2205,6 +2205,8 @@ version(Windows)
                       extern __declspec(dllimport) long ExportData;
 
                       __declspec(dllimport) long* CAddress();
+
+                      #define CAddressMacro (&ExportData)
                   `);
         writeFile("hdr.c",
                   `
@@ -2225,7 +2227,10 @@ version(Windows)
 
                       void main()
                       {
+                          assert(CAddress() !is null);
                           assert(CAddress() is &ExportData);
+                          assert(CAddressMacro !is null);
+                          assert(CAddressMacro is &ExportData);
                       }
                   });
 
