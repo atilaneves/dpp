@@ -612,7 +612,7 @@ private bool isPunctuation(const from!"clang".Token token, string expected) @saf
     import std.string : replace, strip;
 
     return token.kind == Token.Kind.Punctuation
-        && token.spelling.replace("\\\n", "").strip == expected;
+        && token.spelling.replace("\r", "\n").replace("\\\n", "").strip == expected;
 }
 
 ///
