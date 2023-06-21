@@ -1884,6 +1884,10 @@ version(Linux) {
                   #define V3 3.4
                   #define V4 3.4f
                   #define V5 nonExistantVariable
+                  #define V6 0x40000000000UI64
+                  #define V7 0x40000000000ULL
+                  #define V8 0x40000000000LL
+                  #define V9 9i8
                   `);
         writeFile("issue263.dpp",
                   `
@@ -1893,6 +1897,10 @@ version(Linux) {
                    enum V2D = V2;
                    enum V3D = V3;
                    enum V4D = V4;
+                   enum V6D = V6;
+                   enum V7D = V7;
+                   enum V8D = V8;
+                   enum V9D = V9;
                   `);
         runPreprocessOnly("issue263.dpp");
         // we check if there is whitespace before the enum, because just the
@@ -1903,6 +1911,10 @@ version(Linux) {
         fileShouldContain("issue263.d", "    enum V2 = \"hello\";");
         fileShouldContain("issue263.d", "    enum V3 = 3.4;");
         fileShouldContain("issue263.d", "    enum V4 = 3.4f;");
+        fileShouldContain("issue263.d", "    enum V6 = 0x40000000000UL;");
+        fileShouldContain("issue263.d", "    enum V7 = 0x40000000000LU;");
+        fileShouldContain("issue263.d", "    enum V8 = 0x40000000000L;");
+        fileShouldContain("issue263.d", "    enum V9 = 9;");
 
         writeFile("app.d",
                   q{
@@ -1915,6 +1927,10 @@ version(Linux) {
                       double v3 = V3; enum v3d = V3D;
                       float v4 = V4; float v4d = V4D;
                       static assert(!is(typeof(V5)));
+                      ulong v6 = V6; ulong v6d = V6D;
+                      ulong v7 = V7; ulong v7d = V7D;
+                      long v8 = V8; long v8d = V8D;
+                      byte v9 = V9; byte v9d = V9D;
                   }
                   });
 

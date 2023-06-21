@@ -264,22 +264,18 @@ private auto fixNull(R)(R tokens)
         ;
 }
 
-version(Windows)
 private string fixMicrosoftSuffixes(in string str) @safe pure nothrow {
     import std.algorithm: endsWith;
+    import std.string: representation;
 
-    if(str.endsWith("i64"))
+    if(str.representation.endsWith("i64".representation, "I64".representation))
         return str[0 .. $-3] ~ "L";
-    else if(str.endsWith("i32"))
+    else if(str.representation.endsWith("i32".representation, "I32".representation))
         return str[0 .. $-3];
-    else if(str.endsWith("i16"))
+    else if(str.representation.endsWith("i16".representation, "I16".representation))
         return str[0 .. $-3];
-    else if(str.endsWith("i8"))
-        return str[0 .. $-3];
-    return str;
-}
-else
-private string fixMicrosoftSuffixes(in string str) @safe pure nothrow {
+    else if(str.representation.endsWith("i8".representation, "I8".representation))
+        return str[0 .. $-2];
     return str;
 }
 
