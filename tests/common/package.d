@@ -1,7 +1,7 @@
 module common;
 
 
-void printChildren(T)(auto ref in T cursorOrTU) {
+void printChildren(T)(auto ref T cursorOrTU) {
     import clang: TranslationUnit, Cursor;
     import std.traits: Unqual;
 
