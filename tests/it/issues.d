@@ -345,6 +345,33 @@ version(Posix) // because Windows doesn't have signinfo
     );
 }
 
+@Tags("issue", "preprocessor")
+@("22.5")
+@safe unittest {
+    shouldCompile(
+        C(
+            `
+                typedef struct { } PyTypeObject;
+                typedef struct { PyTypeObject* ob_type; } PyObject;
+
+                /*static*/ inline PyTypeObject* foo(PyObject *ob) {
+                    return ob->ob_type;
+                }
+
+                // with cast macro
+                #define _Py_CAST(type, expr) ((type)(expr))
+                #define Py_TYPE(ob) foo(_Py_CAST(PyObject*, (ob)))
+            `
+        ),
+        D(
+            q{
+                PyObject* obj;
+                PyTypeObject* type = Py_TYPE(obj);
+            }
+        ),
+    );
+}
+
 
 @Tags("issue", "collision", "issue24")
 @("24.0")
