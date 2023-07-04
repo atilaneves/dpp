@@ -364,8 +364,6 @@ private string fullPath(
     enforce(!filePaths.empty,
             text("d++ cannot find file path for header '", headerName, "' after searching in: ",
                  pathsToSearch.join("\n")));
-    import std.stdio;
-    writeln("!!!\nfilePaths: ", filePaths, "\n!!!");
 
     return filePaths.front;
 }
