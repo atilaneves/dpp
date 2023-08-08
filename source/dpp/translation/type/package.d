@@ -5,6 +5,7 @@ module dpp.translation.type;
 
 
 import dpp.from: from;
+import dpp.translation.exception: UntranslatableException;
 
 
 alias Translator = string function(
@@ -21,7 +22,6 @@ string translate(in from!"clang".Type type,
                  in from!"std.typecons".Flag!"translatingFunction" translatingFunction = from!"std.typecons".No.translatingFunction)
     @safe
 {
-    import dpp.translation.exception: UntranslatableException;
     import std.conv: text;
     import std.array: replace;
 
@@ -188,7 +188,7 @@ private string translateAggregate(in from!"clang".Type type,
                 const endOfNsIndex = type.spelling.countUntil(noNs);
 
                 if(endOfNsIndex == -1)
-                    throw new Exception("Could not find namespaceless '" ~ noNs ~ "' in type '" ~ type.spelling ~ "'");
+                    throw new UntranslatableException("Could not find namespaceless '" ~ noNs ~ "' in type '" ~ type.spelling ~ "'");
                 return type.spelling[endOfNsIndex .. $];
             } else {
                 return type.spelling;
@@ -618,7 +618,6 @@ string templateParameterSpelling(in from!"clang".Type cursorType,
                                  int index)
     @safe
 {
-    import dpp.translation.exception: UntranslatableException;
     import std.algorithm: findSkip, startsWith;
     import std.array: split;
     import std.conv: text;
