@@ -53,3 +53,31 @@ import it;
         ),
    );
 }
+
+@("namespaceless")
+@safe unittest {
+    shouldCompile(
+        Cpp(
+            q{
+                namespace ns {
+                    class C1 {
+                        public:
+
+                        class C2;
+                    };
+                }
+
+                using C1_Hidden = ns::C1;
+
+                namespace ns {
+                    using _C2 = ::C1_Hidden::C2;
+                }
+            }
+        ),
+        D(
+            q{
+            }
+        ),
+        [],
+   );
+}
