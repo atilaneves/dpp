@@ -14,9 +14,9 @@ jobs:
           - windows-2022
           #- macos-10.15
         dc:
-          - dmd-2.104.0
+          - dmd-2.105.2
           - dmd-2.102.1
-          - ldc-1.32.2
+          - ldc-1.35.0
           - ldc-1.31.0
         arch:
           - x86_64
