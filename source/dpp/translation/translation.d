@@ -37,11 +37,12 @@ private bool skipTopLevel(in from!"clang".Cursor cursor,
         return true;
 
     // We want to ignore anonymous structs and unions but not enums. See #54
-    if(cursor.spelling == "" && cursor.kind == Cursor.Kind.EnumDecl)
+    if((cursor.spelling == "" || cursor.isAnonymous) && cursor.kind == Cursor.Kind.EnumDecl)
         return false;
 
     // don't bother translating top-level anonymous aggregates
-    if(isAggregateC(cursor) && cursor.spelling == "")
+    const isAnon = cursor.spelling == "" || cursor.isAnonymous;
+    if(isAggregateC(cursor) && isAnon)
         return true;
 
     if(context.options.ignoreMacros && cursor.kind == Cursor.Kind.MacroDefinition)

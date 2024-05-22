@@ -305,6 +305,7 @@ struct Context {
     void rememberAggregate(in Cursor cursor) @safe pure {
         const spelling = resolveSpelling(cursor);
         rememberType(spelling);
+
     }
 
     bool aggregateIsRemembered(in Cursor cursor) @safe pure {
@@ -420,6 +421,10 @@ struct Context {
     }
 
     void rememberType(in string type) @safe pure nothrow {
+        import std.algorithm: canFind;
+
+        if(_types.canFind(type)) return;
+
         _types ~= type;
     }
 

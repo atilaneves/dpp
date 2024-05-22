@@ -46,8 +46,8 @@ import contract;
 
     const baseSpec = derived.child(0);
     baseSpec.kind.should == Cursor.Kind.CXXBaseSpecifier;
-    baseSpec.spelling.should == "struct Base";
-    baseSpec.type.kind.should == Type.Kind.Record;
+    baseSpec.spelling.should.be in ["struct Base", "Base"];
+    baseSpec.type.kind.should.be in [Type.Kind.Record, Type.Kind.Elaborated];
     baseSpec.type.spelling.should == "Base";
 
     printChildren(baseSpec);
@@ -109,7 +109,8 @@ import contract;
     const baseSpec = derived.child(0);
     baseSpec.kind.should == Cursor.Kind.CXXBaseSpecifier;
     baseSpec.spelling.should == "Base<int>";
-    baseSpec.type.kind.should == Type.Kind.Unexposed; // because it's a template
+    // because it's a template
+    baseSpec.type.kind.should.be in  [Type.Kind.Unexposed, Type.Kind.Elaborated /*libclang17*/];
     baseSpec.type.spelling.should == "Base<int>";
     // Here's where the weirdness starts. We try and get back to the original
     // ClassTemplate cursor here via the baseSpec type, but instead we get a
@@ -165,8 +166,16 @@ import contract;
     derived.children.length.should == 3;
 
     const baseSpec0 = derived.child(0);
-    baseSpec0.shouldMatch(Cursor.Kind.CXXBaseSpecifier, "struct Base0");
-    baseSpec0.type.shouldMatch(Type.Kind.Record, "Base0");
+    try
+        baseSpec0.shouldMatch(Cursor.Kind.CXXBaseSpecifier, "struct Base0");
+    catch(Exception _) // libclang17
+        baseSpec0.shouldMatch(Cursor.Kind.CXXBaseSpecifier, "Base0");
+
+    try
+        baseSpec0.type.shouldMatch(Type.Kind.Record, "Base0");
+    catch(Exception _) //libclang17
+        baseSpec0.type.shouldMatch(Type.Kind.Elaborated, "Base0");
+
     printChildren(baseSpec0);
     baseSpec0.children.length.should == 1;
 
@@ -176,8 +185,16 @@ import contract;
     typeRef0.children.length.should == 0;
 
     const baseSpec1 = derived.child(1);
-    baseSpec1.shouldMatch(Cursor.Kind.CXXBaseSpecifier, "struct Base1");
-    baseSpec1.type.shouldMatch(Type.Kind.Record, "Base1");
+    try
+        baseSpec1.shouldMatch(Cursor.Kind.CXXBaseSpecifier, "struct Base1");
+    catch(Exception _) // libclang17
+        baseSpec1.shouldMatch(Cursor.Kind.CXXBaseSpecifier, "Base1");
+
+    try
+        baseSpec1.type.shouldMatch(Type.Kind.Record, "Base1");
+    catch(Exception _)
+        baseSpec1.type.shouldMatch(Type.Kind.Elaborated, "Base1");
+
     printChildren(baseSpec1);
     baseSpec1.children.length.should == 1;
 

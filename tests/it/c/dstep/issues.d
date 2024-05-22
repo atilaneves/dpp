@@ -1,22 +1,7 @@
 module it.c.dstep.issues;
 
+
 import it;
-
-@("")
-@Tags("dstep_issues")
-@safe unittest {
-    shouldCompile(
-        C(
-            q{
-
-            }
-        ),
-        D(
-            q{
-            }
-        ),
-    );
-}
 
 
 @("8")
@@ -46,10 +31,12 @@ import it;
                         char       *orig_broker_name; /* Name of originating broker */
                 } rd_kafka_metadata_t;
 
-                rd_kafka_metadata (rd_kafka_t *rk, int all_topics,
-                                   rd_kafka_topic_t *only_rkt,
-                                   const struct rd_kafka_metadata **metadatap,
-                                   int timeout_ms);
+                rd_kafka_metadata (
+                    rd_kafka_t *rk,
+                    int all_topics,
+                    rd_kafka_topic_t *only_rkt,
+                    const struct rd_kafka_metadata **metadatap,
+                    int timeout_ms);
             `
         ),
         D(
@@ -60,6 +47,7 @@ import it;
                 rd_kafka_metadata_(&kafka, 42, &topic, &meta, 77);
             }
         ),
+        ["--c-standard=c90"],
     );
 }
 

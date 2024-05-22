@@ -73,10 +73,12 @@ private bool isTopLevelAnonymous(in from!"clang".Cursor[] children)
     @safe nothrow
 {
     import clang: Cursor;
+
     return
         children.length == 1 && // so we can inspect it
-        children[0].spelling == "" && // anonymous
-        children[0].lexicalParent.kind == Cursor.Kind.TranslationUnit // top-level
+        (children[0].spelling == "" || children[0].isAnonymous) && // anonymous
+        children[0].lexicalParent.kind == Cursor.Kind.TranslationUnit && // top-level
+        children[0].kind != Cursor.Kind.ParmDecl // a lot more should be here
         ;
 }
 
