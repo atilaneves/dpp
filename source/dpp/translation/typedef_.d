@@ -72,11 +72,12 @@ string[] translateNonFunction(in from!"clang".Cursor cursor,
 private bool isTopLevelAnonymous(in from!"clang".Cursor[] children)
     @safe nothrow
 {
+    import dpp.clang: isSortaAnonymous;
     import clang: Cursor;
 
     return
         children.length == 1 && // so we can inspect it
-        (children[0].spelling == "" || children[0].isAnonymous) && // anonymous
+        children[0].isSortaAnonymous && // anonymous
         children[0].lexicalParent.kind == Cursor.Kind.TranslationUnit && // top-level
         children[0].kind != Cursor.Kind.ParmDecl // a lot more should be here
         ;
@@ -91,6 +92,7 @@ private string[] translateRegular(in from!"clang".Cursor cursor,
     import dpp.translation.type: translate, removeDppDecorators;
     import dpp.translation.aggregate: isAggregateC;
     import dpp.translation.dlang: maybeRename;
+    import dpp.clang: isSortaAnonymous;
     import clang: Type;
     import std.typecons: No;
 
@@ -102,7 +104,7 @@ private string[] translateRegular(in from!"clang".Cursor cursor,
             const isAnonymousEnum =
                 children.length == 1 &&
                 isAggregateC(children[0]) &&
-                children[0].spelling == "" &&
+                children[0].isSortaAnonymous &&
                 children[0].type.kind == Type.Kind.Enum
             ;
 

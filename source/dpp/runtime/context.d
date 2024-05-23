@@ -371,7 +371,8 @@ struct Context {
 
     /// return the spelling if it exists, or our made-up nickname for it if not
     string spellingOrNickname(in Cursor cursor) @safe pure {
-        if (cursor.spelling == "" || cursor.isAnonymous)
+        import dpp.clang: isSortaAnonymous;
+        if (cursor.isSortaAnonymous)
             return nickName(cursor);
 
         return spelling(cursor.spelling);

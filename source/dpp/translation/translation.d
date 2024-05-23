@@ -30,6 +30,7 @@ private bool skipTopLevel(in from!"clang".Cursor cursor,
     @safe
 {
     import dpp.translation.aggregate: isAggregateC;
+    import dpp.clang: isSortaAnonymous;
     import clang: Cursor;
     import std.algorithm: startsWith, canFind;
 
@@ -37,12 +38,11 @@ private bool skipTopLevel(in from!"clang".Cursor cursor,
         return true;
 
     // We want to ignore anonymous structs and unions but not enums. See #54
-    if((cursor.spelling == "" || cursor.isAnonymous) && cursor.kind == Cursor.Kind.EnumDecl)
+    if((cursor.isSortaAnonymous) && cursor.kind == Cursor.Kind.EnumDecl)
         return false;
 
     // don't bother translating top-level anonymous aggregates
-    const isAnon = cursor.spelling == "" || cursor.isAnonymous;
-    if(isAggregateC(cursor) && isAnon)
+    if(isAggregateC(cursor) && cursor.isSortaAnonymous)
         return true;
 
     if(context.options.ignoreMacros && cursor.kind == Cursor.Kind.MacroDefinition)
