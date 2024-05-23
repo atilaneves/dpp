@@ -79,12 +79,16 @@ private from!"clang".TranslationUnit parseTU
     if(context.options.parseAsCpp || context.language == Language.Cpp) {
         const std = "-std=" ~ context.options.cppStandard;
         parseArgs ~= ["-xc++", std];
-    } else
-        parseArgs ~= "-xc";
+    } else {
+        const std = "-std=" ~ context.options.cStandard;
+        parseArgs ~= ["-xc", std];
+    }
 
-    return parse(translUnitFileName,
-                 parseArgs,
-                 TranslationUnitFlags.DetailedPreprocessingRecord);
+    return parse(
+        translUnitFileName,
+        parseArgs,
+        TranslationUnitFlags.DetailedPreprocessingRecord
+    );
 }
 
 

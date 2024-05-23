@@ -127,7 +127,8 @@ unittest {
                     template<typename T>
                     struct allocator;
 
-                    template <typename CharT, typename Traits = std::char_traits<CharT>, typename Allocator = std::allocator<CharT>>
+                    template <typename CharT, typename Traits = char_traits<CharT>,
+                              typename Allocator = allocator<CharT>>
                     struct basic_string {};
 
                     using string = basic_string<char>;
@@ -164,7 +165,8 @@ unittest {
                     template<typename T>
                     struct allocator;
 
-                    template <typename CharT, typename Traits = std::char_traits<CharT>, typename Allocator = std::allocator<CharT>>
+                    template <typename CharT, typename Traits = char_traits<CharT>,
+                              typename Allocator = allocator<CharT>>
                     struct basic_string {};
 
                     using string = basic_string<char>;

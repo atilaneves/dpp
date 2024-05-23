@@ -502,7 +502,9 @@ private auto fixCasts(R)(
 
     // If the cursor is a macro function return its parameters
     Token[] macroFunctionParams() {
-        assert(cursor.tokens[0].kind == Token.Kind.Identifier);
+        import std.conv: text;
+        assert(cursor.tokens[0].kind == Token.Kind.Identifier || cursor.tokens[0].kind == Token.Kind.Keyword,
+               cursor.tokens[0].kind.text);
         assert(cursor.tokens[1] == Token(Token.Kind.Punctuation, "("));
         enum fromParen = 2;
         const closeParenIndex = cursor.tokens[fromParen .. $].countUntil(Token(Token.Kind.Punctuation, ")")) + fromParen;

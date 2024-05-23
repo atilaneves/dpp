@@ -530,9 +530,11 @@ private string[] maybeC11AnonymousRecords(in from!"clang".Cursor cursor,
 {
     import dpp.translation.type: translate, hasAnonymousSpelling;
     import clang: Cursor, Type;
-    import std.algorithm: any, filter;
+    import std.algorithm: any, filter, canFind;
 
-    if(member.type.kind != Type.Kind.Record || member.spelling != "") return [];
+    const isAnonymous = member.spelling == "" || member.spelling.canFind("(anonymous");
+
+    if(member.type.kind != Type.Kind.Record || !isAnonymous) return [];
 
     // Either a field or an array of the type we expect
     static bool isFieldOfRightType(in Cursor member, in Cursor child) {

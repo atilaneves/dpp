@@ -81,8 +81,16 @@ import contract;
     class_.children.length.should == 2;
 
     const base = class_.child(0);
-    base.shouldMatch(Cursor.Kind.CXXBaseSpecifier, "Template<struct ns::Struct>");
-    base.type.shouldMatch(Type.Kind.Unexposed, "Template<ns::Struct>");
+    try
+        base.shouldMatch(Cursor.Kind.CXXBaseSpecifier, "Template<struct ns::Struct>");
+    catch(Exception _) // libclang17
+        base.shouldMatch(Cursor.Kind.CXXBaseSpecifier, "Template<Struct>");
+
+    try
+        base.type.shouldMatch(Type.Kind.Unexposed, "Template<ns::Struct>");
+    catch(Exception _) // libclang17
+        base.type.shouldMatch(Type.Kind.Elaborated, "Template<Struct>");
+
     base.type.canonical.shouldMatch(Type.Kind.Record, "ns::Template<ns::Struct>");
     printChildren(base);
     base.children.length.should == 2;

@@ -329,7 +329,11 @@ auto contract_typedef_before(TestMode mode, CursorType)(auto ref CursorType tu) 
     tu.children.length.should == 2;
 
     const structDecl = tu.children[0];
-    structDecl.shouldMatch(Cursor.Kind.StructDecl, "");
+    try
+        structDecl.shouldMatch(Cursor.Kind.StructDecl, "");
+    catch(Exception _)
+        structDecl.shouldMatch(Cursor.Kind.StructDecl, "Struct"); // libclang17
+
     structDecl.type.shouldMatch(Type.Kind.Record, "Struct");
     printChildren(structDecl);
 
@@ -342,7 +346,11 @@ auto contract_typedef_before(TestMode mode, CursorType)(auto ref CursorType tu) 
     typedef_.type.shouldMatch(Type.Kind.Typedef, "Struct");
     printChildren(typedef_);
     typedef_.children.length.should == 1;
-    typedef_.children[0].shouldMatch(Cursor.Kind.StructDecl, "");
+    try
+        typedef_.children[0].shouldMatch(Cursor.Kind.StructDecl, "");
+    catch(Exception _)
+        typedef_.children[0].shouldMatch(Cursor.Kind.StructDecl, "Struct"); //libclang17
+
     typedef_.children[0].type.shouldMatch(Type.Kind.Record, "Struct");
 }
 
@@ -363,7 +371,12 @@ auto contract_typedef_before(TestMode mode, CursorType)(auto ref CursorType tu) 
     tu.children.length.should == 2;
 
     const structDecl = tu.children[0];
-    structDecl.shouldMatch(Cursor.Kind.StructDecl, "");
+    try
+        structDecl.shouldMatch(Cursor.Kind.StructDecl, "");
+    catch(Exception _) { //libclang17
+        structDecl.kind.should == Cursor.Kind.StructDecl;
+        "unnamed".should.be in structDecl.spelling;
+    }
     structDecl.type.kind.should == Type.Kind.Record;
     try
         "anonymous at".should.be in structDecl.type.spelling;
@@ -379,4 +392,109 @@ auto contract_typedef_before(TestMode mode, CursorType)(auto ref CursorType tu) 
     const typedef_ = tu.children[1];
     typedef_.shouldMatch(Cursor.Kind.TypedefDecl, "Struct");
     typedef_.type.shouldMatch(Type.Kind.Typedef, "Struct");
+}
+
+@("struct.var.anonymous")
+@safe unittest {
+    const tu = parse(
+        C(`struct { int i; } var;`),
+    );
+
+    tu.children.length.should == 2;
+
+    {
+        const structDecl= tu.children[0];
+        try
+            structDecl.shouldMatch(Cursor.Kind.StructDecl, "");
+        catch(Exception _) { // libclang17
+            structDecl.kind.should == Cursor.Kind.StructDecl;
+            "unnamed".should.be in structDecl.spelling;
+        }
+
+        printChildren(structDecl);
+        structDecl.children.length.should == 1;
+
+        const fieldDecl = structDecl.children[0];
+        fieldDecl.shouldMatch(Cursor.Kind.FieldDecl, "i");
+        fieldDecl.children.length.should == 0;
+    }
+
+    {
+        const varDecl = tu.children[1];
+        varDecl.shouldMatch(Cursor.Kind.VarDecl, "var");
+        varDecl.children.length.should == 1;
+
+        const structDecl = varDecl.children[0];
+        try
+            structDecl.shouldMatch(Cursor.Kind.StructDecl, "");
+        catch(Exception _) { // libclang17
+            structDecl.kind.should == Cursor.Kind.StructDecl;
+            "unnamed".should.be in structDecl.spelling;
+        }
+        structDecl.children.length.should == 1;
+
+        const fieldDecl = structDecl.children[0];
+        fieldDecl.shouldMatch(Cursor.Kind.FieldDecl, "i");
+        fieldDecl.children.length.should == 0;
+    }
+}
+
+@("enum.var.anonymous")
+@safe unittest {
+    const tu = parse(
+        C(
+            q{
+                enum {
+                    one = 1,
+                    two = 2,
+                } numbers;
+            }
+        ),
+    );
+
+    tu.children.length.should == 2;
+
+    {
+        const enumDecl= tu.children[0];
+        try
+            enumDecl.shouldMatch(Cursor.Kind.EnumDecl, "");
+        catch(Exception _) { // libclang17
+            enumDecl.kind.should == Cursor.Kind.EnumDecl;
+            "unnamed".should.be in enumDecl.spelling;
+        }
+
+        printChildren(enumDecl);
+        enumDecl.children.length.should == 2;
+
+        const oneDecl = enumDecl.children[0];
+        oneDecl.shouldMatch(Cursor.Kind.EnumConstantDecl, "one");
+        oneDecl.children.length.should == 1;
+
+        const twoDecl = enumDecl.children[1];
+        twoDecl.shouldMatch(Cursor.Kind.EnumConstantDecl, "two");
+        twoDecl.children.length.should == 1;
+    }
+
+    {
+        const varDecl = tu.children[1];
+        varDecl.shouldMatch(Cursor.Kind.VarDecl, "numbers");
+        varDecl.children.length.should == 1;
+
+        const enumDecl = varDecl.children[0];
+        try
+            enumDecl.shouldMatch(Cursor.Kind.EnumDecl, "");
+        catch(Exception _) { // libclang17
+            enumDecl.kind.should == Cursor.Kind.EnumDecl;
+            "unnamed".should.be in enumDecl.spelling;
+        }
+        enumDecl.children.length.should == 2;
+
+        const oneDecl = enumDecl.children[0];
+        oneDecl.shouldMatch(Cursor.Kind.EnumConstantDecl, "one");
+        oneDecl.children.length.should == 1;
+
+        const twoDecl = enumDecl.children[1];
+        twoDecl.shouldMatch(Cursor.Kind.EnumConstantDecl, "two");
+        twoDecl.children.length.should == 1;
+    }
 }

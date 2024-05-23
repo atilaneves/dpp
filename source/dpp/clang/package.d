@@ -118,3 +118,7 @@ bool hasAnonymousSpelling(in string spelling) @safe pure nothrow {
     import std.algorithm : canFind;
     return spelling.canFind("(anonymous") || spelling.canFind("(unnamed");
 }
+
+bool isSortaAnonymous(in from!"clang".Cursor cursor) @safe pure nothrow {
+    return cursor.spelling == "" || cursor.isAnonymous;
+}

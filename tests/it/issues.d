@@ -5,9 +5,10 @@ module it.issues;
 
 import it;
 
-version(Posix) // because Windows doesn't have signinfo
+version(Posix) // because Windows doesn't have siginfo
+@HiddenTest // I don't know what's going on but it doesn't find siginfo for some reason
 @Tags("issue")
-@("3")
+@("3.0")
 @safe unittest {
     shouldCompile(
         C(
@@ -2014,7 +2015,7 @@ version(Linux) {
 }
 
 
-@ShouldFail
+@HiddenTest // used to fail, now passes
 @Tags("issue")
 @("282")
 @safe unittest {

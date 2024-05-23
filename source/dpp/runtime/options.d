@@ -39,6 +39,7 @@ struct Options {
     string[string] prebuiltHeaders;
     bool alwaysScopedEnums;
     string cppStandard = "c++17";
+    string cStandard = "c99";
     string[] clangOptions;
     bool noSystemHeaders;
     string cppPath;
@@ -175,6 +176,7 @@ struct Options {
                     &detailedUntranslatable,
                 "scoped-enums", "Don't redeclare enums to mimic C", &alwaysScopedEnums,
                 "c++-standard", "The C++ language standard (e.g. \"c++14\")", &cppStandard,
+                "c-standard", "The C language standard (e.g. \"c90\")", &cStandard,
                 "clang-option", "Pass option to libclang", &clangOptions,
                 "no-sys-headers", "Don't include system headers by default", &noSystemHeaders,
                 "cpp-path", "Path to the C preprocessor executable", &cppPath,

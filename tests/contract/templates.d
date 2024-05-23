@@ -587,7 +587,7 @@ import contract;
     typeAlias.spelling.should == "__allocator_base";
     typeAlias.type.kind.should == Type.Kind.Typedef;
     typeAlias.type.spelling.should == "__allocator_base";
-    typeAlias.underlyingType.kind.should == Type.Kind.Unexposed;
+    typeAlias.underlyingType.kind.should.be in [Type.Kind.Unexposed, Type.Kind.Elaborated /*libclang17*/];
     typeAlias.underlyingType.spelling.should == "new_allocator<_Tp>";
     typeAlias.underlyingType.canonical.kind.should == Type.Kind.Unexposed;
     typeAlias.underlyingType.canonical.spelling.should == "new_allocator<type-parameter-0-0>";
@@ -754,7 +754,11 @@ import contract;
     other.shouldMatch(Cursor.Kind.ParmDecl, "other");
     other.type.shouldMatch(Type.Kind.LValueReference, "const Foo<U> &");
     other.type.isConstQualified.should == false;
-    other.type.pointee.shouldMatch(Type.Kind.Unexposed, "const Foo<U>");
+    try
+        other.type.pointee.shouldMatch(Type.Kind.Unexposed, "const Foo<U>");
+    catch(Exception _) //libclang17
+        other.type.pointee.shouldMatch(Type.Kind.Elaborated, "const Foo<U>");
+
     other.type.pointee.isConstQualified.should == true;
 }
 
@@ -790,7 +794,11 @@ import contract;
 
     const unexposed = arg0.pointee;
     writelnUt("unexposed: ", unexposed);
-    unexposed.shouldMatch(Type.Kind.Unexposed, "const Template<double (int)>");
+    try
+        unexposed.shouldMatch(Type.Kind.Unexposed, "const Template<double (int)>");
+    catch(Exception _) //libclang17
+        unexposed.shouldMatch(Type.Kind.Elaborated, "const Template<double (int)>");
+
 
     const record = unexposed.canonical;
     writelnUt("record: ", record);
