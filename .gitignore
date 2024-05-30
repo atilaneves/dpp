@@ -11,3 +11,4 @@ tmp
 *.ninja
 compile_commands.json
 dub_describe.json
+*.lst
