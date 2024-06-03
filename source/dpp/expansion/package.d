@@ -295,7 +295,9 @@ from!"clang".Cursor mergeLeaves(from!"clang".Cursor lhs, from!"clang".Cursor rhs
 bool isCppHeader(in from!"dpp.runtime.options".Options options, in string headerFileName) @safe pure {
     import std.path: extension;
     if(options.parseAsCpp) return true;
-    return headerFileName.extension != ".h";
+    return
+        headerFileName.extension != ".h" &&
+        headerFileName.extension != ".c";
 }
 
 
