@@ -2,7 +2,6 @@
 	"fileVersion": 1,
 	"versions": {
 		"libclang": "0.3.3",
-		"sumtype": "1.2.8",
 		"unit-threaded": "2.1.9"
 	}
 }
