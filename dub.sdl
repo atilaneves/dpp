@@ -9,7 +9,6 @@ targetPath "bin"
 targetName "d++"
 
 dependency "libclang" version="~>0.3.1"
-dependency "sumtype"  version="~>1.2.0"
 
 versions "SumTypeNoDefaultCtor"
 
