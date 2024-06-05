@@ -937,6 +937,12 @@ version(linux) // linux specific header in the test
     }
 }
 
+// the original fix for this issue had to do with ordering, but it
+// also ended up guarding a `static if` that checked if a macro
+// already existed before trying to define it again. Unfortunately,
+// too many static ifs caused the compiler to have ordering problems,
+// but removing that caused this test to fail. The "fix" is to ask for
+// scoped enums so that it doesn't try to define `BAR` twice.
 @Tags("issue")
 @("79")
 unittest {
@@ -947,7 +953,11 @@ unittest {
                               #define BAR 33
                               // before the BAR macro, BAR is 42. After, it's 33.
                           `,
-                          D(""), // no need for .dpp source code
+                          D(
+                              q{
+                                  // the macro is what works here
+                                  static assert(BAR == 33);
+                              }),
         );
         writeFile("2nd.h",
                   `
@@ -956,7 +966,9 @@ unittest {
                       // The bug had to do with ordering.
                       enum TheEnum { BAR = 42 };
                   `);
-        run("-c", inSandboxPath("app.dpp"), "--keep-pre-cpp-files");
+
+        runPreprocessOnly("app.dpp", "--scoped-enums");
+        shouldCompile("app.d");
     }
 }
 
