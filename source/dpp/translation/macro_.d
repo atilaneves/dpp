@@ -74,15 +74,16 @@ string[] translateMacro(in from!"clang".Cursor cursor,
                 ];
             }
         }
+
         return [
             `#ifdef ` ~ spelling,
             `#    undef ` ~ spelling,
             `#endif`,
-            `static if(!is(typeof(` ~ spelling ~ `))) {`,
-            ] ~ ret ~ [
-            `}`,
-            `#define ` ~ spelling ~ ` ` ~ translation.dcode,
-        ];
+            ] ~
+            ret ~
+            [
+                `#define ` ~ spelling ~ ` ` ~ translation.dcode,
+            ];
     }
 
     // Define a template function with the same name as the macro
