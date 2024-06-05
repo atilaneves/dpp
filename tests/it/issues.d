@@ -947,7 +947,11 @@ unittest {
                               #define BAR 33
                               // before the BAR macro, BAR is 42. After, it's 33.
                           `,
-                          D(""), // no need for .dpp source code
+                          D(
+                              q{
+                                  // the macro is what works here
+                                  static assert(BAR == 33);
+                              }),
         );
         writeFile("2nd.h",
                   `
@@ -956,7 +960,8 @@ unittest {
                       // The bug had to do with ordering.
                       enum TheEnum { BAR = 42 };
                   `);
-        run("-c", inSandboxPath("app.dpp"), "--keep-pre-cpp-files");
+        runPreprocessOnly("app.dpp");
+        shouldCompile("app.d");
     }
 }
 
